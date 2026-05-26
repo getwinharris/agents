@@ -276,7 +276,6 @@ function fakeSession(session: string, prompts: Array<{ session: string; message:
 		fs: {} as never,
 		skill: (() => Promise.resolve({ text: '', usage: {}, model: { id: 'test' } })) as never,
 		task: (() => Promise.resolve({ text: '', usage: {}, model: { id: 'test' } })) as never,
-		delegate: (() => Promise.resolve({ text: '', usage: {}, model: { id: 'test' } })) as never,
 		compact: async () => {},
 		delete: async () => {},
 	};

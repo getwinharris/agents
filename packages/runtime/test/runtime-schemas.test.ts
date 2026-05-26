@@ -35,19 +35,6 @@ describe('rich model-turn event schemas', () => {
 		expect(result.success).toBe(true);
 	});
 
-	it('accepts delegation operation lifecycle events', () => {
-		const result = v.safeParse(RunEventListResponseSchema, {
-			events: [
-				{ type: 'operation_start', operationId: 'op_1', operationKind: 'delegate' },
-				{ type: 'delegation_start', delegationId: 'delegation_1', targetInstanceId: 'reviewer', prompt: 'Review.' },
-				{ type: 'delegation', delegationId: 'delegation_1', targetInstanceId: 'reviewer', isError: false, result: 'ok', durationMs: 1 },
-				{ type: 'operation', operationId: 'op_1', operationKind: 'delegate', durationMs: 1, isError: false },
-			],
-		});
-
-		expect(result.success).toBe(true);
-	});
-
 	it('rejects malformed normalized model-turn content', () => {
 		const invalidRequest = v.safeParse(RunEventListResponseSchema, {
 			events: [{

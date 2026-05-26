@@ -45,7 +45,6 @@ export type {
 	PromptModel,
 	SkillOptions,
 	TaskOptions,
-	DelegateOptions,
 	ShellOptions,
 	ShellResult,
 	Skill,

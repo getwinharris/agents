@@ -2,8 +2,7 @@
 
 import type { FlueContextInternal } from '../client.ts';
 import { InvalidRequestError, parseJsonBody, RunEventTooLargeError, toHttpResponse, toPublicError } from '../errors.ts';
-import type { AgentDelegationInput } from '../session.ts';
-import type { AttachedAgentEvent, AttachedAgentEventCallback, CreatedAgent, DirectAgentPayload, DispatchReceipt, FlueEvent, FlueEventCallback, PromptResponse } from '../types.ts';
+import type { AttachedAgentEvent, AttachedAgentEventCallback, CreatedAgent, DirectAgentPayload, DispatchReceipt, FlueEvent, FlueEventCallback } from '../types.ts';
 import type { DispatchInput, DispatchProcessor } from './dispatch-queue.ts';
 import { generateWorkflowRunId } from './ids.ts';
 import type { RunOwner, RunRegistry } from './run-registry.ts';
@@ -21,14 +20,6 @@ interface DirectRequestSession {
 
 interface DispatchSession {
 	processDispatchInput(input: DispatchInput): PromiseLike<unknown>;
-}
-
-export interface InvokeAgentDelegationOptions {
-	agentName: string;
-	agent: CreatedAgentHandler;
-	input: AgentDelegationInput;
-	createContext: CreateContextFn;
-	signal?: AbortSignal;
 }
 
 export interface AgentSessionTarget {
@@ -148,7 +139,6 @@ export type CreateContextFn = (
 	request: Request,
 	initialEventIndex?: number,
 	dispatchId?: string,
-	delegationId?: string,
 ) => FlueContextInternal;
 
 /**
@@ -691,30 +681,6 @@ export async function invokeDirectAttached(opts: DirectAttachedOptions): Promise
 			});
 		} finally {
 			ctx.setEventCallback(undefined);
-		}
-	} finally {
-		sessionLock?.();
-	}
-}
-
-export async function invokeAgentDelegation(opts: InvokeAgentDelegationOptions): Promise<PromptResponse> {
-	const sessionLock = acquireDirectAgentSessionLock(opts.agentName, opts.input.id, { session: opts.input.session });
-	const ctx = opts.createContext(
-		opts.input.id,
-		undefined,
-		undefined,
-		new Request('http://flue.local/_delegation', { method: 'POST', signal: opts.signal }),
-		undefined,
-		undefined,
-		opts.input.delegationId,
-	);
-	try {
-		const harness = await ctx.initializeCreatedAgent(opts.agent, undefined);
-		const session = await harness.sessions.create(opts.input.session);
-		try {
-			return await session.prompt(opts.input.message, { signal: opts.signal });
-		} finally {
-			await session.delete().catch(() => {});
 		}
 	} finally {
 		sessionLock?.();

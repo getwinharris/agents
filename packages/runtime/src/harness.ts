@@ -1,7 +1,7 @@
 import { createCallHandle } from './abort.ts';
 import { discoverSessionContext } from './context.ts';
 import { createCwdSessionEnv, createFlueFs } from './sandbox.ts';
-import { type CreateTaskSessionOptions, deleteSessionTree, type InvokeAgentDelegation, Session } from './session.ts';
+import { type CreateTaskSessionOptions, deleteSessionTree, Session } from './session.ts';
 import type {
 	AgentConfig,
 	AgentProfile,
@@ -44,7 +44,6 @@ export class Harness implements FlueHarness {
 		private eventCallback?: FlueEventCallback,
 		private agentTools: ToolDefinition[] = [],
 		private toolFactory?: SessionToolFactory,
-		private invokeAgentDelegation?: InvokeAgentDelegation,
 	) {
 		this.fs = createFlueFs(env);
 	}
@@ -103,7 +102,6 @@ export class Harness implements FlueHarness {
 			toolFactory: this.toolFactory,
 			taskDepth: 0,
 			createTaskSession: (taskOptions) => this.createTaskSession(taskOptions),
-			invokeAgentDelegation: this.invokeAgentDelegation,
 			onDelete: () => this.openSessions.delete(sessionName),
 		});
 		this.openSessions.set(sessionName, session);

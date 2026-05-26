@@ -344,8 +344,8 @@ function fakeDispatchHarness(sessions: string[], processed: DispatchInput[]): Fl
 	};
 }
 
-function createTestContext(id: string, runId: string | undefined, payload: unknown, req: Request, initialEventIndex?: number, dispatchId?: string, delegationId?: string) {
-	return createFlueContext({ id, runId, dispatchId, delegationId, payload, env: {}, req, initialEventIndex, agentConfig: testAgentConfig(), createDefaultEnv: async () => fakeEnv(), defaultStore: new InMemorySessionStore() });
+function createTestContext(id: string, runId: string | undefined, payload: unknown, req: Request, initialEventIndex?: number, dispatchId?: string) {
+	return createFlueContext({ id, runId, dispatchId, payload, env: {}, req, initialEventIndex, agentConfig: testAgentConfig(), createDefaultEnv: async () => fakeEnv(), defaultStore: new InMemorySessionStore() });
 }
 
 function testAgentConfig(): AgentConfig {

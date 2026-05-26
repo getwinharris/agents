@@ -52,8 +52,6 @@ import type {
 	BranchSummaryEntry,
 	CallHandle,
 	CompactionEntry,
-	CreatedAgent,
-	DelegateOptions,
 	DispatchMessageMetadata,
 	FlueEvent,
 	FlueEventCallback,
@@ -156,21 +154,7 @@ export interface CreateTaskSessionOptions {
 
 export type CreateTaskSession = (options: CreateTaskSessionOptions) => Promise<Session>;
 
-export interface AgentDelegationInput {
-	delegationId: string;
-	id: string;
-	session: string;
-	message: string;
-	requestedAt: string;
-}
-
-export type InvokeAgentDelegation = (
-	agent: CreatedAgent,
-	input: AgentDelegationInput,
-	signal?: AbortSignal,
-) => Promise<PromptResponse>;
-
-type OperationKind = 'prompt' | 'skill' | 'task' | 'delegate' | 'shell' | 'compact';
+type OperationKind = 'prompt' | 'skill' | 'task' | 'shell' | 'compact';
 
 interface SessionInitOptions {
 	name: string;
@@ -185,7 +169,6 @@ interface SessionInitOptions {
 	toolFactory?: SessionToolFactory;
 	taskDepth?: number;
 	createTaskSession?: CreateTaskSession;
-	invokeAgentDelegation?: InvokeAgentDelegation;
 	onDelete?: () => void;
 }
 
@@ -566,7 +549,6 @@ export class Session implements FlueSession {
 	private activeTasks = new Set<Session>();
 	private taskDepth: number;
 	private createTaskSession: CreateTaskSession | undefined;
-	private invokeAgentDelegation: InvokeAgentDelegation | undefined;
 	private onDelete: (() => void) | undefined;
 
 	private emitTurnRequestAndStream: StreamFn = (model, context, options) => {
@@ -617,7 +599,6 @@ export class Session implements FlueSession {
 		this.toolFactory = options.toolFactory;
 		this.taskDepth = options.taskDepth ?? 0;
 		this.createTaskSession = options.createTaskSession;
-		this.invokeAgentDelegation = options.invokeAgentDelegation;
 		this.onDelete = options.onDelete;
 
 		this.metadata = options.existingData?.metadata ?? {};
@@ -874,12 +855,6 @@ export class Session implements FlueSession {
 			const result = await this.runTask(text, options, signal);
 			return result.output;
 		});
-	}
-
-	delegate(text: string, options: DelegateOptions): CallHandle<PromptResponse> {
-		return createCallHandle(options?.signal, (signal) =>
-			this.runOperation('delegate', signal, () => this.runDelegation(text, options, signal)),
-		);
 	}
 
 	shell(command: string, options?: ShellOptions): CallHandle<ShellResult> {
@@ -1392,61 +1367,6 @@ export class Session implements FlueSession {
 				this.activeTasks.delete(child);
 				child.close();
 			}
-		}
-	}
-
-	private async runDelegation(
-		text: string,
-		options: DelegateOptions,
-		signal: AbortSignal | undefined,
-	): Promise<PromptResponse> {
-		if (!this.invokeAgentDelegation) {
-			throw new Error('[flue] This session cannot delegate to deployed agents.');
-		}
-		if (!options.agent || options.agent.__flueCreatedAgent !== true || typeof options.agent.initialize !== 'function') {
-			throw new Error('[flue] delegate() requires an agent created with createAgent(...).');
-		}
-		if (typeof options.id !== 'string' || options.id.trim() === '') {
-			throw new Error('[flue] delegate() requires a non-empty "id" target agent instance id.');
-		}
-		if (signal?.aborted) throw abortErrorFor(signal);
-
-		const delegationId = crypto.randomUUID();
-		const startedAt = Date.now();
-		const target = {
-			delegationId,
-			targetInstanceId: options.id,
-			prompt: text,
-		};
-		this.emit({ type: 'delegation_start', ...target });
-		try {
-			const result = await this.invokeAgentDelegation(options.agent, {
-				delegationId,
-				id: options.id,
-				session: `delegation:${delegationId}`,
-				message: text,
-				requestedAt: new Date().toISOString(),
-			}, signal);
-			this.emit({
-				type: 'delegation',
-				delegationId,
-				targetInstanceId: options.id,
-				isError: false,
-				result: result.text,
-				durationMs: durationSince(startedAt),
-			});
-			return result;
-		} catch (error) {
-			const surfaced = signal?.aborted ? abortErrorFor(signal) : error;
-			this.emit({
-				type: 'delegation',
-				delegationId,
-				targetInstanceId: options.id,
-				isError: true,
-				result: getErrorMessage(surfaced),
-				durationMs: durationSince(startedAt),
-			});
-			throw surfaced;
 		}
 	}
 
