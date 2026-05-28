@@ -484,6 +484,11 @@ export async function failRecoveredRun(opts: FailRecoveredRunOptions): Promise<v
 		startedAt,
 		startedAtMs: Number.isFinite(startedAtMs) ? startedAtMs : Date.now(),
 	};
+	if (events.some((event) => event.type === 'run_start')) {
+		const flushFanout = subscribeRunFanout(lifecycle);
+		emitRunResume(lifecycle);
+		await flushFanout();
+	}
 	await emitRunEnd(lifecycle, { isError: true, error: opts.error });
 }
 
@@ -509,7 +514,8 @@ export async function recoverWorkflowRun(opts: RecoverRunOptions): Promise<Recov
 			startedAt,
 			startedAtMs: Number.isFinite(startedAtMs) ? startedAtMs : Date.now(),
 		};
-		const result = await invokeWorkflowRunLifecycle(lifecycle, () => opts.handler(lifecycle.ctx), !events.some((event) => event.type === 'run_start'));
+		const hasStarted = events.some((event) => event.type === 'run_start');
+		const result = await invokeWorkflowRunLifecycle(lifecycle, () => opts.handler(lifecycle.ctx), !hasStarted, hasStarted);
 		return { result, isError: false };
 	} catch (error) {
 		try {
@@ -856,9 +862,11 @@ async function invokeWorkflowRunLifecycle<T>(
 	lifecycle: WorkflowRunLifecycle,
 	body: () => T | Promise<T>,
 	emitStart: boolean,
+	emitResume = false,
 ): Promise<T> {
 	const flushFanout = subscribeRunFanout(lifecycle);
 	if (emitStart) emitRunStart(lifecycle);
+	if (emitResume) emitRunResume(lifecycle);
 	let didFlushFanout = false;
 	let result: T;
 	try {
@@ -886,7 +894,19 @@ function emitRunStart(lifecycle: WorkflowRunLifecycle): void {
 		instanceId: lifecycle.owner.instanceId,
 		workflowName: lifecycle.owner.workflowName,
 		startedAt: lifecycle.startedAt,
+		restartedFromRunId: lifecycle.restartedFromRunId,
 		payload: lifecycle.payload,
+	});
+}
+
+function emitRunResume(lifecycle: WorkflowRunLifecycle): void {
+	lifecycle.ctx.emitEvent({
+		type: 'run_resume',
+		runId: lifecycle.runId,
+		owner: lifecycle.owner,
+		instanceId: lifecycle.owner.instanceId,
+		workflowName: lifecycle.owner.workflowName,
+		startedAt: lifecycle.startedAt,
 	});
 }
 
