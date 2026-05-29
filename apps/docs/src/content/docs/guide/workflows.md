@@ -122,7 +122,164 @@ workflow run { runId }
 
 Initialization is demand-driven: a branch that does not call `init(...)` does not initialize its agent. This lets one workflow combine deterministic decisions with agent work only where it is needed.
 
-See [Harness](/docs/guide/harness/) for initialized environments, named sessions, files, shell access, and conversation state.
+The returned `harness` is the workflow's handle to this initialized environment. The following sections cover naming environments, using sessions, and staging runtime context; see [Building Agents](/docs/guide/building-agents/) for the created-agent configuration shared with directly addressable agents.
+
+### Name or augment an initialized environment
+
+`init(agent)` creates an environment named `"default"`. During a workflow invocation, you can assign another name or add capabilities for one initialized use of the created agent:
+
+```ts title=".flue/workflows/compare.ts"
+import { createAgent, type FlueContext } from '@flue/runtime';
+import { policyTools } from '../shared/policy-tools.ts';
+import { auditSkills } from '../shared/audit-skills.ts';
+import { reviewerProfiles } from '../shared/reviewer-profiles.ts';
+
+const analyst = createAgent(() => ({
+  model: 'anthropic/claude-sonnet-4-6',
+}));
+
+export async function run({ init }: FlueContext) {
+  const harness = await init(analyst, {
+    name: 'audit',
+    tools: policyTools,
+    skills: auditSkills,
+    subagents: reviewerProfiles,
+  });
+  const session = await harness.session();
+
+  return session.prompt('Assess the proposed policy change.');
+}
+```
+
+| `init(agent, options)` field | Effect |
+| --- | --- |
+| `name` | Selects the environment identity within this workflow invocation. Defaults to `"default"`. |
+| `tools` | Adds application-defined tools to those configured by the created agent or its profile. |
+| `skills` | Adds registered skills to those configured by the created agent or its profile. |
+| `subagents` | Adds named profiles that a task may select. |
+
+`init(...)` does not accept `cwd`, `sandbox`, persistence, or compaction configuration. Those options define the created agent's runtime boundary and belong in `createAgent(...)` or its profile. Within one invocation, initialize each environment name once; assign distinct names when orchestration requires separate initialized environments.
+
+### Use sessions inside a workflow
+
+A harness contains named sessions. `harness.session()` selects the `"default"` session; passing a name selects another conversation branch within the same initialized environment.
+
+Sequential operations in one session can use prior conversation state:
+
+```ts title=".flue/workflows/triage.ts"
+import { createAgent, type FlueContext } from '@flue/runtime';
+
+const triage = createAgent(() => ({
+  model: 'anthropic/claude-sonnet-4-6',
+}));
+
+export async function run({ init }: FlueContext) {
+  const harness = await init(triage);
+  const session = await harness.session();
+
+  await session.prompt('Read the issue and identify the likely component.');
+  return session.prompt('Now propose a focused validation plan for that component.');
+}
+```
+
+Use separate named sessions for independent branches:
+
+```ts title=".flue/workflows/compare-reviews.ts"
+import { createAgent, type FlueContext } from '@flue/runtime';
+
+const reviewer = createAgent(() => ({
+  model: 'anthropic/claude-sonnet-4-6',
+}));
+
+export async function run({ init }: FlueContext) {
+  const harness = await init(reviewer);
+  const security = await harness.session('security');
+  const maintainability = await harness.session('maintainability');
+
+  const [securityResult, maintainabilityResult] = await Promise.all([
+    security.prompt('Review the change for security risks.'),
+    maintainability.prompt('Review the change for maintenance risks.'),
+  ]);
+
+  return {
+    security: securityResult.text,
+    maintainability: maintainabilityResult.text,
+  };
+}
+```
+
+One session permits one active operation at a time. Use different sessions for concurrent branches, or [Subagents](/docs/guide/subagents/) when work should be delegated into child-session history. See [Prompting](/docs/guide/prompting/) for operation ordering and results.
+
+Workflow session identity is scoped by:
+
+```text
+runId × harness name × session name
+```
+
+Because every workflow invocation gets a new `runId`, named sessions ordinarily coordinate work inside one finite run. Use a directly addressable [agent](/docs/guide/building-agents/) when later inbound interactions need to reopen a continuing application identity and session.
+
+### Prepare runtime context before initialization
+
+The created agent chooses its sandbox and working directory. At initialization, Flue discovers workspace guidance such as `<cwd>/AGENTS.md`, `<cwd>/CLAUDE.md`, and workspace skills inside that sandbox. If a workflow generates any of these inputs, write them before initializing the environment that should use them.
+
+```ts title=".flue/workflows/review-generated-workspace.ts"
+import { mkdir, writeFile } from 'node:fs/promises';
+import { createAgent, type FlueContext } from '@flue/runtime';
+import { local } from '@flue/runtime/node';
+
+const cwd = '/tmp/flue-review-workspace';
+
+const reviewer = createAgent(() => ({
+  model: 'anthropic/claude-sonnet-4-6',
+  sandbox: local(),
+  cwd,
+}));
+
+export async function run({ init }: FlueContext) {
+  await mkdir(cwd, { recursive: true });
+  await writeFile(`${cwd}/AGENTS.md`, 'Review only TypeScript source and report affected tests.');
+  await writeFile(`${cwd}/change-request.md`, 'Check the request-validation change.');
+
+  const harness = await init(reviewer);
+  const session = await harness.session();
+
+  return session.prompt('Read change-request.md and carry out the review.');
+}
+```
+
+Writing a guidance file after `init(...)` makes it available as a workspace file, but does not retroactively add it to that environment's discovered system context. If later setup must be discovered, initialize a distinct named environment after setup.
+
+### Stage files and shell work deliberately
+
+A workflow can prepare or inspect an initialized sandbox without placing every setup step into model-visible conversation history:
+
+| Surface | Appropriate use | Recorded in session conversation state? |
+| --- | --- | --- |
+| `harness.fs` | Stage input files or retrieve artifacts without choosing a conversation. | No. |
+| `session.fs` | Perform application-owned filesystem plumbing while holding a session. | No. |
+| `harness.shell(command)` | Prepare or inspect the sandbox outside conversation. | No. |
+| `session.shell(command)` | Execute shell work that later model turns should know occurred. | Yes, as a shell-tool-shaped exchange. |
+| Model-called file or shell tools | Let the model choose workspace actions during an operation. | Yes, through the transcript and events. |
+
+```ts title=".flue/workflows/summarize-artifact.ts"
+import { createAgent, type FlueContext } from '@flue/runtime';
+
+const summarizer = createAgent(() => ({
+  model: 'anthropic/claude-sonnet-4-6',
+  cwd: '/workspace',
+}));
+
+export async function run({ init, payload }: FlueContext<{ report: string }>) {
+  const harness = await init(summarizer);
+  await harness.fs.writeFile('inputs/report.md', payload.report);
+
+  const session = await harness.session();
+  await session.shell('ls inputs');
+  return session.prompt('Read inputs/report.md and summarize its principal findings.');
+}
+```
+
+Filesystem and shell methods depend on the configured sandbox capability. Relative paths resolve against the configured `cwd`, and writing a file out of band does not automatically tell the model that it exists. See [Sandboxes](/docs/guide/sandboxes/) for execution surfaces and [Tools](/docs/guide/tools/) when a narrower application-owned capability is preferable to general shell access.
 
 ## Payloads and results
 

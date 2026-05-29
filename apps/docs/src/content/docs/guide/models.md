@@ -13,7 +13,7 @@ This guide shows how to:
 - supply credentials and configure or register providers; and
 - use binding-backed Cloudflare Workers AI models on the Cloudflare target.
 
-For the initialized environment in which models run, see [Harness](/docs/guide/harness/). For operation results and options beyond model selection, see [Prompting](/docs/guide/prompting/).
+For configuring addressable agents, see [Agents](/docs/guide/building-agents/). For initializing agents during finite orchestration, see [Workflows](/docs/guide/workflows/). For operation results and options beyond model selection, see [Prompting](/docs/guide/prompting/).
 
 ## Choose a model identifier
 
@@ -34,7 +34,7 @@ The portion before the first slash selects the provider prefix. Everything after
 
 Built-in provider prefixes resolve models from the runtime model catalog. If you use a catalog provider with an unknown model id, initialization or the overriding operation fails rather than silently selecting another model. A prefix that your application registers with `registerProvider(...)` resolves through that registration instead; see [Register a provider](#register-a-provider).
 
-A **created agent** must establish its model intent before Flue can initialize its [harness](/docs/guide/harness/). Its `createAgent(...)` initializer must return one of:
+A **created agent** must establish its model intent before Flue can initialize its environment. Its `createAgent(...)` initializer must return one of:
 
 - a `model: 'provider/model-id'` default;
 - `model: false`, explicitly declaring that there is no default model; or
@@ -420,4 +420,4 @@ Flue accepts `thinkingLevel` on agents and operations using `cloudflare/...` bec
 
 Use the binding-backed form when your Worker should call Workers AI through its platform binding. Use a URL-backed Cloudflare catalog provider only when your application intentionally needs that HTTP credential-and-endpoint flow.
 
-Continue to [Build & Deploy](/docs/guide/deployment/) for target and durability decisions, [Deploy on Cloudflare](/docs/ecosystem/deploy/cloudflare/) for platform configuration, [Configuration](/docs/guide/configuration/) for application setup boundaries, and [Harness](/docs/guide/harness/) for the sessions in which model operations execute.
+Continue to [Build & Deploy](/docs/guide/deployment/) for target and durability decisions, [Deploy on Cloudflare](/docs/ecosystem/deploy/cloudflare/) for platform configuration, [Configuration](/docs/guide/configuration/) for application setup boundaries, [Agents](/docs/guide/building-agents/) for continuing session behavior, and [Workflows](/docs/guide/workflows/) for initializing model-driven work inside finite operations.

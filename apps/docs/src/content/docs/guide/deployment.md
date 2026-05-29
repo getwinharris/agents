@@ -172,7 +172,7 @@ Flue applications can retain several kinds of state. They are controlled indepen
 
 A durable conversation does not imply durable files. A durable filesystem does not imply durable conversation history. Likewise, workflow run records do not represent direct prompts or dispatch deliveries: only workflow invocations have `runId` values and appear in run history.
 
-For conversation state in detail, see [Harness](/docs/guide/harness/). For filesystem and compute boundaries, see [Sandboxes](/docs/guide/sandboxes/).
+For continuing agent session state, see [Agents](/docs/guide/building-agents/). For the persistence contract, see [Data Persistence API](/docs/api/data-persistence-api/). For filesystem and compute boundaries, see [Sandboxes](/docs/guide/sandboxes/).
 
 ## Verify before deployment
 

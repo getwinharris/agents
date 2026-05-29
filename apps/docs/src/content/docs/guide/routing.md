@@ -235,7 +235,7 @@ agent: support-assistant
         operation: this prompt
 ```
 
-Reusing the same agent name, `id`, and session continues that session when its configured persistence permits it. On Node, the default session storage is process-lifetime memory unless your created agent supplies persistence. On Cloudflare, the generated durable agent runtime retains session state across requests. See [Harness](/docs/guide/harness/) and [Sandboxes](/docs/guide/sandboxes/) when state or execution environment affects your exposure decision.
+Reusing the same agent name, `id`, and session continues that session when its configured persistence permits it. On Node, the default session storage is process-lifetime memory unless your created agent supplies persistence. On Cloudflare, the generated durable agent runtime retains session state across requests. See [Agents](/docs/guide/building-agents/) and [Sandboxes](/docs/guide/sandboxes/) when state or execution environment affects your exposure decision.
 
 ### Receive a synchronous result
 

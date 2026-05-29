@@ -28,5 +28,5 @@ The connector catalog includes remote Linux environments, platform-owned workspa
 ## Core guides
 
 - [Sandboxes](/docs/guide/sandboxes/) explains how to choose a filesystem and execution boundary.
-- [Harness](/docs/guide/harness/) explains session persistence versus workspace durability.
+- [Agents](/docs/guide/building-agents/) explains continuing session persistence versus workspace durability.
 - [Routing](/docs/guide/routing/) explains which deployed application surfaces are public.

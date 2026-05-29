@@ -5,7 +5,7 @@ description: Perform prompt operations and obtain text, structured data, media-a
 
 Use `session.prompt(...)` when application code needs a model response within an existing session. A prompt is one **operation** in that session: it appends user and assistant activity to the session conversation, can invoke tools or internal result-handling turns, and returns metadata for the complete operation.
 
-This guide assumes you already have a created agent and are obtaining its initialized [harness](/docs/guide/harness/). For model selection and provider setup, see [Models & Providers](/docs/guide/models/). For finite orchestration around prompts, see [Workflows](/docs/guide/workflows/).
+This guide assumes you already have a created agent and are obtaining its initialized environment through a [workflow](/docs/guide/workflows/) or an addressable [agent](/docs/guide/building-agents/). For model selection and provider setup, see [Models & Providers](/docs/guide/models/).
 
 ## Send a prompt
 
@@ -416,4 +416,4 @@ export async function run({ init }: FlueContext) {
 }
 ```
 
-Use [Observability](/docs/guide/observability/) when you need to inspect operation boundaries, model turns, tool calls, usage, cancellation failures, or context compaction. Use [Harness](/docs/guide/harness/) for session scope and persisted conversation state, and [Workflows](/docs/guide/workflows/) for the finite orchestration boundary around operations.
+Use [Observability](/docs/guide/observability/) when you need to inspect operation boundaries, model turns, tool calls, usage, cancellation failures, or context compaction. Use [Agents](/docs/guide/building-agents/) for continuing session scope and persisted conversation state, and [Workflows](/docs/guide/workflows/) for the finite orchestration boundary around operations.

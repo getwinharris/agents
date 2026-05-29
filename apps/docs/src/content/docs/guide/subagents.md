@@ -16,7 +16,7 @@ This guide shows how to:
 - observe and cancel delegated work safely; and
 - avoid concurrency and nesting mistakes.
 
-For surrounding concepts, see [Harness](/docs/guide/harness/), [Tools](/docs/guide/tools/), [Workflows](/docs/guide/workflows/), and [Observability](/docs/guide/observability/).
+For surrounding concepts, see [Agents](/docs/guide/building-agents/), [Tools](/docs/guide/tools/), [Workflows](/docs/guide/workflows/), and [Observability](/docs/guide/observability/).
 
 ## Delegate focused work with an anonymous task
 
@@ -415,7 +415,8 @@ The model-facing built-in tool system can manage task calls it elects to issue d
 
 ## Related guides
 
-- [Harness](/docs/guide/harness/) explains initialized agent environments and sessions.
+- [Agents](/docs/guide/building-agents/) covers created-agent configuration and continuing sessions.
+- [Workflows](/docs/guide/workflows/) covers initialized environments and sessions during finite orchestration.
 - [Tools](/docs/guide/tools/) covers model-invoked executable capabilities, including delegation as a built-in tool.
 - [Models & Providers](/docs/guide/models/) covers defaults, overrides, and reasoning configuration.
 - [Workflows](/docs/guide/workflows/) defines finite orchestrations and why runs remain workflow-only.

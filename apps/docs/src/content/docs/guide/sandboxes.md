@@ -7,7 +7,7 @@ A **sandbox** is the filesystem and execution boundary available to a Flue harne
 
 This guide helps you select and configure that boundary for TypeScript applications running on Node.js or Cloudflare. It covers the lightweight default, deliberate host access on Node, remote connector-backed environments, and the two distinct Cloudflare approaches for durable workspaces and Linux containers.
 
-For how to initialize harnesses and use sessions, read [Harness](/docs/guide/harness/). For model-visible and application-defined capabilities, read [Tools](/docs/guide/tools/). For authored project source versus runtime workspace context, read [Project Layout](/docs/guide/project-layout/).
+For how to configure addressable agents, read [Agents](/docs/guide/building-agents/). For initialization and sessions inside finite orchestration, read [Workflows](/docs/guide/workflows/). For model-visible and application-defined capabilities, read [Tools](/docs/guide/tools/). For authored project source versus runtime workspace context, read [Project Layout](/docs/guide/project-layout/).
 
 ## Configure the sandbox on a created agent
 
@@ -38,7 +38,7 @@ Omitting `sandbox`, or setting `sandbox: false`, selects the target's default li
 | `cwd` | The working directory inside the selected sandbox, used for relative paths and runtime context discovery. |
 | `persist` | Conversation-state storage for sessions; it does not determine filesystem durability. |
 
-`cwd` selects runtime workspace context as well as relative paths. During initialization, Flue discovers guidance such as `<cwd>/AGENTS.md`, `<cwd>/CLAUDE.md`, and `<cwd>/.agents/skills/<name>/SKILL.md` only when those files exist **inside the sandbox**. Files beside authored `.flue/agents/` or `.flue/workflows/` modules are not automatically available in an empty or remote runtime filesystem. See [Project Layout](/docs/guide/project-layout/) and [Harness](/docs/guide/harness/#make-instructions-and-workspace-context-available-at-initialization).
+`cwd` selects runtime workspace context as well as relative paths. During initialization, Flue discovers guidance such as `<cwd>/AGENTS.md`, `<cwd>/CLAUDE.md`, and `<cwd>/.agents/skills/<name>/SKILL.md` only when those files exist **inside the sandbox**. Files beside authored `.flue/agents/` or `.flue/workflows/` modules are not automatically available in an empty or remote runtime filesystem. See [Project Layout](/docs/guide/project-layout/), [Agents](/docs/guide/building-agents/), and [Workflows](/docs/guide/workflows/).
 
 ## Start with the default lightweight sandbox
 
@@ -108,7 +108,7 @@ The filesystem surfaces provide `readFile()`, `readFileBuffer()`, `writeFile()`,
 
 By default, sandbox-backed model operations receive file and command tools such as `read`, `write`, `edit`, `bash`, `grep`, and `glob`, together with Flue's framework-owned `task` delegation tool. Their capability boundary is the selected sandbox: the same `bash` tool is materially different in an in-memory default environment, the Node host, or a Linux container.
 
-A `SandboxFactory` may define its own `tools` factory. In that case, the connector's returned model-facing tools replace the normal `read`/`write`/`edit`/`bash`/`grep`/`glob` set for that sandbox; Flue still supplies `task`. This is why prompts should not assume ordinary shell tools are available when using a platform-specific connector. See [Tools](/docs/guide/tools/#use-built-in-sandbox-tools) and [Harness](/docs/guide/harness/#stage-files-and-execute-shell-work-deliberately) rather than duplicating all surface details in sandbox selection code.
+A `SandboxFactory` may define its own `tools` factory. In that case, the connector's returned model-facing tools replace the normal `read`/`write`/`edit`/`bash`/`grep`/`glob` set for that sandbox; Flue still supplies `task`. This is why prompts should not assume ordinary shell tools are available when using a platform-specific connector. See [Tools](/docs/guide/tools/#use-built-in-sandbox-tools) and [Workflows](/docs/guide/workflows/) for application-owned staging and shell use.
 
 ### Separate conversation persistence from filesystem durability
 
@@ -413,7 +413,8 @@ Begin with the narrowest environment that supports the task, then expand capabil
 
 ## Continue configuring your application
 
-- Use [Harness](/docs/guide/harness/) to initialize configured agents, stage workspace inputs, and manage session state.
+- Use [Agents](/docs/guide/building-agents/) to configure addressable agents and continuing session state.
+- Use [Workflows](/docs/guide/workflows/) to initialize configured agents and stage workspace inputs during finite orchestration.
 - Use [Tools](/docs/guide/tools/) to restrict executable capabilities or understand connector-replaced model tools.
 - Use [Project Layout](/docs/guide/project-layout/) to distinguish authored modules from runtime-discovered workspace context.
 - Use [Models & Providers](/docs/guide/models/) to select models independently of the sandbox boundary.
