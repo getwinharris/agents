@@ -6,7 +6,7 @@ lastReviewedAt: 2026-05-29
 
 Models determine what kind of work an agent can perform. Providers determine how your application reaches those models, authenticates its requests, and applies any transport-specific configuration.
 
-This guide covers model selection and provider setup. For configuring addressable agents, see [Agents](/docs/guide/building-agents/). For running model-driven work inside finite orchestration, see [Workflows](/docs/guide/workflows/). For operation inputs and results, see the [Agent API](/docs/api/agent-api/).
+This guide covers model selection and provider setup. For configuring addressable agents, see [Agents](/docs/guide/building-agents/). For running model-driven work inside finite orchestration, see [Workflows](/docs/guide/workflows/). For provider registration signatures, see the [Provider API](/docs/api/provider-api/). For operation inputs and results, see the [Agent API](/docs/api/agent-api/).
 
 ## Model specifier
 
@@ -149,7 +149,7 @@ export default createAgent(() => ({
 
 A provider registration can also supply authentication, headers, and model metadata when your endpoint requires them. Most OpenAI-compatible services can use the built-in `openai-completions` protocol shown above. For an endpoint with a different wire protocol, advanced integrations can import `registerApiProvider(...)` from `@flue/runtime` and use it to register that protocol before registering a provider ID for it.
 
-Choose a new provider ID unless you intend to replace a built-in connection path. For example, registering `cloudflare` yourself replaces Flue's generated `cloudflare/...` binding configuration, which is how the customization below takes effect.
+Choose a new provider ID unless you intend to override a built-in connection path. For example, registering `cloudflare` yourself takes precedence over Flue's generated `cloudflare/...` binding default, which is how the customization below takes effect.
 
 ## Cloudflare Workers AI (Cloudflare only)
 

@@ -33,6 +33,7 @@ export type ProviderRegistration =
 	| HttpProviderRegistration
 	| CloudflareAIBindingRegistration;
 
+/** Register an HTTP-backed provider ID with {@link registerProvider}. */
 export interface HttpProviderRegistration {
 	api: Api;
 	/** Endpoint root, e.g. `'https://api.anthropic.com/v1'`. */
@@ -60,6 +61,7 @@ export interface HttpProviderRegistration {
 	models?: Record<string, { contextWindow?: number; maxTokens?: number }>;
 }
 
+/** Register a Workers AI binding-backed provider ID with {@link registerProvider}. */
 export interface CloudflareAIBindingRegistration {
 	api: typeof CLOUDFLARE_AI_BINDING_API;
 	/** The captured `env.AI` reference. Read at registration time. */
@@ -97,10 +99,10 @@ function isCloudflareBindingRegistration(
 const providersById = new Map<string, ProviderRegistration>();
 
 /**
- * Register a Flue-level model provider keyed by provider ID.
+ * Register a model provider keyed by the provider ID used in model specifiers.
  *
- * Last-write-wins. On Cloudflare, the generated entry reserves the
- * `cloudflare` provider ID for the built-in Workers AI binding integration.
+ * Last-write-wins. On Cloudflare, registering the `cloudflare` provider ID in
+ * `app.ts` takes precedence over the generated Workers AI binding default.
  */
 export function registerProvider(
 	providerId: string,
@@ -151,9 +153,13 @@ export type ProviderConfiguration = ProviderSettings;
 
 const providerSettingsById = new Map<string, ProviderSettings>();
 
+// TODO: Decide whether repeated configureProvider() calls should compose partial
+// settings or intentionally replace the previous object.
+
 /**
- * Patch transport-level settings on an existing provider while preserving its
- * resolved Model metadata (cost, context window, token limits, etc.).
+ * Configure transport-level settings on an existing provider while preserving
+ * its resolved Model metadata (cost, context window, token limits, etc.).
+ * Repeated calls for the same provider ID replace the previous settings object.
  *
  * ```ts
  * import { configureProvider } from '@flue/runtime';
