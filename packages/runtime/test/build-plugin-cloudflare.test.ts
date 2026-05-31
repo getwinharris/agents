@@ -55,6 +55,10 @@ describe('Cloudflare build plugin', () => {
 		expect(entry).not.toContain("operation: 'replacement_admission'");
 		expect(entry).not.toContain('isInternalRestart');
 		expect(entry).not.toContain('JSON.stringify(payload ?? {})');
+		const workflowRecoveryBody = entry.slice(entry.indexOf('async function handleFlueWorkflowFiberRecovered'), entry.indexOf('// ─── Per-DO Dispatch'));
+		expect(workflowRecoveryBody).not.toContain('runStore.getRun(interruptedRunId)');
+		expect(workflowRecoveryBody).not.toContain('runStore.getEvents(interruptedRunId)');
+		expect(workflowRecoveryBody).not.toContain('const startEvent');
 		expect(entry).toContain("return doInstance.runFiber('flue:workflow:' + runId");
 		const workflowHttpBody = entry.slice(entry.indexOf('async function dispatchWorkflow'), entry.indexOf('async function dispatchAgent'));
 		expect(workflowHttpBody).toContain("return doInstance.runFiber('flue:workflow:' + runId");

@@ -29,7 +29,7 @@ observe(createOpenTelemetryObserver({ tracer }));
 
 | Flue events | Span |
 | --- | --- |
-| `run_start` / `run_resume` / `run_end` | Workflow root span or resumed workflow segment |
+| `run_start` / `run_resume` / `run_end` | Workflow root span or recovered run-handling segment; `run_resume` adds `flue.workflow.recovery_handling`, while legacy `flue.workflow.resumed` remains for compatibility |
 | `operation_start` / `operation` | Operation span; root for direct or dispatched processing |
 | `turn_request` / `turn` | Model-generation span |
 | `tool_start` / `tool_call` | Tool span, including `harness.shell(...)` |

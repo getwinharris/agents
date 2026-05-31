@@ -474,16 +474,10 @@ async function handleFlueWorkflowFiberRecovered(ctx, doInstance, workflowName) {
   if (!ctx.name || ctx.name !== 'flue:workflow:' + doInstance.name) return;
   const interruptedRunId = doInstance.name;
   const runStore = createRunStoreForRequest(doInstance);
-  const run = await runStore.getRun(interruptedRunId);
-  const events = await runStore.getEvents(interruptedRunId);
-  const startEvent = events.find((event) => event.type === 'run_start');
-  const payload = run?.payload !== undefined ? run.payload : startEvent?.payload;
   await failRecoveredRun({
-    label: workflowName,
     owner: { kind: 'workflow', workflowName, instanceId: interruptedRunId },
     id: interruptedRunId,
     runId: interruptedRunId,
-    payload,
     request: new Request('https://flue.invalid/workflows/' + encodeURIComponent(workflowName), { method: 'POST' }),
     error: new Error('Flue workflow execution was interrupted. Start a new workflow run explicitly if retry is appropriate.'),
     runStore,

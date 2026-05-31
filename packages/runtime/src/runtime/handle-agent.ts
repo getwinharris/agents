@@ -183,7 +183,6 @@ export interface HandleWorkflowOptions {
 	runSubscribers?: RunSubscriberRegistry;
 	runRegistry?: RunRegistry;
 	runId?: string;
-	restartedFromRunId?: string;
 }
 
 /**
@@ -225,7 +224,7 @@ export async function handleAgentRequest(opts: HandleAgentOptions): Promise<Resp
 }
 
 export async function handleWorkflowRequest(opts: HandleWorkflowOptions): Promise<Response> {
-	const { request, workflowName, handler, createContext, runStore, runSubscribers, runRegistry, restartedFromRunId } = opts;
+	const { request, workflowName, handler, createContext, runStore, runSubscribers, runRegistry } = opts;
 	const startWorkflowAdmission = opts.startWorkflowAdmission ?? defaultStartWorkflowAdmission;
 	const runId = opts.runId ?? generateWorkflowRunId(workflowName);
 	const instanceId = runId;
@@ -250,7 +249,6 @@ export async function handleWorkflowRequest(opts: HandleWorkflowOptions): Promis
 			runStore,
 			runSubscribers,
 			runRegistry,
-			restartedFromRunId,
 		});
 
 		if (isSSE && wait !== 'result') return await runSseMode(execution);
@@ -281,7 +279,6 @@ export interface InvokeWorkflowAttachedOptions {
 	runStore?: RunStore;
 	runSubscribers?: RunSubscriberRegistry;
 	runRegistry?: RunRegistry;
-	restartedFromRunId?: string;
 }
 
 export interface DirectAttachedOptions {
@@ -301,29 +298,16 @@ export interface WorkflowAttachedInvocationResult {
 	result: unknown;
 }
 
-export interface RecoverRunOptions {
-	label: string;
+export interface FailRecoveredRunOptions {
 	owner: RunOwner;
 	id: string;
 	runId: string;
-	handler: WorkflowHandler;
-	payload: unknown;
 	request: Request;
 	createContext: CreateContextFn;
+	error: unknown;
 	runStore?: RunStore;
 	runSubscribers?: RunSubscriberRegistry;
 	runRegistry?: RunRegistry;
-}
-
-export interface FailRecoveredRunOptions extends Omit<RecoverRunOptions, 'handler'> {
-	error: unknown;
-	restartedAsRunId?: string;
-}
-
-export interface RecoveredRunResult {
-	result?: unknown;
-	isError: boolean;
-	error?: unknown;
 }
 
 const activeAttachedAgentSessions = new Map<string, symbol>();
@@ -352,7 +336,6 @@ interface WorkflowAdmissionOptions {
 	runStore?: RunStore;
 	runSubscribers?: RunSubscriberRegistry;
 	runRegistry?: RunRegistry;
-	restartedFromRunId?: string;
 	onAdmitted?: (runId: string) => void;
 	onEvent?: FlueEventCallback;
 	emitIdleOnComplete?: boolean;
@@ -386,7 +369,6 @@ async function prepareWorkflowExecution(opts: WorkflowAdmissionOptions): Promise
 		runStore,
 		runSubscribers,
 		runRegistry,
-		restartedFromRunId,
 		onAdmitted,
 		onEvent,
 		emitIdleOnComplete,
@@ -402,7 +384,6 @@ async function prepareWorkflowExecution(opts: WorkflowAdmissionOptions): Promise
 		runStore,
 		runSubscribers,
 		runRegistry,
-		restartedFromRunId,
 		requirePersistedAdmission: true,
 	});
 	return { runId, runStore, runSubscribers, lifecycle, startWorkflowAdmission, handler, runHandler, onAdmitted, onEvent, emitIdleOnComplete };
@@ -481,13 +462,16 @@ export async function failRecoveredRun(opts: FailRecoveredRunOptions): Promise<v
 	const initialEventIndex = nextEventIndex(events);
 	const startedAt = run?.startedAt ?? new Date().toISOString();
 	const startedAtMs = Date.parse(startedAt);
+	const startEvent = events.find((event) => event.type === 'run_start');
+	const payload = run?.payload !== undefined ? run.payload : startEvent?.payload;
 	const lifecycle: WorkflowRunLifecycle = {
 		...opts,
-		ctx: opts.createContext(opts.id, opts.runId, opts.payload, opts.request, initialEventIndex),
+		payload,
+		ctx: opts.createContext(opts.id, opts.runId, payload, opts.request, initialEventIndex),
 		startedAt,
 		startedAtMs: Number.isFinite(startedAtMs) ? startedAtMs : Date.now(),
 	};
-	if (events.some((event) => event.type === 'run_start')) {
+	if (startEvent) {
 		const flushFanout = subscribeRunFanout(lifecycle);
 		emitRunResume(lifecycle);
 		await flushFanout();
@@ -495,67 +479,12 @@ export async function failRecoveredRun(opts: FailRecoveredRunOptions): Promise<v
 	await emitRunEnd(lifecycle, { isError: true, error: opts.error });
 }
 
-export async function recoverWorkflowRun(opts: RecoverRunOptions): Promise<RecoveredRunResult> {
-	try {
-		const events = opts.runStore ? await opts.runStore.getEvents(opts.runId) : [];
-		const terminalEvent = findTerminalRunEvent(events);
-		const run = await opts.runStore?.getRun(opts.runId);
-		if (terminalEvent || (run && run.status !== 'active')) {
-			return reconcileTerminalRun(opts, run, terminalEvent, events);
-		}
-		if (run) await safeRegistry('recordRunStart(recovery)', () => opts.runRegistry?.recordRunStart({
-			runId: opts.runId,
-			owner: run.owner,
-			startedAt: run.startedAt,
-		}));
-		const initialEventIndex = nextEventIndex(events);
-		const startedAt = run?.startedAt ?? new Date().toISOString();
-		const startedAtMs = Date.parse(startedAt);
-		const lifecycle: WorkflowRunLifecycle = {
-			...opts,
-			ctx: opts.createContext(opts.id, opts.runId, opts.payload, opts.request, initialEventIndex),
-			startedAt,
-			startedAtMs: Number.isFinite(startedAtMs) ? startedAtMs : Date.now(),
-		};
-		const hasStarted = events.some((event) => event.type === 'run_start');
-		const result = await invokeWorkflowRunLifecycle(lifecycle, () => opts.handler(lifecycle.ctx), !hasStarted, hasStarted);
-		return { result, isError: false };
-	} catch (error) {
-		try {
-			await failRecoveredRun({ ...opts, error });
-		} catch (terminalizationError) {
-			console.error('[flue] Failed to persist recovered run error event:', terminalizationError);
-			const endedAt = new Date().toISOString();
-			await safeRunStore('endRun(recovery-fallback)', () => opts.runStore?.endRun({
-				runId: opts.runId,
-				endedAt,
-				isError: true,
-				durationMs: 0,
-				error: serializeError(error),
-			}));
-			await safeRegistry('recordRunStart(recovery-fallback)', () => opts.runRegistry?.recordRunStart({
-				runId: opts.runId,
-				owner: opts.owner,
-				startedAt: endedAt,
-			}));
-			await safeRegistry('recordRunEnd(recovery-fallback)', () => opts.runRegistry?.recordRunEnd({
-				runId: opts.runId,
-				endedAt,
-				durationMs: 0,
-				isError: true,
-			}));
-			throw terminalizationError;
-		}
-		return { isError: true, error };
-	}
-}
-
 async function reconcileTerminalRun(
-	opts: Omit<RecoverRunOptions, 'handler'>,
+	opts: FailRecoveredRunOptions,
 	run: Awaited<ReturnType<RunStore['getRun']>> | undefined,
 	terminalEvent: Extract<FlueEvent, { type: 'run_end' }> | undefined,
 	events: FlueEvent[],
-): Promise<RecoveredRunResult> {
+): Promise<void> {
 	const isError = terminalEvent?.isError ?? run?.isError ?? false;
 	const result = terminalEvent?.result ?? run?.result;
 	const error = terminalEvent?.error ?? run?.error;
@@ -599,7 +528,6 @@ async function reconcileTerminalRun(
 		isError,
 	}));
 	opts.runSubscribers?.complete(opts.runId);
-	return { result, isError, error };
 }
 
 function findTerminalRunEvent(events: FlueEvent[]): Extract<FlueEvent, { type: 'run_end' }> | undefined {
@@ -729,7 +657,6 @@ export async function invokeWorkflowAttached(opts: InvokeWorkflowAttachedOptions
 		runStore: opts.runStore,
 		runSubscribers: opts.runSubscribers,
 		runRegistry: opts.runRegistry,
-		restartedFromRunId: opts.restartedFromRunId,
 		onAdmitted: opts.onAdmitted,
 		onEvent: opts.onEvent,
 		emitIdleOnComplete: opts.emitIdleOnComplete,
@@ -757,7 +684,6 @@ async function invokeWorkflowAttachedUnlocked(opts: InvokeWorkflowAttachedOption
 		runStore: opts.runStore,
 		runSubscribers: opts.runSubscribers,
 		runRegistry: opts.runRegistry,
-		restartedFromRunId: opts.restartedFromRunId,
 	});
 	const { ctx } = lifecycle;
 	const runHandler = opts.runHandler ?? defaultRunHandler;
@@ -808,8 +734,6 @@ interface WorkflowRunLifecycleOptions {
 	runStore?: RunStore;
 	runSubscribers?: RunSubscriberRegistry;
 	runRegistry?: RunRegistry;
-	restartedFromRunId?: string;
-	restartedAsRunId?: string;
 	requirePersistedAdmission?: boolean;
 }
 
@@ -834,7 +758,6 @@ async function createWorkflowRunLifecycle(options: WorkflowRunLifecycleOptions):
 					owner,
 					startedAt,
 					payload: options.payload,
-					restartedFromRunId: options.restartedFromRunId,
 				}),
 			)
 			: false;
@@ -859,18 +782,8 @@ async function withWorkflowRunLifecycle<T>(
 	lifecycle: WorkflowRunLifecycle,
 	body: () => T | Promise<T>,
 ): Promise<T> {
-	return invokeWorkflowRunLifecycle(lifecycle, body, true);
-}
-
-async function invokeWorkflowRunLifecycle<T>(
-	lifecycle: WorkflowRunLifecycle,
-	body: () => T | Promise<T>,
-	emitStart: boolean,
-	emitResume = false,
-): Promise<T> {
 	const flushFanout = subscribeRunFanout(lifecycle);
-	if (emitStart) emitRunStart(lifecycle);
-	if (emitResume) emitRunResume(lifecycle);
+	emitRunStart(lifecycle);
 	let didFlushFanout = false;
 	let result: T;
 	try {
@@ -898,7 +811,6 @@ function emitRunStart(lifecycle: WorkflowRunLifecycle): void {
 		instanceId: lifecycle.owner.instanceId,
 		workflowName: lifecycle.owner.workflowName,
 		startedAt: lifecycle.startedAt,
-		restartedFromRunId: lifecycle.restartedFromRunId,
 		payload: lifecycle.payload,
 	});
 }
@@ -956,7 +868,6 @@ async function emitRunEnd(
 		? await safeRunStore('endRun', () =>
 			runStore.endRun({
 				runId,
-				restartedAsRunId: lifecycle.restartedAsRunId,
 				endedAt,
 				isError: input.isError,
 				durationMs,

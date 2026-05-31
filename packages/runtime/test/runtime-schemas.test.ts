@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { RunEventListResponseSchema } from '../src/runtime/schemas.ts';
 
 describe('rich model-turn event schemas', () => {
-	it('accepts workflow restart linkage on run starts', () => {
+	it('accepts legacy workflow restart linkage on historical run starts', () => {
 		const result = v.safeParse(RunEventListResponseSchema, {
 			events: [{
 				type: 'run_start',
@@ -20,7 +20,7 @@ describe('rich model-turn event schemas', () => {
 		expect(result.success).toBe(true);
 	});
 
-	it('accepts workflow resume signals', () => {
+	it('accepts workflow resume signals for recovered run handling', () => {
 		const result = v.safeParse(RunEventListResponseSchema, {
 			events: [{
 				type: 'run_resume',

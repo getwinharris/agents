@@ -40,22 +40,21 @@ class DurableRunStore implements RunStore {
 		}
 		this.sql.exec(
 			`INSERT OR REPLACE INTO flue_runs
-			 (run_id, owner_kind, instance_id, agent_name, workflow_name, status, started_at, payload, restarted_from_run_id, ended_at, is_error, duration_ms, result, error, restarted_as_run_id)
-			 VALUES (?, 'workflow', ?, NULL, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, NULL, NULL)`,
+			 (run_id, owner_kind, instance_id, agent_name, workflow_name, status, started_at, payload, ended_at, is_error, duration_ms, result, error)
+			 VALUES (?, 'workflow', ?, NULL, ?, ?, ?, ?, NULL, NULL, NULL, NULL, NULL)`,
 			input.runId,
 			input.owner.instanceId,
 			input.owner.workflowName,
 			'active',
 			input.startedAt,
 			JSON.stringify(input.payload ?? null),
-			input.restartedFromRunId ?? null,
 		);
 	}
 
 	async endRun(input: EndRunInput): Promise<void> {
 		this.sql.exec(
 			`UPDATE flue_runs
-			 SET status = ?, ended_at = ?, is_error = ?, duration_ms = ?, result = ?, error = ?, restarted_as_run_id = ?
+			 SET status = ?, ended_at = ?, is_error = ?, duration_ms = ?, result = ?, error = ?
 			 WHERE run_id = ?`,
 			input.isError ? 'errored' : 'completed',
 			input.endedAt,
@@ -63,7 +62,6 @@ class DurableRunStore implements RunStore {
 			input.durationMs,
 			JSON.stringify(input.result ?? null),
 			JSON.stringify(input.error ?? null),
-			input.restartedAsRunId ?? null,
 			input.runId,
 		);
 		this.pruneCompletedRuns();

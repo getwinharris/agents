@@ -48,8 +48,6 @@ export type {
 	HandleWorkflowOptions,
 	FailRecoveredRunOptions,
 	InvokeWorkflowAttachedOptions,
-	RecoveredRunResult,
-	RecoverRunOptions,
 	RunHandlerFn,
 	StartWorkflowAdmissionFn,
 	WorkflowHandler,
@@ -82,7 +80,6 @@ export {
 	handleWorkflowRequest,
 	invokeWorkflowAttached,
 	invokeDirectAttached,
-	recoverWorkflowRun,
 	reserveDispatchAgentSession,
 } from './runtime/handle-agent.ts';
 export { generateWorkflowRunId, parseWorkflowRunId } from './runtime/ids.ts';

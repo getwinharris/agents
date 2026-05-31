@@ -1,4 +1,4 @@
-import { trace, type AttributeValue, type Context, type Exception, type Link, type Span, type SpanContext, type SpanOptions, type SpanStatus, type TimeInput } from '@opentelemetry/api';
+import { SpanStatusCode, trace, type AttributeValue, type Context, type Exception, type Link, type Span, type SpanContext, type SpanOptions, type SpanStatus, type TimeInput } from '@opentelemetry/api';
 import { describe, expect, it } from 'vitest';
 import { createOpenTelemetryObserver } from '../src/index.ts';
 
@@ -85,17 +85,16 @@ describe('createOpenTelemetryObserver', () => {
 		expect(tracer.spans.every((span) => span.ended)).toBe(true);
 	});
 
-	it('starts a resumed workflow segment when an isolate observes recovered work', () => {
+	it('starts a recovered run-handling segment when terminalization continues after interruption', () => {
 		const tracer = new RecordingTracer();
 		const observe = createOpenTelemetryObserver({ tracer: tracer as never });
+		observe({ type: 'run_start', runId: 'run-1', owner: { kind: 'workflow', workflowName: 'report', instanceId: 'run-1' }, instanceId: 'run-1', workflowName: 'report', startedAt: '2026-05-27T00:00:00.000Z', payload: {}, timestamp: '2026-05-27T00:00:00.000Z' }, {} as never);
 		observe({ type: 'run_resume', runId: 'run-1', owner: { kind: 'workflow', workflowName: 'report', instanceId: 'run-1' }, instanceId: 'run-1', workflowName: 'report', startedAt: '2026-05-27T00:00:00.000Z', timestamp: '2026-05-27T00:01:00.000Z' }, {} as never);
-		observe({ type: 'operation_start', runId: 'run-1', operationId: 'op-1', operationKind: 'prompt', timestamp: '2026-05-27T00:01:00.010Z' }, {} as never);
-		observe({ type: 'operation', runId: 'run-1', operationId: 'op-1', operationKind: 'prompt', durationMs: 5, isError: false, timestamp: '2026-05-27T00:01:00.020Z' }, {} as never);
-		observe({ type: 'run_end', runId: 'run-1', durationMs: 60_020, isError: false, timestamp: '2026-05-27T00:01:00.020Z' }, {} as never);
+		observe({ type: 'run_end', runId: 'run-1', durationMs: 60_020, isError: true, error: { name: 'Error', message: 'interrupted' }, timestamp: '2026-05-27T00:01:00.020Z' }, {} as never);
 
-		expect(tracer.spans.map((span) => span.name)).toEqual(['flue.workflow report', 'flue.operation prompt']);
-		expect(tracer.spans[0]?.attributes).toMatchObject({ 'flue.workflow.resumed': true, 'flue.workflow.started_at': '2026-05-27T00:00:00.000Z' });
-		expect(tracer.spans[1]?.parent).toBe(tracer.spans[0]);
+		expect(tracer.spans.map((span) => span.name)).toEqual(['flue.workflow report', 'flue.workflow report']);
+		expect(tracer.spans[0]?.status).toMatchObject({ code: SpanStatusCode.ERROR, message: 'Workflow execution was interrupted before recovery continued run handling.' });
+		expect(tracer.spans[1]?.attributes).toMatchObject({ 'flue.workflow.recovery_handling': true, 'flue.workflow.resumed': true, 'flue.workflow.started_at': '2026-05-27T00:00:00.000Z' });
 		expect(tracer.spans.every((span) => span.ended)).toBe(true);
 	});
 

@@ -8,7 +8,6 @@ import {
 	InMemoryRunStore,
 	failRecoveredRun,
 	InMemorySessionStore,
-	recoverWorkflowRun,
 	invokeWorkflowAttached,
 	invokeDirectAttached,
 	registeredAgentsForTransport,
@@ -397,22 +396,19 @@ describe('WebSocket transport foundation', () => {
 		await runStore.createRun({ runId, owner, startedAt, payload: { message: 'hello' } });
 
 		await failRecoveredRun({
-			label: 'removed',
 			owner,
 			id: owner.instanceId,
 			runId,
-			payload: { message: 'hello' },
 			request: new Request('http://localhost/workflows/removed', { method: 'POST' }),
 			createContext,
 			error: new Error('Handler unavailable'),
-			restartedAsRunId: 'workflow:removed:replacement',
 			runStore,
 			runRegistry,
 		});
 
 		const events = await runStore.getEvents(runId);
 		expect(events.map((event) => event.type)).toEqual(['run_end']);
-		expect(await runStore.getRun(runId)).toMatchObject({ status: 'errored', isError: true, restartedAsRunId: 'workflow:removed:replacement' });
+		expect(await runStore.getRun(runId)).toMatchObject({ status: 'errored', isError: true });
 		expect(await runRegistry.lookupRun(runId)).toMatchObject({ status: 'errored' });
 	});
 
@@ -449,17 +445,16 @@ describe('WebSocket transport foundation', () => {
 		const runStore = new InMemoryRunStore();
 		const runId = 'workflow:daily-report:terminal-recover';
 		const owner = { kind: 'workflow' as const, workflowName: 'daily-report', instanceId: runId };
-		await runStore.createRun({ runId, owner, startedAt: '2026-05-27T00:00:00.000Z', payload: { day: 'today' } });
+		await runStore.createRun({ runId, owner, startedAt: '2026-05-27T00:00:00.000Z', payload: undefined });
 		await runStore.appendEvent(runId, { type: 'run_start', runId, owner, instanceId: runId, workflowName: 'daily-report', startedAt: '2026-05-27T00:00:00.000Z', payload: { day: 'today' } });
 
 		await failRecoveredRun({
-			label: 'daily-report',
 			owner,
 			id: runId,
 			runId,
-			payload: { day: 'today' },
 			request: new Request('http://localhost/workflows/daily-report'),
 			createContext: (id, currentRunId, payload, request, initialEventIndex) => {
+				expect(payload).toEqual({ day: 'today' });
 				const ctx = createContext(id, currentRunId, payload, request, initialEventIndex);
 				ctx.subscribeEvent((event) => { events.push(event); });
 				return ctx;
@@ -470,76 +465,6 @@ describe('WebSocket transport foundation', () => {
 
 		expect(events.map((event) => event.type)).toEqual(['run_resume', 'run_end']);
 		expect(events[0]).toMatchObject({ type: 'run_resume', runId, workflowName: 'daily-report' });
-	});
-
-	it('emits a resume signal when durable recovery continues an admitted workflow run', async () => {
-		const events: FlueEvent[] = [];
-		const runStore = new InMemoryRunStore();
-		const runRegistry = new InMemoryRunRegistry();
-		const runId = 'workflow:daily-report:recover';
-		const owner = { kind: 'workflow' as const, workflowName: 'daily-report', instanceId: runId };
-		await runStore.createRun({ runId, owner, startedAt: '2026-05-27T00:00:00.000Z', payload: { day: 'today' } });
-		await runStore.appendEvent(runId, { type: 'run_start', runId, owner, instanceId: runId, workflowName: 'daily-report', startedAt: '2026-05-27T00:00:00.000Z', payload: { day: 'today' } });
-
-		const result = await recoverWorkflowRun({
-			label: 'daily-report',
-			owner,
-			id: runId,
-			runId,
-			payload: { day: 'today' },
-			request: new Request('http://localhost/workflows/daily-report'),
-			createContext: (id, currentRunId, payload, request, initialEventIndex) => {
-				const ctx = createContext(id, currentRunId, payload, request, initialEventIndex);
-				ctx.subscribeEvent((event) => { events.push(event); });
-				return ctx;
-			},
-			handler: async () => ({ ok: true }),
-			runStore,
-			runRegistry,
-		});
-
-		expect(result).toEqual({ result: { ok: true }, isError: false });
-		expect(events.map((event) => event.type)).toEqual(['run_resume', 'run_end']);
-		expect(events[0]).toMatchObject({ type: 'run_resume', runId, workflowName: 'daily-report', startedAt: '2026-05-27T00:00:00.000Z' });
-	});
-
-	it('preserves replacement linkage when a recovered workflow socket attempt is replaced', async () => {
-		const runStore = new InMemoryRunStore();
-		const runRegistry = new InMemoryRunRegistry();
-		const interruptedRunId = 'workflow:daily-report:socket-a';
-		const replacementRunId = 'workflow:daily-report:socket-b';
-		const interruptedOwner = { kind: 'workflow' as const, workflowName: 'daily-report', instanceId: interruptedRunId };
-		await runStore.createRun({ runId: interruptedRunId, owner: interruptedOwner, startedAt: new Date().toISOString(), payload: { day: 'today' } });
-
-		await failRecoveredRun({
-			label: 'daily-report',
-			owner: interruptedOwner,
-			id: interruptedRunId,
-			runId: interruptedRunId,
-			payload: { day: 'today' },
-			request: new Request('http://localhost/workflows/daily-report'),
-			createContext,
-			error: new Error('interrupted'),
-			restartedAsRunId: replacementRunId,
-			runStore,
-			runRegistry,
-		});
-		await invokeWorkflowAttached({
-			owner: { kind: 'workflow', workflowName: 'daily-report', instanceId: replacementRunId },
-			id: replacementRunId,
-			runId: replacementRunId,
-			payload: { day: 'today' },
-			restartedFromRunId: interruptedRunId,
-			request: new Request('http://localhost/workflows/daily-report'),
-			createContext,
-			startWorkflowAdmission: async (_runId, run) => run(),
-			handler: async () => ({ ok: true }),
-			runStore,
-			runRegistry,
-		});
-
-		expect(await runStore.getRun(interruptedRunId)).toMatchObject({ status: 'errored', restartedAsRunId: replacementRunId });
-		expect(await runStore.getRun(replacementRunId)).toMatchObject({ status: 'completed', restartedFromRunId: interruptedRunId });
 	});
 
 	it('invokes attached work with an event sink independent of HTTP response formatting', async () => {
@@ -556,7 +481,6 @@ describe('WebSocket transport foundation', () => {
 			id: runId,
 			runId,
 			payload: { day: 'today' },
-			restartedFromRunId: 'workflow:daily-report:previous',
 			request,
 			createContext,
 			handler: async (ctx) => {
@@ -575,8 +499,8 @@ describe('WebSocket transport foundation', () => {
 		expect(invocation).toEqual({ runId, result: { echoed: { day: 'today' } } });
 		expect(events.map((event) => event.type)).toEqual(['run_start', 'log', 'idle', 'run_end']);
 		expect(events.every((event) => event.runId === runId)).toBe(true);
-		expect(events[0]).toMatchObject({ type: 'run_start', restartedFromRunId: 'workflow:daily-report:previous' });
-		expect(await runStore.getRun(runId)).toMatchObject({ status: 'completed', restartedFromRunId: 'workflow:daily-report:previous', result: { echoed: { day: 'today' } } });
+		expect(events[0]).toMatchObject({ type: 'run_start' });
+		expect(await runStore.getRun(runId)).toMatchObject({ status: 'completed', result: { echoed: { day: 'today' } } });
 		expect(await runRegistry.lookupRun(runId)).toMatchObject({ status: 'completed' });
 	});
 });

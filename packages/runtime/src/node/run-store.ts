@@ -38,7 +38,6 @@ export class InMemoryRunStore implements RunStore {
 			status: 'active',
 			startedAt: input.startedAt,
 			payload: input.payload,
-			restartedFromRunId: input.restartedFromRunId,
 		});
 		instance.events.set(input.runId, []);
 	}
@@ -52,7 +51,6 @@ export class InMemoryRunStore implements RunStore {
 			status: input.isError ? 'errored' : 'completed',
 			endedAt: input.endedAt,
 			isError: input.isError,
-			restartedAsRunId: input.restartedAsRunId,
 			durationMs: input.durationMs,
 			result: input.result,
 			error: input.error,

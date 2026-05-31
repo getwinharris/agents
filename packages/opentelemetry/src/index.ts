@@ -10,7 +10,7 @@ export function createOpenTelemetryObserver(options: OpenTelemetryObserverOption
 	const tracer = options.tracer ?? trace.getTracer('@flue/opentelemetry');
 	const captureContent = options.captureContent === true;
 	const runs = new Map<string, Span>();
-	const resumedRuns = new Set<string>();
+	const recoveryHandledRuns = new Set<string>();
 	const operations = new Map<string, Span>();
 	const turns = new Map<string, Span>();
 	const tools = new Map<string, Span>();
@@ -36,10 +36,10 @@ export function createOpenTelemetryObserver(options: OpenTelemetryObserverOption
 		if (event.type === 'run_resume') {
 			const interrupted = runs.get(event.runId);
 			if (interrupted) {
-				interrupted.setStatus({ code: SpanStatusCode.ERROR, message: 'Workflow execution resumed after interruption.' });
+				interrupted.setStatus({ code: SpanStatusCode.ERROR, message: 'Workflow execution was interrupted before recovery continued run handling.' });
 				interrupted.end(time);
 			}
-			resumedRuns.add(event.runId);
+			recoveryHandledRuns.add(event.runId);
 			runs.set(event.runId, tracer.startSpan(`flue.workflow ${event.workflowName}`, {
 				root: true,
 				kind: SpanKind.INTERNAL,
@@ -47,6 +47,7 @@ export function createOpenTelemetryObserver(options: OpenTelemetryObserverOption
 				attributes: {
 					...identifiers(event),
 					'flue.workflow.name': event.workflowName,
+					'flue.workflow.recovery_handling': true,
 					'flue.workflow.resumed': true,
 					'flue.workflow.started_at': event.startedAt,
 				},
@@ -189,11 +190,11 @@ export function createOpenTelemetryObserver(options: OpenTelemetryObserverOption
 		if (event.type === 'run_end') {
 			const span = runs.get(event.runId);
 			if (!span) return;
-			span.setAttribute(resumedRuns.has(event.runId) ? 'flue.workflow.total_duration_ms' : 'flue.duration_ms', event.durationMs);
+			span.setAttribute(recoveryHandledRuns.has(event.runId) ? 'flue.workflow.total_duration_ms' : 'flue.duration_ms', event.durationMs);
 			if (captureContent) setContentAttribute(span, 'flue.workflow.result', event.result);
 			complete(span, event.isError, event.error, time);
 			runs.delete(event.runId);
-			resumedRuns.delete(event.runId);
+			recoveryHandledRuns.delete(event.runId);
 		}
 	};
 }

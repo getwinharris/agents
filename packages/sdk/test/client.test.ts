@@ -116,7 +116,7 @@ describe('createFlueClient', () => {
 		expect(parsed.searchParams.get('limit')).toBe('10');
 	});
 
-	it('exposes workflow restart linkage in run records', async () => {
+	it('exposes legacy workflow restart linkage in historical run records', async () => {
 		const record = {
 			runId: 'run-next',
 			owner: { kind: 'workflow' as const, workflowName: 'report', instanceId: 'run-next' },
