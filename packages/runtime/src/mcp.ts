@@ -1,6 +1,9 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import type { CallToolResult, Tool } from '@modelcontextprotocol/sdk/types.js';
+import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import { ErrorCode, McpError, type CallToolResult, type Tool } from '@modelcontextprotocol/sdk/types.js';
+import { AjvJsonSchemaValidator } from '@modelcontextprotocol/sdk/validation/ajv';
+import type { JsonSchemaValidator } from '@modelcontextprotocol/sdk/validation';
 import type { ToolDefinition, ToolParameters } from './types.ts';
 
 /** Remote MCP transport. */
@@ -34,6 +37,8 @@ export interface McpServerConnection {
 	close(): Promise<void>;
 }
 
+type McpClient = Pick<Client, 'callTool' | 'close' | 'connect' | 'listTools'>;
+
 /**
  * Connects to a remote MCP server and adapts its listed tools into ordinary
  * Flue tool definitions.
@@ -59,6 +64,14 @@ export async function connectMcpServer(
 		version: options.clientVersion ?? '0.0.0',
 	});
 
+	return connectMcpServerWithClient(name, client, transport);
+}
+
+export async function connectMcpServerWithClient(
+	name: string,
+	client: McpClient,
+	transport: Transport,
+): Promise<McpServerConnection> {
 	try {
 		await client.connect(transport);
 		let page = await client.listTools();
@@ -98,11 +111,13 @@ async function createTransport(
 	});
 }
 
-function createMcpTools(serverName: string, client: Client, tools: Tool[]): ToolDefinition[] {
+function createMcpTools(serverName: string, client: McpClient, tools: Tool[]): ToolDefinition[] {
 	const names = new Set<string>();
+	const validator = new AjvJsonSchemaValidator();
 
 	return tools.map((tool) => {
 		const toolName = createToolName(serverName, tool.name);
+		const outputValidator = tool.outputSchema ? validator.getValidator(tool.outputSchema) : undefined;
 		if (names.has(toolName)) {
 			throw new Error(
 				`[flue] MCP tools from server "${serverName}" produced duplicate tool name "${toolName}".`,
@@ -116,23 +131,52 @@ function createMcpTools(serverName: string, client: Client, tools: Tool[]): Tool
 			parameters: normalizeInputSchema(tool.inputSchema),
 			async execute(args, signal) {
 				if (signal?.aborted) throw new Error('Operation aborted');
-				const result = await client.callTool(
+				if (tool.execution?.taskSupport === 'required') {
+					throw new McpError(
+						ErrorCode.InvalidRequest,
+						`Tool "${tool.name}" requires task-based execution. Use client.experimental.tasks.callToolStream() instead.`,
+					);
+				}
+				const result = (await client.callTool(
 					{
 						name: tool.name,
 						arguments: args,
 					},
 					undefined,
 					{ signal },
-				);
+				)) as CallToolResult;
 
-				const text = formatMcpResult(result as CallToolResult);
-				if ((result as CallToolResult).isError) {
+				validateMcpResult(tool.name, result, outputValidator);
+				const text = formatMcpResult(result);
+				if (result.isError) {
 					throw new Error(text);
 				}
 				return text;
 			},
 		};
 	});
+}
+
+function validateMcpResult(
+	toolName: string,
+	result: CallToolResult,
+	validator: JsonSchemaValidator<unknown> | undefined,
+): void {
+	if (!validator) return;
+	if (result.structuredContent === undefined && !result.isError) {
+		throw new McpError(
+			ErrorCode.InvalidRequest,
+			`Tool ${toolName} has an output schema but did not return structured content`,
+		);
+	}
+	if (result.structuredContent === undefined) return;
+	const validation = validator(result.structuredContent);
+	if (!validation.valid) {
+		throw new McpError(
+			ErrorCode.InvalidParams,
+			`Structured content does not match the tool's output schema: ${validation.errorMessage}`,
+		);
+	}
 }
 
 function mergeRequestInit(

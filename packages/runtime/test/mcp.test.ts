@@ -1,41 +1,33 @@
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
+import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import type { CallToolResult, Tool } from '@modelcontextprotocol/sdk/types.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { connectMcpServer } from '../src/index.ts';
+import { connectMcpServerWithClient } from '../src/mcp.ts';
 
-const mcp = vi.hoisted(() => ({
-	clients: [] as Array<{
-		callTool: ReturnType<typeof vi.fn>;
-		close: ReturnType<typeof vi.fn>;
-		connect: ReturnType<typeof vi.fn>;
-		listTools: ReturnType<typeof vi.fn>;
-	}>,
+const transport = {} as Transport;
+const mcp = {
 	connectError: undefined as Error | undefined,
 	listToolsError: undefined as Error | undefined,
-	listToolsResults: [] as Array<{ tools: unknown[]; nextCursor?: string }>,
-	listToolsResult: { tools: [] } as { tools: unknown[]; nextCursor?: string },
-	callToolResult: { content: [] } as unknown,
-}));
-
-// TODO(RUNTIME-20): Replace this temporary whole-module mock with an internal MCP adapter boundary and a lightweight local integration fixture.
-vi.mock('@modelcontextprotocol/sdk/client/index.js', () => ({
-	Client: class {
-		callTool = vi.fn(async () => mcp.callToolResult);
-		close = vi.fn(async () => {});
-		connect = vi.fn(async () => {
+	listToolsResults: [] as Array<{ tools: Tool[]; nextCursor?: string }>,
+	listToolsResult: { tools: [] } as { tools: Tool[]; nextCursor?: string },
+	callToolResult: { content: [] } as CallToolResult,
+	client: {
+		callTool: vi.fn(async () => mcp.callToolResult),
+		close: vi.fn(async () => {}),
+		connect: vi.fn(async () => {
 			if (mcp.connectError) throw mcp.connectError;
-		});
-		listTools = vi.fn(async () => {
+		}),
+		listTools: vi.fn(async () => {
 			if (mcp.listToolsError) throw mcp.listToolsError;
 			return mcp.listToolsResults.shift() ?? mcp.listToolsResult;
-		});
-
-		constructor() {
-			mcp.clients.push(this);
-		}
+		}),
 	},
-}));
+};
 
 beforeEach(() => {
-	mcp.clients.length = 0;
+	vi.clearAllMocks();
 	mcp.connectError = undefined;
 	mcp.listToolsError = undefined;
 	mcp.listToolsResults.length = 0;
@@ -43,7 +35,7 @@ beforeEach(() => {
 	mcp.callToolResult = { content: [] };
 });
 
-describe('connectMcpServer()', () => {
+describe('connectMcpServerWithClient()', () => {
 	it('exposes listed MCP tools as Flue tools when a server connection succeeds', async () => {
 		mcp.listToolsResult = {
 			tools: [
@@ -59,8 +51,9 @@ describe('connectMcpServer()', () => {
 			],
 		};
 
-		const connection = await connectMcpServer('catalog', { url: 'https://mcp.example.test' });
+		const connection = await connectMcpServerWithClient('catalog', mcp.client, transport);
 
+		expect(mcp.client.connect).toHaveBeenCalledWith(transport);
 		expect(connection.name).toBe('catalog');
 		expect(connection.tools).toEqual([
 			expect.objectContaining({
@@ -106,16 +99,16 @@ describe('connectMcpServer()', () => {
 			},
 		];
 
-		const connection = await connectMcpServer('catalog', { url: 'https://mcp.example.test' });
+		const connection = await connectMcpServerWithClient('catalog', mcp.client, transport);
 
 		expect(connection.tools.map((tool) => tool.name)).toEqual([
 			'mcp__catalog__lookup',
 			'mcp__catalog__refresh',
 			'mcp__catalog__inspect',
 		]);
-		expect(mcp.clients[0]?.listTools).toHaveBeenNthCalledWith(1);
-		expect(mcp.clients[0]?.listTools).toHaveBeenNthCalledWith(2, { cursor: 'catalog-page-2' });
-		expect(mcp.clients[0]?.listTools).toHaveBeenNthCalledWith(3, { cursor: '' });
+		expect(mcp.client.listTools).toHaveBeenNthCalledWith(1);
+		expect(mcp.client.listTools).toHaveBeenNthCalledWith(2, { cursor: 'catalog-page-2' });
+		expect(mcp.client.listTools).toHaveBeenNthCalledWith(3, { cursor: '' });
 	});
 
 	it('namespaces and sanitizes tool names when server or tool names contain unsupported characters', async () => {
@@ -128,7 +121,7 @@ describe('connectMcpServer()', () => {
 			],
 		};
 
-		const connection = await connectMcpServer(' docs/API ', { url: 'https://mcp.example.test' });
+		const connection = await connectMcpServerWithClient(' docs/API ', mcp.client, transport);
 
 		expect(connection.tools[0]?.name).toBe('mcp__docs_API__find_value');
 	});
@@ -154,10 +147,10 @@ describe('connectMcpServer()', () => {
 			},
 		];
 
-		await expect(connectMcpServer('catalog', { url: 'https://mcp.example.test' })).rejects.toThrow(
+		await expect(connectMcpServerWithClient('catalog', mcp.client, transport)).rejects.toThrow(
 			'[flue] MCP tools from server "catalog" produced duplicate tool name "mcp__catalog__read_value".',
 		);
-		expect(mcp.clients[0]?.close).toHaveBeenCalledOnce();
+		expect(mcp.client.close).toHaveBeenCalledOnce();
 	});
 
 	it('returns a usable object parameter schema when an MCP tool omits optional object schema fields', async () => {
@@ -170,7 +163,7 @@ describe('connectMcpServer()', () => {
 			],
 		};
 
-		const connection = await connectMcpServer('cache', { url: 'https://mcp.example.test' });
+		const connection = await connectMcpServerWithClient('cache', mcp.client, transport);
 
 		expect(connection.tools[0]?.parameters).toEqual({
 			type: 'object',
@@ -194,11 +187,11 @@ describe('connectMcpServer()', () => {
 		};
 		mcp.callToolResult = { content: [{ type: 'text', text: 'Found.' }] };
 		const controller = new AbortController();
-		const connection = await connectMcpServer('catalog', { url: 'https://mcp.example.test' });
+		const connection = await connectMcpServerWithClient('catalog', mcp.client, transport);
 
 		await connection.tools[0]?.execute({ query: 'flue' }, controller.signal);
 
-		expect(mcp.clients[0]?.callTool).toHaveBeenCalledWith(
+		expect(mcp.client.callTool).toHaveBeenCalledWith(
 			{
 				name: 'lookup',
 				arguments: { query: 'flue' },
@@ -233,7 +226,7 @@ describe('connectMcpServer()', () => {
 				},
 			],
 		};
-		const connection = await connectMcpServer('catalog', { url: 'https://mcp.example.test' });
+		const connection = await connectMcpServerWithClient('catalog', mcp.client, transport);
 
 		const result = await connection.tools[0]?.execute({});
 
@@ -249,6 +242,82 @@ describe('connectMcpServer()', () => {
 		expect(result).toContain('Full details');
 	});
 
+	it('rejects malformed structured output when a schema-bearing MCP tool appears before the final listing page', async () => {
+		mcp.listToolsResults = [
+			{
+				tools: [
+					{
+						name: 'lookup',
+						inputSchema: { type: 'object' },
+						outputSchema: {
+							type: 'object',
+							properties: { count: { type: 'number' } },
+							required: ['count'],
+						},
+					},
+				],
+				nextCursor: 'catalog-page-2',
+			},
+			{
+				tools: [{ name: 'refresh', inputSchema: { type: 'object' } }],
+			},
+		];
+		mcp.callToolResult = { content: [], structuredContent: { count: 'two' } };
+		const connection = await connectMcpServerWithClient('catalog', mcp.client, transport);
+
+		await expect(connection.tools[0]?.execute({})).rejects.toThrow(
+			"Structured content does not match the tool's output schema:",
+		);
+	});
+
+	it('rejects missing structured output when a schema-bearing MCP tool appears before the final listing page', async () => {
+		mcp.listToolsResults = [
+			{
+				tools: [
+					{
+						name: 'lookup',
+						inputSchema: { type: 'object' },
+						outputSchema: { type: 'object' },
+					},
+				],
+				nextCursor: 'catalog-page-2',
+			},
+			{
+				tools: [{ name: 'refresh', inputSchema: { type: 'object' } }],
+			},
+		];
+		mcp.callToolResult = { content: [] };
+		const connection = await connectMcpServerWithClient('catalog', mcp.client, transport);
+
+		await expect(connection.tools[0]?.execute({})).rejects.toThrow(
+			'Tool lookup has an output schema but did not return structured content',
+		);
+	});
+
+	it('rejects ordinary execution when a required-task MCP tool appears before the final listing page', async () => {
+		mcp.listToolsResults = [
+			{
+				tools: [
+					{
+						name: 'long-running',
+						inputSchema: { type: 'object' },
+						execution: { taskSupport: 'required' },
+					},
+				],
+				nextCursor: 'catalog-page-2',
+			},
+			{
+				tools: [{ name: 'refresh', inputSchema: { type: 'object' } }],
+			},
+		];
+		const connection = await connectMcpServerWithClient('catalog', mcp.client, transport);
+
+		await expect(connection.tools[0]?.execute({})).rejects.toThrow(
+			'Tool "long-running" requires task-based execution. Use client.experimental.tasks.callToolStream() instead.',
+		);
+		expect(mcp.client.callTool).not.toHaveBeenCalled();
+	});
+
 	it('throws tool output as an error when an MCP result marks itself as an error', async () => {
 		mcp.listToolsResult = {
 			tools: [
@@ -262,7 +331,7 @@ describe('connectMcpServer()', () => {
 			content: [{ type: 'text', text: 'Catalog unavailable.' }],
 			isError: true,
 		};
-		const connection = await connectMcpServer('catalog', { url: 'https://mcp.example.test' });
+		const connection = await connectMcpServerWithClient('catalog', mcp.client, transport);
 
 		await expect(connection.tools[0]?.execute({})).rejects.toThrow('Catalog unavailable.');
 	});
@@ -270,17 +339,71 @@ describe('connectMcpServer()', () => {
 	it('closes the MCP client when connection setup fails', async () => {
 		mcp.listToolsError = new Error('Tool discovery failed.');
 
-		await expect(connectMcpServer('catalog', { url: 'https://mcp.example.test' })).rejects.toThrow(
+		await expect(connectMcpServerWithClient('catalog', mcp.client, transport)).rejects.toThrow(
 			'Tool discovery failed.',
 		);
-		expect(mcp.clients[0]?.close).toHaveBeenCalledOnce();
+		expect(mcp.client.close).toHaveBeenCalledOnce();
 	});
 
 	it('closes the MCP client when the returned connection is closed', async () => {
-		const connection = await connectMcpServer('catalog', { url: 'https://mcp.example.test' });
+		const connection = await connectMcpServerWithClient('catalog', mcp.client, transport);
 
 		await connection.close();
 
-		expect(mcp.clients[0]?.close).toHaveBeenCalledOnce();
+		expect(mcp.client.close).toHaveBeenCalledOnce();
 	});
 });
+
+describe('connectMcpServer()', () => {
+	it('connects and invokes tools when the default streamable HTTP transport negotiates with a local MCP server', async () => {
+		const local = await createLocalMcpServer();
+		let connection: Awaited<ReturnType<typeof connectMcpServer>> | undefined;
+
+		try {
+			connection = await connectMcpServer('catalog', {
+				url: local.url,
+				fetch: local.fetch,
+			});
+
+			expect(connection.tools.map((tool) => tool.name)).toEqual(['mcp__catalog__lookup']);
+			await expect(connection.tools[0]?.execute({})).resolves.toBe('Found.');
+			expect(
+				local.requests.some((request) => request.headers.get('mcp-session-id') === 'fixture-session'),
+			).toBe(true);
+			expect(local.requests.some((request) => request.headers.has('mcp-protocol-version'))).toBe(true);
+		} finally {
+			await Promise.allSettled([connection?.close(), local.close()]);
+		}
+	});
+});
+
+interface LocalMcpServer {
+	url: string;
+	fetch: typeof fetch;
+	requests: Array<{ headers: Headers }>;
+	close(): Promise<void>;
+}
+
+async function createLocalMcpServer(): Promise<LocalMcpServer> {
+	const requests: LocalMcpServer['requests'] = [];
+	const transport = new WebStandardStreamableHTTPServerTransport({
+		enableJsonResponse: true,
+		sessionIdGenerator: () => 'fixture-session',
+	});
+	const server = new McpServer({ name: 'local-test-server', version: '1.0.0' });
+	server.registerTool('lookup', { description: 'Find a catalog entry.' }, async () => ({
+		content: [{ type: 'text', text: 'Found.' }],
+	}));
+	await server.connect(transport);
+
+	return {
+		url: 'https://mcp.local.test/mcp',
+		requests,
+		fetch: async (input, init) => {
+			const request = new Request(input, init);
+			requests.push({ headers: new Headers(request.headers) });
+			return transport.handleRequest(request);
+		},
+		close: () => server.close(),
+	};
+}
