@@ -1,7 +1,12 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
-import { ErrorCode, McpError, type CallToolResult, type Tool } from '@modelcontextprotocol/sdk/types.js';
+import {
+	ErrorCode,
+	McpError,
+	type CallToolResult,
+	type Tool,
+} from '@modelcontextprotocol/sdk/types.js';
 import { AjvJsonSchemaValidator } from '@modelcontextprotocol/sdk/validation/ajv';
 import type { JsonSchemaValidator } from '@modelcontextprotocol/sdk/validation';
 import type { ToolDefinition, ToolParameters } from './types.ts';
@@ -117,7 +122,9 @@ function createMcpTools(serverName: string, client: McpClient, tools: Tool[]): T
 
 	return tools.map((tool) => {
 		const toolName = createToolName(serverName, tool.name);
-		const outputValidator = tool.outputSchema ? validator.getValidator(tool.outputSchema) : undefined;
+		const outputValidator = tool.outputSchema
+			? validator.getValidator(tool.outputSchema)
+			: undefined;
 		if (names.has(toolName)) {
 			throw new Error(
 				`[flue] MCP tools from server "${serverName}" produced duplicate tool name "${toolName}".`,

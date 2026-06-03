@@ -68,12 +68,19 @@ export interface FlueClient {
 		/** Retrieves recorded workflow-run events. */
 		events(runId: string, options?: RunEventsOptions): Promise<{ events: FlueEvent[] }>;
 		/** Streams workflow-run events until `run_end`, cancellation, or an unrecoverable error. */
-		stream(runId: string, options?: RunStreamOptions): AsyncIterable<import('./types.ts').FlueEvent>;
+		stream(
+			runId: string,
+			options?: RunStreamOptions,
+		): AsyncIterable<import('./types.ts').FlueEvent>;
 	};
 	/** Direct interactions with persistent agent instances. */
 	agents: {
 		/** Streams events for one agent prompt. */
-		invoke(name: string, id: string, options: AgentStreamInvokeOptions): AsyncIterable<AttachedAgentEvent>;
+		invoke(
+			name: string,
+			id: string,
+			options: AgentStreamInvokeOptions,
+		): AsyncIterable<AttachedAgentEvent>;
 		/** Resolves the terminal result for one agent prompt. */
 		invoke(name: string, id: string, options: AgentSyncInvokeOptions): Promise<SyncInvokeResult>;
 		/** Sends one direct-agent prompt using either invocation mode. */

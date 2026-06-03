@@ -72,7 +72,9 @@ export function assertPersistedWorkflowEvent(runId: string, event: FlueEvent): n
 		throw new Error('[flue:run-store] persisted workflow event runId does not match its run.');
 	}
 	if (!Number.isSafeInteger(event.eventIndex) || (event.eventIndex ?? -1) < 0) {
-		throw new Error('[flue:run-store] persisted workflow event index must be a non-negative integer.');
+		throw new Error(
+			'[flue:run-store] persisted workflow event index must be a non-negative integer.',
+		);
 	}
 	return event.eventIndex as number;
 }

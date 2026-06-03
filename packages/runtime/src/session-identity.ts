@@ -13,7 +13,9 @@ export function isTaskSessionName(name: string): boolean {
 
 export function assertPublicSessionName(name: string): void {
 	if (isTaskSessionName(name)) {
-		throw new Error('[flue] Session names beginning with "task:" are reserved for delegated tasks.');
+		throw new Error(
+			'[flue] Session names beginning with "task:" are reserved for delegated tasks.',
+		);
 	}
 }
 

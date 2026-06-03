@@ -33,7 +33,9 @@ describe('mergeFlueAdditions()', () => {
 				},
 				additions,
 			),
-		).toThrow('Expected a local class_name "FlueAssistantAgent" binding without script_name or environment.');
+		).toThrow(
+			'Expected a local class_name "FlueAssistantAgent" binding without script_name or environment.',
+		);
 	});
 
 	it('rejects an externally redirected Flue-generated Durable Object binding in an environment', () => {
@@ -57,6 +59,8 @@ describe('mergeFlueAdditions()', () => {
 				},
 				additions,
 			),
-		).toThrow('Expected a local class_name "FlueAssistantAgent" binding without script_name or environment.');
+		).toThrow(
+			'Expected a local class_name "FlueAssistantAgent" binding without script_name or environment.',
+		);
 	});
 });

@@ -558,7 +558,11 @@ describe('dispatched session processing', () => {
 						id: 'dispatch-input',
 						parentId: null,
 						timestamp,
-						message: { role: 'user', content: [{ type: 'text', text: 'persisted dispatch' }], timestamp: 0 },
+						message: {
+							role: 'user',
+							content: [{ type: 'text', text: 'persisted dispatch' }],
+							timestamp: 0,
+						},
 						source: 'dispatch',
 						dispatch: input,
 					},

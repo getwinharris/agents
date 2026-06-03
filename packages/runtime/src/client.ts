@@ -180,11 +180,7 @@ export function createFlueContext(config: FlueContextConfig): FlueContextInterna
 
 			try {
 				const sandbox = resolvedOptions.sandbox;
-				const { env: baseEnv, toolFactory } = await resolveSessionEnv(
-					config.id,
-					sandbox,
-					config,
-				);
+				const { env: baseEnv, toolFactory } = await resolveSessionEnv(config.id, sandbox, config);
 				// Resolve created-agent `cwd` against the sandbox's own cwd so that
 				// relative paths target the sandbox/session filesystem, not the
 				// agent process cwd or `/`. Mirrors the same pattern used for

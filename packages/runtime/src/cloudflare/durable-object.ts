@@ -16,7 +16,9 @@ export async function fetchCloudflareDurableObject(
 		} catch (error) {
 			attempt++;
 			if (!options.retry || attempt >= 3 || !isRetryableDurableObjectError(error)) throw error;
-			await new Promise((resolve) => setTimeout(resolve, Math.floor(Math.random() * 100 * 2 ** (attempt - 1))));
+			await new Promise((resolve) =>
+				setTimeout(resolve, Math.floor(Math.random() * 100 * 2 ** (attempt - 1))),
+			);
 		}
 	}
 }

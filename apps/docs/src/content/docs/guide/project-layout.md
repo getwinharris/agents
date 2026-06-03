@@ -26,12 +26,12 @@ Organize supporting application code however you prefer inside `src/`. The files
 
 ## Important files and directories
 
-| Path         | Purpose                                                                               | Learn more                             |
-| ------------ | ------------------------------------------------------------------------------------- | -------------------------------------- |
-| `app.ts`        | Optional entrypoint for composing Flue with your application's routes and middleware. | [Routing](/docs/guide/routing/)        |
-| `cloudflare.ts` | Optional Cloudflare-only module for Worker exports and non-HTTP handlers.              | [Cloudflare](/docs/ecosystem/deploy/cloudflare/#extending-the-worker) |
-| `agents/`       | Addressable agents that can receive continuing interactions over time.                | [Agents](/docs/guide/building-agents/) |
-| `workflows/` | Finite operations that receive input and return a result.                             | [Workflows](/docs/guide/workflows/)    |
+| Path            | Purpose                                                                               | Learn more                                                            |
+| --------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `app.ts`        | Optional entrypoint for composing Flue with your application's routes and middleware. | [Routing](/docs/guide/routing/)                                       |
+| `cloudflare.ts` | Optional Cloudflare-only module for Worker exports and non-HTTP handlers.             | [Cloudflare](/docs/ecosystem/deploy/cloudflare/#extending-the-worker) |
+| `agents/`       | Addressable agents that can receive continuing interactions over time.                | [Agents](/docs/guide/building-agents/)                                |
+| `workflows/`    | Finite operations that receive input and return a result.                             | [Workflows](/docs/guide/workflows/)                                   |
 
 ### `app.ts`
 

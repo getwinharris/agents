@@ -514,7 +514,9 @@ describe('workflow run lifecycle', () => {
 			runStore,
 		});
 
-		expect((await runStore.getEvents(runId)).map((event) => [event.type, event.eventIndex])).toEqual([
+		expect(
+			(await runStore.getEvents(runId)).map((event) => [event.type, event.eventIndex]),
+		).toEqual([
 			['run_start', 4],
 			['run_resume', 5],
 			['run_end', 6],

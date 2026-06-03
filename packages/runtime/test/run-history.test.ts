@@ -260,10 +260,9 @@ describe('workflow run store', () => {
 			eventIndex: 0,
 		});
 
-		expect((await store.getEvents('workflow:daily-report:01')).map((event) => event.eventIndex)).toEqual([
-			0,
-			1,
-		]);
+		expect(
+			(await store.getEvents('workflow:daily-report:01')).map((event) => event.eventIndex),
+		).toEqual([0, 1]);
 	});
 
 	it('rejects duplicate workflow event indexes when events are appended', async () => {

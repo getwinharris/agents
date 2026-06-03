@@ -129,9 +129,7 @@ describe('session.prompt()', () => {
 
 			await expect(response).resolves.toMatchObject({ text: 'Recovered response.' });
 			expect(provider.state.callCount).toBe(2);
-			expect(requests[0]).toEqual([
-				expect.objectContaining({ role: 'user' }),
-			]);
+			expect(requests[0]).toEqual([expect.objectContaining({ role: 'user' })]);
 			expect(
 				events.filter(
 					(event) =>
@@ -145,7 +143,9 @@ describe('session.prompt()', () => {
 			).toHaveLength(1);
 			const data = [...store.records.values()][0];
 			expect(
-				data?.entries.filter((entry) => entry.type === 'message' && entry.message.role === 'assistant'),
+				data?.entries.filter(
+					(entry) => entry.type === 'message' && entry.message.role === 'assistant',
+				),
 			).toHaveLength(2);
 		} finally {
 			vi.useRealTimers();

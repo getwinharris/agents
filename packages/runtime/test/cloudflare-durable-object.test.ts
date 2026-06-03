@@ -7,7 +7,10 @@ function retryableError(): Error & { retryable: boolean } {
 
 describe('fetchCloudflareDurableObject()', () => {
 	it('recreates the stub when a replay-safe request receives a retryable infrastructure error', async () => {
-		const fetch = vi.fn().mockRejectedValueOnce(retryableError()).mockResolvedValueOnce(new Response('ok'));
+		const fetch = vi
+			.fn()
+			.mockRejectedValueOnce(retryableError())
+			.mockResolvedValueOnce(new Response('ok'));
 		const namespace = {
 			idFromName: vi.fn(() => ({})),
 			get: vi.fn(() => ({ fetch })),

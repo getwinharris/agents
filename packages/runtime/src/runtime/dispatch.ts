@@ -48,7 +48,9 @@ function validateAndCloneDispatchRequest(
 		);
 	}
 	if (typeof request.session === 'string' && isTaskSessionName(request.session)) {
-		throw new Error('[flue] dispatch() session names beginning with "task:" are reserved for delegated tasks.');
+		throw new Error(
+			'[flue] dispatch() session names beginning with "task:" are reserved for delegated tasks.',
+		);
 	}
 	if (request.input === undefined) {
 		throw new Error(

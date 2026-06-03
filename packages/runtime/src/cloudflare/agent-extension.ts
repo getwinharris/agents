@@ -18,7 +18,9 @@ export interface ResolvedCloudflareAgentExtension {
 
 export function extend(extension: CloudflareAgentExtension): CloudflareAgentExtension {
 	if (typeof extension !== 'object' || extension === null || Array.isArray(extension)) {
-		throw new Error('[flue] extend() expects an object containing optional base and wrap callbacks.');
+		throw new Error(
+			'[flue] extend() expects an object containing optional base and wrap callbacks.',
+		);
 	}
 	const unknownKeys = Object.keys(extension).filter((key) => key !== 'base' && key !== 'wrap');
 	if (unknownKeys.length > 0) {

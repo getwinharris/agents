@@ -147,7 +147,8 @@ describe('createFlueClient', () => {
 			mode: 'stream',
 			payload: { message: 'Hello', session: 'chat' },
 		};
-		const invoke = (options: AgentInvokeOptions) => client.agents.invoke('hello', 'inst-1', options);
+		const invoke = (options: AgentInvokeOptions) =>
+			client.agents.invoke('hello', 'inst-1', options);
 		for await (const event of invoke(options) as AsyncIterable<AttachedAgentEvent>) {
 			events.push(event);
 		}
@@ -391,7 +392,9 @@ describe('createFlueClient', () => {
 				new Response(
 					new ReadableStream<Uint8Array>({
 						start(controller) {
-							controller.enqueue(new TextEncoder().encode('event: run_start\nid: 1\ndata: {"type":"run_start"}\n\n'));
+							controller.enqueue(
+								new TextEncoder().encode('event: run_start\nid: 1\ndata: {"type":"run_start"}\n\n'),
+							);
 						},
 						cancel() {
 							cancellations++;

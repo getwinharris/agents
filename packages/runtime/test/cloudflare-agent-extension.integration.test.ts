@@ -64,10 +64,12 @@ describe('Cloudflare agent extension', () => {
 			fs.rmSync(root, { recursive: true, force: true });
 		}
 	}, 90000);
-
 });
 
-async function createGeneratedFixture(agentSource = defaultAgentSource, mount = ''): Promise<string> {
+async function createGeneratedFixture(
+	agentSource = defaultAgentSource,
+	mount = '',
+): Promise<string> {
 	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'flue-cloudflare-agent-extension-'));
 	const output = path.join(root, 'generated');
 	fs.mkdirSync(path.join(root, 'node_modules', '@earendil-works'), { recursive: true });
@@ -145,7 +147,9 @@ async function waitFor(
 		if (result.done) return;
 		await new Promise((resolve) => setTimeout(resolve, 100));
 	}
-	throw new Error(`Timed out waiting for scheduled Cloudflare agent callback: ${JSON.stringify(detail)}`);
+	throw new Error(
+		`Timed out waiting for scheduled Cloudflare agent callback: ${JSON.stringify(detail)}`,
+	);
 }
 
 const defaultAgentSource = `import { createAgent } from '@flue/runtime';

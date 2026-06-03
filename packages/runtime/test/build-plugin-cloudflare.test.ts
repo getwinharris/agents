@@ -19,13 +19,15 @@ describe('CloudflarePlugin', () => {
 
 	it('uses explicit Flue routing instead of the Agents SDK router', async () => {
 		const entry = await new CloudflarePlugin().generateEntryPoint(
-			testBuildContext({ agents: [{ name: 'assistant', filePath: '/fixture/agents/assistant.ts' }] }),
+			testBuildContext({
+				agents: [{ name: 'assistant', filePath: '/fixture/agents/assistant.ts' }],
+			}),
 		);
 
 		expect(entry).toContain('class FlueAssistantAgent');
 		expect(entry).toContain('bindingName: "FLUE_ASSISTANT_AGENT"');
 		expect(entry).toContain('fetchCloudflareDurableObject(binding, target.instanceId, request)');
-		expect(entry).not.toContain('routeAgentRequest } from \'agents\'');
+		expect(entry).not.toContain("routeAgentRequest } from 'agents'");
 	});
 });
 

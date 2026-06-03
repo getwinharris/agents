@@ -369,7 +369,10 @@ class AgentSocketClient implements AgentSocket {
 		this.ready = this.connection.ready;
 	}
 
-	prompt(message: string, options: AgentSocketPromptOptions = {}): Promise<AgentSocketInvokeResult> {
+	prompt(
+		message: string,
+		options: AgentSocketPromptOptions = {},
+	): Promise<AgentSocketInvokeResult> {
 		return this.connection.request({
 			version: 1,
 			type: 'prompt',

@@ -46,7 +46,10 @@ export class CloudflarePlugin implements BuildPlugin {
 
 		const agentClasses = agents
 			.map(
-				(agent, index) => `const agentExtension${index} = resolveCloudflareAgentExtension(agentModules[${JSON.stringify(agent.name)}], ${JSON.stringify(agent.name)});
+				(
+					agent,
+					index,
+				) => `const agentExtension${index} = resolveCloudflareAgentExtension(agentModules[${JSON.stringify(agent.name)}], ${JSON.stringify(agent.name)});
 const ${agentClassName(agent.name)} = class ${agentClassName(agent.name)} extends agentExtension${index}.base(Agent) {
   async onRequest(request) {
     return dispatchAgent(request, this, ${JSON.stringify(agent.name)}, directHandlers[${JSON.stringify(agent.name)}]);
@@ -892,7 +895,10 @@ const CLOUDFLARE_AGENT_NAME_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 
 function validateCloudflareExportNames(ctx: BuildContext): void {
 	const entries = [
-		...ctx.agents.map((agent) => ({ name: agentClassName(agent.name), source: `agent "${agent.name}"` })),
+		...ctx.agents.map((agent) => ({
+			name: agentClassName(agent.name),
+			source: `agent "${agent.name}"`,
+		})),
 		...ctx.workflows.map((workflow) => ({
 			name: workflowClassName(workflow.name),
 			source: `workflow "${workflow.name}"`,

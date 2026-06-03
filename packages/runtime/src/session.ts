@@ -1749,7 +1749,8 @@ export class Session implements FlueSession {
 	}
 
 	private async checkCompaction(assistantMessage: AssistantMessage): Promise<void> {
-		if (assistantMessage.stopReason === 'aborted' || assistantMessage.stopReason === 'error') return;
+		if (assistantMessage.stopReason === 'aborted' || assistantMessage.stopReason === 'error')
+			return;
 
 		const model = this.harness.state.model;
 		const settings = this.resolveCompactionSettings(model);
@@ -2036,7 +2037,10 @@ export class Session implements FlueSession {
 					const transientRetries = countConsecutiveRetryableModelErrors(following);
 					if (assistant && overflow) {
 						this.harness.state.messages = this.history.buildContext();
-						this.internalLog('info', '[flue:compaction] Overflow detected, compacting and retrying...');
+						this.internalLog(
+							'info',
+							'[flue:compaction] Overflow detected, compacting and retrying...',
+						);
 						if (!(await this.runCompaction('overflow'))) {
 							throw new Error(
 								`[flue] ${options.errorLabel} failed: ${assistant.errorMessage ?? assistant.stopReason}`,

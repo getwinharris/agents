@@ -368,9 +368,13 @@ describe('connectMcpServer()', () => {
 			expect(connection.tools.map((tool) => tool.name)).toEqual(['mcp__catalog__lookup']);
 			await expect(connection.tools[0]?.execute({})).resolves.toBe('Found.');
 			expect(
-				local.requests.some((request) => request.headers.get('mcp-session-id') === 'fixture-session'),
+				local.requests.some(
+					(request) => request.headers.get('mcp-session-id') === 'fixture-session',
+				),
 			).toBe(true);
-			expect(local.requests.some((request) => request.headers.has('mcp-protocol-version'))).toBe(true);
+			expect(local.requests.some((request) => request.headers.has('mcp-protocol-version'))).toBe(
+				true,
+			);
 		} finally {
 			await Promise.allSettled([connection?.close(), local.close()]);
 		}

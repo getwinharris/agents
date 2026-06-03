@@ -121,7 +121,9 @@ describe('Cloudflare Vite production Worker', () => {
 			expect(inputConfig.env.staging).not.toHaveProperty('migrations');
 			expect(
 				inputConfig.env.staging.durable_objects.bindings.map((binding) => binding.class_name),
-			).toEqual(expect.arrayContaining(['FlueAssistantAgent', 'FlueSmokeWorkflow', 'FlueRegistry']));
+			).toEqual(
+				expect.arrayContaining(['FlueAssistantAgent', 'FlueSmokeWorkflow', 'FlueRegistry']),
+			);
 			const stagingConfigPath = path.join(staging.output, 'support_seal_flue', 'wrangler.json');
 			const stagingConfig = JSON.parse(fs.readFileSync(stagingConfigPath, 'utf8')) as {
 				name: string;

@@ -34,7 +34,8 @@ export function parseAgentWebSocketMessage(raw: string): AgentWebSocketClientMes
 	}
 	if (typeof value.session === 'string' && isTaskSessionName(value.session)) {
 		throw new InvalidRequestError({
-			reason: 'Agent WebSocket prompt session names beginning with "task:" are reserved for delegated tasks.',
+			reason:
+				'Agent WebSocket prompt session names beginning with "task:" are reserved for delegated tasks.',
 		});
 	}
 	return {
@@ -48,11 +49,7 @@ export function parseAgentWebSocketMessage(raw: string): AgentWebSocketClientMes
 
 export function parseWorkflowWebSocketMessage(raw: string): WorkflowWebSocketClientMessage {
 	const value = parseObject(raw);
-	if (
-		value.version !== 1 ||
-		value.type !== 'invoke' ||
-		!isNonBlankString(value.requestId)
-	) {
+	if (value.version !== 1 || value.type !== 'invoke' || !isNonBlankString(value.requestId)) {
 		throw new InvalidRequestError({
 			reason:
 				'Workflow WebSocket messages require protocol version 1, type "invoke", and a string requestId.',

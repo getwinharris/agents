@@ -185,10 +185,7 @@ import * as Sentry from '@sentry/cloudflare';
 
 export const cloudflare = extend({
   wrap: (Final) =>
-    Sentry.instrumentDurableObjectWithSentry(
-      (env: Env) => ({ dsn: env.SENTRY_DSN }),
-      Final,
-    ),
+    Sentry.instrumentDurableObjectWithSentry((env: Env) => ({ dsn: env.SENTRY_DSN }), Final),
 });
 ```
 

@@ -195,7 +195,8 @@ function parseDirectAgentPayload(payload: unknown): DirectAgentPayload {
 	}
 	if (typeof value.session === 'string' && isTaskSessionName(value.session)) {
 		throw new InvalidRequestError({
-			reason: 'Direct agent request "session" names beginning with "task:" are reserved for delegated tasks.',
+			reason:
+				'Direct agent request "session" names beginning with "task:" are reserved for delegated tasks.',
 		});
 	}
 	return { message: value.message, session: value.session };
@@ -653,7 +654,9 @@ function nextEventIndex(runId: string, events: FlueEvent[]): number {
 		0,
 	);
 	if (!Number.isSafeInteger(next)) {
-		throw new Error('[flue:run-store] persisted workflow event index exhausted the safe integer range.');
+		throw new Error(
+			'[flue:run-store] persisted workflow event index exhausted the safe integer range.',
+		);
 	}
 	return next;
 }
