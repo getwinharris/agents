@@ -232,8 +232,8 @@ ${
 // pipeline. We just verify it exposes a fetch method and pass the
 // listener through. flue() is available for them to mount, but the
 // composition is theirs to author.
-const app = userApp;
-if (!app || typeof app.fetch !== 'function') {
+const flueApp = userApp;
+if (!flueApp || typeof flueApp.fetch !== 'function') {
   throw new Error(
     '[flue] app.ts default export must be a Hono app or an object with a fetch(request) method.'
   );
@@ -376,7 +376,7 @@ if (isLocalCliMode) {
 } else {
   const port = parseInt(process.env.PORT || '3000', 10);
   const server = serve({
-    fetch: (request, env) => app.fetch(request, env),
+    fetch: (request, env) => flueApp.fetch(request, env),
     websocket: { server: websocketTransport.server },
     port,
     serverOptions: { requestTimeout: 0 },

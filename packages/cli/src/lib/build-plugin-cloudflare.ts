@@ -633,8 +633,8 @@ ${
 // pipeline — the worker just verifies a fetch method exists and pipes
 // through. The default flue() handler is available for them to mount
 // however they want; this file does not impose a composition.
-const app = userApp;
-if (!app || typeof app.fetch !== 'function') {
+const flueApp = userApp;
+if (!flueApp || typeof flueApp.fetch !== 'function') {
   throw new Error(
     '[flue] app.ts default export must be a Hono app or an object with a fetch(request, env, ctx) method.'
   );
@@ -649,7 +649,7 @@ const app = createDefaultFlueApp();`
 export default {
   ...cloudflareHandlers,
   fetch(request, env, ctx) {
-    return app.fetch(request, env, ctx);
+    return flueApp.fetch(request, env, ctx);
   },
 };
 `;

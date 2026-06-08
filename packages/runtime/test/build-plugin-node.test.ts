@@ -65,7 +65,7 @@ describe('NodePlugin', () => {
 		);
 
 		expect(withApp).toContain('import userApp from "/fixture/app.ts";');
-		expect(withApp).toContain('const app = userApp;');
+		expect(withApp).toContain('const flueApp = userApp;');
 		expect(withApp).not.toContain('createDefaultFlueApp()');
 
 		const withoutApp = new NodePlugin().generateEntryPoint(
