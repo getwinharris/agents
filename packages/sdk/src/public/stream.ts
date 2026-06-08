@@ -78,17 +78,11 @@ export async function* readSse(body: ReadableStream<Uint8Array>): AsyncIterable<
 		while (true) {
 			const { done, value } = await reader.read();
 			if (done) break;
-			buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n');
-			let idx = buffer.indexOf('\n\n');
-			while (idx !== -1) {
-				const raw = buffer.slice(0, idx);
-				buffer = buffer.slice(idx + 2);
-				const frame = parseFrame(raw);
-				if (frame) yield frame;
-				idx = buffer.indexOf('\n\n');
-			}
+			buffer += decoder.decode(value, { stream: true });
+			yield* drainFrames(false);
 		}
-		buffer += decoder.decode().replace(/\r\n/g, '\n');
+		buffer += decoder.decode();
+		yield* drainFrames(true);
 		const frame = parseFrame(buffer);
 		if (frame) yield frame;
 	} finally {
@@ -97,6 +91,27 @@ export async function* readSse(body: ReadableStream<Uint8Array>): AsyncIterable<
 		} catch {}
 		reader.releaseLock();
 	}
+
+	function* drainFrames(final: boolean): Iterable<SseFrame> {
+		// Normalize line endings in the buffer, but when not final, keep a
+		// trailing \r that may be the start of a \r\n split across chunks.
+		const trailingCr = !final && buffer.endsWith('\r');
+		const normalizable = trailingCr ? buffer.slice(0, -1) : buffer;
+		buffer = normalizeEndings(normalizable) + (trailingCr ? '\r' : '');
+
+		let idx = buffer.indexOf('\n\n');
+		while (idx !== -1) {
+			const raw = buffer.slice(0, idx);
+			buffer = buffer.slice(idx + 2);
+			const frame = parseFrame(raw);
+			if (frame) yield frame;
+			idx = buffer.indexOf('\n\n');
+		}
+	}
+}
+
+function normalizeEndings(text: string): string {
+	return text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 }
 
 function parseFrame(raw: string): SseFrame | undefined {

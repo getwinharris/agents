@@ -466,6 +466,47 @@ describe('readSse', () => {
 		for await (const frame of readSse(stream)) frames.push(frame);
 		expect(frames).toEqual([{ event: 'run_end', id: '2', data: '{"type":"run_end"}' }]);
 	});
+
+	it('parses CR-only line endings', async () => {
+		const stream = sse('event: run_end\rid: 2\rdata: {"type":"run_end"}\r\r');
+
+		const frames = [];
+		for await (const frame of readSse(stream)) frames.push(frame);
+		expect(frames).toEqual([{ event: 'run_end', id: '2', data: '{"type":"run_end"}' }]);
+	});
+
+	it('handles CRLF split across chunks', async () => {
+		const encoder = new TextEncoder();
+		const stream = new ReadableStream<Uint8Array>({
+			start(controller) {
+				// First chunk ends with \r, second chunk starts with \n
+				controller.enqueue(encoder.encode('data: {"type":"a"}\r'));
+				controller.enqueue(encoder.encode('\ndata: {"type":"b"}\r'));
+				controller.enqueue(encoder.encode('\n\r\n'));
+				controller.close();
+			},
+		});
+
+		const frames = [];
+		for await (const frame of readSse(stream)) frames.push(frame);
+		expect(frames).toEqual([{ data: '{"type":"a"}\n{"type":"b"}' }]);
+	});
+
+	it('handles multiple frames across many small chunks', async () => {
+		const encoder = new TextEncoder();
+		const stream = new ReadableStream<Uint8Array>({
+			start(controller) {
+				controller.enqueue(encoder.encode('data: {"n":1}\r\n'));
+				controller.enqueue(encoder.encode('\r\ndata:'));
+				controller.enqueue(encoder.encode(' {"n":2}\r\n\r\n'));
+				controller.close();
+			},
+		});
+
+		const frames = [];
+		for await (const frame of readSse(stream)) frames.push(frame);
+		expect(frames).toEqual([{ data: '{"n":1}' }, { data: '{"n":2}' }]);
+	});
 });
 
 function sse(text: string): ReadableStream<Uint8Array> {
