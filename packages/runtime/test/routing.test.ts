@@ -2,9 +2,8 @@ import { Hono } from 'hono';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createFlueContext } from '../src/client.ts';
-import { resetFlueRuntimeForTests } from '../src/internal.ts';
 import { InMemoryRunStore } from '../src/node/run-store.ts';
-import { configureFlueRuntime, createDefaultFlueApp, flue } from '../src/runtime/flue-app.ts';
+import { configureFlueRuntime, createDefaultFlueApp, flue, resetFlueRuntimeForTests } from '../src/runtime/flue-app.ts';
 import { InMemorySessionStore } from '../src/session.ts';
 
 afterEach(() => {
@@ -53,8 +52,8 @@ describe('flue()', () => {
 			manifest: {
 				agents: [{ name: 'assistant', transports: { http: true }, created: true }],
 			},
-			handlers: {
-				assistant: (ctx) => ({ instanceId: ctx.id, payload: ctx.payload }),
+			createAdmission: {
+				assistant: (id) => async (payload) => ({ instanceId: id, payload }),
 			},
 			createContext: createTestContext,
 		});
@@ -184,8 +183,8 @@ describe('flue()', () => {
 			manifest: {
 				agents: [{ name: 'assistant', transports: { http: true }, created: true }],
 			},
-			handlers: {
-				assistant: (ctx) => ({ payload: ctx.payload }),
+			createAdmission: {
+				assistant: (_id) => async (payload) => ({ payload }),
 			},
 			agentRouteMiddleware: {
 				assistant: async (c, next) => {
@@ -220,12 +219,6 @@ describe('flue()', () => {
 			manifest: {
 				agents: [{ name: 'assistant', transports: { http: true }, created: true }],
 			},
-			handlers: {
-				assistant: () => {
-					handlerCalls++;
-					return { shouldNotRun: true };
-				},
-			},
 			agentRouteMiddleware: {
 				assistant: async (c) => c.json({ blocked: true }, 401),
 			},
@@ -254,7 +247,6 @@ describe('flue()', () => {
 			manifest: {
 				agents: [{ name: 'assistant', transports: { http: true }, created: true }],
 			},
-			handlers: { assistant: () => ({ shouldNotRun: true }) },
 			agentRouteMiddleware: { assistant: () => Promise.resolve(undefined) },
 			createContext: createTestContext,
 		});
@@ -294,7 +286,9 @@ describe('flue()', () => {
 			manifest: {
 				agents: [{ name: 'assistant', transports: { http: true }, created: true }],
 			},
-			handlers: { assistant: () => ({ shouldNotRun: true }) },
+			createAdmission: {
+				assistant: (_id) => async (payload) => ({ message: payload.message }),
+			},
 			createContext: createTestContext,
 		});
 		const app = new Hono();
@@ -325,7 +319,9 @@ describe('flue()', () => {
 			manifest: {
 				agents: [{ name: 'assistant', transports: { http: true }, created: true }],
 			},
-			handlers: { assistant: () => ({ shouldNotRun: true }) },
+			createAdmission: {
+				assistant: (_id) => async (payload) => ({ message: payload.message }),
+			},
 			createContext: createTestContext,
 		});
 		const app = new Hono();
@@ -384,7 +380,9 @@ describe('flue()', () => {
 			manifest: {
 				agents: [{ name: 'assistant', transports: { http: true }, created: true }],
 			},
-			handlers: { assistant: () => ({ shouldNotRun: true }) },
+			createAdmission: {
+				assistant: (_id) => async (payload) => ({ message: payload.message }),
+			},
 			createContext: createTestContext,
 		});
 		const app = new Hono();
@@ -415,7 +413,9 @@ describe('flue()', () => {
 			manifest: {
 				agents: [{ name: 'assistant', transports: { http: true }, created: true }],
 			},
-			handlers: { assistant: () => ({ shouldNotRun: true }) },
+			createAdmission: {
+				assistant: (_id) => async (payload) => ({ message: payload.message }),
+			},
 			createContext: createTestContext,
 		});
 		const app = new Hono();
@@ -473,7 +473,9 @@ describe('createDefaultFlueApp()', () => {
 			manifest: {
 				agents: [{ name: 'assistant', transports: { http: true }, created: true }],
 			},
-			handlers: { assistant: (ctx) => ({ instanceId: ctx.id, payload: ctx.payload }) },
+			createAdmission: {
+				assistant: (id) => async (payload) => ({ instanceId: id, payload }),
+			},
 			createContext: createTestContext,
 		});
 		const app = createDefaultFlueApp();

@@ -28,6 +28,12 @@ import {
 	type TaskToolResultDetails,
 } from './agent.ts';
 import {
+	DURABILITY_DEFAULT_MAX_RETRY,
+	DURABILITY_DEFAULT_TIMEOUT_MINUTES,
+	type AgentSubmissionStore,
+	type SubmissionDurability,
+} from './agent-execution-store.ts';
+import {
 	type CompactionSettings,
 	type CompactionTurnHandle,
 	calculateContextTokens,
@@ -49,15 +55,24 @@ import {
 	type ResultToolBundle,
 	ResultUnavailableError,
 } from './result.ts';
+import type {
+	AgentSubmissionInput,
+	AgentSubmissionInspection,
+	AgentSubmissionInterruption,
+	DirectAgentSubmissionInput,
+	ProcessAgentSubmissionOptions,
+} from './runtime/agent-submissions.ts';
+import { agentSubmissionDispatchInput } from './runtime/agent-submissions.ts';
+import { reconstructInterruptedStream, StreamChunkWriter } from './runtime/stream-chunks.ts';
 import type { DispatchInput } from './runtime/dispatch-queue.ts';
 import { generateOperationId, generateTurnId } from './runtime/ids.ts';
 import { getProviderConfiguration, getRegisteredApiKey } from './runtime/providers.ts';
 import { createFlueFs } from './sandbox.ts';
+import { SessionHistory, createUserContextMessage, renderSignalMessage, type MessageSource } from './session-history.ts';
 import { childTaskSessionStorageKey } from './session-identity.ts';
 import type {
 	AgentConfig,
 	AgentProfile,
-	BranchSummaryEntry,
 	CallHandle,
 	CompactionEntry,
 	DispatchMessageMetadata,
@@ -79,6 +94,7 @@ import type {
 	SessionToolFactory,
 	ShellOptions,
 	ShellResult,
+	SignalMessage,
 	SkillOptions,
 	SkillReference,
 	TaskOptions,
@@ -86,6 +102,9 @@ import type {
 	ToolDefinition,
 } from './types.ts';
 import { addUsage, emptyUsage, fromProviderUsage } from './usage.ts';
+
+export { SessionHistory, createUserContextMessage, renderSignalMessage } from './session-history.ts';
+export type { MessageSource, ContextEntry, CompactionAppendInput } from './session-history.ts';
 
 const MAX_TASK_DEPTH = 4;
 const MAX_TRANSIENT_MODEL_RETRIES = 3;
@@ -109,7 +128,13 @@ type TurnAssistantContent = Extract<TurnInputMessage, { role: 'assistant' }>['co
 type TurnToolResultContent = Extract<TurnInputMessage, { role: 'toolResult' }>['content'][number];
 type TurnContent = TurnUserContent | TurnAssistantContent | TurnToolResultContent;
 
-function toTurnMessage(message: Message): TurnInputMessage {
+function toTurnMessage(message: AgentMessage): TurnInputMessage {
+	if (message.role === 'signal') {
+		return {
+			role: 'user',
+			content: renderSignalMessage(message),
+		};
+	}
 	if (message.role === 'user') {
 		return {
 			role: 'user',
@@ -125,13 +150,16 @@ function toTurnMessage(message: Message): TurnInputMessage {
 			content: message.content.map(toTurnContent) as TurnAssistantContent[],
 		};
 	}
-	return {
-		role: 'toolResult',
-		toolCallId: message.toolCallId,
-		toolName: message.toolName,
-		content: message.content.map(toTurnContent) as TurnToolResultContent[],
-		isError: message.isError,
-	};
+	if (message.role === 'toolResult') {
+		return {
+			role: 'toolResult',
+			toolCallId: message.toolCallId,
+			toolName: message.toolName,
+			content: message.content.map(toTurnContent) as TurnToolResultContent[],
+			isError: message.isError,
+		};
+	}
+	throw new Error(`[flue] Unsupported message role in turn context: ${message.role}`);
 }
 
 function toTurnContent(block: ProviderContentBlock): TurnContent {
@@ -185,6 +213,7 @@ interface SessionInitOptions {
 	taskDepth?: number;
 	createTaskSession?: CreateTaskSession;
 	onDelete?: () => void;
+	submissionStore?: AgentSubmissionStore;
 }
 
 interface CallOverrides {
@@ -246,265 +275,22 @@ export class InMemorySessionStore implements SessionStore {
 	}
 }
 
-export type MessageSource = MessageEntry['source'];
-
-export interface ContextEntry {
-	message: AgentMessage;
-	entry?: SessionEntry;
-}
-
-export interface CompactionAppendInput {
-	summary: string;
-	firstKeptEntryId: string;
-	tokensBefore: number;
-	details?: { readFiles: string[]; modifiedFiles: string[] };
-	usage?: PromptUsage;
-}
-
-export class SessionHistory {
-	private entries: SessionEntry[];
-	private byId: Map<string, SessionEntry>;
-	private leafId: string | null;
-
-	private constructor(entries: SessionEntry[], leafId: string | null) {
-		this.entries = [...entries];
-		this.leafId = leafId;
-		this.byId = new Map(this.entries.map((entry) => [entry.id, entry]));
-	}
-
-	static empty(): SessionHistory {
-		return new SessionHistory([], null);
-	}
-
-	static fromData(data: SessionData | null): SessionHistory {
-		if (!data) return SessionHistory.empty();
-		if (data.version !== 5) {
-			throw new Error(
-				`[flue] Session data version ${String(data.version)} is unsupported. Clear persisted session state created by an earlier Flue beta.`,
-			);
-		}
-		if (
-			typeof data.affinityKey !== 'string' ||
-			!/^aff_[0-7][0-9A-HJKMNP-TV-Z]{25}$/.test(data.affinityKey)
-		) {
-			throw new Error(
-				'[flue] Session data affinity key is malformed. Clear malformed persisted session state.',
-			);
-		}
-		return new SessionHistory(data.entries, data.leafId);
-	}
-
-	getLeafId(): string | null {
-		return this.leafId;
-	}
-
-	getActivePath(): SessionEntry[] {
-		const path: SessionEntry[] = [];
-		let current = this.leafId ? this.byId.get(this.leafId) : undefined;
-		while (current) {
-			path.push(current);
-			current = current.parentId ? this.byId.get(current.parentId) : undefined;
-		}
-		return path.reverse();
-	}
-
-	/**
-	 * Active-path entries appended after `afterLeafId` (exclusive), in order.
-	 *
-	 * - `afterLeafId === null` means "from the start of the path" → returns
-	 *   the entire active path.
-	 * - When the id is found, returns entries strictly after it.
-	 * - When the id is *not* on the current active path (e.g. a branch
-	 *   switch happened mid-window), returns `[]`. Callers use this for
-	 *   bounded windowing — falling back to the full path would silently
-	 *   include unrelated history. An empty result is the safer answer
-	 *   for usage aggregation: zero is loud (sums won't match expectations)
-	 *   while full-history is silent overcounting.
-	 */
-	getActivePathSince(afterLeafId: string | null): SessionEntry[] {
-		const path = this.getActivePath();
-		if (afterLeafId === null) return path;
-		const startIndex = path.findIndex((entry) => entry.id === afterLeafId);
-		if (startIndex === -1) return [];
-		return path.slice(startIndex + 1);
-	}
-
-	buildContextEntries(): ContextEntry[] {
-		const path = this.getActivePath();
-		const latestCompactionIndex = findLatestCompactionIndex(path);
-		if (latestCompactionIndex === -1) {
-			return pathToContextEntries(path);
-		}
-
-		const compaction = path[latestCompactionIndex] as CompactionEntry;
-		const firstKeptIndex = path.findIndex((entry) => entry.id === compaction.firstKeptEntryId);
-		const keptStart = firstKeptIndex >= 0 ? firstKeptIndex : latestCompactionIndex + 1;
-		const context: ContextEntry[] = [
-			{
-				message: createContextSummaryMessage(compaction.summary, compaction.timestamp),
-				entry: compaction,
-			},
-		];
-		context.push(...pathToContextEntries(path.slice(keptStart, latestCompactionIndex)));
-		context.push(...pathToContextEntries(path.slice(latestCompactionIndex + 1)));
-		return context;
-	}
-
-	buildContext(): AgentMessage[] {
-		return this.buildContextEntries().map((entry) => entry.message);
-	}
-
-	getLatestCompaction(): CompactionEntry | undefined {
-		const path = this.getActivePath();
-		for (let i = path.length - 1; i >= 0; i--) {
-			const entry = path[i];
-			if (entry?.type === 'compaction') return entry;
-		}
-		return undefined;
-	}
-
-	appendMessage(
-		message: AgentMessage,
-		source?: MessageSource,
-		dispatch?: DispatchMessageMetadata,
-	): string {
-		const entry: MessageEntry = {
-			type: 'message',
-			id: generateEntryId(this.byId),
-			parentId: this.leafId,
-			timestamp: new Date().toISOString(),
-			message,
-			source,
-		};
-		if (dispatch) entry.dispatch = dispatch;
-		this.appendEntry(entry);
-		return entry.id;
-	}
-
-	findDispatchInput(dispatchId: string): MessageEntry | undefined {
-		return this.getActivePath().find(
-			(entry): entry is MessageEntry =>
-				entry.type === 'message' && entry.dispatch?.dispatchId === dispatchId,
-		);
-	}
-
-	appendMessages(messages: AgentMessage[], source?: MessageSource): string[] {
-		return messages.map((message) => this.appendMessage(message, source));
-	}
-
-	appendCompaction(input: CompactionAppendInput): string {
-		if (!this.byId.has(input.firstKeptEntryId)) {
-			throw new Error(`[flue] Cannot compact: entry "${input.firstKeptEntryId}" does not exist.`);
-		}
-		const entry: CompactionEntry = {
-			type: 'compaction',
-			id: generateEntryId(this.byId),
-			parentId: this.leafId,
-			timestamp: new Date().toISOString(),
-			summary: input.summary,
-			firstKeptEntryId: input.firstKeptEntryId,
-			tokensBefore: input.tokensBefore,
-			details: input.details,
-			usage: input.usage,
-		};
-		this.appendEntry(entry);
-		return entry.id;
-	}
-
-	appendBranchSummary(summary: string, fromId: string, details?: unknown): string {
-		const entry: BranchSummaryEntry = {
-			type: 'branch_summary',
-			id: generateEntryId(this.byId),
-			parentId: this.leafId,
-			timestamp: new Date().toISOString(),
-			fromId,
-			summary,
-			details,
-		};
-		this.appendEntry(entry);
-		return entry.id;
-	}
-
-	toData(
-		affinityKey: string,
-		metadata: Record<string, any>,
-		createdAt: string,
-		updatedAt: string,
-	): SessionData {
-		return {
-			version: 5,
-			affinityKey,
-			entries: [...this.entries],
-			leafId: this.leafId,
-			metadata,
-			createdAt,
-			updatedAt,
-		};
-	}
-
-	private appendEntry(entry: SessionEntry): void {
-		this.entries.push(entry);
-		this.byId.set(entry.id, entry);
-		this.leafId = entry.id;
-	}
-}
-
-function pathToContextEntries(path: SessionEntry[]): ContextEntry[] {
-	const context: ContextEntry[] = [];
-	for (const entry of path) {
-		if (entry.type === 'message') {
-			if (
-				entry.message.role === 'assistant' &&
-				(entry.message.stopReason === 'error' || entry.message.stopReason === 'aborted')
-			) {
-				continue;
-			}
-			context.push({ message: entry.message, entry });
-		} else if (entry.type === 'branch_summary') {
-			context.push({
-				message: createUserContextMessage(`[Branch Summary]\n\n${entry.summary}`, entry.timestamp),
-				entry,
-			});
-		}
-	}
-	return context;
-}
-
-function findLatestCompactionIndex(path: SessionEntry[]): number {
-	for (let i = path.length - 1; i >= 0; i--) {
-		if (path[i]?.type === 'compaction') return i;
-	}
-	return -1;
-}
-
-function createContextSummaryMessage(summary: string, timestamp: string): AgentMessage {
-	const text = summary.startsWith('[Context Summary]')
-		? summary
-		: `[Context Summary]\n\n${summary}`;
-	return createUserContextMessage(text, timestamp);
-}
-
-function createUserContextMessage(text: string, timestamp: string): AgentMessage {
+function createDispatchInputSignal(input: DispatchInput): SignalMessage {
 	return {
-		role: 'user',
-		content: [{ type: 'text', text }],
-		timestamp: new Date(timestamp).getTime(),
-	} as UserMessage as AgentMessage;
-}
-
-function renderDispatchInput(input: DispatchInput): string {
-	const lines = [
-		'[Dispatch Input]',
-		`agent: ${input.agent}`,
-		`id: ${input.id}`,
-		`session: ${input.session}`,
-		`dispatchId: ${input.dispatchId}`,
-		`acceptedAt: ${input.acceptedAt}`,
-		'',
-		'input:',
-		stableStringify(input.input),
-	];
-	return lines.join('\n');
+		role: 'signal',
+		type: 'dispatch_input',
+		tagName: 'dispatch',
+		content: stableStringify(input.input),
+		attributes: {
+			agent: input.agent,
+			id: input.id,
+			session: input.session,
+			dispatchId: input.dispatchId,
+			acceptedAt: input.acceptedAt,
+		},
+		data: { input: input.input },
+		timestamp: Date.now(),
+	};
 }
 
 function dispatchMetadata(input: DispatchInput): DispatchMessageMetadata {
@@ -533,19 +319,15 @@ function sortJsonLike(value: unknown): unknown {
 	return sorted;
 }
 
-function generateEntryId(byId: Map<string, SessionEntry>): string {
-	for (let i = 0; i < 100; i++) {
-		const id = crypto.randomUUID().slice(0, 8);
-		if (!byId.has(id)) return id;
-	}
-	return crypto.randomUUID();
-}
-
 function isRetryableModelError(message: AssistantMessage): boolean {
 	if (message.stopReason !== 'error' || !message.errorMessage) return false;
 	return /overloaded|rate.?limit|too many requests|429|500|502|503|504|service.?unavailable|server.?error|network.?error|connection.?(?:reset|refused|lost)|socket hang up|fetch failed|timed? out|timeout|terminated/i.test(
 		message.errorMessage,
 	);
+}
+
+function isCompletedAssistantResponse(message: AssistantMessage): boolean {
+	return message.stopReason === 'stop' || message.stopReason === 'length';
 }
 
 function modelRetryDelayMs(attempt: number): number {
@@ -609,12 +391,36 @@ export class Session implements FlueSession {
 	private taskDepth: number;
 	private createTaskSession: CreateTaskSession | undefined;
 	private onDelete: (() => void) | undefined;
+	private submissionStore: AgentSubmissionStore | undefined;
 	private pendingSave: Promise<void> = Promise.resolve();
+	private harnessMessageCheckpointCursor = 0;
+	private activeCheckpointSource: MessageEntry['source'] | undefined;
+	private activeJournalCallbacks: ProcessAgentSubmissionOptions['journal'] | undefined;
+	private activeTimeoutAt: number | undefined;
+	private activeTurnCanCommitJournal = false;
+	private activeStreamChunkWriter: StreamChunkWriter | undefined;
+	private activeSubmissionId: string | undefined;
+	private activeSubmissionAttemptId: string | undefined;
 
-	private emitTurnRequestAndStream: StreamFn = (model, context, options) => {
+	private emitTurnRequestAndStream: StreamFn = async (model, context, options) => {
 		if (this.activeTurnId === undefined) this.activeTurnId = generateTurnId();
 		const turnId = this.activeTurnId;
+		const streamKey =
+			this.activeSubmissionId && this.activeSubmissionAttemptId
+				? `${this.activeSubmissionId}:${turnId}:${this.activeSubmissionAttemptId}`
+				: undefined;
+		const state = {
+			operationId: this.activeOperationId ?? generateOperationId(),
+			turnId,
+			checkpointLeafId: this.history.getLeafId() ?? undefined,
+			streamKey,
+		};
+		await this.activeJournalCallbacks?.beforeProvider?.(state);
+		if (streamKey && this.submissionStore) {
+			this.activeStreamChunkWriter = new StreamChunkWriter(this.submissionStore, streamKey);
+		}
 		this.emitTurnRequest(turnId, 'agent', model, context, options?.reasoning);
+		await this.activeJournalCallbacks?.providerStarted?.(state);
 		return streamSimple(model, context, options);
 	};
 
@@ -665,6 +471,7 @@ export class Session implements FlueSession {
 		this.taskDepth = options.taskDepth ?? 0;
 		this.createTaskSession = options.createTaskSession;
 		this.onDelete = options.onDelete;
+		this.submissionStore = options.submissionStore;
 
 		this.metadata = options.existingData?.metadata ?? {};
 		this.createdAt = options.existingData?.createdAt;
@@ -693,6 +500,7 @@ export class Session implements FlueSession {
 			sessionId: this.affinityKey,
 		});
 
+		this.harnessMessageCheckpointCursor = this.harness.state.messages.length;
 		this.eventCallback = options.onAgentEvent;
 		this.harness.subscribe(async (event) => {
 			switch (event.type) {
@@ -702,12 +510,14 @@ export class Session implements FlueSession {
 				case 'turn_start':
 					this.turnStartTime = Date.now();
 					this.activeTurnId = generateTurnId();
+					this.activeTurnCanCommitJournal = false;
 					this.emit({ type: 'turn_start', turnId: this.activeTurnId, purpose: 'agent' });
 					break;
 				case 'message_start':
 					this.emit({ type: 'message_start', message: event.message });
 					break;
 				case 'message_update': {
+					this.activeStreamChunkWriter?.write(event.assistantMessageEvent);
 					this.emit({
 						type: 'message_update',
 						message: event.message,
@@ -726,16 +536,23 @@ export class Session implements FlueSession {
 					break;
 				}
 				case 'message_end':
+					if (event.message.role === 'assistant') {
+						const toolCalls = event.message.content.filter((content) => content.type === 'toolCall');
+						if (toolCalls.length > 0) {
+							await this.checkpointHarnessMessages();
+							await this.activeJournalCallbacks?.toolRequestRecorded?.({
+								operationId: this.activeOperationId ?? generateOperationId(),
+								turnId: this.activeTurnId ?? generateTurnId(),
+								checkpointLeafId: this.history.getLeafId() ?? undefined,
+								toolRequest: { toolCalls },
+							});
+						}
+					}
+					if (event.message.role === 'user') await this.checkpointHarnessMessages();
 					this.emit({ type: 'message_end', message: event.message });
 					break;
 				case 'tool_execution_start':
 					this.toolStartTimes.set(event.toolCallId, Date.now());
-					this.emit({
-						type: 'tool_execution_start',
-						toolName: event.toolName,
-						toolCallId: event.toolCallId,
-						args: event.args,
-					});
 					this.emit({
 						type: 'tool_start',
 						toolName: event.toolName,
@@ -744,22 +561,8 @@ export class Session implements FlueSession {
 					});
 					break;
 				case 'tool_execution_update':
-					this.emit({
-						type: 'tool_execution_update',
-						toolName: event.toolName,
-						toolCallId: event.toolCallId,
-						args: event.args,
-						partialResult: event.partialResult,
-					});
 					break;
 				case 'tool_execution_end':
-					this.emit({
-						type: 'tool_execution_end',
-						toolName: event.toolName,
-						toolCallId: event.toolCallId,
-						result: event.result,
-						isError: event.isError,
-					});
 					this.emit({
 						type: 'tool_call',
 						toolName: event.toolName,
@@ -772,6 +575,9 @@ export class Session implements FlueSession {
 					break;
 				case 'turn_end': {
 					const turnId = this.activeTurnId ?? generateTurnId();
+					await this.activeStreamChunkWriter?.flush();
+					this.activeTurnCanCommitJournal = true;
+					await this.checkpointHarnessMessages();
 					this.emit({
 						type: 'turn_end',
 						turnId,
@@ -800,12 +606,18 @@ export class Session implements FlueSession {
 					});
 					this.turnStartTime = undefined;
 					this.activeTurnId = undefined;
+					await this.activeStreamChunkWriter?.close();
+					this.activeStreamChunkWriter = undefined;
 					break;
 				}
 				case 'agent_end':
+					await this.activeStreamChunkWriter?.flush();
+					await this.checkpointHarnessMessages();
 					this.emit({ type: 'agent_end', messages: event.messages });
 					this.turnStartTime = undefined;
 					this.activeTurnId = undefined;
+					await this.activeStreamChunkWriter?.close();
+					this.activeStreamChunkWriter = undefined;
 					break;
 			}
 		});
@@ -879,10 +691,141 @@ export class Session implements FlueSession {
 		);
 	}
 
-	processDispatchInput(input: DispatchInput): CallHandle<PromptResponse> {
-		return createCallHandle(undefined, (signal) =>
-			this.runOperation('prompt', signal, () => this.runPersistedDispatchInput(input, signal)),
+	inspectSubmissionInput(input: AgentSubmissionInput): AgentSubmissionInspection {
+		return this.inspectPersistedInput(
+			input.kind === 'dispatch'
+				? this.history.findDispatchInput(input.dispatchId)
+				: this.history.findDirectSubmissionInput(input.submissionId),
 		);
+	}
+
+	processSubmissionInput(
+		input: AgentSubmissionInput,
+		options?: ProcessAgentSubmissionOptions,
+	): CallHandle<PromptResponse> {
+		return createCallHandle(undefined, (signal) =>
+			this.runOperation('prompt', signal, () =>
+				input.kind === 'dispatch'
+					? this.runPersistedDispatchInput(agentSubmissionDispatchInput(input), signal, options)
+					: this.runPersistedDirectSubmissionInput(input, signal, options),
+			),
+		);
+	}
+
+	/**
+	 * Repair interrupted tool calls by building a complete ordered result batch
+	 * for all tool calls in the journal's toolRequest. Already-settled results
+	 * are preserved (first-write-wins); unresolved tools get synthetic error
+	 * results. Results are appended in original tool-call order so
+	 * `isCompleteToolResultBatch` positional matching succeeds.
+	 *
+	 * Returns the new leaf ID after repair, or undefined if no repair was needed.
+	 */
+	async repairInterruptedToolCalls(
+		input: AgentSubmissionInput,
+		toolRequest: { toolCalls: Array<{ type: 'toolCall'; id: string; name: string }> },
+	): Promise<string | undefined> {
+		const inputEntry =
+			input.kind === 'dispatch'
+				? this.history.findDispatchInput(input.dispatchId)
+				: this.history.findDirectSubmissionInput(input.submissionId);
+		if (!inputEntry) return undefined;
+		const following = this.history.getActivePathSince(inputEntry.id);
+		const assistant = following.findLast(
+			(entry): entry is MessageEntry => entry.type === 'message' && entry.message.role === 'assistant',
+		);
+		if (!assistant || (assistant.message as AssistantMessage).stopReason !== 'toolUse') return undefined;
+
+		const settledByCallId = new Map<string, ToolResultMessage>();
+		for (const entry of following) {
+			if (entry.type === 'message' && entry.message.role === 'toolResult') {
+				const result = entry.message as ToolResultMessage;
+				if (!settledByCallId.has(result.toolCallId)) {
+					settledByCallId.set(result.toolCallId, result);
+				}
+			}
+		}
+
+		const hasUnsettled = toolRequest.toolCalls.some((tc) => !settledByCallId.has(tc.id));
+		if (!hasUnsettled) return undefined;
+
+		const now = Date.now();
+		const orderedResults: ToolResultMessage[] = toolRequest.toolCalls.map((tc) => {
+			const settled = settledByCallId.get(tc.id);
+			if (settled) return settled;
+			return {
+				role: 'toolResult' as const,
+				toolCallId: tc.id,
+				toolName: tc.name,
+				content: [
+					{
+						type: 'text' as const,
+						text: JSON.stringify({
+							type: 'interrupted',
+							message: 'Tool execution was interrupted before completion. The outcome is unknown.',
+						}),
+					},
+				],
+				isError: true,
+				timestamp: now,
+			};
+		});
+
+		// Branch from the assistant entry so results are in correct positional
+		// order regardless of which partial results were previously persisted.
+		this.history.setLeaf(assistant.id);
+		this.history.appendMessages(orderedResults, undefined);
+		this.rebuildHarnessContext();
+		await this.save();
+		return this.history.getLeafId() ?? undefined;
+	}
+
+	async recoverInterruptedStream(streamKey: string): Promise<boolean> {
+		if (!this.submissionStore) return false;
+		const segments = await this.submissionStore.getStreamChunkSegments(streamKey);
+		const recovered = reconstructInterruptedStream(segments, streamKey);
+		if (!recovered) return false;
+		const alreadyRecovered = this.history.getActivePath().some(
+			(entry) =>
+				entry.type === 'message' &&
+				entry.message.role === 'signal' &&
+				entry.message.type === 'stream_continued' &&
+				entry.message.attributes?.streamKey === streamKey,
+		);
+		if (alreadyRecovered) return true;
+		this.history.appendMessages([recovered.partial, recovered.interrupted, recovered.continued], 'retry');
+		this.rebuildHarnessContext();
+		await this.save();
+		return true;
+	}
+
+	async recordSubmissionTerminal(input: AgentSubmissionInterruption): Promise<void> {
+		if (this.history.findSubmissionTerminal(input.submissionId)) return;
+		let body = input.message;
+		if (input.interruptedTools && input.interruptedTools.length > 0) {
+			const toolList = input.interruptedTools.map((t) => `  - ${t.name} (${t.id})`).join('\n');
+			body += `\n\nInterrupted tool call(s):\n${toolList}`;
+		}
+		const signal: SignalMessage = {
+			role: 'signal',
+			type: 'submission_interrupted',
+			content: body,
+			attributes: {
+				submissionId: input.submissionId,
+				kind: input.kind,
+				reason: input.reason,
+			},
+			timestamp: Date.now(),
+		};
+		this.history.appendMessage(signal, undefined, {
+			submissionTerminal: {
+				submissionId: input.submissionId,
+				kind: input.kind,
+				reason: input.reason,
+			},
+		});
+		this.rebuildHarnessContext();
+		await this.save();
 	}
 
 	skill<S extends v.GenericSchema>(
@@ -1037,6 +980,12 @@ export class Session implements FlueSession {
 		for (const task of this.activeTasks) task.abort();
 	}
 
+	/**
+	 * Detach a child task session after its task completes. Aborts pending
+	 * work and fires the onDelete callback but does NOT delete stored data —
+	 * child session storage is parent-owned and cleaned up when the parent
+	 * session is deleted via the session-tree cascade.
+	 */
 	close(): void {
 		if (this.deleted) return;
 		this.deleted = true;
@@ -1057,9 +1006,17 @@ export class Session implements FlueSession {
 		}
 		this.deleted = true;
 		this.deletionPromise = Promise.resolve()
-			.then(() => deleteSessionTree(this.store, this.storageKey))
+			.then(() => {
+				const deleteTree = () => deleteSessionTree(this.store, this.storageKey);
+				return this.submissionStore?.deleteSession(this.storageKey, deleteTree) ?? deleteTree();
+			})
 			.then(() => {
 				this.onDelete?.();
+			})
+			.catch((error) => {
+				this.deleted = false;
+				this.deletionPromise = undefined;
+				throw error;
 			});
 		return this.deletionPromise;
 	}
@@ -1625,7 +1582,7 @@ export class Session implements FlueSession {
 					type: 'toolCall',
 					id: toolCallId,
 					name: 'bash',
-					arguments: args as Record<string, any>,
+					arguments: args as Record<string, unknown>,
 				},
 			],
 			// Synthetic provider-bookkeeping fields. No real provider was
@@ -1657,15 +1614,56 @@ export class Session implements FlueSession {
 			timestamp,
 		};
 		this.history.appendMessages([userMessage, assistantMessage, toolResultMessage], 'shell');
-		this.harness.state.messages = this.history.buildContext();
+		this.rebuildHarnessContext();
 		await this.save();
 	}
 
-	private async syncHarnessMessagesSince(index: number, source: MessageSource): Promise<void> {
-		const messages = this.harness.state.messages.slice(index) as AgentMessage[];
+	private rebuildHarnessContext(): void {
+		const messages = this.history.buildContext();
+		this.harness.state.messages = messages;
+		this.harnessMessageCheckpointCursor = messages.length;
+	}
+
+	private async checkpointHarnessMessages(): Promise<void> {
+		const messages = this.harness.state.messages.slice(
+			this.harnessMessageCheckpointCursor,
+		) as AgentMessage[];
 		if (messages.length === 0) return;
-		this.history.appendMessages(messages, source);
+		if (!this.activeCheckpointSource) {
+			throw new Error('[flue] Cannot checkpoint harness messages without an active source.');
+		}
+		this.history.appendMessages(messages, this.activeCheckpointSource);
+		this.harnessMessageCheckpointCursor = this.harness.state.messages.length;
 		await this.save();
+		if (this.activeTurnCanCommitJournal) {
+			const leafId = this.history.getLeafId();
+			if (!leafId) {
+				throw new Error('[flue] Invariant: checkpoint leaf ID is null after saving messages.');
+			}
+			const latest = messages.at(-1);
+			const turnEndedWithToolResult = latest?.role === 'toolResult';
+			if (turnEndedWithToolResult) {
+				await this.activeJournalCallbacks?.checkpointReady?.({
+					operationId: this.activeOperationId ?? generateOperationId(),
+					turnId: this.activeTurnId ?? generateTurnId(),
+					checkpointLeafId: leafId,
+				});
+				if (this.activeStreamChunkWriter) {
+					await this.submissionStore?.deleteStreamChunkSegments(this.activeStreamChunkWriter.streamKey);
+				}
+			} else {
+				await this.activeJournalCallbacks?.committed?.({
+					operationId: this.activeOperationId ?? generateOperationId(),
+					turnId: this.activeTurnId ?? generateTurnId(),
+					checkpointLeafId: leafId,
+					committedLeafId: leafId,
+				});
+				if (this.activeStreamChunkWriter) {
+					await this.submissionStore?.deleteStreamChunkSegments(this.activeStreamChunkWriter.streamKey);
+				}
+			}
+			this.activeTurnCanCommitJournal = false;
+		}
 	}
 
 	private async save(): Promise<void> {
@@ -1709,10 +1707,25 @@ export class Session implements FlueSession {
 
 		while (true) {
 			if (options.signal.aborted) throw abortErrorFor(options.signal);
-			const beforeLength = this.harness.state.messages.length;
-			await start();
-			await this.harness.waitForIdle();
-			await this.syncHarnessMessagesSince(beforeLength, source);
+			// Cooperative timeout: checked between turns, not during provider calls.
+			// A hung provider or long tool execution can exceed the deadline. That case
+			// is covered by DO eviction + the attempt budget (Capability K), not this check.
+			// Preemptive in-turn watchdog is deferred to Capability L.
+			if (this.activeTimeoutAt !== undefined && Date.now() >= this.activeTimeoutAt) {
+				throw new Error('[flue] Submission exceeded configured timeout.');
+			}
+			this.activeCheckpointSource = source;
+			try {
+				await start();
+				await this.harness.waitForIdle();
+				await this.checkpointHarnessMessages();
+			} catch (error) {
+				await this.activeStreamChunkWriter?.flush();
+				this.rebuildHarnessContext();
+				throw error;
+			} finally {
+				this.activeCheckpointSource = undefined;
+			}
 
 			const messages = this.harness.state.messages;
 			const latest = messages[messages.length - 1];
@@ -1722,12 +1735,12 @@ export class Session implements FlueSession {
 
 			if (isContextOverflow(assistant, model.contextWindow ?? 0)) {
 				if (overflowRecoveryAttempted) {
-					this.harness.state.messages = this.history.buildContext();
+					this.rebuildHarnessContext();
 					return;
 				}
 				overflowRecoveryAttempted = true;
 				this.internalLog('info', '[flue:compaction] Overflow detected, compacting and retrying...');
-				this.harness.state.messages = this.history.buildContext();
+				this.rebuildHarnessContext();
 				if (!(await this.runCompaction('overflow'))) return;
 				this.internalLog('info', '[flue:compaction] Retrying after overflow recovery...');
 				start = () => this.harness.continue();
@@ -1745,7 +1758,7 @@ export class Session implements FlueSession {
 
 			await this.checkCompaction(assistant);
 			if (assistant.stopReason === 'error' || assistant.stopReason === 'aborted') {
-				this.harness.state.messages = this.history.buildContext();
+				this.rebuildHarnessContext();
 			}
 			return;
 		}
@@ -1760,11 +1773,11 @@ export class Session implements FlueSession {
 				attempts: attempt - 1,
 				error: assistant.errorMessage,
 			});
-			this.harness.state.messages = this.history.buildContext();
+			this.rebuildHarnessContext();
 			return false;
 		}
 		const delayMs = modelRetryDelayMs(attempt);
-		this.harness.state.messages = this.history.buildContext();
+		this.rebuildHarnessContext();
 		this.modelRetryAbortController = new AbortController();
 		this.internalLog('warn', '[flue:model-retry] Retrying transient model error', {
 			attempt,
@@ -1907,7 +1920,7 @@ export class Session implements FlueSession {
 				details: result.details,
 				usage: result.usage,
 			});
-			this.harness.state.messages = this.history.buildContext();
+			this.rebuildHarnessContext();
 
 			const messagesAfter = this.harness.state.messages.length;
 			this.internalLog(
@@ -2006,35 +2019,113 @@ export class Session implements FlueSession {
 		return undefined;
 	}
 
+	private inspectPersistedInput(inputEntry: MessageEntry | undefined): AgentSubmissionInspection {
+		if (!inputEntry) return 'absent';
+		const following = this.history.getActivePathSince(inputEntry.id);
+		if (following.some((entry) => entry.type === 'message' && entry.message.role === 'user')) {
+			return 'uncertain';
+		}
+		const assistant = following.findLast(
+			(entry): entry is MessageEntry => entry.type === 'message' && entry.message.role === 'assistant',
+		)?.message as AssistantMessage | undefined;
+		if (assistant && isCompletedAssistantResponse(assistant)) return 'completed';
+		if (
+			assistant?.stopReason === 'toolUse' &&
+			following.some((entry) => entry.type === 'message' && entry.message.role === 'toolResult')
+		) {
+			return 'continuable';
+		}
+		if (
+			assistant?.stopReason === 'aborted' &&
+			following.some(
+				(entry) =>
+					entry.type === 'message' &&
+					entry.message.role === 'signal' &&
+					entry.message.type === 'stream_continued',
+			)
+		) {
+			return 'continuable';
+		}
+		return 'uncertain';
+	}
+
 	private async runPersistedDispatchInput(
 		input: DispatchInput,
 		signal: AbortSignal,
+		options?: ProcessAgentSubmissionOptions,
 	): Promise<PromptResponse> {
 		return this.runPersistedContextInput({
 			findInput: () => this.history.findDispatchInput(input.dispatchId),
 			persistInput: () =>
 				this.history.appendMessage(
-					createUserContextMessage(renderDispatchInput(input), new Date().toISOString()),
+					createDispatchInputSignal(input),
 					'dispatch',
-					dispatchMetadata(input),
+					{ dispatch: dispatchMetadata(input) },
 				),
 			errorLabel: `dispatch(${input.dispatchId})`,
 			outputSource: 'dispatch',
 			callSite: 'this dispatched input',
 			persistenceError: '[flue] Failed to persist dispatched input.',
 			recoveryError: '[flue] Cannot recover dispatched input after the session has advanced.',
+			onInputApplied: options?.onInputApplied,
+			submissionAttempt: options?.submissionAttempt,
+			journal: options?.journal,
+			startedAt: options?.startedAt,
+			timeoutAt: options?.timeoutAt,
 			signal,
 		});
+	}
+
+	private async runPersistedDirectSubmissionInput(
+		input: DirectAgentSubmissionInput,
+		signal: AbortSignal,
+		options?: ProcessAgentSubmissionOptions,
+	): Promise<PromptResponse> {
+		return this.runPersistedContextInput({
+			findInput: () => this.history.findDirectSubmissionInput(input.submissionId),
+			persistInput: () =>
+				this.history.appendMessage(
+					createUserContextMessage(input.payload.message, new Date().toISOString()),
+					'prompt',
+					{ directSubmissionId: input.submissionId },
+				),
+			errorLabel: `direct(${input.submissionId})`,
+			outputSource: 'prompt',
+			callSite: 'this direct input',
+			persistenceError: '[flue] Failed to persist direct input.',
+			recoveryError: '[flue] Cannot recover direct input after the session has advanced.',
+			onInputApplied: options?.onInputApplied,
+			submissionAttempt: options?.submissionAttempt,
+			journal: options?.journal,
+			startedAt: options?.startedAt,
+			timeoutAt: options?.timeoutAt,
+			signal,
+		});
+	}
+
+	private resolveSubmissionDurability(startedAt?: number, timeoutAt?: number): SubmissionDurability {
+		return {
+			maxRetry: this.config.durability?.retry ?? DURABILITY_DEFAULT_MAX_RETRY,
+			timeoutAt:
+				timeoutAt ??
+				(startedAt ?? Date.now()) +
+					(this.config.durability?.timeout ?? DURABILITY_DEFAULT_TIMEOUT_MINUTES) * 60_000,
+		};
 	}
 
 	private async runPersistedContextInput(options: {
 		findInput: () => MessageEntry | undefined;
 		persistInput: () => string;
+		journal?: ProcessAgentSubmissionOptions['journal'];
+		startedAt?: number;
+		timeoutAt?: number;
 		errorLabel: string;
 		outputSource: MessageSource;
 		callSite: string;
 		persistenceError: string;
 		recoveryError: string;
+		onInputApplied?: (durability: SubmissionDurability) => Promise<void> | void;
+		submissionAttempt?: import('./agent-execution-store.ts').SubmissionAttemptRef;
 		signal: AbortSignal;
 	}): Promise<PromptResponse> {
 		return this.withCallOverrides(
@@ -2045,65 +2136,100 @@ export class Session implements FlueSession {
 				callSite: options.callSite,
 			},
 			async ({ resolvedModel }) => {
-				let inputEntry = options.findInput();
-				if (!inputEntry) {
-					options.persistInput();
-					this.harness.state.messages = this.history.buildContext();
-					await this.save();
-					inputEntry = options.findInput();
-				}
-				if (!inputEntry) throw new Error(options.persistenceError);
-				const following = this.history.getActivePathSince(inputEntry.id);
-				if (following.some((entry) => entry.type === 'message' && entry.message.role === 'user')) {
-					throw new Error(options.recoveryError);
-				}
-				const persistedAssistants = following.filter(
-					(entry): entry is MessageEntry =>
-						entry.type === 'message' && entry.message.role === 'assistant',
-				);
-				const persistedAssistant = persistedAssistants.at(-1);
-				const assistant = persistedAssistant?.message as AssistantMessage | undefined;
-				const model = this.harness.state.model;
-				const overflow = assistant ? isContextOverflow(assistant, model.contextWindow ?? 0) : false;
-				if (!assistant || overflow || isRetryableModelError(assistant)) {
-					const transientRetries = countConsecutiveRetryableModelErrors(following);
-					if (assistant && overflow) {
-						this.harness.state.messages = this.history.buildContext();
-						this.internalLog(
-							'info',
-							'[flue:compaction] Overflow detected, compacting and retrying...',
-						);
-						if (!(await this.runCompaction('overflow'))) {
-							throw new Error(
-								`[flue] ${options.errorLabel} failed: ${assistant.errorMessage ?? assistant.stopReason}`,
-							);
-						}
-						this.internalLog('info', '[flue:compaction] Retrying after overflow recovery...');
-					} else if (assistant && isRetryableModelError(assistant)) {
-						if (!(await this.waitForTransientModelRetry(assistant, transientRetries))) {
-							throw new Error(
-								`[flue] ${options.errorLabel} failed: ${assistant.errorMessage ?? assistant.stopReason}`,
-							);
-						}
+				this.activeJournalCallbacks = options.journal;
+				this.activeSubmissionId = options.submissionAttempt?.submissionId;
+				this.activeSubmissionAttemptId = options.submissionAttempt?.attemptId;
+				const durability = this.resolveSubmissionDurability(options.startedAt, options.timeoutAt);
+				this.activeTimeoutAt = durability.timeoutAt;
+				try {
+					let inputEntry = options.findInput();
+					if (!inputEntry) {
+						options.persistInput();
+						this.rebuildHarnessContext();
+						await this.save();
+						inputEntry = options.findInput();
 					}
-					await this.runModelTurnWithRecovery({
-						start: () => this.harness.continue(),
-						source: assistant ? 'retry' : options.outputSource,
-						signal: options.signal,
-						transientRetries,
-						overflowRecoveryAttempted: overflow,
-					});
-					this.throwIfError(options.errorLabel);
-				} else if (assistant.stopReason === 'error' || assistant.stopReason === 'aborted') {
-					throw new Error(
-						`[flue] ${options.errorLabel} failed: ${assistant.errorMessage ?? assistant.stopReason}`,
+					if (!inputEntry) throw new Error(options.persistenceError);
+					await options.onInputApplied?.(durability);
+					const following = this.history.getActivePathSince(inputEntry.id);
+					if (following.some((entry) => entry.type === 'message' && entry.message.role === 'user')) {
+						throw new Error(options.recoveryError);
+					}
+					const persistedAssistants = following.filter(
+						(entry): entry is MessageEntry =>
+							entry.type === 'message' && entry.message.role === 'assistant',
 					);
+					const persistedAssistant = persistedAssistants.at(-1);
+					const assistant = persistedAssistant?.message as AssistantMessage | undefined;
+					const model = this.harness.state.model;
+					const overflow = assistant ? isContextOverflow(assistant, model.contextWindow ?? 0) : false;
+					const streamContinuation =
+						assistant?.stopReason === 'aborted' &&
+						following.some(
+							(entry) =>
+								entry.type === 'message' &&
+								entry.message.role === 'signal' &&
+								entry.message.type === 'stream_continued',
+						);
+					if (
+						!assistant ||
+						overflow ||
+						isRetryableModelError(assistant) ||
+						streamContinuation ||
+						(assistant.stopReason === 'toolUse' &&
+							following.some((entry) => entry.type === 'message' && entry.message.role === 'toolResult'))
+					) {
+				const transientRetries = countConsecutiveRetryableModelErrors(following);
+					// Check timeout before entering the preamble (compaction, transient
+					// retry backoff) which can add significant time. The main timeout
+					// check lives in runModelTurnWithRecovery, but these preamble paths
+					// run before that loop is entered.
+					if (this.activeTimeoutAt !== undefined && Date.now() >= this.activeTimeoutAt) {
+						throw new Error('[flue] Submission exceeded configured timeout.');
+					}
+					if (assistant && overflow) {
+							this.rebuildHarnessContext();
+							this.internalLog(
+								'info',
+								'[flue:compaction] Overflow detected, compacting and retrying...',
+							);
+							if (!(await this.runCompaction('overflow'))) {
+								throw new Error(
+									`[flue] ${options.errorLabel} failed: ${assistant.errorMessage ?? assistant.stopReason}`,
+								);
+							}
+							this.internalLog('info', '[flue:compaction] Retrying after overflow recovery...');
+						} else if (assistant && isRetryableModelError(assistant)) {
+							if (!(await this.waitForTransientModelRetry(assistant, transientRetries))) {
+								throw new Error(
+									`[flue] ${options.errorLabel} failed: ${assistant.errorMessage ?? assistant.stopReason}`,
+								);
+							}
+						}
+						await this.runModelTurnWithRecovery({
+							start: () => this.harness.continue(),
+							source: assistant ? 'retry' : options.outputSource,
+							signal: options.signal,
+							transientRetries,
+							overflowRecoveryAttempted: overflow,
+						});
+						this.throwIfError(options.errorLabel);
+					} else if (assistant.stopReason === 'error' || assistant.stopReason === 'aborted') {
+						throw new Error(
+							`[flue] ${options.errorLabel} failed: ${assistant.errorMessage ?? assistant.stopReason}`,
+						);
+					}
+					return {
+						text: this.getAssistantText(),
+						usage: this.aggregateUsageSince(inputEntry.id),
+						model: { provider: resolvedModel.provider, id: resolvedModel.id },
+					};
+				} finally {
+					this.activeJournalCallbacks = undefined;
+					this.activeSubmissionId = undefined;
+					this.activeSubmissionAttemptId = undefined;
+					this.activeTimeoutAt = undefined;
 				}
-				return {
-					text: this.getAssistantText(),
-					usage: this.aggregateUsageSince(inputEntry.id),
-					model: { provider: resolvedModel.provider, id: resolvedModel.id },
-				};
 			},
 		);
 	}

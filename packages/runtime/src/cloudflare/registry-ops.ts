@@ -11,14 +11,9 @@ import {
 	type RunPointer,
 } from '../runtime/run-registry.ts';
 import type { RunStatus } from '../runtime/run-store.ts';
+import type { SqlStorage } from '../sql-storage.ts';
 
-interface SqlResult {
-	toArray(): SqlRow[];
-}
 type SqlRow = Record<string, unknown>;
-export interface SqlStorage {
-	exec(query: string, ...bindings: unknown[]): SqlResult;
-}
 
 export interface RegistryOps {
 	recordRunStart(input: RecordRunStartInput): void;

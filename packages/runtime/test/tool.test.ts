@@ -7,6 +7,7 @@ import {
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createAgent, defineTool, Type } from '../src/index.ts';
 import { createFlueContext, InMemorySessionStore } from '../src/internal.ts';
+import type { SessionData, SessionStore } from '../src/types.ts';
 import { createNoopSessionEnv } from './fixtures/session-env.ts';
 
 const providers: FauxProviderRegistration[] = [];
@@ -21,7 +22,23 @@ function createProvider(): FauxProviderRegistration {
 	return provider;
 }
 
-function createContext(provider: FauxProviderRegistration) {
+class RecordingSessionStore implements SessionStore {
+	readonly records = new Map<string, SessionData>();
+
+	async save(id: string, data: SessionData): Promise<void> {
+		this.records.set(id, structuredClone(data));
+	}
+
+	async load(id: string): Promise<SessionData | null> {
+		return structuredClone(this.records.get(id) ?? null);
+	}
+
+	async delete(id: string): Promise<void> {
+		this.records.delete(id);
+	}
+}
+
+function createContext(provider: FauxProviderRegistration, store: SessionStore = new InMemorySessionStore()) {
 	return createFlueContext({
 		id: 'tool-test-instance',
 		payload: {},
@@ -33,7 +50,7 @@ function createContext(provider: FauxProviderRegistration) {
 			resolveModel: () => provider.getModel(),
 		},
 		createDefaultEnv: async () => createNoopSessionEnv(),
-		defaultStore: new InMemorySessionStore(),
+		defaultStore: store,
 	});
 }
 
@@ -255,6 +272,82 @@ describe('custom tools', () => {
 		expect(receivedArgs).toEqual({ count: 2 });
 		expect(receivedSignal).toBeInstanceOf(AbortSignal);
 		expect(receivedSignal?.aborted).toBe(true);
+	});
+
+	it('persists a completed tool-result batch before requesting follow-up inference', async () => {
+		const provider = createProvider();
+		const store = new RecordingSessionStore();
+		provider.setResponses([
+			fauxAssistantMessage(fauxToolCall('lookup', { query: 'flue' }), { stopReason: 'toolUse' }),
+			(context) => {
+				const data = [...store.records.values()][0];
+				expect(data?.entries).toEqual([
+					expect.objectContaining({ message: expect.objectContaining({ role: 'user' }) }),
+					expect.objectContaining({
+					message: expect.objectContaining({ role: 'assistant', stopReason: 'toolUse' }),
+				}),
+					expect.objectContaining({
+					message: expect.objectContaining({ role: 'toolResult', toolName: 'lookup' }),
+				}),
+				]);
+				expect(context.messages.at(-1)).toMatchObject({ role: 'toolResult', toolName: 'lookup' });
+				return fauxAssistantMessage('Lookup complete.');
+			},
+		]);
+		const lookup = defineTool({
+			name: 'lookup',
+			description: 'Look up a value.',
+			parameters: Type.Object({ query: Type.String() }),
+			execute: async () => 'Found the requested value.',
+		});
+		const harness = await createContext(provider, store).init(
+			createAgent(() => ({
+				model: `${provider.getModel().provider}/${provider.getModel().id}`,
+				tools: [lookup],
+			})),
+		);
+		const session = await harness.session();
+
+		await expect(session.prompt('Look up flue.')).resolves.toMatchObject({ text: 'Lookup complete.' });
+	});
+
+	it('does not begin a follow-up provider turn when persisting the completed prior turn fails', async () => {
+		const provider = createProvider();
+		const store = new RecordingSessionStore();
+		const save = store.save.bind(store);
+		store.save = async (id, data) => {
+			if (
+				data.entries.some(
+					(entry) =>
+						entry.type === 'message' &&
+						entry.message.role === 'toolResult' &&
+						entry.message.toolName === 'lookup',
+					)
+			) {
+				throw new Error('persist failed');
+			}
+			await save(id, data);
+		};
+		provider.setResponses([
+			fauxAssistantMessage(fauxToolCall('lookup', { query: 'flue' }), { stopReason: 'toolUse' }),
+			fauxAssistantMessage('Should not be requested.'),
+		]);
+		const lookup = defineTool({
+			name: 'lookup',
+			description: 'Look up a value.',
+			parameters: Type.Object({ query: Type.String() }),
+			execute: async () => 'Found the requested value.',
+		});
+		const harness = await createContext(provider, store).init(
+			createAgent(() => ({
+				model: `${provider.getModel().provider}/${provider.getModel().id}`,
+				tools: [lookup],
+			})),
+		);
+		const session = await harness.session();
+
+		await expect(session.prompt('Look up flue.')).rejects.toThrow('persist failed');
+		expect(provider.state.callCount).toBe(1);
 	});
 
 	it('returns callback output to the model when a custom tool completes', async () => {

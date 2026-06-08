@@ -25,10 +25,6 @@ export interface TaskToolResultDetails {
 	cwd?: string;
 }
 
-export interface ActivateSkillToolParams {
-	name: string;
-}
-
 export interface CreateToolsOptions {
 	task?: (
 		params: TaskToolParams,

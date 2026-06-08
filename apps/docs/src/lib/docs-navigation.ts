@@ -44,6 +44,8 @@ export const docsSections: DocsSection[] = [
 					{ title: 'Models & Providers', slug: 'guide/models' },
 					{ title: 'Agents', slug: 'guide/building-agents' },
 					{ title: 'Workflows', slug: 'guide/workflows' },
+					{ title: 'Durable Execution', slug: 'guide/durable-execution' },
+					{ title: 'Database', slug: 'guide/database' },
 					{ title: 'Skills', slug: 'guide/skills' },
 					{ title: 'Tools', slug: 'guide/tools' },
 					{ title: 'Subagents', slug: 'guide/subagents' },

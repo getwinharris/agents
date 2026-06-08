@@ -62,8 +62,8 @@ describe('Cloudflare agent WebSockets', () => {
 				name: 'assistant',
 				id: 'agent-instance-1',
 				request: new Request('https://example.com/flue/agents/assistant/agent-instance-1'),
-				handler: async () => null,
-				createContext,
+							createContext,
+				admitAttachedSubmission: async () => null,
 			},
 		);
 
@@ -71,42 +71,65 @@ describe('Cloudflare agent WebSockets', () => {
 		expect(connection.closed).toBeUndefined();
 	});
 
-	it('restores the requested session before invoking a prompt when a Cloudflare agent socket receives a message', async () => {
+	// The inline handler invocation test was removed because agent prompts now
+	// always go through the durable admission hook. Handler execution is covered
+	// by the coordinator test suite.
+
+	it('uses attached durable submission admission when configured for a Cloudflare agent socket', async () => {
 		const connection = new TestConnection();
 		const calls: string[] = [];
 
 		await messageCloudflareAgentWebSocket(
 			connection,
-			JSON.stringify({
-				version: 1,
-				type: 'prompt',
-				requestId: 'prompt-1',
-				message: 'Hello',
-				session: 'support',
-			}),
+			JSON.stringify({ version: 1, type: 'prompt', requestId: 'prompt-1', message: 'Hello' }),
 			{
 				name: 'assistant',
 				id: 'agent-instance-1',
 				request: new Request('https://example.com/flue/agents/assistant/agent-instance-1'),
-				beforePrompt: async (session) => {
-					calls.push(`restore:${session}`);
-				},
-				handler: async (ctx) => {
-					calls.push('invoke');
-					return ctx.payload;
-				},
 				createContext,
+				admitAttachedSubmission: async (payload, onEvent) => {
+					calls.push(`admit:${payload.message}`);
+					await onEvent?.({ type: 'idle', instanceId: 'agent-instance-1' });
+					return 'done';
+				},
 			},
 		);
 
-		expect(calls).toEqual(['restore:support', 'invoke']);
-		expect(connection.messages).toContainEqual({
-			version: 1,
-			type: 'result',
-			requestId: 'prompt-1',
-			result: { message: 'Hello', session: 'support' },
-		});
-		expect(connection.closed).toBeUndefined();
+		expect(calls).toEqual(['admit:Hello']);
+		expect(connection.messages).toEqual([
+			{ version: 1, type: 'started', requestId: 'prompt-1' },
+			{
+				version: 1,
+				type: 'event',
+				requestId: 'prompt-1',
+				event: { type: 'idle', instanceId: 'agent-instance-1' },
+			},
+			{ version: 1, type: 'result', requestId: 'prompt-1', result: 'done' },
+		]);
+	});
+
+	it('allows durable attached admission to complete when the Cloudflare agent socket disconnects', async () => {
+		const connection = new ThrowingConnection();
+		const calls: string[] = [];
+
+		await messageCloudflareAgentWebSocket(
+			connection,
+			JSON.stringify({ version: 1, type: 'prompt', requestId: 'prompt-disconnected', message: 'Hello' }),
+			{
+				name: 'assistant',
+				id: 'agent-instance-1',
+				request: new Request('https://example.com/flue/agents/assistant/agent-instance-1'),
+							createContext,
+				admitAttachedSubmission: async (_payload, onEvent) => {
+					calls.push('admitted');
+					await onEvent?.({ type: 'idle', instanceId: 'agent-instance-1' });
+					calls.push('completed');
+					return 'done';
+				},
+			},
+		);
+
+		expect(calls).toEqual(['admitted', 'completed']);
 	});
 
 	it('rejects oversized messages when a Cloudflare agent socket exceeds the byte limit', async () => {
@@ -125,11 +148,8 @@ describe('Cloudflare agent WebSockets', () => {
 				name: 'assistant',
 				id: 'agent-instance-1',
 				request: new Request('https://example.com/flue/agents/assistant/agent-instance-1'),
-				handler: async () => {
-					invocations++;
-					return null;
-				},
 				createContext,
+				admitAttachedSubmission: async () => null,
 			},
 		);
 
@@ -156,11 +176,8 @@ describe('Cloudflare agent WebSockets', () => {
 			name: 'assistant',
 			id: 'agent-instance-1',
 			request: new Request('https://example.com/flue/agents/assistant/agent-instance-1'),
-			handler: async () => {
-				invocations++;
-				return null;
-			},
 			createContext,
+			admitAttachedSubmission: async () => null,
 		});
 
 		expect(connection.messages).toEqual([
@@ -178,44 +195,9 @@ describe('Cloudflare agent WebSockets', () => {
 		expect(invocations).toBe(0);
 	});
 
-	it('includes the prompt request id when an attached agent invocation fails', async () => {
-		const connection = new TestConnection();
-		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-		try {
-			await messageCloudflareAgentWebSocket(
-				connection,
-				JSON.stringify({
-					version: 1,
-					type: 'prompt',
-					requestId: 'prompt-failure',
-					message: 'Hello',
-				}),
-				{
-					name: 'assistant',
-					id: 'agent-instance-1',
-					request: new Request('https://example.com/flue/agents/assistant/agent-instance-1'),
-					handler: async () => {
-						throw new Error('database password leaked');
-					},
-					createContext,
-				},
-			);
-		} finally {
-			consoleError.mockRestore();
-		}
-
-		expect(connection.messages).toContainEqual({
-			version: 1,
-			type: 'error',
-			requestId: 'prompt-failure',
-			error: {
-				type: 'internal_error',
-				message: 'An internal error occurred.',
-				details: 'The server encountered an unexpected error while handling this request.',
-			},
-		});
-		expect(connection.closed).toBeUndefined();
-	});
+	// The error propagation test was removed because agent prompts now always
+	// go through the durable admission hook. Error handling through the
+	// submission lifecycle is covered by the coordinator test suite.
 });
 
 describe('Cloudflare workflow WebSockets', () => {
@@ -492,6 +474,20 @@ describe('Cloudflare workflow WebSockets', () => {
 		expect(connection.closed).toEqual({ code: 1011, reason: 'Workflow failed' });
 	});
 });
+
+class ThrowingConnection implements CloudflareWebSocketConnection {
+	serializeAttachment(): void {}
+
+	deserializeAttachment(): CloudflareWebSocketAttachment | null {
+		return null;
+	}
+
+	send(): void {
+		throw new Error('Socket disconnected');
+	}
+
+	close(): void {}
+}
 
 class TestConnection implements CloudflareWebSocketConnection {
 	attachment: CloudflareWebSocketAttachment | null = null;

@@ -19,12 +19,18 @@ export class CloudflarePlugin implements BuildPlugin {
 		const runtimeVersion = JSON.stringify(ctx.runtimeVersion);
 		validateCloudflareAgentNames(ctx);
 		validateCloudflareExportNames(ctx);
+		if (ctx.dbEntry) {
+			throw new Error(
+				`[flue] Custom persistence (db.ts) is not supported on the Cloudflare target. ` +
+					`Cloudflare agents use Durable Object SQLite automatically. ` +
+					`Remove the db.ts file or move it outside the source root.`,
+			);
+		}
 
 		const agentImports = agents
 			.map((a, index) => {
 				const varName = agentVarName(a.name, index);
-				const filePath = a.filePath.replace(/\\/g, '/');
-				return `import * as ${varName} from '${filePath}';`;
+				return `import * as ${varName} from ${JSON.stringify(a.filePath.replace(/\\/g, '/'))};`;
 			})
 			.join('\n');
 		const agentModuleEntries = agents
@@ -33,8 +39,7 @@ export class CloudflarePlugin implements BuildPlugin {
 		const workflowImports = workflows
 			.map((workflow, index) => {
 				const varName = workflowVarName(workflow.name, index);
-				const filePath = workflow.filePath.replace(/\\/g, '/');
-				return `import * as ${varName} from '${filePath}';`;
+				return `import * as ${varName} from ${JSON.stringify(workflow.filePath.replace(/\\/g, '/'))};`;
 			})
 			.join('\n');
 		const workflowModuleEntries = workflows
@@ -51,46 +56,42 @@ export class CloudflarePlugin implements BuildPlugin {
 					index,
 				) => `const agentExtension${index} = resolveCloudflareExtension(agentModules[${JSON.stringify(agent.name)}], ${JSON.stringify(agent.name)}, 'Agent');
 const ${agentClassName(agent.name)} = class ${agentClassName(agent.name)} extends agentExtension${index}.base(Agent) {
-  async onRequest(request) {
-    return dispatchAgent(request, this, ${JSON.stringify(agent.name)}, directHandlers[${JSON.stringify(agent.name)}]);
+  constructor(ctx, env) {
+    const prepared = cloudflareAgents.prepare({ storage: ctx.storage, className: ${JSON.stringify(agentClassName(agent.name))}, agentName: ${JSON.stringify(agent.name)} });
+    super(ctx, env);
+    cloudflareAgents.attach(this, prepared);
   }
 
-  async fetch(request) {
-    if (isWebSocketUpgrade(request)) {
-      await this.__unsafe_ensureInitialized();
-      return acceptAgentSocket(request, this, ${JSON.stringify(agent.name)});
-    }
-    return super.fetch(request);
+  onStart(props) {
+    return cloudflareAgents.onStart(this, () => typeof super.onStart === 'function' ? super.onStart(props) : undefined);
   }
 
-  async webSocketMessage(socket, message) {
-    if (isFlueSocket(socket, 'agent', ${JSON.stringify(agent.name)})) {
-      await this.__unsafe_ensureInitialized();
-      return messageAgentSocket(socket, message, this, ${JSON.stringify(agent.name)});
-    }
-    return super.webSocketMessage(socket, message);
+  __flueWakeAgentSubmissions() {
+    return cloudflareAgents.wakeSubmissions(this);
   }
 
-  async webSocketClose(socket, code, reason, wasClean) {
-    if (isFlueSocket(socket, 'agent', ${JSON.stringify(agent.name)})) return closeFlueSocket(socket, code, reason);
-    return super.webSocketClose(socket, code, reason, wasClean);
+  onRequest(request) {
+    return cloudflareAgents.onRequest(this, request);
   }
 
-  async webSocketError(socket, error) {
-    if (isFlueSocket(socket, 'agent', ${JSON.stringify(agent.name)})) return closeFlueSocket(socket, 1011, 'WebSocket error');
-    return super.webSocketError(socket, error);
+  fetch(request) {
+    return cloudflareAgents.fetch(this, request, () => super.fetch(request));
   }
 
-  async onFiberRecovered(ctx) {
-    if (ctx.name === 'flue:dispatch') {
-      return handleFlueDispatchRecovered(ctx, this, ${JSON.stringify(agent.name)});
-    }
-    if (ctx.name === 'flue:direct') {
-      return handleFlueDirectRecovered(ctx, this, ${JSON.stringify(agent.name)});
-    }
-    if (typeof super.onFiberRecovered === 'function') {
-      return super.onFiberRecovered(ctx);
-    }
+  webSocketMessage(socket, message) {
+    return cloudflareAgents.webSocketMessage(this, socket, message, () => super.webSocketMessage(socket, message));
+  }
+
+  webSocketClose(socket, code, reason, wasClean) {
+    return cloudflareAgents.webSocketClose(this, socket, code, reason, () => super.webSocketClose(socket, code, reason, wasClean));
+  }
+
+  webSocketError(socket, error) {
+    return cloudflareAgents.webSocketError(this, socket, () => super.webSocketError(socket, error));
+  }
+
+  onFiberRecovered(ctx) {
+    return cloudflareAgents.onFiberRecovered(this, ctx, () => typeof super.onFiberRecovered === 'function' ? super.onFiberRecovered(ctx) : undefined);
   }
 };
 const Wrapped${agentClassName(agent.name)} = agentExtension${index}.wrap(${agentClassName(agent.name)});
@@ -162,12 +163,12 @@ export { Wrapped${workflowClassName(workflow.name)} as ${workflowClassName(workf
 			)
 			.join('\n');
 
-		const userAppImport = appEntry ? `import userApp from '${appEntry.replace(/\\/g, '/')}';` : '';
+		const userAppImport = appEntry ? `import userApp from ${JSON.stringify(appEntry.replace(/\\/g, '/'))};` : '';
 		const userCloudflareImport = cloudflareEntry
-			? `import * as userCloudflareModule from '${cloudflareEntry.replace(/\\/g, '/')}';`
+			? `import * as userCloudflareModule from ${JSON.stringify(cloudflareEntry.replace(/\\/g, '/'))};`
 			: '';
 		const userCloudflareReExport = cloudflareEntry
-			? `export * from '${cloudflareEntry.replace(/\\/g, '/')}';`
+			? `export * from ${JSON.stringify(cloudflareEntry.replace(/\\/g, '/'))};`
 			: '';
 		const userCloudflareValue = cloudflareEntry ? 'userCloudflareModule' : '{}';
 		const reservedCloudflareExportNames = [
@@ -192,21 +193,22 @@ import {
   InMemorySessionStore,
   InMemoryRunStore,
   createDurableRunStore,
+  CLOUDFLARE_AGENT_INTERNAL_DISPATCH_PATH,
+  createCloudflareAgentRuntime,
+  createSqlSessionStore,
   createRunSubscriberRegistry,
   bashFactoryToSessionEnv,
   resolveModel,
-  handleAgentRequest,
   handleWorkflowRequest,
   handleRunRouteRequest,
-  validateAgentDispatchAdmission,
-  assertCurrentDispatchInput,
-  createDispatchAgentHandler,
-  reserveDispatchAgentSession,
   failRecoveredRun,
   configureFlueRuntime,
   createDefaultFlueApp,
   createDirectAgentHandler,
   hasRegisteredProvider,
+  isFlueSocket,
+  closeFlueSocket,
+  socketRequestUrl,
 } from '@flue/runtime/internal';
 import {
   runWithCloudflareContext,
@@ -214,9 +216,7 @@ import {
   getCloudflareAIBindingApiProvider,
   FlueRegistry,
   createCloudflareRunRegistry,
-  connectCloudflareAgentWebSocket,
   connectCloudflareWorkflowWebSocket,
-  messageCloudflareAgentWebSocket,
   messageCloudflareWorkflowWebSocket,
   resolveCloudflareExtension,
 } from '@flue/runtime/cloudflare';
@@ -258,7 +258,7 @@ const workflowModules = {
 ${workflowModuleEntries}
 };
 const normalized = normalizeBuiltModules(agentModules, workflowModules);
-const { manifest, directHandlers, localAgentHandlers, createdAgents, dispatchAgentNames, websocketAgentHandlers, workflowHandlers, websocketWorkflowHandlers, agentRouteMiddleware, agentWebSocketMiddleware, workflowRouteMiddleware, workflowWebSocketMiddleware } = normalized;
+const { manifest, directHandlers, createdAgents, dispatchAgentNames, websocketAgentHandlers, workflowHandlers, websocketWorkflowHandlers, agentRouteMiddleware, agentWebSocketMiddleware, workflowRouteMiddleware, workflowWebSocketMiddleware } = normalized;
 const agentIdentities = {
 ${agentIdentityEntries}
 };
@@ -334,10 +334,9 @@ function resolveSandbox(sandbox) {
   return null;
 }
 
-// Fallback in-memory store (used if no DO storage is available).
-const memoryStore = new InMemorySessionStore();
+const memoryWorkflowSessionStore = new InMemorySessionStore();
 const memoryRunStore = new InMemoryRunStore();
-const INTERNAL_DISPATCH_PATH = '/__flue/internal/dispatch';
+const INTERNAL_DISPATCH_PATH = CLOUDFLARE_AGENT_INTERNAL_DISPATCH_PATH;
 const dispatchQueue = {
   async enqueue(input) {
     const identity = agentIdentities[input.agent];
@@ -356,37 +355,7 @@ const dispatchQueue = {
 // Module-scoped per-isolate registry; run ids isolate buckets across DOs.
 const runSubscribers = createRunSubscriberRegistry();
 
-// Create a DO-backed session store from the Durable Object's SQL storage.
-function createDOStore(sql) {
-  // Ensure the table exists
-  sql.exec(
-    'CREATE TABLE IF NOT EXISTS flue_sessions (id TEXT PRIMARY KEY, data TEXT NOT NULL, updated_at INTEGER NOT NULL)'
-  );
-  return {
-    async save(id, data) {
-      const json = JSON.stringify(data);
-      sql.exec(
-        'INSERT OR REPLACE INTO flue_sessions (id, data, updated_at) VALUES (?, ?, ?)',
-        id, json, Date.now()
-      );
-    },
-    async load(id) {
-      const rows = sql.exec('SELECT data FROM flue_sessions WHERE id = ?', id).toArray();
-      if (rows.length === 0) return null;
-      return JSON.parse(rows[0].data);
-    },
-    async delete(id) {
-      sql.exec('DELETE FROM flue_sessions WHERE id = ?', id);
-    },
-  };
-}
-
-function createContextForRequest(id, runId, payload, doInstance, req, initialEventIndex, dispatchId) {
-  // Use DO SQLite storage by default, fall back to in-memory
-  const defaultStore = doInstance?.ctx?.storage?.sql
-    ? createDOStore(doInstance.ctx.storage.sql)
-    : memoryStore;
-
+function createContextForRequest(id, runId, payload, doInstance, req, defaultStore, initialEventIndex, dispatchId) {
   return createFlueContext({
     id,
     runId,
@@ -402,6 +371,30 @@ function createContextForRequest(id, runId, payload, doInstance, req, initialEve
     defaultStore,
     resolveSandbox,
   });
+}
+
+function createAgentContextForRequest(executionStore, id, payload, doInstance, req, initialEventIndex, dispatchId) {
+  return createFlueContext({
+    id,
+    payload,
+    env: doInstance?.env ?? {},
+    req,
+    initialEventIndex,
+    dispatchId,
+    agentConfig: {
+      systemPrompt, skills, packagedSkills, model: undefined, resolveModel,
+    },
+    createDefaultEnv,
+    defaultStore: executionStore.sessions,
+    resolveSandbox,
+    submissionStore: executionStore.submissions,
+  });
+}
+
+function createWorkflowContextForRequest(id, runId, payload, doInstance, req, initialEventIndex, dispatchId) {
+  const sql = doInstance?.ctx?.storage?.sql;
+  const defaultStore = sql ? createSqlSessionStore(sql) : memoryWorkflowSessionStore;
+  return createContextForRequest(id, runId, payload, doInstance, req, defaultStore, initialEventIndex, dispatchId);
 }
 
 function createRunStoreForRequest(doInstance) {
@@ -439,6 +432,19 @@ function createDurableObjectIdentity(doInstance, identity) {
   };
 }
 
+const cloudflareAgents = createCloudflareAgentRuntime({
+  createdAgents,
+  directHandlers,
+  websocketAgentHandlers,
+  createContext: ({ executionStore, instance, payload, request, initialEventIndex, dispatchId }) =>
+    createAgentContextForRequest(executionStore, instance.name, payload, instance, request, initialEventIndex, dispatchId),
+  runWithInstanceContext: (instance, agentName, fn) => runWithInstanceContext(instance, agentRuntimeIdentity(agentName), fn),
+  createWebSocketPair: () => {
+    const pair = new WebSocketPair();
+    return { client: pair[0], server: pair[1] };
+  },
+});
+
 function assertAgentsDurabilityApi(doInstance, method) {
   if (typeof doInstance[method] !== 'function') {
 		throw new Error(
@@ -447,40 +453,6 @@ function assertAgentsDurabilityApi(doInstance, method) {
 				'". Install or upgrade the "agents" package in your project.',
 		);
 	}
-}
-
-async function handleFlueDispatchRecovered(ctx, doInstance, agentName) {
-  const input = ctx.metadata?.input;
-  assertCurrentDispatchInput(input);
-  if (!input || input.agent !== agentName || input.id !== doInstance.name) return { status: 'error', error: 'Dispatch recovery metadata is invalid.' };
-  try {
-    await processManagedAgentDispatch(input, doInstance, agentName, ctx.id);
-    return { status: 'completed' };
-  } catch (error) {
-    return { status: 'error', error: error instanceof Error ? error.message : String(error) };
-  }
-}
-
-async function handleFlueDirectRecovered(ctx, doInstance, agentName) {
-  const payload = ctx.snapshot?.payload;
-  const handler = localAgentHandlers[agentName];
-  if (!handler || !payload || typeof payload !== 'object' || Array.isArray(payload) || typeof payload.message !== 'string') {
-    console.error('[flue:direct-recovery]', { agentName, instanceId: doInstance.name, operation: 'retry', outcome: 'restart_failed' }, new Error('Direct agent recovery input is unavailable; retry was not attempted.'));
-    return;
-  }
-  const identity = agentRuntimeIdentity(agentName);
-  const request = new Request('https://flue.invalid/agents/' + encodeURIComponent(agentName) + '/' + encodeURIComponent(doInstance.name), { method: 'POST' });
-  try {
-    assertAgentsDurabilityApi(doInstance, 'runFiber');
-    await doInstance.runFiber('flue:direct', async (fiberCtx) => {
-      fiberCtx.stash({ payload });
-      const directCtx = createContextForRequest(doInstance.name, undefined, payload, doInstance, request);
-      return runWithInstanceContext(doInstance, identity, () => handler(directCtx));
-    });
-    console.info('[flue:direct-recovery]', { agentName, instanceId: doInstance.name, operation: 'retry', outcome: 'restart_completed' });
-  } catch (error) {
-    console.error('[flue:direct-recovery]', { agentName, instanceId: doInstance.name, operation: 'retry', outcome: 'restart_failed' }, error);
-  }
 }
 
 async function handleFlueWorkflowFiberRecovered(ctx, doInstance, workflowName) {
@@ -496,56 +468,8 @@ async function handleFlueWorkflowFiberRecovered(ctx, doInstance, workflowName) {
     runStore,
     runSubscribers,
     runRegistry: createRunRegistryForRequest(doInstance.env),
-    createContext: (id_, recoveredRunId, payload, req, initialEventIndex) => createContextForRequest(id_, recoveredRunId, payload, doInstance, req, initialEventIndex),
+    createContext: (id_, recoveredRunId, payload, req, initialEventIndex) => createWorkflowContextForRequest(id_, recoveredRunId, payload, doInstance, req, initialEventIndex),
   });
-}
-
-// ─── Per-DO Dispatch ───────────────────────────────────────────────────────
-
-async function waitForEarlierManagedDispatch(doInstance, input, fiberId) {
-  if (typeof doInstance.listFibers !== 'function') return;
-  while (true) {
-    const fibers = await doInstance.listFibers({ name: 'flue:dispatch' });
-    for (const fiber of fibers) assertCurrentDispatchInput(fiber.metadata?.input);
-    const current = fibers.find((fiber) => fiber.id === fiberId);
-    if (!current) return;
-    const blocked = fibers.some((fiber) => {
-      if (fiber.id === fiberId || fiber.status === 'completed' || fiber.status === 'error' || fiber.status === 'aborted') return false;
-      const other = fiber.metadata?.input;
-      if (!other || other.agent !== input.agent || other.id !== input.id || other.session !== input.session) return false;
-      return fiber.createdAt < current.createdAt || (fiber.createdAt === current.createdAt && fiber.id < fiberId);
-    });
-    if (!blocked) return;
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  }
-}
-
-async function processManagedAgentDispatch(input, doInstance, agentName, fiberId) {
-  const agent = createdAgents[agentName];
-  if (!agent) throw new Error('[flue] Dispatch target unavailable during durable processing.');
-  await validateAgentDispatchAdmission({ input });
-  const target = { agentName, instanceId: doInstance.name };
-  await waitForEarlierManagedDispatch(doInstance, input, fiberId);
-  const releaseSessionLock = await reserveDispatchAgentSession(target, input);
-  const request = new Request('https://flue.invalid' + INTERNAL_DISPATCH_PATH, { method: 'POST' });
-  try {
-    const ctx = createContextForRequest(doInstance.name, undefined, input, doInstance, request, undefined, input.dispatchId);
-    await runWithInstanceContext(doInstance, agentRuntimeIdentity(agentName), () => createDispatchAgentHandler(agent, input)(ctx));
-  } finally {
-    releaseSessionLock?.();
-  }
-}
-
-async function assertNoPendingDispatchForDirectSession(doInstance, agentName, session) {
-  if (typeof doInstance.listFibers !== 'function') return;
-  const fibers = await doInstance.listFibers({ name: 'flue:dispatch' });
-  for (const fiber of fibers) assertCurrentDispatchInput(fiber.metadata?.input);
-  if (fibers.some((fiber) => {
-    const input = fiber.metadata?.input;
-    return fiber.status !== 'completed' && fiber.status !== 'error' && fiber.status !== 'aborted' && input?.agent === agentName && input.id === doInstance.name && input.session === session;
-  })) {
-    throw new Error('[flue] This agent session has pending dispatched input and cannot accept direct input yet.');
-  }
 }
 
 async function dispatchWorkflow(request, doInstance, workflowName) {
@@ -578,7 +502,7 @@ async function dispatchWorkflow(request, doInstance, workflowName) {
       runStore: createRunStoreForRequest(doInstance),
       runSubscribers,
       runRegistry: createRunRegistryForRequest(doInstance.env),
-      createContext: (id_, runId, payload, req, initialEventIndex, dispatchId) => createContextForRequest(id_, runId, payload, doInstance, req, initialEventIndex, dispatchId),
+      createContext: (id_, runId, payload, req, initialEventIndex, dispatchId) => createWorkflowContextForRequest(id_, runId, payload, doInstance, req, initialEventIndex, dispatchId),
       startWorkflowAdmission: (runId, run) => {
         assertAgentsDurabilityApi(doInstance, 'runFiber');
         return doInstance.runFiber('flue:workflow:' + runId, () => runWithInstanceContext(doInstance, identity, run));
@@ -586,75 +510,8 @@ async function dispatchWorkflow(request, doInstance, workflowName) {
     }));
 }
 
-async function dispatchAgent(request, doInstance, agentName, handler) {
-  const id = doInstance.name;
-  if (isInternalDispatchRequest(request)) {
-    const input = await request.json();
-    assertCurrentDispatchInput(input);
-    if (input.agent !== agentName || input.id !== id) return new Response('Invalid internal dispatch target.', { status: 400 });
-    if (!createdAgents[agentName]) return new Response('Dispatch target unavailable.', { status: 404 });
-    await validateAgentDispatchAdmission({ input });
-    assertAgentsDurabilityApi(doInstance, 'startFiber');
-    assertAgentsDurabilityApi(doInstance, 'inspectFiberByKey');
-    const idempotencyKey = 'flue:dispatch:' + input.dispatchId;
-    const prior = await doInstance.inspectFiberByKey(idempotencyKey);
-    assertCurrentDispatchInput(prior?.metadata?.input);
-    if (prior?.metadata?.input && JSON.stringify(prior.metadata.input) !== JSON.stringify(input)) {
-      return new Response('Conflicting internal dispatch replay.', { status: 409 });
-    }
-    await doInstance.startFiber('flue:dispatch', async (fiberCtx) => processManagedAgentDispatch(input, doInstance, agentName, fiberCtx.id), {
-      idempotencyKey,
-      metadata: { input },
-    });
-    return Response.json({ dispatchId: input.dispatchId, acceptedAt: input.acceptedAt });
-  }
-  const payload = await request.clone().json().catch(() => null);
-  const session = typeof payload?.session === 'string' && payload.session.trim() !== '' ? payload.session : 'default';
-  await assertNoPendingDispatchForDirectSession(doInstance, agentName, session);
-  const identity = agentRuntimeIdentity(agentName);
-  return runWithInstanceContext(doInstance, identity, () => handleAgentRequest({
-      request,
-      agentName,
-      id,
-      handler,
-      createContext: (id_, runId, payload, req, initialEventIndex, dispatchId) => createContextForRequest(id_, runId, payload, doInstance, req, initialEventIndex, dispatchId),
-      runHandler: (ctx, h) => {
-        assertAgentsDurabilityApi(doInstance, 'runFiber');
-        return doInstance.runFiber('flue:direct', (fiberCtx) => {
-          fiberCtx.stash({ payload: ctx.payload });
-          return h(ctx);
-        });
-      },
-    }));
-}
-
 function isWebSocketUpgrade(request) {
   return request.method === 'GET' && request.headers.get('upgrade')?.toLowerCase() === 'websocket';
-}
-
-function isFlueSocket(socket, target, name) {
-  const attachment = socket.deserializeAttachment?.();
-  return attachment?.version === 1 && attachment.target === target && attachment.name === name;
-}
-
-function closeFlueSocket(socket, code, reason) {
-  if (code === 1005 || code === 1006 || code === 1015) return;
-  try {
-    socket.close(code, reason);
-  } catch {
-    return;
-  }
-}
-
-function acceptAgentSocket(request, doInstance, agentName) {
-  const handler = websocketAgentHandlers[agentName];
-  if (!handler) return new Response(null, { status: 404 });
-  const pair = new WebSocketPair();
-  const client = pair[0];
-  const server = pair[1];
-  doInstance.ctx.acceptWebSocket(server);
-  connectCloudflareAgentWebSocket(server, { name: agentName, id: doInstance.name, requestUrl: socketRequestUrl(request) });
-  return new Response(null, { status: 101, webSocket: client });
 }
 
 function acceptWorkflowSocket(request, doInstance, workflowName) {
@@ -666,27 +523,6 @@ function acceptWorkflowSocket(request, doInstance, workflowName) {
   doInstance.ctx.acceptWebSocket(server);
   connectCloudflareWorkflowWebSocket(server, { name: workflowName, runId: doInstance.name, requestUrl: socketRequestUrl(request) });
   return new Response(null, { status: 101, webSocket: client });
-}
-
-async function messageAgentSocket(connection, message, doInstance, agentName) {
-  const handler = websocketAgentHandlers[agentName];
-  if (!handler) return;
-  const identity = agentRuntimeIdentity(agentName);
-  return runWithInstanceContext(doInstance, identity, () => messageCloudflareAgentWebSocket(connection, message, {
-    name: agentName,
-    id: doInstance.name,
-    request: socketRequest(connection),
-    handler,
-    beforePrompt: (session) => assertNoPendingDispatchForDirectSession(doInstance, agentName, session),
-    createContext: (id_, runId, payload, req) => createContextForRequest(id_, runId, payload, doInstance, req),
-    runHandler: (ctx, h) => {
-      assertAgentsDurabilityApi(doInstance, 'runFiber');
-      return doInstance.runFiber('flue:direct', (fiberCtx) => {
-        fiberCtx.stash({ payload: ctx.payload });
-        return h(ctx);
-      });
-    },
-  }));
 }
 
 async function messageWorkflowSocket(connection, message, doInstance, workflowName) {
@@ -701,7 +537,7 @@ async function messageWorkflowSocket(connection, message, doInstance, workflowNa
     runStore: createRunStoreForRequest(doInstance),
     runSubscribers,
     runRegistry: createRunRegistryForRequest(doInstance.env),
-    createContext: (id_, runId, payload, req) => createContextForRequest(id_, runId, payload, doInstance, req),
+    createContext: (id_, runId, payload, req) => createWorkflowContextForRequest(id_, runId, payload, doInstance, req),
     startWorkflowAdmission: (runId, run) => {
       assertAgentsDurabilityApi(doInstance, 'runFiber');
       return doInstance.runFiber('flue:workflow:' + runId, () => runWithInstanceContext(doInstance, identity, run));
@@ -714,12 +550,6 @@ function socketRequest(connection) {
   return new Request(attachment?.requestUrl || 'https://flue.invalid/');
 }
 
-function socketRequestUrl(request) {
-  const url = new URL(request.url);
-  url.search = '';
-  url.hash = '';
-  return url.toString();
-}
 
 function workflowRuntimeIdentity(workflowName) {
   return workflowIdentities[workflowName];
@@ -727,10 +557,6 @@ function workflowRuntimeIdentity(workflowName) {
 
 function agentRuntimeIdentity(agentName) {
   return agentIdentities[agentName];
-}
-
-function isInternalDispatchRequest(request) {
-  return request.method === 'POST' && new URL(request.url).pathname === INTERNAL_DISPATCH_PATH;
 }
 
 function parseWorkflowStart(request, workflowName) {

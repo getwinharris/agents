@@ -21,41 +21,42 @@ export { createFlueContext } from './client.ts';
 // (registry client) live in the `@flue/runtime/cloudflare` subpath because
 // they pull in `cloudflare:workers`, a virtual module Node can't resolve.
 // The generated CF entry imports them from there directly.
+export { CLOUDFLARE_AGENT_INTERNAL_DISPATCH_PATH, createCloudflareAgentRuntime } from './cloudflare/agent-coordinator.ts';
+export { createSqlSessionStore } from './cloudflare/agent-execution-store.ts';
 export { createDurableRunStore } from './cloudflare/run-store.ts';
+export { createNodeAgentCoordinator, createNodeDispatchQueue } from './node/agent-coordinator.ts';
+export { createNodeAgentExecutionStore } from './node/agent-execution-store.ts';
 export { InMemoryRunRegistry } from './node/run-registry.ts';
 export { InMemoryRunStore } from './node/run-store.ts';
-export type { DispatchInput, DispatchProcessor, DispatchQueue } from './runtime/dispatch-queue.ts';
-export { assertCurrentDispatchInput, InMemoryDispatchQueue } from './runtime/dispatch-queue.ts';
+export type {
+	AgentDispatchAdmission,
+	AgentDispatchReceipt,
+	AgentExecutionStore,
+	AgentSubmission,
+	AgentSubmissionStore,
+	AgentTurnJournal,
+	AgentTurnJournalPhase,
+	CreateTurnJournalInput,
+	PersistenceAdapter,
+	SubmissionAttemptRef,
+	SubmissionDurability,
+} from './agent-execution-store.ts';
+export type { DispatchInput, DispatchQueue } from './runtime/dispatch-queue.ts';
 export type { ExposedTransport, FlueRuntime } from './runtime/flue-app.ts';
-export {
-	configureFlueRuntime,
-	createDefaultFlueApp,
-	dispatch,
-	registeredAgentsForTransport,
-	registeredWorkflowsForTransport,
-	resetFlueRuntimeForTests,
-} from './runtime/flue-app.ts';
+export { configureFlueRuntime, createDefaultFlueApp } from './runtime/flue-app.ts';
 export type {
 	AgentHandler,
-	AgentSessionTarget,
 	CreateContextFn,
-	CreatedAgentHandler,
 	DirectAttachedOptions,
 	FailRecoveredRunOptions,
 	HandleAgentOptions,
 	HandleWorkflowOptions,
 	InvokeWorkflowAttachedOptions,
-	RunHandlerFn,
 	StartWorkflowAdmissionFn,
 	WorkflowAttachedInvocationResult,
 	WorkflowHandler,
 } from './runtime/handle-agent.ts';
 // Runtime modules consumed by the generated server entries.
-//
-//   - `handleAgentRequest` handles attached per-agent HTTP prompts (SSE /
-//     sync). Used directly by the Cloudflare entry's `dispatchAgent`
-//     wrapper to layer in DO-specific keepalive handling. The
-//     Node target reaches the same dispatcher through `flue()`.
 //
 //   - `configureFlueRuntime` seeds the module-scoped config that
 //     `flue()` reads at request time. Called once per generated entry,
@@ -69,21 +70,16 @@ export type {
 //
 // The user-facing `flue()` itself is re-exported from `@flue/runtime/routing`, not here.
 export {
-	createAgentDispatchProcessor,
 	createDirectAgentHandler,
-	createDispatchAgentHandler,
 	failRecoveredRun,
-	handleAgentRequest,
 	handleWorkflowRequest,
 	invokeDirectAttached,
 	invokeWorkflowAttached,
-	reserveDispatchAgentSession,
-	validateAgentDispatchAdmission,
 } from './runtime/handle-agent.ts';
 export type { HandleRunRouteOptions } from './runtime/handle-run-routes.ts';
 export { handleRunRouteRequest } from './runtime/handle-run-routes.ts';
-export { generateWorkflowRunId, parseWorkflowRunId } from './runtime/ids.ts';
-export { hasRegisteredProvider, resetProvidersForTests } from './runtime/providers.ts';
+export { generateWorkflowRunId } from './runtime/ids.ts';
+export { hasRegisteredProvider } from './runtime/providers.ts';
 export type {
 	ListRunsOpts,
 	ListRunsResponse,
@@ -101,10 +97,11 @@ export {
 	parseAgentWebSocketMessage,
 	parseWorkflowWebSocketMessage,
 } from './runtime/websocket-protocol.ts';
+export { closeFlueSocket, isFlueSocket, socketRequestUrl } from './cloudflare/websocket.ts';
 export { bashFactoryToSessionEnv } from './sandbox.ts';
+export type { DirectAgentSubmissionInput, DispatchAgentSubmissionInput } from './runtime/agent-submissions.ts';
 export { InMemorySessionStore } from './session.ts';
 export { parseSkillMarkdown } from './skill-frontmatter.ts';
-export type { DispatchReceipt } from './types.ts';
 
 /**
  * Resolve a `provider-id/model-id` model specifier to a pi-ai Model.

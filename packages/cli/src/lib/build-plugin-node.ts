@@ -7,22 +7,20 @@ export class NodePlugin implements BuildPlugin {
 	bundle: BuildPlugin['bundle'] = 'vite';
 
 	generateEntryPoint(ctx: BuildContext): string {
-		const { agents, appEntry, workflows } = ctx;
+		const { agents, appEntry, dbEntry, workflows } = ctx;
 		const runtimeVersion = JSON.stringify(ctx.runtimeVersion);
 
 		const agentImports = agents
 			.map((a, index) => {
 				const varName = agentVarName(a.name, index);
-				const filePath = a.filePath.replace(/\\/g, '/');
-				return `import * as ${varName} from '${filePath}';`;
+				return `import * as ${varName} from ${JSON.stringify(a.filePath.replace(/\\/g, '/'))};`;
 			})
 			.join('\n');
 
 		const workflowImports = workflows
 			.map((workflow, index) => {
 				const varName = workflowVarName(workflow.name, index);
-				const filePath = workflow.filePath.replace(/\\/g, '/');
-				return `import * as ${varName} from '${filePath}';`;
+				return `import * as ${varName} from ${JSON.stringify(workflow.filePath.replace(/\\/g, '/'))};`;
 			})
 			.join('\n');
 
@@ -40,7 +38,8 @@ export class NodePlugin implements BuildPlugin {
 		// default export and dispatches all requests through `app.fetch`. When
 		// no app.ts is present, the generated entry constructs a thin default
 		// Hono that mounts `flue()` and renders canonical error envelopes.
-		const userAppImport = appEntry ? `import userApp from '${appEntry.replace(/\\/g, '/')}';` : '';
+		const userAppImport = appEntry ? `import userApp from ${JSON.stringify(appEntry.replace(/\\/g, '/'))};` : '';
+		const userDbImport = dbEntry ? `import userPersistenceAdapter from ${JSON.stringify(dbEntry.replace(/\\/g, '/'))};` : '';
 
 		// All HTTP routing, workflow admission/SSE/sync handling, agent dispatch,
 		// and error rendering live in @flue/runtime's runtime modules. The
@@ -59,7 +58,9 @@ import {
   Bash,
   InMemoryFs,
   createFlueContext,
-  InMemorySessionStore,
+  createNodeAgentExecutionStore,
+  createNodeAgentCoordinator,
+  createNodeDispatchQueue,
   InMemoryRunStore,
   InMemoryRunRegistry,
   createRunSubscriberRegistry,
@@ -68,18 +69,17 @@ import {
   configureFlueRuntime,
   createDefaultFlueApp,
   createDirectAgentHandler,
-  createAgentDispatchProcessor,
   invokeWorkflowAttached,
   invokeDirectAttached,
   generateWorkflowRunId,
   createWebSocketErrorMessage,
   parseWorkflowWebSocketMessage,
   parseAgentWebSocketMessage,
-  InMemoryDispatchQueue,
 } from '@flue/runtime/internal';
 ${agentImports}
 ${workflowImports}
 ${userAppImport}
+${userDbImport}
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
@@ -95,7 +95,7 @@ const workflowModules = {
 ${workflowModuleEntries}
 };
 const normalized = normalizeBuiltModules(agentModules, workflowModules);
-const { manifest, directHandlers, localAgentHandlers, createdAgents, dispatchAgentNames, workflowHandlers, localWorkflowHandlers, websocketAgentHandlers, websocketWorkflowHandlers, agentRouteMiddleware, agentWebSocketMiddleware, workflowRouteMiddleware, workflowWebSocketMiddleware } = normalized;
+const { manifest, localAgentHandlers, createdAgents, dispatchAgentNames, workflowHandlers, localWorkflowHandlers, websocketAgentHandlers, websocketWorkflowHandlers, agentRouteMiddleware, agentWebSocketMiddleware, workflowRouteMiddleware, workflowWebSocketMiddleware } = normalized;
 
 const isLocalMode = process.env.FLUE_MODE === 'local';
 const localCliTarget = process.env.FLUE_CLI_TARGET;
@@ -118,15 +118,47 @@ async function createDefaultEnv() {
   }));
 }
 
-// Default persistence store for Node — in-memory, process lifetime.
-const defaultStore = new InMemorySessionStore();
+${
+			dbEntry
+				? `// Custom persistence from db.ts.
+if (!userPersistenceAdapter || typeof userPersistenceAdapter.connect !== 'function') {
+  throw new Error('[flue] db.ts must default-export a PersistenceAdapter with a connect() method.');
+}
+let executionStore;
+let runStore;
+let runRegistry;
+try {
+  if (userPersistenceAdapter.migrate) await userPersistenceAdapter.migrate();
+  executionStore = userPersistenceAdapter.connect();
+  if (!executionStore || typeof executionStore.sessions?.save !== 'function' || typeof executionStore.submissions?.getSubmission !== 'function') {
+    throw new Error('connect() must return an AgentExecutionStore with sessions and submissions.');
+  }
+  runStore = userPersistenceAdapter.connectRunStore();
+  runRegistry = userPersistenceAdapter.connectRunRegistry();
+} catch (error) {
+  throw new Error('[flue] Failed to initialize persistence from db.ts: ' + (error instanceof Error ? error.message : error), { cause: error });
+}`
+				: `// Default persistence for Node — in-memory SQLite, process lifetime.
+const executionStore = createNodeAgentExecutionStore();
 const runStore = new InMemoryRunStore();
-const runRegistry = new InMemoryRunRegistry();
+const runRegistry = new InMemoryRunRegistry();`
+		}
 const runSubscribers = createRunSubscriberRegistry();
-const dispatchQueue = new InMemoryDispatchQueue(createAgentDispatchProcessor({
+const agentCoordinator = createNodeAgentCoordinator({
+  submissions: executionStore.submissions,
   agents: createdAgents,
   createContext: createContextForRequest,
-}));
+});
+const dispatchQueue = createNodeDispatchQueue(agentCoordinator);
+
+// Build per-agent durable admission factories so HTTP and WebSocket
+// prompts enter the same durable submission lifecycle as dispatches.
+const createAdmission = Object.fromEntries(
+  Object.keys(createdAgents).map((name) => [
+    name,
+    (instanceId) => agentCoordinator.createAdmission(name, instanceId),
+  ]),
+);
 
 function createContextForRequest(id, runId, payload, req, initialEventIndex, dispatchId) {
   return createFlueContext({
@@ -141,7 +173,8 @@ function createContextForRequest(id, runId, payload, req, initialEventIndex, dis
       systemPrompt, skills, packagedSkills, model: undefined, resolveModel,
     },
     createDefaultEnv,
-    defaultStore,
+    defaultStore: executionStore.sessions,
+    submissionStore: executionStore.submissions,
   });
 }
 
@@ -152,6 +185,7 @@ const websocketTransport = isLocalCliMode ? undefined : createNodeWebSocketTrans
   agentHandlers: websocketAgentHandlers,
   workflowHandlers: websocketWorkflowHandlers,
   createContext: createContextForRequest,
+  createAdmission,
   runStore,
   runSubscribers,
   runRegistry,
@@ -168,7 +202,7 @@ configureFlueRuntime({
   devMode: isLocalMode,
   runtimeVersion: ${runtimeVersion},
   manifest,
-  handlers: directHandlers,
+  createAdmission,
   dispatchQueue,
   resolveDispatchAgentName: (agent) => dispatchAgentNames.get(agent),
   workflowHandlers,
@@ -182,6 +216,12 @@ configureFlueRuntime({
   runStore,
   runSubscribers,
   runRegistry,
+});
+
+// Reconcile any interrupted submissions from a previous process.
+// This is best-effort on startup — errors are logged but do not block the server.
+agentCoordinator.reconcileSubmissions().catch((error) => {
+  console.error('[flue] Startup submission reconciliation failed:', error);
 });
 
 // ─── App composition ────────────────────────────────────────────────────────
@@ -213,7 +253,7 @@ function sendLocalMessage(message, done) {
 }
 
 function localRequest() {
-  return new Request('http://flue.local/_cli', { method: 'POST' });
+  return new Request('https://flue.invalid/_cli', { method: 'POST' });
 }
 
 function localErrorMessage(reason, requestId) {
@@ -277,6 +317,10 @@ function startLocalAgent(name, id) {
     failLocalStartup('Local agent connection requires an instance id.');
     return;
   }
+  if (!createAdmission[name]) {
+    failLocalStartup('Unknown agent for admission: ' + name);
+    return;
+  }
   sendLocalMessage({ version: 1, type: 'ready', target: 'agent', name, instanceId: id });
   process.on('message', (raw) => {
     let message;
@@ -298,6 +342,7 @@ function startLocalAgent(name, id) {
       request: localRequest(),
       handler,
       createContext: createContextForRequest,
+      admitAttachedSubmission: createAdmission[name](id),
       onEvent: (event) => {
         if (!didStart) {
           didStart = true;
@@ -324,7 +369,10 @@ if (isLocalCliMode) {
   } else {
     startLocalAgent(localCliName, localCliId);
   }
-  process.on('disconnect', () => process.exit(0));
+  process.on('disconnect', async () => {
+    await agentCoordinator.shutdown();${dbEntry ? "\n    if (userPersistenceAdapter.close) await userPersistenceAdapter.close();" : ''}
+    process.exit(0);
+  });
 } else {
   const port = parseInt(process.env.PORT || '3000', 10);
   const server = serve({
@@ -340,13 +388,23 @@ if (isLocalCliMode) {
   } else {
     console.log('[flue] Agents: ' + ${JSON.stringify(agents.map((a) => a.name).join(', '))});
   }
-  async function stop() {
-    await websocketTransport.close();
-    server.close();
-    process.exit(0);
+  let shuttingDown = false;
+  async function stop(signal, exitCode) {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.error('[flue] Received ' + signal + ', shutting down...');
+    // 1. Drain active submissions (abort at turn boundary, wait with timeout).
+    await agentCoordinator.shutdown();
+    // 2. Close WebSocket connections with Going Away frame.
+    if (websocketTransport) await websocketTransport.close();
+    // 3. Close persistence adapter.${dbEntry ? "\n    if (userPersistenceAdapter.close) await userPersistenceAdapter.close();" : ''}
+    // 4. Close HTTP server.
+    await new Promise((resolve) => server.close(resolve));
+    console.error('[flue] Stopped.');
+    process.exit(exitCode);
   }
-  process.on('SIGINT', () => { void stop(); });
-  process.on('SIGTERM', () => { void stop(); });
+  process.on('SIGINT', () => { void stop('SIGINT', 130); });
+  process.on('SIGTERM', () => { void stop('SIGTERM', 143); });
 }
 `;
 	}

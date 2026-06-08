@@ -1,9 +1,10 @@
-packages: [packages/*, examples/*, apps/*]
+packages: [ packages/*, examples/*, apps/* ]
 allowBuilds:
   '@google/genai': false
   '@mongodb-js/zstd': false
   core-js-pure: false
   esbuild: false
+  msgpackr-extract: true
   node-liblzma: false
   protobufjs: false
   # Required by Astro support in apps/www.

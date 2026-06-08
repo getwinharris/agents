@@ -8,21 +8,13 @@
 			"types": "./types/index.d.ts",
 			"import": "./dist/index.mjs"
 		},
-		"./app": {
-			"types": "./dist/app.d.mts",
-			"import": "./dist/app.mjs"
+		"./adapter": {
+			"types": "./dist/adapter.d.mts",
+			"import": "./dist/adapter.mjs"
 		},
 		"./routing": {
 			"types": "./dist/routing.d.mts",
 			"import": "./dist/routing.mjs"
-		},
-		"./client": {
-			"types": "./dist/client-compat.d.mts",
-			"import": "./dist/client-compat.mjs"
-		},
-		"./sandbox": {
-			"types": "./dist/sandbox-compat.d.mts",
-			"import": "./dist/sandbox-compat.mjs"
 		},
 		"./internal": {
 			"types": "./dist/internal.d.mts",
@@ -35,6 +27,10 @@
 		"./node": {
 			"types": "./dist/node/index.d.mts",
 			"import": "./dist/node/index.mjs"
+		},
+		"./test-utils": {
+			"types": "./dist/test-utils/define-store-contract-tests.d.mts",
+			"import": "./dist/test-utils/define-store-contract-tests.mjs"
 		}
 	},
 	"main": "./dist/index.mjs",
@@ -51,7 +47,6 @@
 		"check:types": "tsc --noEmit",
 		"test": "vitest run",
 		"test:integration:cloudflare": "vitest run --config vitest.integration.cloudflare.config.ts --no-file-parallelism",
-		"test:integration:release": "pnpm run build && pnpm --dir ../cli run build && vitest run --config vitest.integration.release.config.ts --no-file-parallelism",
 		"test:watch": "vitest",
 		"prepublishOnly": "cp ../../README.md ."
 	},
@@ -75,7 +70,7 @@
 		"ws": "^8.20.0"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250410.0",
+		"@cloudflare/workers-types": "^4.20260602.1",
 		"@types/js-yaml": "^4.0.9",
 		"@types/ws": "^8.18.1",
 		"tsdown": "^0.22.0",

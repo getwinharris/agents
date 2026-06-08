@@ -19,6 +19,7 @@ const AGENT_PROFILE_FIELDS = new Set([
 	'subagents',
 	'thinkingLevel',
 	'compaction',
+	'durability',
 ]);
 
 const AGENT_RUNTIME_FIELDS = new Set([
@@ -26,7 +27,6 @@ const AGENT_RUNTIME_FIELDS = new Set([
 	'profile',
 	'cwd',
 	'sandbox',
-	'persist',
 ]);
 
 const VALID_THINKING_LEVELS = {
@@ -48,6 +48,7 @@ const AgentProfileSchema = v.looseObject({
 	subagents: v.optional(v.array(v.unknown())),
 	thinkingLevel: v.optional(v.string()),
 	compaction: v.optional(v.union([v.literal(false), v.looseObject({})])),
+	durability: v.optional(v.looseObject({})),
 });
 
 /**
@@ -105,6 +106,7 @@ export function resolveAgentProfile(options: AgentRuntimeConfig | undefined): Ag
 			? options?.thinkingLevel
 			: profile?.thinkingLevel,
 		compaction: hasOwn(options, 'compaction') ? options?.compaction : profile?.compaction,
+		durability: hasOwn(options, 'durability') ? options?.durability : profile?.durability,
 	};
 }
 
@@ -173,6 +175,7 @@ function assertAgentProfile(
 		assertNonEmptyString(definition.description, `${label} description`);
 	assertThinkingLevel(definition.thinkingLevel, label);
 	assertCompaction(definition.compaction, label);
+	assertDurability(definition.durability, label);
 	assertTools(definition.tools, label);
 	assertSkills(definition.skills, label);
 	assertSubagents(definition.subagents, label, activeDefinitions);
@@ -213,6 +216,24 @@ function assertCompaction(definition: AgentProfile['compaction'], label: string)
 	assertTokenCount(definition.keepRecentTokens, `${label} compaction.keepRecentTokens`);
 	if (definition.model !== undefined && typeof definition.model !== 'string') {
 		throw new Error(`[flue] ${label} compaction.model must be a string.`);
+	}
+}
+
+function assertDurability(definition: AgentProfile['durability'], label: string): void {
+	if (definition === undefined) return;
+	for (const key of Object.keys(definition)) {
+		if (key !== 'retry' && key !== 'timeout') {
+			throw new Error(`[flue] ${label} durability received unknown field "${key}".`);
+		}
+	}
+	assertPositiveInteger(definition.retry, `${label} durability.retry`);
+	assertPositiveInteger(definition.timeout, `${label} durability.timeout`);
+}
+
+function assertPositiveInteger(value: number | undefined, label: string): void {
+	if (value === undefined) return;
+	if (!Number.isFinite(value) || !Number.isInteger(value) || value <= 0) {
+		throw new Error(`[flue] ${label} must be a positive integer.`);
 	}
 }
 

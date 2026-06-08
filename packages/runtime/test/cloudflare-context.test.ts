@@ -5,7 +5,6 @@ import {
 	getDurableObjectIdentity,
 	runWithCloudflareContext,
 } from '../src/cloudflare/context.ts';
-import { store } from '../src/cloudflare/session-store.ts';
 
 describe('Cloudflare context', () => {
 	it('returns request-scoped Cloudflare primitives when code runs inside a Cloudflare context', () => {
@@ -86,121 +85,6 @@ describe('Cloudflare context', () => {
 		expect(() => runWithCloudflareContext(context, () => getDurableObjectIdentity())).toThrow(
 			'[flue:cloudflare] Durable Object identity is not available in this Cloudflare context.',
 		);
-	});
-});
-
-describe('Cloudflare session store', () => {
-	it('saves session state through the active agent instance when save() is called', async () => {
-		const data = {
-			version: 5 as const,
-			affinityKey: 'aff_01J00000000000000000000000',
-			entries: [],
-			leafId: null,
-			metadata: { topic: 'saved' },
-			createdAt: '2026-06-01T00:00:00.000Z',
-			updatedAt: '2026-06-01T00:00:00.000Z',
-		};
-		const setState = vi.fn();
-		const context = {
-			env: {},
-			agentInstance: {
-				state: { status: 'active', sessions: { existing: { persisted: true } } },
-				setState,
-			},
-			storage: { sql: {} },
-		};
-
-		await runWithCloudflareContext(context, () => store().save('draft', data));
-
-		expect(setState).toHaveBeenCalledWith({
-			status: 'active',
-			sessions: { existing: { persisted: true }, draft: data },
-		});
-	});
-
-	it('loads session state through the active agent instance when load() is called', async () => {
-		const data = {
-			version: 5 as const,
-			affinityKey: 'aff_01J00000000000000000000000',
-			entries: [],
-			leafId: null,
-			metadata: { topic: 'loaded' },
-			createdAt: '2026-06-01T00:00:00.000Z',
-			updatedAt: '2026-06-01T00:00:00.000Z',
-		};
-		const context = {
-			env: {},
-			agentInstance: { state: { sessions: { draft: data } }, setState: vi.fn() },
-			storage: { sql: {} },
-		};
-
-		const result = await runWithCloudflareContext(context, () => store().load('draft'));
-
-		expect(result).toBe(data);
-	});
-
-	it('deletes session state through the active agent instance when delete() is called', async () => {
-		const setState = vi.fn();
-		const context = {
-			env: {},
-			agentInstance: {
-				state: {
-					status: 'active',
-					sessions: { draft: { topic: 'remove' }, retained: { topic: 'keep' } },
-				},
-				setState,
-			},
-			storage: { sql: {} },
-		};
-
-		await runWithCloudflareContext(context, () => store().delete('draft'));
-
-		expect(setState).toHaveBeenCalledWith({
-			status: 'active',
-			sessions: { retained: { topic: 'keep' } },
-		});
-	});
-
-	it('round-trips reserved object-key session names without reading inherited state when session names include prototype keys', async () => {
-		const prototypeData = {
-			version: 5 as const,
-			affinityKey: 'aff_01J00000000000000000000000',
-			entries: [],
-			leafId: null,
-			metadata: { topic: 'prototype' },
-			createdAt: '2026-06-01T00:00:00.000Z',
-			updatedAt: '2026-06-01T00:00:00.000Z',
-		};
-		const constructorData = {
-			version: 5 as const,
-			affinityKey: 'aff_01J00000000000000000000000',
-			entries: [],
-			leafId: null,
-			metadata: { topic: 'constructor' },
-			createdAt: '2026-06-01T00:00:00.000Z',
-			updatedAt: '2026-06-01T00:00:00.000Z',
-		};
-		const agentInstance = {
-			state: { sessions: {} },
-			setState(state: { sessions: Record<string, unknown> }) {
-				this.state = JSON.parse(JSON.stringify(state));
-			},
-		};
-		const context = { env: {}, agentInstance, storage: { sql: {} } };
-
-		await runWithCloudflareContext(context, async () => {
-			const sessionStore = store();
-			await expect(sessionStore.load('__proto__')).resolves.toBeNull();
-			await expect(sessionStore.load('constructor')).resolves.toBeNull();
-			await sessionStore.save('__proto__', prototypeData);
-			await sessionStore.save('constructor', constructorData);
-			await expect(sessionStore.load('__proto__')).resolves.toEqual(prototypeData);
-			await expect(sessionStore.load('constructor')).resolves.toEqual(constructorData);
-			await sessionStore.delete('__proto__');
-			await sessionStore.delete('constructor');
-			await expect(sessionStore.load('__proto__')).resolves.toBeNull();
-			await expect(sessionStore.load('constructor')).resolves.toBeNull();
-		});
 	});
 });
 

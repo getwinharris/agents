@@ -6,17 +6,10 @@ import {
 	type RunStore,
 	serializedEventForPersistence,
 } from '../runtime/run-store.ts';
+import type { SqlStorage } from '../sql-storage.ts';
 import type { FlueEvent } from '../types.ts';
 
-interface SqlResult {
-	toArray(): SqlRow[];
-}
-
 type SqlRow = Record<string, unknown>;
-
-interface SqlStorage {
-	exec(query: string, ...bindings: unknown[]): SqlResult;
-}
 
 export function createDurableRunStore(sql: SqlStorage): RunStore {
 	ensureRunTables(sql);

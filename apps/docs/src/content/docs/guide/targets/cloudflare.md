@@ -1,7 +1,6 @@
 ---
 title: Cloudflare Target
 description: Understand the Cloudflare-specific runtime behavior and APIs for Flue applications.
-lastReviewedAt: 2026-06-03
 ---
 
 The Cloudflare target builds your agents and workflows for the Cloudflare platform. Generated agents and workflows run inside Durable Objects, using the Agents SDK, Workers AI, Cloudflare Sandbox, Cloudflare Shell, and other Worker primitives where appropriate. Durable Objects give each agent instance its own persistent state, durable execution, and global addressability out of the box.
@@ -22,7 +21,7 @@ src/workflows/translate.ts   ->  FlueTranslateWorkflow
 
 The class name is how Cloudflare identifies the Durable Object in migrations. The binding is how your application code accesses the Durable Object namespace at runtime through `env`.
 
-Agent session state and workflow run history are stored in the owning Durable Object's SQLite storage automatically. You do not need to configure a separate database or session store on the Cloudflare target.
+Agent session state, accepted submissions, and workflow run history are stored in the owning Durable Object's SQLite storage automatically. The Cloudflare target does not use `db.ts`; a source-root `db.ts` is rejected at build time.
 
 ## `wrangler.jsonc`
 
@@ -67,7 +66,23 @@ Cloudflare requires an ordered migration history that accounts for every Durable
 }
 ```
 
-Never rewrite or reorder deployed migration entries. Use Cloudflare's `renamed_classes` and `deleted_classes` migration fields when changing deployed class names or removing classes.
+Never rewrite or reorder deployed migration entries. Generated agent classes require Durable Object SQLite, so introduce them through `new_sqlite_classes`, not legacy `new_classes`. Use Cloudflare's `renamed_classes` and `deleted_classes` migration fields when changing deployed class names or removing classes.
+
+## Durable agent execution
+
+Cloudflare agents durably admit direct HTTP, SSE, and WebSocket prompts together with `dispatch(...)` inputs. All accepted input for one session enters the same per-session queue, while separate sessions can progress independently.
+
+```txt
+direct HTTP, SSE, or WebSocket prompt ─┐
+                                       ├→ durable per-session queue → stored session history
+dispatch(...) input ───────────────────┘
+```
+
+The submitting connection observes the work but does not own it. If a client disconnects after admission, backend work can continue. Flue does not reconstruct the lost transport or replay missed direct-agent stream events.
+
+When a Durable Object resumes after interruption, Flue checks stored input and session history before deciding what to do next. It requeues only when it can prove the input was not applied, recognizes already-completed output, and records an interruption instead of blindly repeating uncertain model or tool work.
+
+For the full recovery model, see [Durable Execution](/docs/guide/durable-execution/).
 
 ## Workers AI and AI Gateway
 

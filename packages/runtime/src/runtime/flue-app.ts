@@ -26,12 +26,11 @@ import type {
 } from '../types.ts';
 import { enqueueDispatch } from './dispatch.ts';
 import type { DispatchQueue } from './dispatch-queue.ts';
+import type { AttachedAgentSubmissionAdmission } from './agent-submissions.ts';
 import {
-	type AgentHandler,
 	type CreateContextFn,
 	handleAgentRequest,
 	handleWorkflowRequest,
-	type RunHandlerFn,
 	type StartWorkflowAdmissionFn,
 	type WorkflowHandler,
 } from './handle-agent.ts';
@@ -60,10 +59,6 @@ export interface FlueRuntime {
 
 	// ─── Node-only ──────────────────────────────────────────────────────────
 
-	/**
-	 * Map of agent name -> direct HTTP handler function.
-	 */
-	handlers?: Record<string, AgentHandler>;
 	workflowHandlers?: Record<string, WorkflowHandler>;
 	agentRouteMiddleware?: Record<string, MiddlewareHandler>;
 	agentWebSocketMiddleware?: Record<string, MiddlewareHandler>;
@@ -80,8 +75,14 @@ export interface FlueRuntime {
 	/** Optional Node HTTP workflow admitted execution wrapper. Defaults to direct invocation. */
 	startWorkflowAdmission?: StartWorkflowAdmissionFn;
 
-	/** Optional Node direct-agent foreground handler wrapper. Defaults to direct invocation. */
-	runHandler?: RunHandlerFn;
+	/**
+	 * Per-agent durable admission factory, keyed by agent name. Direct HTTP,
+	 * SSE, and WebSocket prompts are persisted as durable submissions. Each
+	 * factory receives the instance ID from the route and returns the admission
+	 * hook for that specific agent instance. Created by the Node coordinator's
+	 * `createAdmission()`.
+	 */
+	createAdmission?: Record<string, (instanceId: string) => AttachedAgentSubmissionAdmission>;
 
 	/** Node workflow-run history store. */
 	runStore?: RunStore;
@@ -655,18 +656,14 @@ const agentRouteHandler: MiddlewareHandler = async (c) => {
 
 	return runAttachedMiddleware(c, rt.agentRouteMiddleware?.[name], async () => {
 		if (rt.target === 'node') {
-			const handler = rt.handlers?.[name];
-			const createContext = rt.createContext;
-			if (!handler || !createContext) {
-				throw new Error('[flue] Node runtime is missing agent handler configuration.');
+			const admitAttachedSubmission = rt.createAdmission?.[name]?.(id);
+			if (!admitAttachedSubmission) {
+				throw new Error('[flue] Node runtime is missing agent admission configuration.');
 			}
 			return handleAgentRequest({
 				request,
-				agentName: name,
 				id,
-				handler,
-				createContext,
-				runHandler: rt.runHandler,
+				admitAttachedSubmission,
 			});
 		}
 

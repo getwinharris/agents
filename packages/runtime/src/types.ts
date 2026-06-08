@@ -1,5 +1,21 @@
 import type { AgentMessage, AgentTool, ThinkingLevel } from '@earendil-works/pi-agent-core';
 import type { ImageContent, Model, TSchema } from '@earendil-works/pi-ai';
+
+export interface SignalMessage {
+	role: 'signal';
+	type: string;
+	tagName?: string;
+	content: string;
+	attributes?: Record<string, string>;
+	data?: Record<string, unknown>;
+	timestamp: number;
+}
+
+declare module '@earendil-works/pi-agent-core' {
+	interface CustomAgentMessages {
+		signal: SignalMessage;
+	}
+}
 import type { MiddlewareHandler } from 'hono';
 import type * as v from 'valibot';
 
@@ -393,6 +409,23 @@ export interface CompactionConfig {
 	model?: string;
 }
 
+// ─── Durability ─────────────────────────────────────────────────────────────
+
+export interface DurabilityConfig {
+	/**
+	 * Maximum recovery attempts before the submission is terminalized as
+	 * failed. Each DO reset or deploy that interrupts a running submission
+	 * counts as one attempt. Defaults to 10.
+	 */
+	retry?: number;
+	/**
+	 * Maximum wall-clock minutes for a single submission. Submissions that
+	 * exceed this limit are aborted and settled as failed. Defaults to 60.
+	 * Set higher for long-running agents (e.g. 360 for a 6-hour agent).
+	 */
+	timeout?: number;
+}
+
 // ─── Provider Runtime Settings ──────────────────────────────────────────────
 
 /** Per-provider transport settings accepted by `configureProvider(...)`. */
@@ -443,6 +476,8 @@ export interface AgentConfig {
 	 * uses defaults.
 	 */
 	compaction?: false | CompactionConfig;
+	/** Durability settings resolved from the agent profile. */
+	durability?: DurabilityConfig;
 }
 
 /** Model specifier, or `false` to require call-level model selection. */
@@ -473,6 +508,11 @@ export interface AgentProfile {
 	 * calls still compact when needed.
 	 */
 	compaction?: false | CompactionConfig;
+	/**
+	 * Durability configuration for durable agent submissions. Controls
+	 * recovery attempt limits and submission timeouts.
+	 */
+	durability?: DurabilityConfig;
 }
 
 /** Configuration returned by a {@link createAgent} initializer. */
@@ -499,12 +539,15 @@ export interface AgentRuntimeConfig {
 	 * calls still compact when needed.
 	 */
 	compaction?: false | CompactionConfig;
+	/**
+	 * Durability configuration for durable agent submissions. Controls
+	 * recovery attempt limits and submission timeouts.
+	 */
+	durability?: DurabilityConfig;
 	/** Working directory inside the initialized sandbox. */
 	cwd?: string;
 	/** Sandbox factory used to construct the initialized environment. */
 	sandbox?: false | SandboxFactory | BashFactory;
-	/** Conversation-state store used by initialized sessions. */
-	persist?: SessionStore;
 }
 
 /** Options for {@link FlueContext.init}. */
@@ -552,10 +595,11 @@ export interface FlueContext<TPayload = any, TEnv = Record<string, any>> {
 	 * body-reading method, calling another will throw. Use `req.clone()` if
 	 * you need to read it more than once.
 	 *
-	 * Undefined when the agent is invoked outside an HTTP context (e.g. future
-	 * cron / queue triggers). Today every trigger is HTTP, so in practice this
-	 * is always defined — the optional type lets the contract hold when other
-	 * trigger types ship.
+	 * Undefined when the agent is invoked outside an HTTP context. Durable or
+	 * recovered processing may receive a synthetic internal request instead of
+	 * the original caller request. Authenticate and capture required transport
+	 * metadata before durable admission; do not assume later processing retains
+	 * original headers, cookies, query parameters, URL, or body.
 	 *
 	 * For client IP, parse the platform header yourself, e.g.
 	 * `req.headers.get('cf-connecting-ip')` on Cloudflare, or
@@ -615,7 +659,8 @@ export interface FlueSessions {
 	create(name?: string): Promise<FlueSession>;
 	/**
 	 * Delete a session's stored conversation state. Defaults to `'default'`.
-	 * No-op when missing. Rejects if the open session has an active operation.
+	 * No-op when missing. Rejects if the open session has an active operation or
+	 * the target runtime still has accepted durable submissions for that session.
 	 * Session-management requests for one name are applied in request order.
 	 */
 	delete(name?: string): Promise<void>;
@@ -701,7 +746,8 @@ export interface FlueSession {
 
 	/**
 	 * Delete this session's stored conversation state. Rejects while an
-	 * operation is active. Once deletion starts, the session is unusable and
+	 * operation or accepted durable submission is active. Once deletion starts,
+	 * the session is unusable and
 	 * concurrent calls share the same deletion work.
 	 */
 	delete(): Promise<void>;
@@ -795,6 +841,18 @@ export interface MessageEntry extends SessionEntryBase {
 	message: AgentMessage;
 	source?: 'prompt' | 'skill' | 'shell' | 'task' | 'retry' | 'dispatch';
 	dispatch?: DispatchMessageMetadata;
+	directSubmissionId?: string;
+	submissionTerminal?: SubmissionTerminalMetadata;
+}
+
+interface SubmissionTerminalMetadata {
+	submissionId: string;
+	kind: 'dispatch' | 'direct';
+	reason:
+		| 'interrupted_before_input_marker'
+		| 'interrupted_after_input_application'
+		| 'exhausted_retry_budget'
+		| 'exceeded_timeout';
 }
 
 export interface DispatchMessageMetadata {
@@ -975,7 +1033,7 @@ export type LlmToolCall = {
 	type: 'toolCall';
 	id: string;
 	name: string;
-	arguments: Record<string, any>;
+	arguments: Record<string, unknown>;
 	thoughtSignature?: string;
 };
 
@@ -1068,21 +1126,6 @@ export type FlueEvent = (
 	| { type: 'message_start'; message: AgentMessage }
 	| { type: 'message_update'; message: AgentMessage; assistantMessageEvent: unknown }
 	| { type: 'message_end'; message: AgentMessage }
-	| { type: 'tool_execution_start'; toolCallId: string; toolName: string; args: unknown }
-	| {
-			type: 'tool_execution_update';
-			toolCallId: string;
-			toolName: string;
-			args: unknown;
-			partialResult: unknown;
-	  }
-	| {
-			type: 'tool_execution_end';
-			toolCallId: string;
-			toolName: string;
-			result: unknown;
-			isError: boolean;
-	  }
 	| { type: 'text_delta'; text: string }
 	| { type: 'thinking_start' }
 	| { type: 'thinking_delta'; delta: string }

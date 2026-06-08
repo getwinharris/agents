@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createAgent } from '../src/index.ts';
-import { createFlueContext } from '../src/internal.ts';
+import { createFlueContext, type FlueContextConfig } from '../src/internal.ts';
 import type { FlueEvent, SessionData, SessionEnv, SessionStore } from '../src/types.ts';
 
 describe('FlueHarness', () => {
@@ -291,6 +291,28 @@ describe('FlueHarness', () => {
 			]);
 		});
 
+		it('wraps store deletion in one coordinated operation when delete() targets an unopened session', async () => {
+			const store = new TrackingSessionStore();
+			const calls: string[] = [];
+			const harness = await createContext(createEnv(), store, {
+				submissionStore: {
+					deleteSession: async (storageKey: string, deleteSessionTree: () => Promise<void>) => {
+						calls.push(`begin:${storageKey}`);
+						await deleteSessionTree();
+						calls.push(`finish:${storageKey}`);
+					},
+				} as never,
+			}).init(createAgent(() => ({ model: false })));
+
+			await harness.sessions.delete('review');
+
+			expect(calls).toEqual([
+				'begin:agent-session:["agent-instance","default","review"]',
+				'finish:agent-session:["agent-instance","default","review"]',
+			]);
+			expect(store.deleteCalls).toEqual(['agent-session:["agent-instance","default","review"]']);
+		});
+
 		it('applies session management requests in order when concurrent requests target the same name', async () => {
 			const store = new TrackingSessionStore();
 			store.blockLoads();
@@ -497,6 +519,29 @@ describe('FlueSession', () => {
 		);
 	});
 
+	it('wraps store deletion in one coordinated operation when an opened session is deleted', async () => {
+		const store = new TrackingSessionStore();
+		const calls: string[] = [];
+		const harness = await createContext(createEnv(), store, {
+			submissionStore: {
+				deleteSession: async (storageKey: string, deleteSessionTree: () => Promise<void>) => {
+					calls.push(`begin:${storageKey}`);
+					await deleteSessionTree();
+					calls.push(`finish:${storageKey}`);
+				},
+			} as never,
+		}).init(createAgent(() => ({ model: false })));
+		const session = await harness.session('review');
+
+		await session.delete();
+
+		expect(calls).toEqual([
+			'begin:agent-session:["agent-instance","default","review"]',
+			'finish:agent-session:["agent-instance","default","review"]',
+		]);
+		expect(store.deleteCalls).toEqual(['agent-session:["agent-instance","default","review"]']);
+	});
+
 	it('shares deletion work when delete() is called concurrently', async () => {
 		const store = new TrackingSessionStore();
 		const harness = await createContext(createEnv(), store).init(
@@ -532,7 +577,7 @@ describe('FlueSession', () => {
 	});
 });
 
-function createContext(env: SessionEnv, store: SessionStore) {
+function createContext(env: SessionEnv, store: SessionStore, overrides: Partial<FlueContextConfig> = {}) {
 	return createFlueContext({
 		id: 'agent-instance',
 		payload: undefined,
@@ -545,6 +590,7 @@ function createContext(env: SessionEnv, store: SessionStore) {
 		},
 		createDefaultEnv: async () => env,
 		defaultStore: store,
+		...overrides,
 	});
 }
 

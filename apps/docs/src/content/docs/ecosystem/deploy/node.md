@@ -261,41 +261,9 @@ Start with the local or virtual sandbox. Move to a remote sandbox when you need 
 
 ## Session persistence
 
-On Node.js, session state is stored in memory by default — sessions persist for the lifetime of the process but are lost on restart. This is fine for development and stateless workloads.
+On Node.js, agent sessions and accepted submissions use in-memory SQLite by default, so they persist for the lifetime of one process but are lost on restart. Add `db.ts` when that state must survive restart or be shared outside one process.
 
-For durable sessions, return a custom store via the `persist` option from `createAgent(...)`. A store implements three methods — `save()`, `load()`, and `delete()` — each operating on a session ID and a complete `SessionData` record, including message history, metadata, compaction state, and provider affinity:
-
-```typescript
-import { createAgent, type FlueContext, type SessionStore, type SessionData } from '@flue/runtime';
-import { local } from '@flue/runtime/node';
-
-// Example: a simple file-backed store. In production, use a database.
-const store: SessionStore = {
-  async save(id: string, data: SessionData) {
-    /* write to DB */
-  },
-  async load(id: string) {
-    /* read from DB, return null if not found */
-  },
-  async delete(id: string) {
-    /* delete from DB */
-  },
-};
-
-const assistant = createAgent(() => ({
-  sandbox: local(),
-  persist: store,
-  model: 'anthropic/claude-sonnet-4-6',
-}));
-
-export async function run({ init, payload }: FlueContext) {
-  const harness = await init(assistant);
-  const session = await harness.session();
-  // ...
-}
-```
-
-You can back this with any database: SQLite, Postgres, Redis, etc.
+See [Database](/docs/guide/database/) for `db.ts`, SQLite, Postgres, and custom adapter setup. See [Data Persistence API](/docs/api/data-persistence-api/) for the adapter contract.
 
 ## Building and deploying
 

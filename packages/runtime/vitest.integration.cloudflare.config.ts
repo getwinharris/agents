@@ -5,7 +5,6 @@ export default defineConfig({
 		include: [
 			'test/cloudflare-extension.integration.test.ts',
 			'test/cloudflare-deployment-extension.integration.test.ts',
-			'test-legacy/vite-cloudflare-build.test.ts',
 		],
 	},
 });

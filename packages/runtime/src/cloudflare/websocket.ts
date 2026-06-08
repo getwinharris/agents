@@ -1,8 +1,7 @@
 import { InvalidRequestError } from '../errors.ts';
+import type { AttachedAgentSubmissionAdmission } from '../runtime/agent-submissions.ts';
 import type {
-	AgentHandler,
 	CreateContextFn,
-	RunHandlerFn,
 	StartWorkflowAdmissionFn,
 	WorkflowHandler,
 } from '../runtime/handle-agent.ts';
@@ -39,6 +38,38 @@ export interface CloudflareWebSocketConnection {
 	close(code?: number, reason?: string): void;
 }
 
+/** Check whether a WebSocket connection belongs to a Flue-managed target. */
+export function isFlueSocket(
+	connection: CloudflareWebSocketConnection,
+	target: string,
+	name: string,
+): boolean {
+	const attachment = connection.deserializeAttachment?.();
+	return attachment?.version === 1 && attachment.target === target && attachment.name === name;
+}
+
+/** Close a WebSocket connection, ignoring protocol-reserved close codes. */
+export function closeFlueSocket(
+	connection: CloudflareWebSocketConnection,
+	code: number,
+	reason: string,
+): void {
+	if (code === 1005 || code === 1006 || code === 1015) return;
+	try {
+		connection.close(code, reason);
+	} catch {
+		return;
+	}
+}
+
+/** Strip search/hash from a request URL for WebSocket attachment storage. */
+export function socketRequestUrl(request: Request): string {
+	const url = new URL(request.url);
+	url.search = '';
+	url.hash = '';
+	return url.toString();
+}
+
 interface CloudflareAttachedOptions {
 	request: Request;
 	createContext: CreateContextFn;
@@ -50,9 +81,7 @@ interface CloudflareAttachedOptions {
 export interface CloudflareAgentWebSocketOptions extends CloudflareAttachedOptions {
 	name: string;
 	id: string;
-	handler: AgentHandler;
-	beforePrompt?: (session: string) => void | Promise<void>;
-	runHandler?: RunHandlerFn;
+	admitAttachedSubmission: AttachedAgentSubmissionAdmission;
 }
 
 export interface CloudflareWorkflowWebSocketOptions extends CloudflareAttachedOptions {
@@ -186,15 +215,10 @@ async function invokeAgentPrompt(
 ): Promise<void> {
 	let didStart = false;
 	try {
-		await options.beforePrompt?.(message.session ?? 'default');
 		const result = await invokeDirectAttached({
-			agentName: options.name,
 			id: options.id,
 			payload: { message: message.message, session: message.session },
-			request: options.request,
-			handler: options.handler,
-			createContext: options.createContext,
-			runHandler: options.runHandler,
+			admitAttachedSubmission: options.admitAttachedSubmission,
 			onEvent: (event) => {
 				if (!didStart) {
 					didStart = true;
@@ -287,6 +311,7 @@ function messageBytes(message: string): number {
 	return new TextEncoder().encode(message).byteLength;
 }
 
+/** Strip search/hash from a URL string. Equivalent to socketRequestUrl but takes a string. */
 function operationRequestUrl(requestUrl: string): string {
 	const url = new URL(requestUrl);
 	url.search = '';

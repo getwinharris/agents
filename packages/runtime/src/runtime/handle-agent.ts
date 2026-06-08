@@ -1,7 +1,6 @@
 /** Shared per-agent HTTP dispatcher for the Node and Cloudflare targets. */
 
 import type { FlueContextInternal } from '../client.ts';
-import { isTaskSessionName } from '../session-identity.ts';
 import {
 	InvalidRequestError,
 	parseJsonBody,
@@ -10,20 +9,17 @@ import {
 	toHttpResponse,
 	toPublicError,
 } from '../errors.ts';
+import { isTaskSessionName } from '../session-identity.ts';
 import type {
 	AttachedAgentEvent,
 	AttachedAgentEventCallback,
 	CreatedAgent,
 	DirectAgentPayload,
-	DispatchReceipt,
 	FlueEvent,
 	FlueEventCallback,
 } from '../types.ts';
-import {
-	assertCurrentDispatchInput,
-	type DispatchInput,
-	type DispatchProcessor,
-} from './dispatch-queue.ts';
+import type { AttachedAgentSubmissionAdmission } from './agent-submissions.ts';
+import type { DispatchInput } from './dispatch-queue.ts';
 import { streamActiveRunEvents } from './handle-run-routes.ts';
 import { generateWorkflowRunId } from './ids.ts';
 import type { RunOwner, RunRegistry } from './run-registry.ts';
@@ -32,62 +28,13 @@ import type { RunSubscriberRegistry } from './run-subscribers.ts';
 
 /** Direct agent handler signature used by attached HTTP and WebSocket prompts. */
 export type AgentHandler = (ctx: FlueContextInternal) => unknown | Promise<unknown>;
-export type CreatedAgentHandler = CreatedAgent;
 export type WorkflowHandler = (ctx: FlueContextInternal) => unknown | Promise<unknown>;
 
 interface DirectRequestSession {
 	processDirectInput(input: { message: string }): PromiseLike<unknown>;
 }
 
-interface DispatchSession {
-	processDispatchInput(input: DispatchInput): PromiseLike<unknown>;
-}
-
-export interface AgentSessionTarget {
-	agentName: string;
-	instanceId: string;
-}
-
-export function createAgentDispatchProcessor(options: {
-	agents: Record<string, CreatedAgentHandler>;
-	createContext: CreateContextFn;
-}): DispatchProcessor {
-	return {
-		async process(input) {
-			assertCurrentDispatchInput(input);
-			const agent = options.agents[input.agent];
-			if (!agent)
-				throw new Error(`[flue] dispatch target agent "${input.agent}" has no created agent.`);
-			const releaseSessionLock = await reserveDispatchAgentSession(
-				{ agentName: input.agent, instanceId: input.id },
-				input,
-			);
-			try {
-				const ctx = options.createContext(
-					input.id,
-					undefined,
-					input,
-					dispatchRequest(),
-					undefined,
-					input.dispatchId,
-				);
-				await createDispatchAgentHandler(agent, input)(ctx);
-			} finally {
-				releaseSessionLock();
-			}
-		},
-	};
-}
-
-interface ValidateAgentDispatchAdmissionOptions {
-	input: DispatchInput;
-}
-
-export async function validateAgentDispatchAdmission(
-	options: ValidateAgentDispatchAdmissionOptions,
-): Promise<DispatchReceipt> {
-	const { input } = options;
-	assertCurrentDispatchInput(input);
+export function assertAgentDispatchAdmissionInput(input: unknown): asserts input is DispatchInput {
 	if (!isDispatchInput(input))
 		throw new Error('[flue] Internal dispatch admission received an invalid payload.');
 	if (isTaskSessionName(input.session)) {
@@ -95,34 +42,6 @@ export async function validateAgentDispatchAdmission(
 			'[flue] Internal dispatch admission session names beginning with "task:" are reserved for delegated tasks.',
 		);
 	}
-	return { dispatchId: input.dispatchId, acceptedAt: input.acceptedAt };
-}
-
-export function createDispatchAgentHandler(
-	agent: CreatedAgentHandler,
-	input: DispatchInput,
-): AgentHandler {
-	return (ctx) => processAgentDispatch(ctx, agent, input);
-}
-
-export async function reserveDispatchAgentSession(
-	target: AgentSessionTarget,
-	payload: unknown,
-): Promise<() => void> {
-	return waitForAgentSessionLock(target, payload);
-}
-
-async function processAgentDispatch(
-	ctx: FlueContextInternal,
-	agent: CreatedAgentHandler,
-	input: DispatchInput,
-): Promise<unknown> {
-	const harness = await ctx.initializeCreatedAgent(agent, undefined);
-	const session = await harness.session(input.session);
-	if (!isDispatchSession(session)) {
-		throw new Error('[flue] Internal session does not support dispatch input processing.');
-	}
-	return session.processDispatchInput(input);
 }
 
 function isDispatchInput(value: unknown): value is DispatchInput {
@@ -143,19 +62,7 @@ function isDispatchInput(value: unknown): value is DispatchInput {
 	);
 }
 
-function dispatchRequest(): Request {
-	return new Request('http://flue.local/_dispatch', { method: 'POST' });
-}
-
-function isDispatchSession(value: unknown): value is DispatchSession {
-	return (
-		!!value &&
-		typeof value === 'object' &&
-		typeof (value as DispatchSession).processDispatchInput === 'function'
-	);
-}
-
-export function createDirectAgentHandler(agent: CreatedAgentHandler): AgentHandler {
+export function createDirectAgentHandler(agent: CreatedAgent): AgentHandler {
 	return async (ctx) => {
 		const payload = parseDirectAgentPayload(ctx.payload);
 		const harness = await ctx.initializeCreatedAgent(agent, undefined);
@@ -236,18 +143,10 @@ export type StartWorkflowAdmissionFn = (
  * so targets can layer in keepalive / context propagation. Defaults to direct
  * invocation when omitted.
  */
-export type RunHandlerFn = (
-	ctx: FlueContextInternal,
-	handler: AgentHandler,
-) => unknown | Promise<unknown>;
-
 export interface HandleAgentOptions {
 	request: Request;
-	agentName: string;
 	id: string;
-	handler: AgentHandler;
-	createContext: CreateContextFn;
-	runHandler?: RunHandlerFn;
+	admitAttachedSubmission: AttachedAgentSubmissionAdmission;
 }
 
 export interface HandleWorkflowOptions {
@@ -273,8 +172,7 @@ export interface HandleWorkflowOptions {
  * responses; errors thrown after SSE begins are framed as stream errors.
  */
 export async function handleAgentRequest(opts: HandleAgentOptions): Promise<Response> {
-	const { request, agentName, id, handler, createContext } = opts;
-	const runHandler = opts.runHandler ?? defaultRunHandler;
+	const { request, id } = opts;
 
 	try {
 		const rawPayload = await parseJsonBody(request);
@@ -286,13 +184,9 @@ export async function handleAgentRequest(opts: HandleAgentOptions): Promise<Resp
 		}
 		const payload = parseDirectAgentPayload(rawPayload);
 		const directOptions: DirectAttachedOptions = {
-			agentName,
 			id,
-			handler,
 			payload,
-			request,
-			createContext,
-			runHandler,
+			admitAttachedSubmission: opts.admitAttachedSubmission,
 		};
 		if ((request.headers.get('accept') || '').includes('text/event-stream')) {
 			return runDirectSseMode(directOptions);
@@ -363,13 +257,9 @@ export interface InvokeWorkflowAttachedOptions {
 }
 
 export interface DirectAttachedOptions {
-	agentName: string;
 	id: string;
-	handler: AgentHandler;
 	payload: DirectAgentPayload;
-	request: Request;
-	createContext: CreateContextFn;
-	runHandler?: RunHandlerFn;
+	admitAttachedSubmission: AttachedAgentSubmissionAdmission;
 	onEvent?: AttachedAgentEventCallback;
 	emitIdleOnComplete?: boolean;
 }
@@ -389,28 +279,6 @@ export interface FailRecoveredRunOptions {
 	runStore?: RunStore;
 	runSubscribers?: RunSubscriberRegistry;
 	runRegistry?: RunRegistry;
-}
-
-const activeAttachedAgentSessions = new Map<string, symbol>();
-
-async function waitForAgentSessionLock(
-	target: AgentSessionTarget,
-	payload: unknown,
-): Promise<() => void> {
-	while (true) {
-		try {
-			return (
-				acquireDirectAgentSessionLock(target.agentName, target.instanceId, payload) ?? (() => {})
-			);
-		} catch (error) {
-			if (
-				!(error instanceof InvalidRequestError) ||
-				error.details !== 'This agent session already has an active prompt.'
-			)
-				throw error;
-			await new Promise<void>((resolve) => setTimeout(resolve, 0));
-		}
-	}
 }
 
 interface WorkflowAdmissionOptions {
@@ -717,34 +585,7 @@ async function runDirectSyncMode(opts: DirectAttachedOptions): Promise<Response>
 }
 
 export async function invokeDirectAttached(opts: DirectAttachedOptions): Promise<unknown> {
-	const sessionLock = acquireDirectAgentSessionLock(opts.agentName, opts.id, opts.payload);
-	try {
-		const ctx = opts.createContext(opts.id, undefined, opts.payload, opts.request);
-		const runHandler = opts.runHandler ?? defaultRunHandler;
-		let didEmitIdle = false;
-		if (opts.onEvent || opts.emitIdleOnComplete) {
-			ctx.setEventCallback((event) => {
-				if (event.type === 'run_start' || event.type === 'run_end') return;
-				if (event.type === 'idle') didEmitIdle = true;
-				const attachedEvent = { ...event, instanceId: opts.id };
-				delete attachedEvent.runId;
-				return opts.onEvent?.(attachedEvent as AttachedAgentEvent);
-			});
-		}
-		try {
-			return await runHandler(ctx, async (innerCtx) => {
-				try {
-					return await opts.handler(innerCtx);
-				} finally {
-					if (opts.emitIdleOnComplete && !didEmitIdle) innerCtx.emitEvent({ type: 'idle' });
-				}
-			});
-		} finally {
-			ctx.setEventCallback(undefined);
-		}
-	} finally {
-		sessionLock?.();
-	}
+	return opts.admitAttachedSubmission(opts.payload, opts.onEvent);
 }
 
 async function runSseMode(execution: AdmittedWorkflowExecution): Promise<Response> {
@@ -847,27 +688,6 @@ async function invokeWorkflowAttachedUnlocked(
 	} finally {
 		ctx.setEventCallback(undefined);
 	}
-}
-
-function acquireDirectAgentSessionLock(
-	agentName: string,
-	instanceId: string,
-	input: unknown,
-): (() => void) | undefined {
-	const payload = input as { session?: unknown } | null;
-	const session =
-		typeof payload?.session === 'string' && payload.session.trim() !== ''
-			? payload.session
-			: 'default';
-	const key = `${agentName}\0${instanceId}\0${session}`;
-	if (activeAttachedAgentSessions.has(key)) {
-		throw new InvalidRequestError({ reason: 'This agent session already has an active prompt.' });
-	}
-	const token = Symbol(key);
-	activeAttachedAgentSessions.set(key, token);
-	return () => {
-		if (activeAttachedAgentSessions.get(key) === token) activeAttachedAgentSessions.delete(key);
-	};
 }
 
 // ─── Workflow run lifecycle ─────────────────────────────────────────────────
@@ -1146,8 +966,4 @@ function getEventIndex(data: unknown): number | undefined {
 const defaultStartWorkflowAdmission: StartWorkflowAdmissionFn = (_runId, run) =>
 	Promise.resolve().then(run);
 
-/**
- * Default direct-agent foreground handler runner: invoke directly. Used by the
- * Node target. The Cloudflare target overrides this with a `runFiber` wrapper.
- */
-const defaultRunHandler: RunHandlerFn = (ctx, handler) => handler(ctx);
+

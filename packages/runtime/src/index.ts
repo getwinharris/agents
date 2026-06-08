@@ -2,6 +2,7 @@
 /// <reference path="../types/markdown-md.d.ts" />
 
 export { Type } from '@earendil-works/pi-ai';
+export type { PersistenceAdapter } from './agent-execution-store.ts';
 export { createAgent, defineAgentProfile } from './agent-definition.ts';
 export type { McpServerConnection, McpServerOptions, McpTransport } from './mcp.ts';
 export { connectMcpServer } from './mcp.ts';
@@ -18,9 +19,9 @@ export {
 export { createSandboxSessionEnv, type SandboxApi } from './sandbox.ts';
 export { defineTool } from './tool.ts';
 export type {
-	AgentConfig,
 	AgentCreateContext,
 	AgentDispatchRequest,
+	DurabilityConfig,
 	AgentHarnessOptions,
 	AgentProfile,
 	AgentRouteHandler,
@@ -35,7 +36,6 @@ export type {
 	CallHandle,
 	CompactionConfig,
 	CreatedAgent,
-	DirectAgentPayload,
 	DispatchReceipt,
 	FileStat,
 	FlueContext,

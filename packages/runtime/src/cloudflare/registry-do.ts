@@ -2,7 +2,7 @@
 import { createRegistryOps, handleRegistryRequest, type RegistryOps } from './registry-ops.ts';
 
 interface DurableObjectStateLike {
-	storage: { sql: import('./registry-ops.ts').SqlStorage };
+	storage: { sql: import('../sql-storage.ts').SqlStorage };
 }
 
 import { DurableObject } from 'cloudflare:workers';

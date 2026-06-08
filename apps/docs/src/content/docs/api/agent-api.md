@@ -69,6 +69,7 @@ Throws when the profile contains unknown fields, invalid capabilities, duplicate
 | Field           | Type                        | Description                                                                                                                                                                 |
 | --------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`          | `string`                    | Profile name. Required when selecting this profile with `session.task()`.                                                                                                   |
+| `description`   | `string`                    | Human-readable profile description.                                                                                                                                         |
 | `model`         | `string \| false`           | Default model specifier. Set to `false` to require call-level model selection.                                                                                              |
 | `instructions`  | `string`                    | Instructions prepended to discovered workspace context.                                                                                                                     |
 | `skills`        | `Skill[]`                   | Registered skills available to initialized sessions.                                                                                                                        |
@@ -76,6 +77,14 @@ Throws when the profile contains unknown fields, invalid capabilities, duplicate
 | `subagents`     | `AgentProfile[]`            | Named profiles available for delegated `session.task()` operations.                                                                                                         |
 | `thinkingLevel` | `ThinkingLevel`             | Default reasoning effort. Individual operations may override this value.                                                                                                    |
 | `compaction`    | `false \| CompactionConfig` | Automatic conversation-compaction configuration. `false` disables threshold compaction; overflow recovery and explicit `session.compact()` calls still compact when needed. |
+| `durability`    | `DurabilityConfig`          | Durability configuration for durable agent submissions. Controls recovery attempt limits and submission timeouts.                                                           |
+
+#### `DurabilityConfig`
+
+| Field     | Type     | Default | Description                                                                                                                                      |
+| --------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `retry`   | `number` | `10`    | Maximum recovery attempts before the submission is terminalized as failed. Each interruption that requires a new attempt counts toward this limit. |
+| `timeout` | `number` | `60`    | Maximum wall-clock minutes for a single submission. Submissions exceeding this limit are aborted and settled as failed. Set higher for long-running agents (e.g. `360` for a 6-hour agent). The timeout is checked cooperatively at turn boundaries, not preemptively during provider calls. |
 
 #### `CompactionConfig`
 
@@ -194,6 +203,8 @@ The initializer runs whenever the runtime initializes a harness from the created
 
 | Field           | Type                                     | Description                                                                                                                                                                 |
 | --------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`          | `string`                                 | Agent name. Overrides the profile name when set.                                                                                                                            |
+| `description`   | `string`                                 | Human-readable agent description. Overrides the profile description when set.                                                                                               |
 | `profile`       | `AgentProfile`                           | Reusable baseline profile. Created-agent fields replace or extend profile values.                                                                                           |
 | `model`         | `string \| false`                        | Default model specifier. Set to `false` to require call-level model selection.                                                                                              |
 | `instructions`  | `string`                                 | Instructions prepended to discovered workspace context.                                                                                                                     |
@@ -202,9 +213,9 @@ The initializer runs whenever the runtime initializes a harness from the created
 | `subagents`     | `AgentProfile[]`                         | Additional named profiles available for delegated `session.task()` operations.                                                                                              |
 | `thinkingLevel` | `ThinkingLevel`                          | Default reasoning effort. Individual operations may override this value.                                                                                                    |
 | `compaction`    | `false \| CompactionConfig`              | Automatic conversation-compaction configuration. `false` disables threshold compaction; overflow recovery and explicit `session.compact()` calls still compact when needed. |
+| `durability`    | `DurabilityConfig`                       | Durability configuration for durable agent submissions. Controls recovery attempt limits and submission timeouts.                                                           |
 | `cwd`           | `string`                                 | Working directory inside the initialized sandbox.                                                                                                                           |
 | `sandbox`       | `false \| SandboxFactory \| BashFactory` | Sandbox factory used to construct the initialized environment. See [Sandboxes](/docs/guide/sandboxes/).                                                                     |
-| `persist`       | `SessionStore`                           | Conversation-state store used by initialized sessions. See [Data Persistence API](/docs/api/data-persistence-api/).                                                         |
 
 #### `CreatedAgent`
 
@@ -246,7 +257,7 @@ Accepts input for asynchronous delivery to a continuing agent session. The creat
 
 `await dispatch(...)` resolves when the current runtime accepts and queues the input. It does not wait for model processing, tool calls, or an agent reply. Dispatched activity belongs to the continuing agent session: it does not create workflow-run history and does not appear in `/runs` or `flue logs`.
 
-Delivery durability depends on the generated target. Node uses a process-lifetime in-memory queue by default. Cloudflare durably admits delivery to the target agent Durable Object and may retry processing after an interruption. Design external side effects to be idempotent. See [Deploy Agents on Node.js](/docs/ecosystem/deploy/node/) and [Deploy Agents on Cloudflare](/docs/ecosystem/deploy/cloudflare/).
+Delivery durability depends on the generated target. Node uses a process-lifetime in-memory queue by default; with a durable `db.ts` adapter, dispatches survive restarts and are reconciled on the replacement process. Cloudflare durably admits delivery to the target agent Durable Object, orders it with direct prompts for the same session, and reconciles interruptions conservatively. Both targets retry only when replay safety is provable; external effects still require application-level idempotency. See [Durable Execution](/docs/guide/durable-execution/) for recovery details, and [Deploy Agents on Node.js](/docs/ecosystem/deploy/node/) and [Deploy Agents on Cloudflare](/docs/ecosystem/deploy/cloudflare/) for target-specific setup.
 
 ## `init(...)`
 
@@ -319,7 +330,7 @@ Creates a new session. Defaults to `'default'`. Throws if it already exists.
 delete(name?: string): Promise<void>;
 ```
 
-Deletes a session's stored conversation state. Defaults to `'default'`. No-op when missing. Rejects if the open session has an active operation. Session-management requests for one name are applied in request order.
+Deletes a session's stored conversation state. Defaults to `'default'`. No-op when missing. Rejects if the open session has an active operation. It also rejects while the session has accepted durable submissions queued or running. Session-management requests for one name are applied in request order.
 
 ### `harness.shell(...)`
 
@@ -526,7 +537,7 @@ Triggers conversation compaction immediately. Resolves without work when there i
 delete(): Promise<void>;
 ```
 
-Deletes this session's stored conversation state. Rejects while an operation is active. Once deletion starts, the session is unusable and concurrent calls share the same deletion work.
+Deletes this session's stored conversation state. Rejects while an operation is active. It also rejects while accepted durable submissions are queued or running for the session. Once deletion starts, the session is unusable and concurrent calls share the same deletion work.
 
 #### `CallHandle<T>`
 
