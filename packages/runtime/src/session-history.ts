@@ -13,8 +13,6 @@ import type {
 	PromptImage,
 } from './types.ts';
 
-export type MessageSource = MessageEntry['source'];
-
 export interface ContextEntry {
 	message: AgentMessage;
 	entry?: SessionEntry;
@@ -132,7 +130,6 @@ export class SessionHistory {
 
 	appendMessage(
 		message: AgentMessage,
-		source?: MessageSource,
 		metadata?: {
 			dispatch?: DispatchMessageMetadata;
 			directSubmissionId?: string;
@@ -145,7 +142,6 @@ export class SessionHistory {
 			parentId: this.leafId,
 			timestamp: new Date().toISOString(),
 			message,
-			source,
 		};
 		if (metadata?.dispatch) entry.dispatch = metadata.dispatch;
 		if (metadata?.directSubmissionId) entry.directSubmissionId = metadata.directSubmissionId;
@@ -175,8 +171,8 @@ export class SessionHistory {
 		);
 	}
 
-	appendMessages(messages: AgentMessage[], source?: MessageSource): string[] {
-		return messages.map((message) => this.appendMessage(message, source));
+	appendMessages(messages: AgentMessage[]): string[] {
+		return messages.map((message) => this.appendMessage(message));
 	}
 
 	appendCompaction(input: CompactionAppendInput): string {

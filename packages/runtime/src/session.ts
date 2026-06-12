@@ -72,7 +72,7 @@ import type { DispatchInput } from './runtime/dispatch-queue.ts';
 import { generateOperationId, generateTurnId } from './runtime/ids.ts';
 import { getProviderConfiguration, getRegisteredApiKey } from './runtime/providers.ts';
 import { createFlueFs } from './sandbox.ts';
-import { SessionHistory, createUserContextMessage, renderSignalMessage, type MessageSource } from './session-history.ts';
+import { SessionHistory, createUserContextMessage, renderSignalMessage } from './session-history.ts';
 import { childTaskSessionStorageKey } from './session-identity.ts';
 import type {
 	AgentConfig,
@@ -107,7 +107,6 @@ import type {
 import { addUsage, emptyUsage, fromProviderUsage } from './usage.ts';
 
 export { SessionHistory } from './session-history.ts';
-export type { MessageSource } from './session-history.ts';
 
 const MAX_TASK_DEPTH = 4;
 const MAX_TRANSIENT_MODEL_RETRIES = 3;
@@ -402,7 +401,6 @@ export class Session implements FlueSession {
 	private submissionStore: AgentSubmissionStore | undefined;
 	private pendingSave: Promise<void> = Promise.resolve();
 	private harnessMessageCheckpointCursor = 0;
-	private activeCheckpointSource: MessageEntry['source'] | undefined;
 	private activeJournalCallbacks: ProcessAgentSubmissionOptions['journal'] | undefined;
 	private activeTimeoutAt: number | undefined;
 	private activeTurnCanCommitJournal = false;
@@ -673,7 +671,6 @@ export class Session implements FlueSession {
 					model: options?.model,
 					thinkingLevel: options?.thinkingLevel,
 					images: options?.images,
-					source: 'prompt',
 					errorLabel: 'prompt',
 					callSite: 'this prompt() call',
 					signal,
@@ -765,7 +762,7 @@ export class Session implements FlueSession {
 		// Branch from the assistant entry so results are in correct positional
 		// order regardless of which partial results were previously persisted.
 		this.history.setLeaf(assistant.id);
-		this.history.appendMessages(orderedResults, undefined);
+		this.history.appendMessages(orderedResults);
 		this.rebuildHarnessContext();
 		await this.save();
 		return this.history.getLeafId() ?? undefined;
@@ -784,7 +781,7 @@ export class Session implements FlueSession {
 				entry.message.attributes?.streamKey === streamKey,
 		);
 		if (alreadyRecovered) return true;
-		this.history.appendMessages([recovered.partial, recovered.interrupted, recovered.continued], 'retry');
+		this.history.appendMessages([recovered.partial, recovered.interrupted, recovered.continued]);
 		this.rebuildHarnessContext();
 		await this.save();
 		return true;
@@ -808,7 +805,7 @@ export class Session implements FlueSession {
 			},
 			timestamp: Date.now(),
 		};
-		this.history.appendMessage(signal, undefined, {
+		this.history.appendMessage(signal, {
 			submissionTerminal: {
 				submissionId: input.submissionId,
 				kind: input.kind,
@@ -861,7 +858,6 @@ export class Session implements FlueSession {
 					model: options?.model,
 					thinkingLevel: options?.thinkingLevel,
 					images: options?.images,
-					source: 'skill',
 					errorLabel: `skill("${skillName}")`,
 					callSite: `this skill("${skillName}") call`,
 					activePackagedSkills,
@@ -1611,7 +1607,7 @@ export class Session implements FlueSession {
 			isError,
 			timestamp,
 		};
-		this.history.appendMessages([userMessage, assistantMessage, toolResultMessage], 'shell');
+		this.history.appendMessages([userMessage, assistantMessage, toolResultMessage]);
 		this.rebuildHarnessContext();
 		await this.save();
 	}
@@ -1627,10 +1623,7 @@ export class Session implements FlueSession {
 			this.harnessMessageCheckpointCursor,
 		) as AgentMessage[];
 		if (messages.length === 0) return;
-		if (!this.activeCheckpointSource) {
-			throw new Error('[flue] Cannot checkpoint harness messages without an active source.');
-		}
-		this.history.appendMessages(messages, this.activeCheckpointSource);
+		this.history.appendMessages(messages);
 		this.harnessMessageCheckpointCursor = this.harness.state.messages.length;
 		await this.save();
 		if (this.activeTurnCanCommitJournal) {
@@ -1693,12 +1686,10 @@ export class Session implements FlueSession {
 
 	private async runModelTurnWithRecovery(options: {
 		start: () => Promise<void>;
-		source: MessageSource;
 		signal: AbortSignal;
 		overflowRecoveryAttempted?: boolean;
 	}): Promise<void> {
 		let start = options.start;
-		let source = options.source;
 		let overflowRecoveryAttempted = options.overflowRecoveryAttempted ?? false;
 
 		while (true) {
@@ -1710,7 +1701,6 @@ export class Session implements FlueSession {
 			if (this.activeTimeoutAt !== undefined && Date.now() >= this.activeTimeoutAt) {
 				throw new Error('[flue] Submission exceeded configured timeout.');
 			}
-			this.activeCheckpointSource = source;
 			try {
 				await start();
 				await this.harness.waitForIdle();
@@ -1725,8 +1715,6 @@ export class Session implements FlueSession {
 				this.activeStreamChunkWriter = undefined;
 				this.rebuildHarnessContext();
 				throw error;
-			} finally {
-				this.activeCheckpointSource = undefined;
 			}
 
 			const messages = this.harness.state.messages;
@@ -1746,7 +1734,6 @@ export class Session implements FlueSession {
 				if (!(await this.runCompaction('overflow'))) return;
 				this.internalLog('info', '[flue:compaction] Retrying after overflow recovery...');
 				start = () => this.harness.continue();
-				source = 'retry';
 				continue;
 			}
 
@@ -1758,7 +1745,6 @@ export class Session implements FlueSession {
 				const transientRetries = countConsecutiveRetryableModelErrors(this.history.getActivePath());
 				if (!(await this.waitForTransientModelRetry(assistant, transientRetries))) return;
 				start = () => this.harness.continue();
-				source = 'retry';
 				continue;
 			}
 
@@ -2095,13 +2081,10 @@ export class Session implements FlueSession {
 		return this.runPersistedContextInput({
 			findInput: () => this.history.findDispatchInput(input.dispatchId),
 			persistInput: () =>
-				this.history.appendMessage(
-					createDispatchInputSignal(input),
-					'dispatch',
-					{ dispatch: dispatchMetadata(input) },
-				),
+				this.history.appendMessage(createDispatchInputSignal(input), {
+					dispatch: dispatchMetadata(input),
+				}),
 			errorLabel: `dispatch(${input.dispatchId})`,
-			outputSource: 'dispatch',
 			callSite: 'this dispatched input',
 			persistenceError: '[flue] Failed to persist dispatched input.',
 			recoveryError: '[flue] Cannot recover dispatched input after the session has advanced.',
@@ -2124,11 +2107,9 @@ export class Session implements FlueSession {
 			persistInput: () =>
 				this.history.appendMessage(
 					createUserContextMessage(input.payload.message, new Date().toISOString(), input.payload.images),
-					'prompt',
 					{ directSubmissionId: input.submissionId },
 				),
 			errorLabel: `direct(${input.submissionId})`,
-			outputSource: 'prompt',
 			callSite: 'this direct input',
 			persistenceError: '[flue] Failed to persist direct input.',
 			recoveryError: '[flue] Cannot recover direct input after the session has advanced.',
@@ -2158,7 +2139,6 @@ export class Session implements FlueSession {
 		startedAt?: number;
 		timeoutAt?: number;
 		errorLabel: string;
-		outputSource: MessageSource;
 		callSite: string;
 		persistenceError: string;
 		recoveryError: string;
@@ -2246,7 +2226,6 @@ export class Session implements FlueSession {
 						}
 						await this.runModelTurnWithRecovery({
 							start: () => this.harness.continue(),
-							source: assistant ? 'retry' : options.outputSource,
 							signal: options.signal,
 							overflowRecoveryAttempted: overflow,
 						});
@@ -2290,7 +2269,6 @@ export class Session implements FlueSession {
 		model: string | undefined;
 		thinkingLevel: ThinkingLevel | undefined;
 		images: ImageContent[] | undefined;
-		source: MessageSource;
 		errorLabel: string;
 		callSite: string;
 		activePackagedSkills?: Record<string, PackagedSkillDirectory>;
@@ -2316,7 +2294,6 @@ export class Session implements FlueSession {
 					const result = await this.runWithResultTools(
 						args.promptText,
 						resultBundle,
-						args.source,
 						args.errorLabel,
 						args.signal,
 						args.images,
@@ -2330,7 +2307,6 @@ export class Session implements FlueSession {
 
 				await this.runModelTurnWithRecovery({
 					start: () => this.harness.prompt(args.promptText, args.images),
-					source: args.source,
 					signal: args.signal,
 				});
 				this.throwIfError(args.errorLabel);
@@ -2358,7 +2334,6 @@ export class Session implements FlueSession {
 	private async runWithResultTools<T>(
 		initialPrompt: string,
 		bundle: ResultToolBundle<T>,
-		source: MessageSource,
 		errorLabel: string,
 		signal: AbortSignal,
 		initialImages?: ImageContent[],
@@ -2371,7 +2346,6 @@ export class Session implements FlueSession {
 			// only, so we don't re-bill image bytes on every result-tool retry.
 			await this.runModelTurnWithRecovery({
 				start: () => this.harness.prompt(nextPrompt, attempt === 0 ? initialImages : undefined),
-				source,
 				signal,
 			});
 			this.throwIfError(errorLabel);
@@ -2385,7 +2359,6 @@ export class Session implements FlueSession {
 			}
 			// outcome.type === 'pending' → nudge the model and try again.
 			nextPrompt = buildResultFollowUpPrompt();
-			source = 'retry';
 		}
 		throw new ResultUnavailableError(
 			`Agent did not call \`finish\` or \`give_up\` after ${MAX_FOLLOWUPS + 1} attempts.`,

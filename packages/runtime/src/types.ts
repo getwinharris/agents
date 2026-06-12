@@ -704,7 +704,6 @@ interface SessionEntryBase {
 export interface MessageEntry extends SessionEntryBase {
 	type: 'message';
 	message: AgentMessage;
-	source?: 'prompt' | 'skill' | 'shell' | 'task' | 'retry' | 'dispatch';
 	dispatch?: DispatchMessageMetadata;
 	directSubmissionId?: string;
 	submissionTerminal?: SubmissionTerminalMetadata;

@@ -201,17 +201,14 @@ describe('FlueHarness', () => {
 			expect(entries?.slice(3)).toEqual([
 				expect.objectContaining({
 					type: 'message',
-					source: 'shell',
 					message: expect.objectContaining({ role: 'user' }),
 				}),
 				expect.objectContaining({
 					type: 'message',
-					source: 'shell',
 					message: expect.objectContaining({ role: 'assistant' }),
 				}),
 				expect.objectContaining({
 					type: 'message',
-					source: 'shell',
 					message: expect.objectContaining({ role: 'toolResult' }),
 				}),
 			]);
@@ -357,12 +354,10 @@ describe('FlueSession', () => {
 			expect(store.peek('agent-session:["agent-instance","default","review"]')?.entries).toEqual([
 				expect.objectContaining({
 					type: 'message',
-					source: 'shell',
 					message: expect.objectContaining({ role: 'user' }),
 				}),
 				expect.objectContaining({
 					type: 'message',
-					source: 'shell',
 					message: expect.objectContaining({
 						role: 'assistant',
 						content: [
@@ -376,7 +371,6 @@ describe('FlueSession', () => {
 				}),
 				expect.objectContaining({
 					type: 'message',
-					source: 'shell',
 					message: expect.objectContaining({
 						role: 'toolResult',
 						toolName: 'bash',
@@ -404,17 +398,14 @@ describe('FlueSession', () => {
 			expect(store.peek('agent-session:["agent-instance","default","review"]')?.entries).toEqual([
 				expect.objectContaining({
 					type: 'message',
-					source: 'shell',
 					message: expect.objectContaining({ role: 'user' }),
 				}),
 				expect.objectContaining({
 					type: 'message',
-					source: 'shell',
 					message: expect.objectContaining({ role: 'assistant' }),
 				}),
 				expect.objectContaining({
 					type: 'message',
-					source: 'shell',
 					message: expect.objectContaining({
 						role: 'toolResult',
 						toolName: 'bash',
@@ -445,7 +436,6 @@ describe('FlueSession', () => {
 				store.peek('agent-session:["agent-instance","default","review"]')?.entries[1],
 			).toMatchObject({
 				type: 'message',
-				source: 'shell',
 				message: {
 					role: 'assistant',
 					content: [

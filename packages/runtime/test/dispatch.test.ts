@@ -371,7 +371,6 @@ describe('dispatched session processing', () => {
 		expect(order.indexOf('persist-input')).toBeLessThan(order.indexOf('input-applied'));
 		expect(order.indexOf('input-applied')).toBeLessThan(order.indexOf('provider'));
 		expect(data?.entries[0]).toMatchObject({
-			source: 'prompt',
 			directSubmissionId: input.submissionId,
 			message: { role: 'user', content: [{ type: 'text', text: 'Hello directly' }] },
 		});
@@ -452,7 +451,6 @@ describe('dispatched session processing', () => {
 					parentId: null,
 					timestamp,
 					message: { role: 'user', content: [{ type: 'text', text: input.payload.message }], timestamp: 0 },
-					source: 'prompt',
 					directSubmissionId: input.submissionId,
 				},
 				{
@@ -461,7 +459,6 @@ describe('dispatched session processing', () => {
 					parentId: 'direct-input',
 					timestamp,
 					message: fauxAssistantMessage('persisted response'),
-					source: 'prompt',
 				},
 			],
 			leafId: 'assistant-response',
@@ -508,7 +505,6 @@ describe('dispatched session processing', () => {
 					parentId: null,
 					timestamp,
 					message: { role: 'user', content: [{ type: 'text', text: 'persisted dispatch' }], timestamp: 0 },
-					source: 'dispatch',
 					dispatch: input,
 				},
 				{
@@ -517,7 +513,6 @@ describe('dispatched session processing', () => {
 					parentId: 'dispatch-input',
 					timestamp,
 					message: fauxAssistantMessage('persisted response'),
-					source: 'dispatch',
 				},
 			],
 			leafId: 'assistant-response',
@@ -565,7 +560,6 @@ describe('dispatched session processing', () => {
 					parentId: null,
 					timestamp,
 					message: { role: 'user', content: [{ type: 'text', text: 'persisted dispatch' }], timestamp: 0 },
-					source: 'dispatch',
 					dispatch: input,
 				},
 			],
@@ -614,7 +608,6 @@ describe('repairInterruptedToolCalls()', () => {
 			parentId: leafId,
 			timestamp: now,
 			message: { role: 'user', content: 'Run the tools.', timestamp: Date.now() } as any,
-			source: 'dispatch',
 			dispatch: {
 				dispatchId,
 				agent: 'moderator',

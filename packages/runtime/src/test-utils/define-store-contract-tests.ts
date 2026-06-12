@@ -71,7 +71,6 @@ function sessionData(): SessionData {
 				parentId: null,
 				timestamp: '2026-06-03T00:00:00.000Z',
 				message: { role: 'user', content: 'Hello', timestamp: 0 },
-				source: 'prompt',
 			},
 			{
 				type: 'message',
@@ -95,7 +94,6 @@ function sessionData(): SessionData {
 					stopReason: 'stop',
 					timestamp: 1,
 				},
-				source: 'prompt',
 			},
 		],
 		leafId: 'entry-2',

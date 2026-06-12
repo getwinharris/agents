@@ -434,7 +434,6 @@ describe('session.prompt()', () => {
 					parentId: null,
 					timestamp,
 					message: { role: 'user', content: [{ type: 'text', text: 'Use the tool.' }], timestamp: 0 },
-					source: 'prompt',
 				},
 				{
 					type: 'message',
@@ -444,7 +443,6 @@ describe('session.prompt()', () => {
 					message: fauxAssistantMessage(fauxToolCall('lookup', { query: 'flue' }), {
 						stopReason: 'toolUse',
 					}),
-					source: 'prompt',
 				},
 				{
 					type: 'message',
