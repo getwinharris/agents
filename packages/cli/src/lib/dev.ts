@@ -396,6 +396,9 @@ function createWatcher(options: WatcherOptions): WatcherHandle {
 
 class NodeReloader implements DevReloader {
 	private child: ChildProcess | null = null;
+	// Old child that received SIGTERM and is draining; tracked separately so
+	// the `process.on('exit')` killSync safety net can still reach it.
+	private draining: ChildProcess | null = null;
 	private readonly serverPath: string;
 	private readonly root: string;
 	private readonly port: number;
@@ -431,12 +434,15 @@ class NodeReloader implements DevReloader {
 	}
 
 	killSync(): void {
-		const child = this.child;
-		if (!child || child.killed) return;
-		try {
-			child.kill('SIGKILL');
-		} catch {
-			/* ignore */
+		// `child.killed` only means a signal was sent, not that the process
+		// exited — check exitCode/signalCode for actual liveness.
+		for (const child of [this.child, this.draining]) {
+			if (!child || child.exitCode !== null || child.signalCode !== null) continue;
+			try {
+				child.kill('SIGKILL');
+			} catch {
+				/* ignore */
+			}
 		}
 	}
 
@@ -487,16 +493,17 @@ class NodeReloader implements DevReloader {
 
 	private async killChild(): Promise<void> {
 		const child = this.child;
-		if (!child || child.killed) {
-			this.child = null;
-			return;
-		}
 		this.child = null;
+		if (!child || child.exitCode !== null || child.signalCode !== null) return;
+		this.draining = child;
 		await new Promise<void>((resolve) => {
+			let timer: NodeJS.Timeout | undefined;
 			let resolved = false;
 			const done = () => {
 				if (!resolved) {
 					resolved = true;
+					clearTimeout(timer);
+					if (this.draining === child) this.draining = null;
 					resolve();
 				}
 			};
@@ -507,16 +514,18 @@ class NodeReloader implements DevReloader {
 				done();
 				return;
 			}
-			// Tight 1s SIGKILL fallback: if a parent process manager imposes
-			// its own timeout when stopping us, we want to return before it
-			// gives up and SIGKILLs us (which would orphan our child).
-			setTimeout(() => {
+			// Tight 1s SIGKILL escalation: the generated server drains in-flight
+			// work on SIGTERM (up to 30s), but it keeps the port bound while
+			// draining and the respawned server would hit EADDRINUSE. Note that
+			// `child.killed` only means a signal was sent, so liveness must be
+			// tracked via the 'exit' event; we resolve only once the child has
+			// actually exited and released the port.
+			timer = setTimeout(() => {
 				try {
-					if (!child.killed) child.kill('SIGKILL');
+					child.kill('SIGKILL');
 				} catch {
-					/* ignore */
+					done();
 				}
-				done();
 			}, 1_000);
 		});
 	}
