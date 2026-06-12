@@ -106,9 +106,9 @@ describe('connectMcpServerWithClient()', () => {
 			'mcp__catalog__refresh',
 			'mcp__catalog__inspect',
 		]);
-		expect(mcp.client.listTools).toHaveBeenNthCalledWith(1);
-		expect(mcp.client.listTools).toHaveBeenNthCalledWith(2, { cursor: 'catalog-page-2' });
-		expect(mcp.client.listTools).toHaveBeenNthCalledWith(3, { cursor: '' });
+		expect(mcp.client.listTools).toHaveBeenNthCalledWith(1, undefined, {});
+		expect(mcp.client.listTools).toHaveBeenNthCalledWith(2, { cursor: 'catalog-page-2' }, {});
+		expect(mcp.client.listTools).toHaveBeenNthCalledWith(3, { cursor: '' }, {});
 	});
 
 	it('rejects tool discovery when a server repeats a tools/list cursor', async () => {
@@ -215,6 +215,36 @@ describe('connectMcpServerWithClient()', () => {
 			},
 			undefined,
 			{ signal: controller.signal },
+		);
+	});
+
+	it('forwards configured timeout options to MCP requests when provided', async () => {
+		mcp.listToolsResult = {
+			tools: [
+				{
+					name: 'lookup',
+					inputSchema: { type: 'object' },
+				},
+			],
+		};
+		const connection = await connectMcpServerWithClient('catalog', mcp.client, transport, {
+			timeout: 120_000,
+			resetTimeoutOnProgress: true,
+		});
+
+		await connection.tools[0]?.execute({});
+
+		expect(mcp.client.listTools).toHaveBeenCalledWith(undefined, {
+			timeout: 120_000,
+			resetTimeoutOnProgress: true,
+		});
+		expect(mcp.client.callTool).toHaveBeenCalledWith(
+			{
+				name: 'lookup',
+				arguments: {},
+			},
+			undefined,
+			{ timeout: 120_000, resetTimeoutOnProgress: true, signal: undefined },
 		);
 	});
 

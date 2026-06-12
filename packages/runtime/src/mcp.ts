@@ -30,7 +30,13 @@ export interface McpServerOptions {
 	clientName?: string;
 	/** MCP client version. Defaults to `'0.0.0'`. */
 	clientVersion?: string;
+	/** Per-request timeout in milliseconds for MCP requests. Defaults to the MCP SDK default (60 seconds). */
+	timeout?: number;
+	/** Reset the per-request timeout whenever the server sends a progress notification. Defaults to `false`. */
+	resetTimeoutOnProgress?: boolean;
 }
+
+type McpRequestOptions = Pick<McpServerOptions, 'timeout' | 'resetTimeoutOnProgress'>;
 
 /** Connection returned by {@link connectMcpServer}. */
 export interface McpServerConnection {
@@ -69,17 +75,21 @@ export async function connectMcpServer(
 		version: options.clientVersion ?? '0.0.0',
 	});
 
-	return connectMcpServerWithClient(name, client, transport);
+	return connectMcpServerWithClient(name, client, transport, {
+		timeout: options.timeout,
+		resetTimeoutOnProgress: options.resetTimeoutOnProgress,
+	});
 }
 
 export async function connectMcpServerWithClient(
 	name: string,
 	client: McpClient,
 	transport: Transport,
+	requestOptions: McpRequestOptions = {},
 ): Promise<McpServerConnection> {
 	try {
 		await client.connect(transport);
-		let page = await client.listTools();
+		let page = await client.listTools(undefined, requestOptions);
 		const tools = [...page.tools];
 		const seenCursors = new Set<string>();
 		while (page.nextCursor !== undefined) {
@@ -89,13 +99,13 @@ export async function connectMcpServerWithClient(
 				);
 			}
 			seenCursors.add(page.nextCursor);
-			page = await client.listTools({ cursor: page.nextCursor });
+			page = await client.listTools({ cursor: page.nextCursor }, requestOptions);
 			tools.push(...page.tools);
 		}
 
 		return {
 			name,
-			tools: createMcpTools(name, client, tools),
+			tools: createMcpTools(name, client, tools, requestOptions),
 			close: () => client.close(),
 		};
 	} catch (error) {
@@ -123,7 +133,12 @@ async function createTransport(
 	});
 }
 
-function createMcpTools(serverName: string, client: McpClient, tools: Tool[]): ToolDefinition[] {
+function createMcpTools(
+	serverName: string,
+	client: McpClient,
+	tools: Tool[],
+	requestOptions: McpRequestOptions,
+): ToolDefinition[] {
 	const names = new Set<string>();
 	const validator = new AjvJsonSchemaValidator();
 
@@ -157,7 +172,7 @@ function createMcpTools(serverName: string, client: McpClient, tools: Tool[]): T
 						arguments: args,
 					},
 					undefined,
-					{ signal },
+					{ ...requestOptions, signal },
 				)) as CallToolResult;
 
 				validateMcpResult(tool.name, result, outputValidator);
