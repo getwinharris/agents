@@ -38,26 +38,25 @@ export async function cfSandboxToSessionEnv(
 		},
 
 		async stat(path: string) {
+			const quoted = `'${path.replace(/'/g, "'\\''")}'`;
+			// `stat -L` follows symlinks so isFile/isDirectory/size/mtime match
+			// fs.stat semantics on the node target; the second (non-following)
+			// stat reports whether the path itself is a symlink.
 			const result = await sandbox.exec(
-				`stat -c '{"size":%s,"isDir":%F}' '${path.replace(/'/g, "'\\''")}'`,
+				`stat -L -c '%s/%Y/%F' ${quoted} && stat -c '%F' ${quoted}`,
 			);
 			if (!result.success) {
 				throw new Error(`stat failed for ${path}: ${result.stderr}`);
 			}
-			try {
-				const raw = result.stdout.trim();
-				const sizeMatch = raw.match(/"size":(\d+)/);
-				const isDir = raw.includes('directory');
-				return {
-					isFile: !isDir,
-					isDirectory: isDir,
-					isSymbolicLink: false,
-					size: parseInt(sizeMatch?.[1] ?? '0', 10),
-					mtime: new Date(),
-				};
-			} catch {
-				throw new Error(`Failed to parse stat output for ${path}: ${result.stdout}`);
-			}
+			const [target = '', self = ''] = (result.stdout ?? '').trim().split('\n');
+			const [size = '0', mtime = '0', type = ''] = target.split('/');
+			return {
+				isFile: type.includes('regular'),
+				isDirectory: type === 'directory',
+				isSymbolicLink: self.trim() === 'symbolic link',
+				size: parseInt(size, 10),
+				mtime: new Date(parseInt(mtime, 10) * 1000),
+			};
 		},
 
 		async readdir(path: string): Promise<string[]> {

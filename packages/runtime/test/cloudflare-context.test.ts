@@ -160,6 +160,27 @@ describe('cfSandboxToSessionEnv()', () => {
 		);
 	});
 
+	it('reports directory metadata of the link target when a wrapped sandbox stats a symlink to a directory', async () => {
+		const exec = vi.fn(async () => ({
+			success: true,
+			stdout: '4096/1718000000/directory\nsymbolic link\n',
+			stderr: '',
+		}));
+		const env = await cfSandboxToSessionEnv({ exec }, '/workspace/project');
+
+		await expect(env.stat('linked-dir')).resolves.toEqual({
+			isFile: false,
+			isDirectory: true,
+			isSymbolicLink: true,
+			size: 4096,
+			mtime: new Date(1_718_000_000 * 1000),
+		});
+
+		expect(exec).toHaveBeenCalledWith(
+			`stat -L -c '%s/%Y/%F' '/workspace/project/linked-dir' && stat -c '%F' '/workspace/project/linked-dir'`,
+		);
+	});
+
 	it('issues a single well-formed rm -rf command when recursive and force are both requested', async () => {
 		const exec = vi.fn(async () => ({ success: true, stdout: '', stderr: '' }));
 		const env = await cfSandboxToSessionEnv({ exec }, '/workspace/project');
