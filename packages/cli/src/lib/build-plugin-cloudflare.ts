@@ -614,7 +614,7 @@ export default {
 		if (userConfigPath) {
 			console.log(`[flue] Merging with user wrangler config: ${userConfigPath}`);
 		}
-		validateUserWranglerConfig(effectiveConfig);
+		validateUserWranglerConfig({ config: userConfig, effectiveConfig });
 
 		// Flue's contributions to the wrangler config. Everything else in the
 		// user's wrangler.jsonc passes through untouched during merge.

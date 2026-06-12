@@ -126,14 +126,38 @@ export async function readUserWranglerConfig(root: string): Promise<UserConfigRe
  * Those invariants are what let `dev.ts` hardcode `nodejsCompatMode: 'v2'`
  * without re-deriving it from the config on every reload.
  */
-export function validateUserWranglerConfig(config: Record<string, unknown>): void {
+export function validateUserWranglerConfig(read: {
+	config: Record<string, unknown>;
+	effectiveConfig: Record<string, unknown>;
+}): void {
+	validateCompatibilitySettings(read.effectiveConfig, null);
+
+	// Wrangler treats compatibility_date/compatibility_flags as inheritable but
+	// overridable per environment (an env-level flags array replaces the
+	// top-level one, it does not merge), so the no-env effective config above
+	// says nothing about `env` blocks. Validate each declared environment's raw
+	// overrides too; unset keys inherit the already-validated top level.
+	if (typeof read.config.env === 'object' && read.config.env !== null) {
+		for (const [envName, value] of Object.entries(read.config.env as Record<string, unknown>)) {
+			if (typeof value !== 'object' || value === null) continue;
+			validateCompatibilitySettings(value as Record<string, unknown>, envName);
+		}
+	}
+}
+
+function validateCompatibilitySettings(
+	config: Record<string, unknown>,
+	envName: string | null,
+): void {
+	const keyPrefix = envName === null ? '' : `env.${envName}.`;
+
 	// compatibility_flags must include nodejs_compat if user set the field.
 	// (If unset, Flue adds it during merge — handled in mergeFlueAdditions.)
 	if (Array.isArray(config.compatibility_flags)) {
 		const flags = config.compatibility_flags as unknown[];
 		if (!flags.includes(REQUIRED_COMPAT_FLAG)) {
 			throw new Error(
-				`[flue] Your wrangler config's "compatibility_flags" is missing "${REQUIRED_COMPAT_FLAG}". ` +
+				`[flue] Your wrangler config's "${keyPrefix}compatibility_flags" is missing "${REQUIRED_COMPAT_FLAG}". ` +
 					`Flue relies on it at runtime (e.g. for API key resolution via process.env). ` +
 					`Add "${REQUIRED_COMPAT_FLAG}" to the list.`,
 			);
@@ -145,12 +169,12 @@ export function validateUserWranglerConfig(config: Record<string, unknown>): voi
 		const userDate = config.compatibility_date;
 		if (!/^\d{4}-\d{2}-\d{2}$/.test(userDate)) {
 			throw new Error(
-				`[flue] Your wrangler config's "compatibility_date" ("${userDate}") is not in YYYY-MM-DD format.`,
+				`[flue] Your wrangler config's "${keyPrefix}compatibility_date" ("${userDate}") is not in YYYY-MM-DD format.`,
 			);
 		}
 		if (userDate < MIN_COMPATIBILITY_DATE) {
 			throw new Error(
-				`[flue] Your wrangler config's "compatibility_date" is "${userDate}". ` +
+				`[flue] Your wrangler config's "${keyPrefix}compatibility_date" is "${userDate}". ` +
 					`Flue requires at least "${MIN_COMPATIBILITY_DATE}" for SQLite-backed Durable Object support, nodejs_compat v2, and AsyncLocalStorage. ` +
 					`Bump the date (set it to today unless you have a specific reason).`,
 			);
@@ -249,6 +273,23 @@ export function mergeFlueAdditions(
 			if (typeof value !== 'object' || value === null) continue;
 			const environment = { ...(value as Record<string, unknown>) };
 			environment.main = additions.main;
+			// compatibility_flags: an environment-level array replaces (not
+			// merges with) the top-level one in wrangler, so a per-env override
+			// needs the same nodejs_compat union. An environment without its own
+			// flags inherits the merged top-level array — leave it unset so other
+			// inherited top-level flags aren't dropped. Same for
+			// compatibility_date: unset inherits the validated/defaulted
+			// top-level value, and validateUserWranglerConfig already rejected
+			// any per-env override below the floor.
+			if (Array.isArray(environment.compatibility_flags)) {
+				const envFlags = (environment.compatibility_flags as unknown[]).filter(
+					(f): f is string => typeof f === 'string',
+				);
+				if (!envFlags.includes(REQUIRED_COMPAT_FLAG)) {
+					envFlags.push(REQUIRED_COMPAT_FLAG);
+				}
+				environment.compatibility_flags = envFlags;
+			}
 			mergeDurableObjectBindings(environment);
 			environments[name] = environment;
 		}
