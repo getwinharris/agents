@@ -321,7 +321,7 @@ const streamCloudflareWorkersAi: StreamFunction<CloudflareAIBindingApi, SimpleSt
 			// arbitrary ids through the unknown-model overload (see RunOverload).
 			// `returnRawResponse: true` + `stream: true` in the payload gives us
 			// the raw SSE Response we parse below.
-			const gateway = (model as { gateway?: CloudflareGatewayOptions | false }).gateway;
+			const gateway = (model as { gateway?: CloudflareGatewayOptions }).gateway;
 			const response = (await (ai.run as unknown as RunOverload)(model.id, finalPayload, {
 				returnRawResponse: true,
 				...(options?.signal ? { signal: options.signal } : {}),

@@ -49,6 +49,7 @@ describe('Cloudflare AI binding provider', () => {
 		registerProvider('cloudflare-captured-binding', {
 			api: 'cloudflare-ai-binding',
 			binding: { run },
+			gateway: false,
 		});
 		const model = resolveModel('cloudflare-captured-binding/@cf/meta/llama-3.1-8b-instruct');
 		expect(model).toBeDefined();
@@ -114,6 +115,38 @@ describe('Cloudflare AI binding provider', () => {
 		);
 	});
 
+	it('routes through the default AI Gateway when a provider registration omits gateway options', async () => {
+		const run = vi.fn(async () =>
+			createSseResponse('data: {"choices":[{"finish_reason":"stop"}]}\n\n'),
+		);
+		registerProvider('cloudflare-default-gateway', {
+			api: 'cloudflare-ai-binding',
+			binding: { run },
+		});
+		const model = resolveModel('cloudflare-default-gateway/@cf/meta/llama-3.1-8b-instruct');
+		expect(model).toBeDefined();
+		if (!model) throw new Error('Expected a resolved Workers AI model.');
+
+		await collectEvents(
+			getCloudflareAIBindingApiProvider().streamSimple(model as Model<'cloudflare-ai-binding'>, {
+				messages: [],
+			}),
+		);
+
+		expect(run).toHaveBeenCalledWith(
+			'@cf/meta/llama-3.1-8b-instruct',
+			{
+				messages: [],
+				stream: true,
+				stream_options: { include_usage: true },
+			},
+			{
+				returnRawResponse: true,
+				gateway: { id: 'default' },
+			},
+		);
+	});
+
 	it('omits gateway options when a provider registration opts out of AI Gateway', async () => {
 		const run = vi.fn(async () =>
 			createSseResponse('data: {"choices":[{"finish_reason":"stop"}]}\n\n'),
@@ -151,6 +184,7 @@ describe('Cloudflare AI binding provider', () => {
 		registerProvider('cloudflare-session-affinity', {
 			api: 'cloudflare-ai-binding',
 			binding: { run },
+			gateway: false,
 		});
 		const model = resolveModel('cloudflare-session-affinity/@cf/meta/llama-3.1-8b-instruct');
 		expect(model).toBeDefined();
@@ -467,6 +501,7 @@ describe('Cloudflare AI binding provider', () => {
 		registerProvider('cloudflare-aborted-stream', {
 			api: 'cloudflare-ai-binding',
 			binding: { run },
+			gateway: false,
 		});
 		const model = resolveModel('cloudflare-aborted-stream/@cf/meta/llama-3.1-8b-instruct');
 		expect(model).toBeDefined();

@@ -182,14 +182,14 @@ export function getProviderConfiguration(providerId: string): ProviderConfigurat
  */
 type ModelWithBinding<TApi extends Api> = Model<TApi> & {
 	binding: CloudflareAIBinding;
-	gateway?: CloudflareGatewayOptions | false;
+	gateway?: CloudflareGatewayOptions;
 };
 
 /** Attach a Workers AI binding (and optional gateway options) to a Model literal. */
 function attachModelBinding<TApi extends Api>(
 	model: Model<TApi>,
 	binding: CloudflareAIBinding,
-	gateway?: CloudflareGatewayOptions | false,
+	gateway?: CloudflareGatewayOptions,
 ): ModelWithBinding<TApi> {
 	return { ...model, binding, gateway } as ModelWithBinding<TApi>;
 }
@@ -250,7 +250,12 @@ function buildModelFromRegistration(
 					contextWindow: 0,
 					maxTokens: 0,
 				};
-		return attachModelBinding(base, registration.binding, registration.gateway);
+		// Resolve the documented tri-state: omitted routes through Cloudflare's
+		// default AI Gateway, `false` opts out, an options object replaces the
+		// default.
+		const gateway =
+			registration.gateway === false ? undefined : (registration.gateway ?? { id: 'default' });
+		return attachModelBinding(base, registration.binding, gateway);
 	}
 
 	return {
