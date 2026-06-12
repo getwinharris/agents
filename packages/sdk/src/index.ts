@@ -15,12 +15,13 @@ export type {
 	AgentPromptResult,
 	AgentSendResult,
 } from './public/invoke.ts';
+// Stream errors surfaced by `stream()`/`events()` iteration. These classes
+// are owned by @durable-streams/client; only the ones reachable through SDK
+// reads are re-exported.
 export {
 	DurableStreamError,
 	FetchBackoffAbortError,
 	FetchError,
-	InvalidSignalError,
-	MissingStreamUrlError,
 	StreamClosedError,
 } from '@durable-streams/client';
 export type { BackoffOptions, LiveMode } from '@durable-streams/client';
