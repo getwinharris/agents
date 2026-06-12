@@ -422,6 +422,11 @@ export class Session implements FlueSession {
 		await this.activeJournalCallbacks?.beforeProvider?.(state);
 		if (streamKey && this.submissionStore) {
 			this.activeStreamChunkWriter = new StreamChunkWriter(this.submissionStore, streamKey);
+		} else {
+			// Defensive: never let a leftover writer from a failed earlier run capture
+			// this turn's deltas under the old submission's stream key.
+			this.activeStreamChunkWriter?.cancel();
+			this.activeStreamChunkWriter = undefined;
 		}
 		this.emitTurnRequest(turnId, 'agent', model, context, options?.reasoning);
 		await this.activeJournalCallbacks?.providerStarted?.(state);
@@ -1709,7 +1714,13 @@ export class Session implements FlueSession {
 				await this.harness.waitForIdle();
 				await this.checkpointHarnessMessages();
 			} catch (error) {
-				await this.activeStreamChunkWriter?.flush();
+				try {
+					await this.activeStreamChunkWriter?.flush();
+				} catch {
+					// Best-effort: persisting partial deltas must not mask the run error.
+				}
+				this.activeStreamChunkWriter?.cancel();
+				this.activeStreamChunkWriter = undefined;
 				this.rebuildHarnessContext();
 				throw error;
 			} finally {
@@ -2218,6 +2229,12 @@ export class Session implements FlueSession {
 					this.activeSubmissionId = undefined;
 					this.activeSubmissionAttemptId = undefined;
 					this.activeTimeoutAt = undefined;
+					// Defensive: the writer is normally closed in turn_end/agent_end, but a
+					// failure mid-run (e.g. a checkpoint save throwing) can leave it assigned.
+					// A stale writer would direct a later prompt's deltas to this
+					// submission's stream key.
+					this.activeStreamChunkWriter?.cancel();
+					this.activeStreamChunkWriter = undefined;
 				}
 			},
 		);
