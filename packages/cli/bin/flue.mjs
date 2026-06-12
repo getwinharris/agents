@@ -22,7 +22,7 @@
 // what's essentially a build-time constant.
 const MIN_NODE_MAJOR = 22;
 const MIN_NODE_MINOR = 18;
-const ENGINES_LABEL = '>=22.18';
+const ENGINES_LABEL = '>=22.18 or >=23.6';
 
 function checkNodeVersion() {
 	const v = process.versions.node;
@@ -30,8 +30,12 @@ function checkNodeVersion() {
 	if (!m) return; // unparseable; let it through and let the real CLI fail loudly
 	const major = parseInt(m[1], 10);
 	const minor = parseInt(m[2], 10);
-	if (major > MIN_NODE_MAJOR) return;
-	if (major === MIN_NODE_MAJOR && minor >= MIN_NODE_MINOR) return;
+	// Node 23.0–23.5 lacks default TS type-stripping (default-on only in
+	// 22.18+ and 23.6+), so it is unsupported despite exceeding the floor.
+	if (major !== 23 || minor >= 6) {
+		if (major > MIN_NODE_MAJOR) return;
+		if (major === MIN_NODE_MAJOR && minor >= MIN_NODE_MINOR) return;
+	}
 
 	if (process.versions.bun) {
 		console.error(
@@ -40,7 +44,7 @@ function checkNodeVersion() {
 				' is not supported by Flue.\n' +
 				'Please upgrade Bun to a version compatible with Node.js ' +
 				ENGINES_LABEL +
-				' (or any newer major).\n',
+				'.\n',
 		);
 	} else {
 		console.error(
@@ -49,7 +53,7 @@ function checkNodeVersion() {
 				' is not supported by Flue.\n' +
 				'Flue requires Node.js ' +
 				ENGINES_LABEL +
-				' (or any newer major) for native TypeScript config support.\n' +
+				' for native TypeScript config support.\n' +
 				'Please upgrade: https://nodejs.org/\n',
 		);
 	}
