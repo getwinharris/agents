@@ -161,6 +161,9 @@ function createEditTool(env: SessionEnv): AgentTool<typeof EditParams> {
 		parameters: EditParams,
 		async execute(_toolCallId: string, params: Static<typeof EditParams>, signal?: AbortSignal) {
 			throwIfAborted(signal);
+			if (params.oldText === '') {
+				throw new Error('oldText must be a non-empty string.');
+			}
 			const content = await env.readFile(params.path);
 
 			if (params.replaceAll) {
@@ -566,7 +569,7 @@ function countOccurrences(str: string, substr: string): number {
 	let pos = str.indexOf(substr, 0);
 	while (pos !== -1) {
 		count++;
-		pos = str.indexOf(substr, pos + substr.length);
+		pos = str.indexOf(substr, pos + Math.max(substr.length, 1));
 	}
 	return count;
 }
