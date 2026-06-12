@@ -2330,20 +2330,6 @@ export function getInternalSession(session: FlueSession): Session | undefined {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-export function normalizePath(p: string): string {
-	const parts = p.split('/');
-	const result: string[] = [];
-	for (const part of parts) {
-		if (part === '.' || part === '') continue;
-		if (part === '..') {
-			result.pop();
-		} else {
-			result.push(part);
-		}
-	}
-	return `/${result.join('/')}`;
-}
-
 export async function deleteSessionTree(
 	store: SessionStore,
 	storageKey: string,

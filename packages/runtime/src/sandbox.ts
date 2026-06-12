@@ -3,7 +3,6 @@
  */
 
 import { abortErrorFor } from './abort.ts';
-import { normalizePath } from './session.ts';
 import type {
 	BashFactory,
 	BashLike,
@@ -65,13 +64,33 @@ function posixParentDir(p: string): string {
 	return p.replace(/\/[^/]*$/, '') || '/';
 }
 
+/** Collapse `.`/`..`/empty segments of a POSIX path into a normalized absolute path. */
+function normalizePath(p: string): string {
+	const parts = p.split('/');
+	const result: string[] = [];
+	for (const part of parts) {
+		if (part === '.' || part === '') continue;
+		if (part === '..') {
+			result.pop();
+		} else {
+			result.push(part);
+		}
+	}
+	return `/${result.join('/')}`;
+}
+
+/** Resolve a possibly-relative POSIX path against `cwd`, normalizing the result. */
+function makeResolvePath(cwd: string): (p: string) => string {
+	return (p: string): string => {
+		if (p.startsWith('/')) return normalizePath(p);
+		if (cwd === '/') return normalizePath(`/${p}`);
+		return normalizePath(`${cwd}/${p}`);
+	};
+}
+
 export function createCwdSessionEnv(parentEnv: SessionEnv, cwd: string): SessionEnv {
 	const scopedCwd = normalizePath(cwd);
-	const resolvePath = (p: string): string => {
-		if (p.startsWith('/')) return normalizePath(p);
-		if (scopedCwd === '/') return normalizePath(`/${p}`);
-		return normalizePath(`${scopedCwd}/${p}`);
-	};
+	const resolvePath = makeResolvePath(scopedCwd);
 
 	return {
 		exec: (cmd, opts) =>
@@ -229,11 +248,7 @@ export interface SandboxApi {
 
 /** Wrap a SandboxApi into SessionEnv. No just-bash, no intermediate filesystem layer. */
 export function createSandboxSessionEnv(api: SandboxApi, cwd: string): SessionEnv {
-	const resolvePath = (p: string): string => {
-		if (p.startsWith('/')) return normalizePath(p);
-		if (cwd === '/') return normalizePath(`/${p}`);
-		return normalizePath(`${cwd}/${p}`);
-	};
+	const resolvePath = makeResolvePath(cwd);
 
 	return {
 		async exec(
