@@ -35,17 +35,13 @@ describe('createCloudflareRunRegistry()', () => {
 		expect(createCloudflareRunRegistry(undefined)).toBeUndefined();
 	});
 
-	it('sends workflow ownership when recordRunStart() is called', async () => {
+	it('sends the workflow name when recordRunStart() is called', async () => {
 		const fake = createNamespace(() => new Response(null, { status: 204 }));
 		const registry = createCloudflareRunRegistry(fake.namespace);
 
 		await registry?.recordRunStart({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 		});
 
@@ -59,11 +55,7 @@ describe('createCloudflareRunRegistry()', () => {
 		expect(fake.requests[0]?.headers.get('content-type')).toBe('application/json');
 		expect(fake.requests[0]?.headers.get('x-partykit-room')).toBeNull();
 		expect(await fake.requests[0]?.json()).toEqual({
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 		});
 	});
@@ -74,11 +66,7 @@ describe('createCloudflareRunRegistry()', () => {
 
 		await registry?.recordRunEnd({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			endedAt: '2026-06-01T10:05:00.000Z',
 			durationMs: 300_000,
@@ -94,11 +82,7 @@ describe('createCloudflareRunRegistry()', () => {
 		expect(fake.requests[0]?.method).toBe('POST');
 		expect(fake.requests[0]?.headers.get('content-type')).toBe('application/json');
 		expect(await fake.requests[0]?.json()).toEqual({
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			endedAt: '2026-06-01T10:05:00.000Z',
 			durationMs: 300_000,
@@ -128,11 +112,7 @@ describe('createCloudflareRunRegistry()', () => {
 						runs: [
 							{
 								runId: 'workflow:daily report:01',
-								owner: {
-									kind: 'workflow',
-									workflowName: 'daily report',
-									instanceId: 'workflow:daily report:01',
-								},
+								workflowName: 'daily report',
 								status: 'errored',
 								startedAt: '2026-06-01T10:00:00.000Z',
 							},
@@ -155,11 +135,7 @@ describe('createCloudflareRunRegistry()', () => {
 			runs: [
 				{
 					runId: 'workflow:daily report:01',
-					owner: {
-						kind: 'workflow',
-						workflowName: 'daily report',
-						instanceId: 'workflow:daily report:01',
-					},
+					workflowName: 'daily report',
 					status: 'errored',
 					startedAt: '2026-06-01T10:00:00.000Z',
 				},
@@ -182,11 +158,7 @@ describe('createCloudflareRunRegistry()', () => {
 		await expect(
 			registry?.recordRunStart({
 				runId: 'workflow:daily-report:01',
-				owner: {
-					kind: 'workflow',
-					workflowName: 'daily-report',
-					instanceId: 'workflow:daily-report:01',
-				},
+				workflowName: 'daily-report',
 				startedAt: '2026-06-01T10:00:00.000Z',
 			}),
 		).rejects.toThrow(
@@ -207,11 +179,7 @@ describe('createCloudflareRunRegistry()', () => {
 				return new Response(
 					JSON.stringify({
 						runId: 'workflow:daily report/id?#fragment',
-						owner: {
-							kind: 'workflow',
-							workflowName: 'daily report',
-							instanceId: 'workflow:daily report/id?#fragment',
-						},
+						workflowName: 'daily report',
 						status: 'active',
 						startedAt: '2026-06-01T10:00:00.000Z',
 					}),
@@ -224,30 +192,18 @@ describe('createCloudflareRunRegistry()', () => {
 
 		expect(await registry?.lookupRun('workflow:daily report/id?#fragment')).toEqual({
 			runId: 'workflow:daily report/id?#fragment',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily report',
-				instanceId: 'workflow:daily report/id?#fragment',
-			},
+			workflowName: 'daily report',
 			status: 'active',
 			startedAt: '2026-06-01T10:00:00.000Z',
 		});
 		await registry?.recordRunStart({
 			runId: 'workflow:daily report/id?#fragment',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily report',
-				instanceId: 'workflow:daily report/id?#fragment',
-			},
+			workflowName: 'daily report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 		});
 		await registry?.recordRunEnd({
 			runId: 'workflow:daily report/id?#fragment',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily report',
-				instanceId: 'workflow:daily report/id?#fragment',
-			},
+			workflowName: 'daily report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			endedAt: '2026-06-01T10:05:00.000Z',
 			durationMs: 300_000,

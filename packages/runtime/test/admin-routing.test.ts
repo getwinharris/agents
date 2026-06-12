@@ -84,7 +84,7 @@ describe('admin()', () => {
 							'application/json': {
 								schema: {
 									type: 'object',
-									required: ['runId', 'owner', 'status', 'startedAt'],
+									required: ['runId', 'workflowName', 'status', 'startedAt'],
 								},
 							},
 						},
@@ -122,20 +122,12 @@ describe('admin()', () => {
 		const runRegistry = new InMemoryRunRegistry();
 		await runRegistry.recordRunStart({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 		});
 		await runRegistry.recordRunEnd({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			endedAt: '2026-06-01T10:05:00.000Z',
 			durationMs: 300_000,
@@ -152,11 +144,7 @@ describe('admin()', () => {
 			items: [
 				{
 					runId: 'workflow:daily-report:01',
-					owner: {
-						kind: 'workflow',
-						workflowName: 'daily-report',
-						instanceId: 'workflow:daily-report:01',
-					},
+					workflowName: 'daily-report',
 					status: 'completed',
 					startedAt: '2026-06-01T10:00:00.000Z',
 					endedAt: '2026-06-01T10:05:00.000Z',
@@ -195,20 +183,12 @@ describe('admin()', () => {
 		const runRegistry = new InMemoryRunRegistry();
 		await runRegistry.recordRunStart({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 		});
 		await runRegistry.recordRunEnd({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			endedAt: '2026-06-01T10:05:00.000Z',
 			durationMs: 300_000,
@@ -217,11 +197,7 @@ describe('admin()', () => {
 		const runStore = new InMemoryRunStore();
 		await runStore.createRun({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			payload: { report: 'weekly' },
 		});
@@ -243,11 +219,7 @@ describe('admin()', () => {
 		expect(response.status).toBe(200);
 		expect(await response.json()).toEqual({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			status: 'completed',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			payload: { report: 'weekly' },
@@ -262,11 +234,7 @@ describe('admin()', () => {
 		const runRegistry = new InMemoryRunRegistry();
 		await runRegistry.recordRunStart({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 		});
 		const routeRunRequest = vi.fn(async (request: Request) => {

@@ -17,18 +17,12 @@ class DurableRunStore implements RunStore {
 	constructor(private sql: SqlStorage) {}
 
 	async createRun(input: CreateRunInput): Promise<void> {
-		if (input.owner.instanceId !== input.runId) {
-			throw new Error(
-				'[flue] Workflow run owners must use the same instanceId as the run record runId.',
-			);
-		}
 		this.sql.exec(
 			`INSERT OR REPLACE INTO flue_runs
-			 (run_id, owner_kind, instance_id, workflow_name, status, started_at, payload, ended_at, is_error, duration_ms, result, error)
-			 VALUES (?, 'workflow', ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, NULL)`,
+			 (run_id, workflow_name, status, started_at, payload, ended_at, is_error, duration_ms, result, error)
+			 VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, NULL)`,
 			input.runId,
-			input.owner.instanceId,
-			input.owner.workflowName,
+			input.workflowName,
 			'active',
 			input.startedAt,
 			serializeSqlJson(input.payload),
@@ -52,7 +46,7 @@ class DurableRunStore implements RunStore {
 
 	async getRun(runId: string): Promise<RunRecord | null> {
 		const rows = this.sql
-			.exec("SELECT * FROM flue_runs WHERE run_id = ? AND owner_kind = 'workflow'", runId)
+			.exec('SELECT * FROM flue_runs WHERE run_id = ?', runId)
 			.toArray();
 		const row = rows[0];
 		if (!row) return null;
@@ -64,24 +58,19 @@ function ensureRunTables(sql: SqlStorage): void {
 	sql.exec(
 		`CREATE TABLE IF NOT EXISTS flue_runs (
 		 run_id TEXT PRIMARY KEY,
-		 owner_kind TEXT NOT NULL,
-		 instance_id TEXT,
 		 workflow_name TEXT,
-			 status TEXT NOT NULL,
-			 started_at TEXT NOT NULL,
-			 payload TEXT,
-			 ended_at TEXT,
-			 is_error INTEGER,
-			 duration_ms INTEGER,
-			 result TEXT,
-			 error TEXT
+		 status TEXT NOT NULL,
+		 started_at TEXT NOT NULL,
+		 payload TEXT,
+		 ended_at TEXT,
+		 is_error INTEGER,
+		 duration_ms INTEGER,
+		 result TEXT,
+		 error TEXT
 		)`,
 	);
 	sql.exec(
-		'CREATE INDEX IF NOT EXISTS flue_runs_instance_started_idx ON flue_runs (owner_kind, instance_id, started_at DESC)',
-	);
-	sql.exec(
-		'CREATE INDEX IF NOT EXISTS flue_runs_workflow_started_idx ON flue_runs (owner_kind, workflow_name, started_at DESC)',
+		'CREATE INDEX IF NOT EXISTS flue_runs_workflow_started_idx ON flue_runs (workflow_name, started_at DESC)',
 	);
 }
 
@@ -93,15 +82,9 @@ function rowToRunRecord(row: SqlRow): RunRecord {
 	const payload = typeof row.payload === 'string' ? JSON.parse(row.payload) : undefined;
 	const result = typeof row.result === 'string' ? JSON.parse(row.result) : undefined;
 	const error = typeof row.error === 'string' ? JSON.parse(row.error) : undefined;
-	const runId = String(row.run_id);
-	const owner = {
-		kind: 'workflow' as const,
-		workflowName: String(row.workflow_name),
-		instanceId: String(row.instance_id ?? runId),
-	};
 	return {
-		runId,
-		owner,
+		runId: String(row.run_id),
+		workflowName: String(row.workflow_name),
 		status: row.status as RunRecord['status'],
 		startedAt: String(row.started_at),
 		payload,

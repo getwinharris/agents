@@ -9,14 +9,9 @@ export class InMemoryRunStore implements RunStore {
 	private runs = new Map<string, RunRecord>();
 
 	async createRun(input: CreateRunInput): Promise<void> {
-		if (input.owner.instanceId !== input.runId) {
-			throw new Error(
-				'[flue] Workflow run owners must use the same instanceId as the run record runId.',
-			);
-		}
 		this.runs.set(input.runId, {
 			runId: input.runId,
-			owner: input.owner,
+			workflowName: input.workflowName,
 			status: 'active',
 			startedAt: input.startedAt,
 			payload: input.payload,

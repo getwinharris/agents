@@ -29,10 +29,6 @@ function makeFakeSql() {
 	};
 }
 
-function owner(runId: string) {
-	return { kind: 'workflow' as const, workflowName: 'hello', instanceId: runId };
-}
-
 describe('createDurableRunStore()', () => {
 	it('preserves absent optional fields when run persistence receives undefined values', async () => {
 		const { sql } = makeFakeSql();
@@ -40,7 +36,7 @@ describe('createDurableRunStore()', () => {
 		const runId = 'workflow:hello:absent';
 		await store.createRun({
 			runId,
-			owner: owner(runId),
+			workflowName: 'hello',
 			startedAt: '2026-06-02T00:00:00.000Z',
 			payload: undefined,
 		});
@@ -64,7 +60,7 @@ describe('createDurableRunStore()', () => {
 		const runId = 'workflow:hello:null';
 		await store.createRun({
 			runId,
-			owner: owner(runId),
+			workflowName: 'hello',
 			startedAt: '2026-06-02T00:00:00.000Z',
 			payload: null,
 		});

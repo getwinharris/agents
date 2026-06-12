@@ -395,7 +395,7 @@ describe('flue()', () => {
 		const runRegistry = new InMemoryRunRegistry();
 		await runRegistry.recordRunStart({
 			runId: 'workflow:daily-report:01',
-			owner: { kind: 'workflow', workflowName: 'daily-report', instanceId: 'workflow:daily-report:01' },
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 		});
 		const store = createTestEventStreamStore();

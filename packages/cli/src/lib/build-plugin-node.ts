@@ -302,7 +302,7 @@ function startLocalWorkflow(name) {
     const runId = generateWorkflowRunId(name);
     sendLocalMessage({ type: 'started', requestId: message.requestId, runId });
     void invokeWorkflowAttached({
-      owner: { kind: 'workflow', workflowName: name, instanceId: runId },
+      workflowName: name,
       id: runId,
       runId,
       payload: message.payload,

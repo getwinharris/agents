@@ -55,7 +55,7 @@ function adminRunJson(response, status) {
 	response.end(
 		JSON.stringify({
 			runId: 'run-1',
-			owner: { kind: 'workflow', workflowName: 'test', instanceId: 'run-1' },
+			workflowName: 'test',
 			status,
 			startedAt: '2026-01-01T00:00:00Z',
 		}),

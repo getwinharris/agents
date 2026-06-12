@@ -18,31 +18,21 @@ export class InMemoryRunRegistry implements RunRegistry {
 
 	async recordRunStart(input: RecordRunStartInput): Promise<void> {
 		if (this.pointers.has(input.runId)) return;
-		if (input.owner.instanceId !== input.runId) {
-			throw new Error(
-				'[flue] Workflow run owners must use the same instanceId as the pointer runId.',
-			);
-		}
 		this.pointers.set(input.runId, {
 			runId: input.runId,
-			owner: input.owner,
+			workflowName: input.workflowName,
 			status: 'active',
 			startedAt: input.startedAt,
 		});
 	}
 
 	async recordRunEnd(input: RecordRunEndInput): Promise<void> {
-		if (input.owner.instanceId !== input.runId) {
-			throw new Error(
-				'[flue] Workflow run owners must use the same instanceId as the pointer runId.',
-			);
-		}
 		// Upsert so a terminal write heals a start pointer lost to a transient
-		// fault; an existing pointer keeps its original owner and startedAt.
+		// fault; an existing pointer keeps its original workflowName and startedAt.
 		const pointer = this.pointers.get(input.runId);
 		this.pointers.set(input.runId, {
 			runId: input.runId,
-			owner: pointer?.owner ?? input.owner,
+			workflowName: pointer?.workflowName ?? input.workflowName,
 			startedAt: pointer?.startedAt ?? input.startedAt,
 			status: input.isError ? 'errored' : 'completed',
 			endedAt: input.endedAt,
@@ -72,7 +62,7 @@ export class InMemoryRunRegistry implements RunRegistry {
 
 function matchesListFilter(pointer: RunPointer, opts: ListRunsOpts): boolean {
 	if (opts.status && pointer.status !== opts.status) return false;
-	if (opts.workflowName && pointer.owner.workflowName !== opts.workflowName) return false;
+	if (opts.workflowName && pointer.workflowName !== opts.workflowName) return false;
 	return true;
 }
 

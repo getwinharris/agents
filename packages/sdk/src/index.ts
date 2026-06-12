@@ -44,7 +44,6 @@ export type {
 	LlmToolResultMessage,
 	LlmTurnPurpose,
 	LlmUserMessage,
-	RunOwner,
 	RunPointer,
 	RunRecord,
 	RunStatus,

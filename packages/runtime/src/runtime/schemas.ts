@@ -31,15 +31,9 @@ export const ErrorEnvelopeSchema = v.object({
 	}),
 });
 
-const RunOwnerSchema = v.object({
-	kind: v.literal('workflow'),
-	workflowName: v.string(),
-	instanceId: v.string(),
-});
-
 export const RunRecordSchema = v.object({
 	runId: v.string(),
-	owner: RunOwnerSchema,
+	workflowName: v.string(),
 	status: RunStatusSchema,
 	startedAt: v.string(),
 	payload: v.optional(v.unknown()),
@@ -52,7 +46,7 @@ export const RunRecordSchema = v.object({
 
 const RunPointerSchema = v.object({
 	runId: v.string(),
-	owner: RunOwnerSchema,
+	workflowName: v.string(),
 	status: RunStatusSchema,
 	startedAt: v.string(),
 	endedAt: v.optional(v.string()),

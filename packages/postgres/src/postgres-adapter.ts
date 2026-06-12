@@ -25,7 +25,6 @@ import type {
 	PersistenceAdapter,
 	RecordRunEndInput,
 	RecordRunStartInput,
-	RunOwner,
 	RunRecord,
 	RunPointer,
 	RunRegistry,
@@ -317,9 +316,7 @@ async function ensureTables(runner: PgRunner): Promise<void> {
 		await tx.query(`
 			CREATE TABLE IF NOT EXISTS flue_runs (
 				run_id TEXT PRIMARY KEY,
-				owner_kind TEXT NOT NULL,
 				workflow_name TEXT NOT NULL,
-				instance_id TEXT NOT NULL,
 				status TEXT NOT NULL,
 				started_at TEXT NOT NULL,
 				payload TEXT,
@@ -334,9 +331,7 @@ async function ensureTables(runner: PgRunner): Promise<void> {
 		await tx.query(`
 			CREATE TABLE IF NOT EXISTS flue_run_registry (
 				run_id TEXT PRIMARY KEY,
-				owner_kind TEXT NOT NULL,
 				workflow_name TEXT NOT NULL,
-				instance_id TEXT NOT NULL,
 				status TEXT NOT NULL,
 				started_at TEXT NOT NULL,
 				ended_at TEXT,
@@ -1092,13 +1087,11 @@ class PgRunStore implements RunStore {
 
 	async createRun(input: CreateRunInput): Promise<void> {
 		await this.runner.query(
-			`INSERT INTO flue_runs (run_id, owner_kind, workflow_name, instance_id, status, started_at, payload)
-			 VALUES ($1, $2, $3, $4, 'active', $5, $6)`,
+			`INSERT INTO flue_runs (run_id, workflow_name, status, started_at, payload)
+			 VALUES ($1, $2, 'active', $3, $4)`,
 			[
 				input.runId,
-				input.owner.kind,
-				input.owner.workflowName,
-				input.owner.instanceId,
+				input.workflowName,
 				input.startedAt,
 				input.payload !== undefined ? JSON.stringify(input.payload) : null,
 			],
@@ -1124,7 +1117,7 @@ class PgRunStore implements RunStore {
 
 	async getRun(runId: string): Promise<RunRecord | null> {
 		const rows = await this.runner.query(
-			`SELECT run_id, owner_kind, workflow_name, instance_id, status, started_at,
+			`SELECT run_id, workflow_name, status, started_at,
 			        payload, ended_at, is_error, duration_ms, result, error
 			 FROM flue_runs WHERE run_id = $1 LIMIT 1`,
 			[runId],
@@ -1133,7 +1126,7 @@ class PgRunStore implements RunStore {
 		if (!row) return null;
 		return {
 			runId: String(row.run_id),
-			owner: { kind: row.owner_kind, workflowName: row.workflow_name, instanceId: row.instance_id } as RunOwner,
+			workflowName: String(row.workflow_name),
 			status: row.status as RunStatus,
 			startedAt: String(row.started_at),
 			...(row.payload != null ? { payload: JSON.parse(String(row.payload)) } : {}),
@@ -1153,10 +1146,10 @@ class PgRunRegistry implements RunRegistry {
 
 	async recordRunStart(input: RecordRunStartInput): Promise<void> {
 		await this.runner.query(
-			`INSERT INTO flue_run_registry (run_id, owner_kind, workflow_name, instance_id, status, started_at)
-			 VALUES ($1, $2, $3, $4, 'active', $5)
+			`INSERT INTO flue_run_registry (run_id, workflow_name, status, started_at)
+			 VALUES ($1, $2, 'active', $3)
 			 ON CONFLICT (run_id) DO NOTHING`,
-			[input.runId, input.owner.kind, input.owner.workflowName, input.owner.instanceId, input.startedAt],
+			[input.runId, input.workflowName, input.startedAt],
 		);
 	}
 
@@ -1165,8 +1158,8 @@ class PgRunRegistry implements RunRegistry {
 		// fault; on conflict the original started_at is preserved.
 		await this.runner.query(
 			`INSERT INTO flue_run_registry
-			 (run_id, owner_kind, workflow_name, instance_id, status, started_at, ended_at, duration_ms, is_error)
-			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+			 (run_id, workflow_name, status, started_at, ended_at, duration_ms, is_error)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7)
 			 ON CONFLICT (run_id) DO UPDATE SET
 			   status = EXCLUDED.status,
 			   ended_at = EXCLUDED.ended_at,
@@ -1174,9 +1167,7 @@ class PgRunRegistry implements RunRegistry {
 			   is_error = EXCLUDED.is_error`,
 			[
 				input.runId,
-				input.owner.kind,
-				input.owner.workflowName,
-				input.owner.instanceId,
+				input.workflowName,
 				input.isError ? 'errored' : 'completed',
 				input.startedAt,
 				input.endedAt,
@@ -1188,7 +1179,7 @@ class PgRunRegistry implements RunRegistry {
 
 	async lookupRun(runId: string): Promise<RunPointer | null> {
 		const rows = await this.runner.query(
-			`SELECT run_id, owner_kind, workflow_name, instance_id, status, started_at,
+			`SELECT run_id, workflow_name, status, started_at,
 			        ended_at, duration_ms, is_error
 			 FROM flue_run_registry WHERE run_id = $1 LIMIT 1`,
 			[runId],
@@ -1225,7 +1216,7 @@ class PgRunRegistry implements RunRegistry {
 		const fetchLimit = limit + 1;
 
 		const rows = await this.runner.query(
-			`SELECT run_id, owner_kind, workflow_name, instance_id, status, started_at,
+			`SELECT run_id, workflow_name, status, started_at,
 			        ended_at, duration_ms, is_error
 			 FROM flue_run_registry
 			 ${where}
@@ -1246,7 +1237,7 @@ class PgRunRegistry implements RunRegistry {
 function parseRunPointer(row: SqlRow): RunPointer {
 	return {
 		runId: String(row.run_id),
-		owner: { kind: row.owner_kind, workflowName: row.workflow_name, instanceId: row.instance_id } as RunOwner,
+		workflowName: String(row.workflow_name),
 		status: row.status as RunStatus,
 		startedAt: String(row.started_at),
 		...(row.ended_at != null ? { endedAt: String(row.ended_at) } : {}),

@@ -422,7 +422,7 @@ async function handleFlueWorkflowFiberRecovered(ctx, doInstance, workflowName) {
   const interruptedRunId = doInstance.name;
   const runStore = createRunStoreForRequest(doInstance);
   await failRecoveredRun({
-    owner: { kind: 'workflow', workflowName, instanceId: interruptedRunId },
+    workflowName,
     id: interruptedRunId,
     runId: interruptedRunId,
     request: new Request('https://flue.invalid/workflows/' + encodeURIComponent(workflowName), { method: 'POST' }),
@@ -451,7 +451,7 @@ async function dispatchWorkflow(request, doInstance, workflowName) {
       return handleStreamRead({ store, path: streamPath, request });
     }
     return handleRunRouteRequest({
-      owner: { kind: 'workflow', workflowName, instanceId },
+      workflowName,
       runId: instanceId,
       runStore: createRunStoreForRequest(doInstance),
     });
@@ -548,10 +548,9 @@ configureFlueRuntime({
   },
   createRunRegistryForRequest,
   routeRunRequest: async (request, reqEnv, target) => {
-    if (target.kind !== 'workflow') return null;
     const binding = reqEnv?.[workflowIdentities[target.workflowName]?.bindingName];
     if (!binding) return null;
-    return fetchAgent(binding, target.instanceId, request);
+    return fetchAgent(binding, target.runId, request);
   },
 });
 

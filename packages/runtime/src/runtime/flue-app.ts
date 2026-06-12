@@ -37,7 +37,7 @@ import {
 } from './handle-agent.ts';
 import { handleStreamHead, handleStreamRead } from './handle-stream-routes.ts';
 import { generateWorkflowRunId } from './ids.ts';
-import type { RunOwner, RunPointer, RunRegistry } from './run-registry.ts';
+import type { RunPointer, RunRegistry } from './run-registry.ts';
 import { agentStreamPath, runStreamPath, type EventStreamStore } from './event-stream-store.ts';
 import type { RunStore } from './run-store.ts';
 
@@ -118,7 +118,7 @@ export interface FlueRuntime {
 	routeRunRequest?: (
 		request: Request,
 		env: unknown,
-		target: RunPointer['owner'],
+		target: { workflowName: string; runId: string },
 	) => Promise<Response | null>;
 
 	/** Cloudflare-only factory for the request-scoped registry client. */
@@ -572,12 +572,15 @@ const runStreamReadHandler: MiddlewareHandler = async (c) => {
 	const streamPath = runStreamPath(runId);
 	const pointer = await lookupRunPointer(rt, c.env, runId);
 
-	return runAttachedMiddleware(c, rt.workflowRouteMiddleware?.[pointer.owner.workflowName], async () => {
+	return runAttachedMiddleware(c, rt.workflowRouteMiddleware?.[pointer.workflowName], async () => {
 		if (rt.target === 'node') {
 			return nodeStreamReadResponse(rt, method, streamPath, c.req.raw);
 		}
 
-		const response = await rt.routeRunRequest?.(c.req.raw, c.env, pointer.owner);
+		const response = await rt.routeRunRequest?.(c.req.raw, c.env, {
+			workflowName: pointer.workflowName,
+			runId,
+		});
 		if (response) return response;
 		throw new RouteNotFoundError({ method, path: new URL(c.req.url).pathname });
 	});
@@ -596,7 +599,7 @@ export async function handleRunById(opts: {
 		const response = await rt.routeRunRequest!(
 			normalizeRunMetadataRequest(request),
 			env,
-			pointer.owner,
+			{ workflowName: pointer.workflowName, runId },
 		);
 		if (response) return response;
 		throw new RouteNotFoundError({
@@ -607,29 +610,25 @@ export async function handleRunById(opts: {
 
 	return handleRunRouteRequest({
 		runStore: rt.runStore,
-		owner: pointer.owner,
+		workflowName: pointer.workflowName,
 		runId,
 	});
 }
 
 export interface HandleRunRouteOptions {
 	runStore?: RunStore;
-	owner: RunOwner;
+	workflowName: string;
 	runId: string;
 }
 
-/** Serve run metadata (`RunRecord`) for an owner-scoped run lookup. */
+/** Serve run metadata (`RunRecord`) for a workflow-scoped run lookup. */
 export async function handleRunRouteRequest(opts: HandleRunRouteOptions): Promise<Response> {
 	if (!opts.runStore) throw new RunStoreUnavailableError();
 	const run = await opts.runStore.getRun(opts.runId);
-	if (!run || !sameRunOwner(run.owner, opts.owner)) {
+	if (!run || run.workflowName !== opts.workflowName) {
 		throw new RunNotFoundError({ runId: opts.runId });
 	}
 	return new Response(JSON.stringify(run), { headers: { 'content-type': 'application/json' } });
-}
-
-function sameRunOwner(left: RunOwner, right: RunOwner): boolean {
-	return left.workflowName === right.workflowName && left.instanceId === right.instanceId;
 }
 
 function lazyOpenApiRouteHandler(

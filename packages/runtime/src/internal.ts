@@ -86,7 +86,6 @@ export type {
 	ListRunsResponse,
 	RecordRunEndInput,
 	RecordRunStartInput,
-	RunOwner,
 	RunPointer,
 	RunRegistry,
 } from './runtime/run-registry.ts';

@@ -1,12 +1,9 @@
 export type RunStatus = 'active' | 'completed' | 'errored';
 
-/** Workflow identity recorded for a run. Direct agent interactions are not runs. */
-export type RunOwner = { kind: 'workflow'; workflowName: string; instanceId: string };
-
-/** Persisted workflow-run record. */
+/** Persisted workflow-run record. Runs are workflow-only; `workflowName` identifies the owning workflow. */
 export interface RunRecord {
 	runId: string;
-	owner: RunOwner;
+	workflowName: string;
 	status: RunStatus;
 	startedAt: string;
 	endedAt?: string;
@@ -20,7 +17,7 @@ export interface RunRecord {
 /** Workflow-run summary returned by admin listing routes. */
 export interface RunPointer {
 	runId: string;
-	owner: RunOwner;
+	workflowName: string;
 	status: RunStatus;
 	startedAt: string;
 	endedAt?: string;
@@ -137,8 +134,6 @@ export type FlueEvent = (
 	| {
 			type: 'run_start';
 			runId: string;
-			owner: RunOwner;
-			instanceId: string;
 			workflowName: string;
 			startedAt: string;
 			payload: unknown;
@@ -146,8 +141,6 @@ export type FlueEvent = (
 	| {
 			type: 'run_resume';
 			runId: string;
-			owner: RunOwner;
-			instanceId: string;
 			workflowName: string;
 			startedAt: string;
 	  }

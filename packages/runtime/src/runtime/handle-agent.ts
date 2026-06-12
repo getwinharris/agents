@@ -19,7 +19,7 @@ import type { DispatchInput } from './dispatch-queue.ts';
 import { agentStreamPath, parseOffset, runStreamPath, type EventStreamStore } from './event-stream-store.ts';
 
 import { generateWorkflowRunId } from './ids.ts';
-import type { RunOwner, RunRegistry } from './run-registry.ts';
+import type { RunRegistry } from './run-registry.ts';
 import { isEphemeralRunEvent, type RunStore } from './run-store.ts';
 import { DirectAgentPayloadSchema } from './schemas.ts';
 
@@ -169,15 +169,13 @@ export async function handleWorkflowRequest(opts: HandleWorkflowOptions): Promis
 	} = opts;
 	const startWorkflowAdmission = opts.startWorkflowAdmission ?? defaultStartWorkflowAdmission;
 	const runId = opts.runId ?? generateWorkflowRunId(workflowName);
-	const instanceId = runId;
 
 	try {
 		const payload = await parseJsonBody(request);
 		const wait = new URL(request.url).searchParams.get('wait');
-		const owner = { kind: 'workflow' as const, workflowName, instanceId };
 
 		const execution = await prepareWorkflowExecution({
-			owner,
+			workflowName,
 			id: runId,
 			runId,
 			handler,
@@ -202,7 +200,7 @@ export async function handleWorkflowRequest(opts: HandleWorkflowOptions): Promis
 // ─── Mode implementations ───────────────────────────────────────────────────
 
 export interface InvokeWorkflowAttachedOptions {
-	owner: RunOwner;
+	workflowName: string;
 	id: string;
 	runId: string;
 	handler: WorkflowHandler;
@@ -230,7 +228,7 @@ export interface WorkflowAttachedInvocationResult {
 }
 
 export interface FailRecoveredRunOptions {
-	owner: RunOwner;
+	workflowName: string;
 	id: string;
 	runId: string;
 	request: Request;
@@ -242,7 +240,7 @@ export interface FailRecoveredRunOptions {
 }
 
 interface WorkflowAdmissionOptions {
-	owner: RunOwner;
+	workflowName: string;
 	id: string;
 	runId: string;
 	handler: WorkflowHandler;
@@ -272,7 +270,7 @@ async function prepareWorkflowExecution(
 	opts: WorkflowAdmissionOptions,
 ): Promise<AdmittedWorkflowExecution> {
 	const {
-		owner,
+		workflowName,
 		id,
 		runId,
 		handler,
@@ -288,7 +286,7 @@ async function prepareWorkflowExecution(
 	} = opts;
 	if (!runStore) throw new RunStoreUnavailableError();
 	const lifecycle = await createWorkflowRunLifecycle({
-		owner,
+		workflowName,
 		id,
 		runId,
 		payload,
@@ -381,7 +379,7 @@ export async function failRecoveredRun(opts: FailRecoveredRunOptions): Promise<v
 		await safeRegistry('recordRunStart(recovery)', () =>
 			opts.runRegistry?.recordRunStart({
 				runId: opts.runId,
-				owner: run.owner,
+				workflowName: run.workflowName,
 				startedAt: run.startedAt,
 			}),
 		);
@@ -456,14 +454,14 @@ async function reconcileTerminalRun(
 	await safeRegistry('recordRunStart(recovery)', () =>
 		opts.runRegistry?.recordRunStart({
 			runId: opts.runId,
-			owner: run?.owner ?? opts.owner,
+			workflowName: run?.workflowName ?? opts.workflowName,
 			startedAt: run?.startedAt ?? endedAt,
 		}),
 	);
 	await safeRegistry('recordRunEnd(recovery)', () =>
 		opts.runRegistry?.recordRunEnd({
 			runId: opts.runId,
-			owner: run?.owner ?? opts.owner,
+			workflowName: run?.workflowName ?? opts.workflowName,
 			startedAt: run?.startedAt ?? endedAt,
 			endedAt,
 			durationMs,
@@ -513,7 +511,7 @@ export async function invokeWorkflowAttached(
 ): Promise<WorkflowAttachedInvocationResult> {
 	if (!opts.startWorkflowAdmission) return invokeWorkflowAttachedUnlocked(opts);
 	const execution = await prepareWorkflowExecution({
-		owner: opts.owner,
+		workflowName: opts.workflowName,
 		id: opts.id,
 		runId: opts.runId,
 		handler: opts.handler,
@@ -541,7 +539,7 @@ async function invokeWorkflowAttachedUnlocked(
 	opts: InvokeWorkflowAttachedOptions,
 ): Promise<WorkflowAttachedInvocationResult> {
 	const lifecycle = await createWorkflowRunLifecycle({
-		owner: opts.owner,
+		workflowName: opts.workflowName,
 		id: opts.id,
 		runId: opts.runId,
 		payload: opts.payload,
@@ -568,7 +566,7 @@ async function invokeWorkflowAttachedUnlocked(
 // ─── Workflow run lifecycle ─────────────────────────────────────────────────
 
 interface WorkflowRunLifecycleOptions {
-	owner: RunOwner;
+	workflowName: string;
 	id: string;
 	runId: string;
 	payload: unknown;
@@ -593,14 +591,14 @@ async function createWorkflowRunLifecycle(
 	const startedAt = new Date(startedAtMs).toISOString();
 	const ctx = options.createContext(options.id, options.runId, options.payload, options.request);
 	const runStore = options.runStore;
-	const owner = options.owner;
+	const workflowName = options.workflowName;
 	let didCreateRun = false;
 	try {
 		didCreateRun = runStore
 			? await persistRunAdmission('createRun', options.requirePersistedAdmission === true, () =>
 					runStore.createRun({
 						runId: options.runId,
-						owner,
+						workflowName,
 						startedAt,
 						payload: options.payload,
 					}),
@@ -610,7 +608,7 @@ async function createWorkflowRunLifecycle(
 		console.error(
 			'[flue] Workflow admission error:',
 			{
-				workflowName: owner.workflowName,
+				workflowName,
 				runId: options.runId,
 				operation: 'createRun',
 				outcome: 'admission_failed',
@@ -623,7 +621,7 @@ async function createWorkflowRunLifecycle(
 		await safeRegistry('recordRunStart', () =>
 			options.runRegistry?.recordRunStart({
 				runId: options.runId,
-				owner,
+				workflowName,
 				startedAt,
 			}),
 		);
@@ -664,9 +662,7 @@ function emitRunStart(lifecycle: WorkflowRunLifecycle): void {
 	lifecycle.ctx.emitEvent({
 		type: 'run_start',
 		runId: lifecycle.runId,
-		owner: lifecycle.owner,
-		instanceId: lifecycle.owner.instanceId,
-		workflowName: lifecycle.owner.workflowName,
+		workflowName: lifecycle.workflowName,
 		startedAt: lifecycle.startedAt,
 		payload: lifecycle.payload,
 	});
@@ -676,9 +672,7 @@ function emitRunResume(lifecycle: WorkflowRunLifecycle): void {
 	lifecycle.ctx.emitEvent({
 		type: 'run_resume',
 		runId: lifecycle.runId,
-		owner: lifecycle.owner,
-		instanceId: lifecycle.owner.instanceId,
-		workflowName: lifecycle.owner.workflowName,
+		workflowName: lifecycle.workflowName,
 		startedAt: lifecycle.startedAt,
 	});
 }
@@ -737,7 +731,7 @@ async function emitRunEnd(
 		await safeRegistry('recordRunEnd', () =>
 			runRegistry?.recordRunEnd({
 				runId,
-				owner: lifecycle.owner,
+				workflowName: lifecycle.workflowName,
 				startedAt: lifecycle.startedAt,
 				endedAt,
 				durationMs,

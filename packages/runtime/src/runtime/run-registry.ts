@@ -1,17 +1,15 @@
 /** Cross-deployment pointer index over workflow runs. */
 import type { RunStatus } from './run-store.ts';
 
-export type RunOwner = { kind: 'workflow'; workflowName: string; instanceId: string };
-
 export interface RecordRunStartInput {
 	runId: string;
-	owner: RunOwner;
+	workflowName: string;
 	startedAt: string;
 }
 
 export interface RunPointer {
 	runId: string;
-	owner: RunOwner;
+	workflowName: string;
 	status: RunStatus;
 	startedAt: string;
 	endedAt?: string;
@@ -20,12 +18,13 @@ export interface RunPointer {
 }
 
 /**
- * `owner` and `startedAt` let `recordRunEnd` upsert the full pointer, so a
- * terminal write heals a `recordRunStart` that was lost to a transient fault.
+ * `workflowName` and `startedAt` let `recordRunEnd` upsert the full pointer,
+ * so a terminal write heals a `recordRunStart` that was lost to a transient
+ * fault.
  */
 export interface RecordRunEndInput {
 	runId: string;
-	owner: RunOwner;
+	workflowName: string;
 	startedAt: string;
 	endedAt: string;
 	durationMs: number;

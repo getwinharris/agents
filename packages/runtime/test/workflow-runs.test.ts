@@ -247,11 +247,7 @@ describe('workflow invocation', () => {
 		const runRecord = await runStore.getRun(body._meta.runId);
 		expect(runRecord).toEqual({
 			runId: body._meta.runId,
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: body._meta.runId,
-			},
+			workflowName: 'daily-report',
 			status: 'completed',
 			startedAt: expect.any(String),
 			payload: {},
@@ -302,7 +298,7 @@ describe('workflow run lifecycle', () => {
 			const runRecord = await runStore.getRun(runId!);
 			expect(runRecord).toEqual({
 				runId,
-				owner: { kind: 'workflow', workflowName: 'daily-report', instanceId: runId },
+				workflowName: 'daily-report',
 				status: 'errored',
 				startedAt: expect.any(String),
 				payload: {},
@@ -379,7 +375,7 @@ describe('workflow run lifecycle', () => {
 		db.prepare('UPDATE flue_event_streams SET next_offset = 7 WHERE path = ?').run(streamPath);
 
 		await failRecoveredRun({
-			owner: { kind: 'workflow', workflowName: 'report', instanceId: runId },
+			workflowName: 'report',
 			id: runId,
 			runId,
 			request: new Request('http://localhost/recovery'),

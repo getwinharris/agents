@@ -112,8 +112,6 @@ describe('createOpenTelemetryObserver', () => {
 			{
 				type: 'run_start',
 				runId: 'run-1',
-				owner: { kind: 'workflow', workflowName: 'report', instanceId: 'run-1' },
-				instanceId: 'run-1',
 				workflowName: 'report',
 				startedAt: '2026-05-27T00:00:00.000Z',
 				payload: { secret: true },
@@ -216,8 +214,6 @@ describe('createOpenTelemetryObserver', () => {
 			{
 				type: 'run_start',
 				runId: 'run-1',
-				owner: { kind: 'workflow', workflowName: 'report', instanceId: 'run-1' },
-				instanceId: 'run-1',
 				workflowName: 'report',
 				startedAt: '2026-05-27T00:00:00.000Z',
 				payload: {},
@@ -396,8 +392,6 @@ describe('createOpenTelemetryObserver', () => {
 			{
 				type: 'run_start',
 				runId: 'run-1',
-				owner: { kind: 'workflow', workflowName: 'report', instanceId: 'run-1' },
-				instanceId: 'run-1',
 				workflowName: 'report',
 				startedAt: '2026-05-27T00:00:00.000Z',
 				payload: {},
@@ -490,8 +484,6 @@ describe('createOpenTelemetryObserver', () => {
 			{
 				type: 'run_start',
 				runId: 'run-1',
-				owner: { kind: 'workflow', workflowName: 'report', instanceId: 'run-1' },
-				instanceId: 'run-1',
 				workflowName: 'report',
 				startedAt: '2026-05-27T00:00:00.000Z',
 				payload: {},
@@ -503,8 +495,6 @@ describe('createOpenTelemetryObserver', () => {
 			{
 				type: 'run_resume',
 				runId: 'run-1',
-				owner: { kind: 'workflow', workflowName: 'report', instanceId: 'run-1' },
-				instanceId: 'run-1',
 				workflowName: 'report',
 				startedAt: '2026-05-27T00:00:00.000Z',
 				timestamp: '2026-05-27T00:01:00.000Z',
@@ -549,8 +539,6 @@ describe('createOpenTelemetryObserver', () => {
 			{
 				type: 'run_start',
 				runId: 'run-1',
-				owner: { kind: 'workflow', workflowName: 'report', instanceId: 'run-1' },
-				instanceId: 'run-1',
 				workflowName: 'report',
 				startedAt: '2026-05-27T00:00:00.000Z',
 				payload: {},
@@ -600,8 +588,6 @@ describe('createOpenTelemetryObserver', () => {
 			{
 				type: 'run_resume',
 				runId: 'run-1',
-				owner: { kind: 'workflow', workflowName: 'report', instanceId: 'run-1' },
-				instanceId: 'run-1',
 				workflowName: 'report',
 				startedAt: '2026-05-27T00:00:00.000Z',
 				timestamp: '2026-05-27T00:01:00.000Z',
@@ -630,8 +616,6 @@ describe('createOpenTelemetryObserver', () => {
 			{
 				type: 'run_resume',
 				runId: 'run-1',
-				owner: { kind: 'workflow', workflowName: 'report', instanceId: 'run-1' },
-				instanceId: 'run-1',
 				workflowName: 'report',
 				startedAt: '2026-05-27T00:00:00.000Z',
 				timestamp: '2026-05-27T00:01:00.000Z',
@@ -801,8 +785,6 @@ describe('createOpenTelemetryObserver', () => {
 			{
 				type: 'run_start',
 				runId: 'run-1',
-				owner: { kind: 'workflow', workflowName: 'report', instanceId: 'run-1' },
-				instanceId: 'run-1',
 				workflowName: 'report',
 				startedAt: '2026-05-27T00:00:00.000Z',
 				payload: {},

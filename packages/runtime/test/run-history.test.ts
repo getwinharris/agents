@@ -34,22 +34,14 @@ describe('workflow run store', () => {
 		const store: RunStore = new InMemoryRunStore();
 		await store.createRun({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			payload: { report: 'weekly' },
 		});
 
 		expect(await store.getRun('workflow:daily-report:01')).toEqual({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			status: 'active',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			payload: { report: 'weekly' },
@@ -60,11 +52,7 @@ describe('workflow run store', () => {
 		const store: RunStore = new InMemoryRunStore();
 		await store.createRun({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			payload: { report: 'weekly' },
 		});
@@ -78,11 +66,7 @@ describe('workflow run store', () => {
 
 		expect(await store.getRun('workflow:daily-report:01')).toEqual({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			status: 'completed',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			payload: { report: 'weekly' },
@@ -98,11 +82,7 @@ describe('workflow run store', () => {
 		const store: RunStore = new InMemoryRunStore();
 		await store.createRun({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			payload: { report: 'weekly' },
 		});
@@ -116,11 +96,7 @@ describe('workflow run store', () => {
 
 		expect(await store.getRun('workflow:daily-report:01')).toEqual({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			status: 'errored',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			payload: { report: 'weekly' },
@@ -132,22 +108,6 @@ describe('workflow run store', () => {
 		});
 	});
 
-	it('rejects workflow run admission when owner instanceId differs from runId', async () => {
-		const store: RunStore = new InMemoryRunStore();
-
-		await expect(
-			store.createRun({
-				runId: 'workflow:daily-report:01',
-				owner: {
-					kind: 'workflow',
-					workflowName: 'daily-report',
-					instanceId: 'workflow:daily-report:02',
-				},
-				startedAt: '2026-06-01T10:00:00.000Z',
-				payload: {},
-			}),
-		).rejects.toThrow('same instanceId as the run record runId');
-	});
 });
 
 describe('workflow run registry', () => {
@@ -155,21 +115,13 @@ describe('workflow run registry', () => {
 		const registry: RunRegistry = new InMemoryRunRegistry();
 		await registry.recordRunStart({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 		});
 
 		expect(await registry.lookupRun('workflow:daily-report:01')).toEqual({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			status: 'active',
 			startedAt: '2026-06-01T10:00:00.000Z',
 		});
@@ -179,20 +131,12 @@ describe('workflow run registry', () => {
 		const registry: RunRegistry = new InMemoryRunRegistry();
 		await registry.recordRunStart({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 		});
 		await registry.recordRunEnd({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			endedAt: '2026-06-01T10:05:00.000Z',
 			durationMs: 300_000,
@@ -201,11 +145,7 @@ describe('workflow run registry', () => {
 
 		expect(await registry.lookupRun('workflow:daily-report:01')).toEqual({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			status: 'errored',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			endedAt: '2026-06-01T10:05:00.000Z',
@@ -218,11 +158,7 @@ describe('workflow run registry', () => {
 		const registry: RunRegistry = new InMemoryRunRegistry();
 		await registry.recordRunEnd({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			endedAt: '2026-06-01T10:05:00.000Z',
 			durationMs: 300_000,
@@ -231,11 +167,7 @@ describe('workflow run registry', () => {
 
 		expect(await registry.lookupRun('workflow:daily-report:01')).toEqual({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			status: 'completed',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			endedAt: '2026-06-01T10:05:00.000Z',
@@ -248,29 +180,17 @@ describe('workflow run registry', () => {
 		const registry: RunRegistry = new InMemoryRunRegistry();
 		await registry.recordRunStart({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 		});
 		await registry.recordRunStart({
 			runId: 'workflow:daily-report:02',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:02',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:02:00.000Z',
 		});
 		await registry.recordRunStart({
 			runId: 'workflow:daily-report:03',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:03',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:01:00.000Z',
 		});
 
@@ -285,20 +205,12 @@ describe('workflow run registry', () => {
 		const registry: RunRegistry = new InMemoryRunRegistry();
 		await registry.recordRunStart({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 		});
 		await registry.recordRunEnd({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 			endedAt: '2026-06-01T10:05:00.000Z',
 			durationMs: 300_000,
@@ -306,20 +218,12 @@ describe('workflow run registry', () => {
 		});
 		await registry.recordRunStart({
 			runId: 'workflow:daily-report:02',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:02',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:01:00.000Z',
 		});
 		await registry.recordRunEnd({
 			runId: 'workflow:daily-report:02',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:02',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:01:00.000Z',
 			endedAt: '2026-06-01T10:06:00.000Z',
 			durationMs: 300_000,
@@ -327,11 +231,7 @@ describe('workflow run registry', () => {
 		});
 		await registry.recordRunStart({
 			runId: 'workflow:invoice:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'invoice',
-				instanceId: 'workflow:invoice:01',
-			},
+			workflowName: 'invoice',
 			startedAt: '2026-06-01T10:02:00.000Z',
 		});
 
@@ -349,29 +249,17 @@ describe('workflow run registry', () => {
 		const registry: RunRegistry = new InMemoryRunRegistry();
 		await registry.recordRunStart({
 			runId: 'workflow:daily-report:01',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:01',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:00:00.000Z',
 		});
 		await registry.recordRunStart({
 			runId: 'workflow:daily-report:02',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:02',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:01:00.000Z',
 		});
 		await registry.recordRunStart({
 			runId: 'workflow:daily-report:03',
-			owner: {
-				kind: 'workflow',
-				workflowName: 'daily-report',
-				instanceId: 'workflow:daily-report:03',
-			},
+			workflowName: 'daily-report',
 			startedAt: '2026-06-01T10:02:00.000Z',
 		});
 
@@ -384,32 +272,13 @@ describe('workflow run registry', () => {
 		expect((await registry.listRuns({ limit: 2, cursor: firstPage.nextCursor })).runs).toEqual([
 			{
 				runId: 'workflow:daily-report:01',
-				owner: {
-					kind: 'workflow',
-					workflowName: 'daily-report',
-					instanceId: 'workflow:daily-report:01',
-				},
+				workflowName: 'daily-report',
 				status: 'active',
 				startedAt: '2026-06-01T10:00:00.000Z',
 			},
 		]);
 	});
 
-	it('rejects owner identity mismatches when a workflow pointer is recorded', async () => {
-		const registry: RunRegistry = new InMemoryRunRegistry();
-
-		await expect(
-			registry.recordRunStart({
-				runId: 'workflow:daily-report:01',
-				owner: {
-					kind: 'workflow',
-					workflowName: 'daily-report',
-					instanceId: 'workflow:daily-report:02',
-				},
-				startedAt: '2026-06-01T10:00:00.000Z',
-			}),
-		).rejects.toThrow('same instanceId as the pointer runId');
-	});
 });
 
 describe('workflow run routes', () => {

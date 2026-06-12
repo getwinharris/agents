@@ -81,42 +81,30 @@ class SqlRegistryOps implements RegistryOps {
 	constructor(private sql: SqlStorage) {}
 
 	recordRunStart(input: RecordRunStartInput): void {
-		if (input.owner.instanceId !== input.runId) {
-			throw new Error(
-				'[flue] Workflow run owners must use the same instanceId as the pointer runId.',
-			);
-		}
 		this.sql.exec(
 			`INSERT OR IGNORE INTO flue_registry_runs
-			 (run_id, owner_kind, instance_id, workflow_name, status, started_at, ended_at, duration_ms, is_error)
-			 VALUES (?, 'workflow', ?, ?, 'active', ?, NULL, NULL, NULL)`,
+			 (run_id, workflow_name, status, started_at, ended_at, duration_ms, is_error)
+			 VALUES (?, ?, 'active', ?, NULL, NULL, NULL)`,
 			input.runId,
-			input.owner.instanceId,
-			input.owner.workflowName,
+			input.workflowName,
 			input.startedAt,
 		);
 	}
 
 	recordRunEnd(input: RecordRunEndInput): void {
-		if (input.owner.instanceId !== input.runId) {
-			throw new Error(
-				'[flue] Workflow run owners must use the same instanceId as the pointer runId.',
-			);
-		}
 		// Upsert so a terminal write heals a start pointer lost to a transient
 		// fault; on conflict the original started_at is preserved.
 		this.sql.exec(
 			`INSERT INTO flue_registry_runs
-			 (run_id, owner_kind, instance_id, workflow_name, status, started_at, ended_at, duration_ms, is_error)
-			 VALUES (?, 'workflow', ?, ?, ?, ?, ?, ?, ?)
+			 (run_id, workflow_name, status, started_at, ended_at, duration_ms, is_error)
+			 VALUES (?, ?, ?, ?, ?, ?, ?)
 			 ON CONFLICT(run_id) DO UPDATE SET
 			   status = excluded.status,
 			   ended_at = excluded.ended_at,
 			   duration_ms = excluded.duration_ms,
 			   is_error = excluded.is_error`,
 			input.runId,
-			input.owner.instanceId,
-			input.owner.workflowName,
+			input.workflowName,
 			input.isError ? 'errored' : 'completed',
 			input.startedAt,
 			input.endedAt,
@@ -127,7 +115,7 @@ class SqlRegistryOps implements RegistryOps {
 
 	lookupRun(runId: string): RunPointer | null {
 		const row = this.sql
-			.exec("SELECT * FROM flue_registry_runs WHERE run_id = ? AND owner_kind = 'workflow'", runId)
+			.exec('SELECT * FROM flue_registry_runs WHERE run_id = ?', runId)
 			.toArray()[0];
 		return row ? rowToRunPointer(row) : null;
 	}
@@ -135,7 +123,7 @@ class SqlRegistryOps implements RegistryOps {
 	listRuns(opts: ListRunsOpts): ListRunsResponse {
 		const limit = clampLimit(opts.limit);
 		const cursor = decodeRunCursor(opts.cursor);
-		const wheres: string[] = ["owner_kind = 'workflow'"];
+		const wheres: string[] = [];
 		const bindings: unknown[] = [];
 		if (opts.status) {
 			wheres.push('status = ?');
@@ -149,9 +137,10 @@ class SqlRegistryOps implements RegistryOps {
 			wheres.push('(started_at < ? OR (started_at = ? AND run_id < ?))');
 			bindings.push(cursor.startedAt, cursor.startedAt, cursor.runId);
 		}
+		const where = wheres.length > 0 ? `WHERE ${wheres.join(' AND ')}` : '';
 		const rows = this.sql
 			.exec(
-				`SELECT * FROM flue_registry_runs WHERE ${wheres.join(' AND ')}
+				`SELECT * FROM flue_registry_runs ${where}
 			 ORDER BY started_at DESC, run_id DESC LIMIT ?`,
 				...bindings,
 				limit + 1,
@@ -168,8 +157,6 @@ function ensureRegistryTables(sql: SqlStorage): void {
 	sql.exec(
 		`CREATE TABLE IF NOT EXISTS flue_registry_runs (
 		 run_id TEXT PRIMARY KEY,
-		 owner_kind TEXT NOT NULL,
-		 instance_id TEXT,
 		 workflow_name TEXT,
 		 status TEXT NOT NULL,
 		 started_at TEXT NOT NULL,
@@ -182,19 +169,14 @@ function ensureRegistryTables(sql: SqlStorage): void {
 		'CREATE INDEX IF NOT EXISTS flue_registry_status_started_idx ON flue_registry_runs (status, started_at DESC)',
 	);
 	sql.exec(
-		'CREATE INDEX IF NOT EXISTS flue_registry_workflow_started_idx ON flue_registry_runs (owner_kind, workflow_name, started_at DESC)',
+		'CREATE INDEX IF NOT EXISTS flue_registry_workflow_started_idx ON flue_registry_runs (workflow_name, started_at DESC)',
 	);
 }
 
 function rowToRunPointer(row: SqlRow): RunPointer {
-	const runId = String(row.run_id);
 	return {
-		runId,
-		owner: {
-			kind: 'workflow',
-			workflowName: String(row.workflow_name),
-			instanceId: String(row.instance_id ?? runId),
-		},
+		runId: String(row.run_id),
+		workflowName: String(row.workflow_name),
 		status: String(row.status) as RunStatus,
 		startedAt: String(row.started_at),
 		endedAt: typeof row.ended_at === 'string' ? row.ended_at : undefined,
