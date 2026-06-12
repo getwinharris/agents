@@ -2056,23 +2056,31 @@ if (args.command !== 'dev' && args.command !== 'logs') {
 	});
 }
 
-if (args.command === 'build') {
-	buildCommand(args);
-} else if (args.command === 'dev') {
-	if (process.env[INTERNAL_DEV_SESSION] === '1') {
-		delete process.env[INTERNAL_DEV_SESSION];
-		devCommand(args);
-	} else superviseDevCommand(args);
-} else if (args.command === 'add') {
-	addCommand(args);
-} else if (args.command === 'docs') {
-	docsCommand(args);
-} else if (args.command === 'init') {
-	initCommand(args);
-} else if (args.command === 'logs') {
-	logsCommand(args);
-} else if (args.command === 'connect') {
-	connectCommand(args);
-} else {
-	run(args);
+async function main() {
+	if (args.command === 'build') {
+		await buildCommand(args);
+	} else if (args.command === 'dev') {
+		if (process.env[INTERNAL_DEV_SESSION] === '1') {
+			delete process.env[INTERNAL_DEV_SESSION];
+			await devCommand(args);
+		} else superviseDevCommand(args);
+	} else if (args.command === 'add') {
+		await addCommand(args);
+	} else if (args.command === 'docs') {
+		docsCommand(args);
+	} else if (args.command === 'init') {
+		initCommand(args);
+	} else if (args.command === 'logs') {
+		await logsCommand(args);
+	} else if (args.command === 'connect') {
+		await connectCommand(args);
+	} else {
+		await run(args);
+	}
 }
+
+void main().catch((err) => {
+	console.error(`[flue] ${err instanceof Error ? err.message : String(err)}`);
+	stopLocalProcess();
+	process.exit(1);
+});
