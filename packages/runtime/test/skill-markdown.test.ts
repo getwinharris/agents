@@ -35,6 +35,19 @@ describe('parseSkillMarkdown()', () => {
 		});
 	});
 
+	it('parses frontmatter when SKILL markdown starts with a UTF-8 BOM', () => {
+		expect(
+			parseSkillMarkdown('\uFEFF---\nname: pdf-processing\ndescription: Useful.\n---\nBody', {
+				directoryName: 'pdf-processing',
+				path: '/skills/pdf-processing/SKILL.md',
+			}),
+		).toMatchObject({
+			name: 'pdf-processing',
+			description: 'Useful.',
+			body: 'Body',
+		});
+	});
+
 	it('rejects missing frontmatter when SKILL markdown has no YAML block', () => {
 		expect(() =>
 			parseSkillMarkdown('# PDF processing\n\nUse the PDF process.', {

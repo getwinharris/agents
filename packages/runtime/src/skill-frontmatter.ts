@@ -19,7 +19,9 @@ export function parseSkillMarkdown(
 	content: string,
 	options: ParseSkillMarkdownOptions,
 ): ParsedSkillMarkdown {
-	const match = content.match(/^---\s*\r?\n([\s\S]*?)\r?\n---\s*(?:\r?\n|$)([\s\S]*)$/);
+	const match = content
+		.replace(/^\uFEFF/, '')
+		.match(/^---\s*\r?\n([\s\S]*?)\r?\n---\s*(?:\r?\n|$)([\s\S]*)$/);
 	if (!match) {
 		throw new Error(
 			`[flue] Skill ${options.path} is missing YAML frontmatter. Start SKILL.md with "---", include "name" and "description", then close the block with "---".`,
