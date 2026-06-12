@@ -984,8 +984,8 @@ function waitForLocalReady(
 		const timeout = setTimeout(() => {
 			cleanup();
 			child.kill('SIGTERM');
-			reject(new Error('Local execution process did not become ready within 5 seconds.'));
-		}, 5000);
+			reject(new Error('Local execution process did not become ready within 60 seconds.'));
+		}, 60_000);
 		const onMessage = (raw: unknown) => {
 			const message = raw as LocalCliMessage;
 			if (message.type === 'error') {
