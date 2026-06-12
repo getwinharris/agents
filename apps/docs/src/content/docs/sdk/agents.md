@@ -15,10 +15,23 @@ Sends one prompt to a persistent agent instance and waits for the terminal resul
 
 ### `AgentPromptOptions`
 
-| Field     | Type          | Description                        |
-| --------- | ------------- | ---------------------------------- |
-| `message` | `string`      | Prompt sent to the agent instance. |
-| `signal`  | `AbortSignal` | Cancel the in-flight HTTP request. |
+| Field     | Type                 | Description                                                              |
+| --------- | -------------------- | ------------------------------------------------------------------------ |
+| `message` | `string`             | Prompt sent to the agent instance.                                       |
+| `images`  | `AgentPromptImage[]` | Optional image attachments. Requires a vision-capable model.             |
+| `signal`  | `AbortSignal`        | Cancel the in-flight HTTP request.                                       |
+
+### `AgentPromptImage`
+
+```ts
+interface AgentPromptImage {
+  type: 'image';
+  data: string;
+  mimeType: string;
+}
+```
+
+`data` is the base64-encoded image content and `mimeType` its media type, such as `image/png`. The server rejects images whose `data` exceeds 14 MiB of base64 characters.
 
 ### `AgentPromptResult`
 

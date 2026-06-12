@@ -53,6 +53,22 @@ export default createAgent(() => ({
 
 For more details, see [Tools](/docs/guide/tools/), [Skills](/docs/guide/skills/), [Sandboxes](/docs/guide/sandboxes/), and [Database](/docs/guide/database/).
 
+### Markdown instructions
+
+Long instructions can live in their own markdown file. Import a `.md` file with the `with { type: 'markdown' }` import attribute and Flue inlines its contents as a string at build time:
+
+```ts title="src/agents/repository-reviewer.ts"
+import { createAgent } from '@flue/runtime';
+import instructions from './repository-reviewer.md' with { type: 'markdown' };
+
+export default createAgent(() => ({
+  model: 'anthropic/claude-sonnet-4-6',
+  instructions,
+}));
+```
+
+The attribute is required — a `.md` import without it fails the build. `SKILL.md` files are not plain markdown and must use `with { type: 'skill' }` instead; see [Skills](/docs/guide/skills/).
+
 ## Agent ID
 
 Each agent is initialized with an `id`, which identifies the continuing instance of that agent.
@@ -86,7 +102,7 @@ In this example, the agent can access the ticket selected by its `id`, but its t
 An agent profile defines reusable behavior and capabilities without creating a public agent or configuring its runtime resources. Use profiles to share an agent's model, instructions, tools, or skills across your project.
 
 ```ts title="src/agents/support-assistant.ts"
-import { createAgent, defineAgentProfile, type AgentRouteHandler } from '@flue/runtime';
+import { createAgent, defineAgentProfile } from '@flue/runtime';
 import { supportTools } from '../shared/support-tools.ts';
 
 const support = defineAgentProfile({
@@ -107,7 +123,7 @@ export default createAgent(() => ({
 Subagents are another use for agent profiles: they let an agent delegate focused work to another agent.
 
 ```ts title="src/agents/policy-assistant.ts"
-import { createAgent, defineAgentProfile, type AgentRouteHandler } from '@flue/runtime';
+import { createAgent, defineAgentProfile } from '@flue/runtime';
 import { local } from '@flue/runtime/node';
 
 const policyResearcherSubagent = defineAgentProfile({
@@ -146,6 +162,8 @@ Content-Type: application/json
   "message": "Can you summarize the open issues in my case?"
 }
 ```
+
+The body may also carry an optional `images` array of `{ "type": "image", "data": "<base64>", "mimeType": "image/png" }` attachments for vision-capable models. See the [Routing API](/docs/api/routing-api/) for the full request contract.
 
 Use the `route` handler to protect direct HTTP access to an agent instance:
 
