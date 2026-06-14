@@ -1,7 +1,6 @@
 ---
 title: Notion Channel API
 description: Reference for verified Notion webhook ingress from @flue/notion.
-lastReviewedAt: 2026-06-13
 ---
 
 Import from `@flue/notion`.

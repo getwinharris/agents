@@ -1,7 +1,6 @@
 ---
 title: Microsoft Teams Channel API
 description: Reference for authenticated Microsoft Teams Bot Connector ingress from @flue/teams.
-lastReviewedAt: 2026-06-13
 ---
 
 Import from `@flue/teams`.

@@ -1,7 +1,6 @@
 ---
 title: GitHub Channel API
 description: Reference for verified GitHub webhook ingress from @flue/github.
-lastReviewedAt: 2026-06-13
 ---
 
 Import from `@flue/github`.

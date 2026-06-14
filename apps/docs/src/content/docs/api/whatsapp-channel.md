@@ -1,7 +1,6 @@
 ---
 title: WhatsApp Channel API
 description: Reference for verified WhatsApp Business Cloud ingress from @flue/whatsapp.
-lastReviewedAt: 2026-06-13
 ---
 
 Import from `@flue/whatsapp`.

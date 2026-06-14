@@ -1,7 +1,6 @@
 ---
 title: Resend Channel API
 description: Reference for verified Resend webhook ingress from @flue/resend.
-lastReviewedAt: 2026-06-13
 ---
 
 Import from `@flue/resend`.

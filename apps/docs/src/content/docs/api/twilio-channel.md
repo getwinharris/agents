@@ -1,7 +1,6 @@
 ---
 title: Twilio Channel API
 description: Reference for verified Twilio Programmable Messaging ingress from @flue/twilio.
-lastReviewedAt: 2026-06-13
 ---
 
 Import from `@flue/twilio`.

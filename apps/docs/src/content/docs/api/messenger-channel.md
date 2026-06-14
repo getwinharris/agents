@@ -1,7 +1,6 @@
 ---
 title: Messenger Channel API
 description: Reference for verified Facebook Messenger Page ingress from @flue/messenger.
-lastReviewedAt: 2026-06-13
 ---
 
 Import from `@flue/messenger`.

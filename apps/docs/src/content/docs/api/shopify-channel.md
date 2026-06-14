@@ -1,7 +1,6 @@
 ---
 title: Shopify Channel API
 description: Reference for verified Shopify webhook ingress from @flue/shopify.
-lastReviewedAt: 2026-06-13
 ---
 
 Import from `@flue/shopify`.

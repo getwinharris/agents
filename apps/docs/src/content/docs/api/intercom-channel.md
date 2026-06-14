@@ -1,7 +1,6 @@
 ---
 title: Intercom Channel API
 description: Reference for verified Intercom webhook ingress from @flue/intercom.
-lastReviewedAt: 2026-06-13
 ---
 
 Import from `@flue/intercom`.

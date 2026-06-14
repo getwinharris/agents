@@ -1,7 +1,6 @@
 ---
 title: Stripe Channel API
 description: Reference for verified Stripe webhook ingress from @flue/stripe.
-lastReviewedAt: 2026-06-13
 ---
 
 Import from `@flue/stripe`.

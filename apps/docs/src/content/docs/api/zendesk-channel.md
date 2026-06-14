@@ -1,7 +1,6 @@
 ---
 title: Zendesk Channel API
 description: Reference for verified Zendesk event-subscription ingress from @flue/zendesk.
-lastReviewedAt: 2026-06-13
 ---
 
 Import from `@flue/zendesk`.

@@ -1,7 +1,6 @@
 ---
 title: Linear Channel API
 description: Reference for verified Linear ingress from @flue/linear.
-lastReviewedAt: 2026-06-13
 ---
 
 Import from `@flue/linear`.

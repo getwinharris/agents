@@ -1,7 +1,6 @@
 ---
 title: Telegram Channel API
 description: Reference for verified Telegram Bot API ingress from @flue/telegram.
-lastReviewedAt: 2026-06-13
 ---
 
 Import from `@flue/telegram`.

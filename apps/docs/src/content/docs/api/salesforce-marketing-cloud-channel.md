@@ -1,7 +1,6 @@
 ---
 title: Salesforce Marketing Cloud Channel API
 description: Reference for Marketing Cloud Engagement ENS ingress from @flue/salesforce-marketing-cloud.
-lastReviewedAt: 2026-06-13
 ---
 
 Import from `@flue/salesforce-marketing-cloud`.
