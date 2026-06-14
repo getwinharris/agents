@@ -51,6 +51,7 @@ before(async () => {
 			shopify: 'channel--shopify.md',
 			intercom: 'channel--intercom.md',
 			zendesk: 'channel--zendesk.md',
+			'salesforce-marketing-cloud': 'channel--salesforce-marketing-cloud.md',
 			slack: 'channel--slack.md',
 			discord: 'channel--discord.md',
 			teams: 'channel--teams.md',
@@ -96,6 +97,10 @@ describe('flue add', () => {
 			/flue add intercom\s+channel\s+https:\/\/developers\.intercom\.com/,
 		);
 		assert.match(result.stderr, /flue add zendesk\s+channel\s+https:\/\/developer\.zendesk\.com/);
+		assert.match(
+			result.stderr,
+			/flue add salesforce-marketing-cloud\s+channel\s+https:\/\/developer\.salesforce\.com/,
+		);
 		assert.match(result.stderr, /flue add slack\s+channel\s+https:\/\/slack\.com/);
 		assert.match(
 			result.stderr,
@@ -219,6 +224,19 @@ describe('flue add', () => {
 		assert.ok(result.stdout.includes('/api/v2/tickets/'));
 		assert.ok(result.stdout.includes('nodejs_compat'));
 		assert.ok(result.stdout.includes('Never create or modify a live webhook'));
+	});
+
+	it('prints the Salesforce Marketing Cloud recipe with signed ENS batches', async () => {
+		const result = await runCli(['add', 'salesforce-marketing-cloud', '--print']);
+
+		assert.equal(result.code, 0);
+		assert.ok(result.stdout.includes('@flue/salesforce-marketing-cloud'));
+		assert.ok(result.stdout.includes('/channels/salesforce-marketing-cloud/events'));
+		assert.ok(result.stdout.includes('x-sfmc-ens-signature'));
+		assert.ok(result.stdout.includes('.rest.marketingcloudapis.com'));
+		assert.ok(result.stdout.includes('/platform/v1/ens-callbacks/'));
+		assert.ok(result.stdout.includes('nodejs_compat'));
+		assert.ok(result.stdout.includes('Never register or modify a live callback'));
 	});
 
 	it('prints the Twilio recipe with the Workers-compatible Fetch path', async () => {

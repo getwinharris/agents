@@ -62,6 +62,10 @@ export const docsSections: DocsSection[] = [
 							{ title: 'Shopify', slug: 'guide/channels/shopify' },
 							{ title: 'Intercom', slug: 'guide/channels/intercom' },
 							{ title: 'Zendesk', slug: 'guide/channels/zendesk' },
+							{
+								title: 'Salesforce Marketing Cloud',
+								slug: 'guide/channels/salesforce-marketing-cloud',
+							},
 							{ title: 'Slack', slug: 'guide/channels/slack' },
 							{ title: 'Discord', slug: 'guide/channels/discord' },
 							{ title: 'Microsoft Teams', slug: 'guide/channels/teams' },
@@ -112,6 +116,10 @@ export const docsSections: DocsSection[] = [
 					{ title: 'Shopify Channel', slug: 'api/shopify-channel' },
 					{ title: 'Intercom Channel', slug: 'api/intercom-channel' },
 					{ title: 'Zendesk Channel', slug: 'api/zendesk-channel' },
+					{
+						title: 'Salesforce Marketing Cloud Channel',
+						slug: 'api/salesforce-marketing-cloud-channel',
+					},
 					{ title: 'Slack Channel', slug: 'api/slack-channel' },
 					{ title: 'Discord Channel', slug: 'api/discord-channel' },
 					{ title: 'Teams Channel', slug: 'api/teams-channel' },

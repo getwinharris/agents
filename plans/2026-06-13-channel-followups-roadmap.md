@@ -193,6 +193,247 @@ directory highlights inbound email through Resend as a useful platform class.
   client both execute reliably in Node and Cloudflare Workers. Otherwise
   record the eligible subsets or transport blocker and defer the channel.
 
+### Salesforce Marketing Cloud implementation — 2026-06-13
+
+Status:
+
+- Complete.
+
+Primary sources:
+
+- Salesforce Marketing Cloud Engagement Event Notification Service overview,
+  setup, activity sequence, callback creation and verification, notification
+  signing, retries and callback suspensions, OAuth callback authentication,
+  supported event families, and representative event payload documentation.
+- Salesforce Platform Pub/Sub API, Change Data Capture, Platform Events,
+  Streaming API, and Outbound Messaging documentation.
+- Salesforce REST API OAuth and tenant-specific endpoint documentation.
+- Current Cloudflare Workers Fetch, Web Crypto, Node.js compatibility, and
+  workerd-testing documentation.
+
+Clean-room affirmation:
+
+- The design and future fixtures derive from Salesforce and Cloudflare primary
+  specifications and original synthetic payloads. No third-party adapter
+  implementation, types, fixtures, payloads, snapshots, or tests are being
+  copied or translated.
+
+Eligibility:
+
+- A generic Salesforce channel is not eligible. Core Salesforce CRM event
+  delivery is primarily gRPC or CometD subscriber transport, while SOAP
+  Outbound Messaging relies on transport-level client certificates and
+  customer-defined endpoint controls rather than a portable signed payload
+  contract available to a Hono handler.
+- Marketing Cloud Engagement Event Notification Service is independently
+  eligible. ENS verifies callback ownership with a one-time JSON payload and
+  then delivers batches of provider events by stateless HTTPS `POST`.
+- ENS signs the entire exact notification payload with HMAC-SHA256 using a
+  callback-specific signature key and sends the base64 signature in
+  `x-sfmc-ens-signature`.
+- ENS delivery is at least once. A callback has three seconds to return `200`,
+  `201`, `202`, `203`, or `204`; failed delivery is retried immediately and
+  then at decreasing intervals for up to seven days.
+- Data 360 webhook Data Action Targets appear separately eligible but remain a
+  future provider-specific research item because current documentation leaves
+  exact JSON signing canonicalization and delivery semantics less explicit.
+
+Design:
+
+- Add `@flue/salesforce-marketing-cloud`,
+  `examples/salesforce-marketing-cloud-channel`,
+  `flue add salesforce-marketing-cloud`, a setup guide, and an API reference.
+  Do not alias this as generic `salesforce`; the package supports Marketing
+  Cloud Engagement ENS, not the CRM platform as a whole.
+- Publish one fixed `POST /events` route.
+- Accept optional `signatureKey`, optional `callbackId`, `bodyLimit`,
+  `handlerTimeoutMs`, an optional setup-only `verification` callback, and a
+  required signed-batch `events` callback.
+- Recognize only the exact unsigned callback-verification shape containing
+  `callbackId` and `verificationKey`. Reject unsigned requests when no
+  `verification` handler is configured; otherwise deliver the challenge to
+  setup code and return `200`. Do not treat it as authenticated application
+  ingress.
+- Require the callback signature key before accepting notification batches.
+  Use the opaque callback `signatureKey` string directly as the UTF-8 HMAC key,
+  base64-decode only `x-sfmc-ens-signature`, verify the exact body bytes with
+  Web Crypto before UTF-8 decoding or JSON parsing, and optionally restrict the
+  verification callback id.
+- Deliver one typed batch containing open provider-native events. Validate the
+  durable fields shared by the documented families: non-empty
+  `eventCategoryType` and nonnegative integer `timestampUTC`. Normalize
+  `compositeId`, `mid`, `eid`, and JSON `info` only when present and valid;
+  preserve future event families and all additional provider fields.
+- Expose the exact verified body and ordered event array. Do not claim a
+  universal delivery id or conversation key across email, SMS, OTT,
+  MobilePush, and Automation Studio. `compositeId` is absent from some
+  families and is deprecated for transactional email; applications use
+  family-specific native identity for deduplication.
+- Apply a complete-route deadline defaulting to and capped at 2500ms, leaving
+  time before ENS's three-second timeout. Channel-owned callback failure,
+  invalid result, or timeout returns `500` so ENS retries.
+- Preserve ordinary handler results, but document that only `200` through
+  `204` acknowledge ENS delivery. No value and JSON produce `200`; an
+  application-returned `Response` passes through unchanged.
+
+Dependencies and example:
+
+- `@flue/salesforce-marketing-cloud` depends only on Hono and Web Crypto. It
+  does not depend on a Salesforce SDK or `@flue/runtime`.
+- The editable example exports a narrow project-owned Fetch client using a
+  trusted tenant-specific Marketing Cloud REST origin and application-owned
+  OAuth access token. It does not use `@salesforce/core`, whose primary
+  contract is Salesforce CLI and DX tooling rather than Workers applications.
+- The example handles selected transactional and engagement email events with
+  grouped switch cases, derives application identity only from fields
+  validated for those event families, and dispatches each event separately
+  while acknowledging the provider batch once.
+- Node and workerd tests will execute the same Fetch client against a
+  fail-closed fake transport under Flue's canonical `nodejs_compat`
+  configuration.
+
+Non-goals and deferrals:
+
+- Callback creation and verification API calls, subscription creation,
+  subscription filters, OAuth installation, token storage and refresh, IP
+  allowlisting, deduplication, persistence, event replay, and broad Marketing
+  Cloud outbound tools.
+- Salesforce CRM Pub/Sub API, Change Data Capture, Platform Events subscriber
+  transport, Streaming API, and generic Apex or Flow callout payloads.
+- SOAP Outbound Messaging until Flue intentionally supports transport-level
+  client-certificate identity as part of the channel contract.
+- Salesforce Data 360 webhooks until their exact signing and retry semantics
+  are sufficiently documented and independently tested.
+
+Foundation reflection to revisit after implementation:
+
+- Whether a provider batch callback fits the existing single-object handler
+  contract without shared batching machinery.
+- Whether an unsigned one-time setup callback plus later signed traffic
+  reveals any reusable setup-route pattern or should remain provider-specific.
+- Whether strict acknowledgment status ranges need any shared representation
+  beyond provider documentation and tests.
+
+Implementation:
+
+- Added `@flue/salesforce-marketing-cloud` with one fixed `POST /events`
+  route. It handles the unsigned callback-ownership challenge only when a
+  setup handler is configured, authenticates signed ENS batches over the exact
+  request bytes, preserves provider order and open event fields, enforces the
+  documented 1000-event limit, and applies a complete-route deadline below
+  Salesforce's three-second response limit.
+- Added original Node and workerd suites covering the literal opaque signature
+  key, valid and changed exact bytes, malformed signatures, setup verification,
+  callback-id restrictions, media and body failures, invalid UTF-8 and JSON,
+  streamed and declared limits, common and family-dependent fields, maximum
+  batch size, handler results, application failure, deadlines, route
+  publication, and Hono environment typing.
+- Added `examples/salesforce-marketing-cloud-channel` with a project-owned
+  tenant-bound Fetch client, grouped transactional and engagement email event
+  handling, application-local email identity, ordered dispatch with one batch
+  acknowledgment, and a callback-lookup tool bound to trusted callback and
+  credential configuration.
+- Added `flue add salesforce-marketing-cloud`, the connector recipe, setup and
+  API documentation, navigation and channel overview entries, README,
+  changelog, lockfile, and publish preparation coverage.
+
+Validation:
+
+- Package build and strict typecheck pass. Twelve Node ingress tests and three
+  workerd ingress tests pass; workerd executes valid, changed, and malformed
+  exact-body signatures, setup verification, family-shape differences,
+  streamed limiting, and normal handler results with `nodejs_compat`.
+- Example strict typecheck passes. Three Node tests and one workerd test
+  execute the project-owned callback client against fail-closed Fetch and
+  validate the trusted Marketing Cloud tenant origin and local email
+  identity. Node and Cloudflare target builds pass.
+- A built Node application returned `204` for an original locally signed
+  future event batch and `401` for the changed body with the original
+  signature.
+- The generated full Flue Cloudflare Worker ran through Wrangler's local
+  workerd runtime with its actual `nodejs_compat` configuration and bound
+  environment variables. The same original and changed requests returned
+  `204` and `401`.
+- The full CLI suite passes: 57 Node tests and 24 Vitest tests. The generated
+  connector index lists Salesforce Marketing Cloud, the built CLI prints the
+  intended recipe, and the connector website build serves
+  `/cli/connectors/salesforce-marketing-cloud.md`.
+- Documentation check and production build pass with zero diagnostics and
+  generate the Salesforce Marketing Cloud guide and API reference.
+- Publish preparation and package packing pass. The tarball contains 103
+  intended distribution, prepared documentation, README, license, and
+  manifest files, with no source, tests, build configuration, or
+  `node_modules`.
+- A clean strict TypeScript consumer installed only the packed package and its
+  declared dependencies, compiled a custom Hono environment, imported the
+  constructor at runtime, and observed `/events`. A separate packed-package
+  workerd consumer executed signed verification with `nodejs_compat`.
+- Focused Biome, Prettier, whitespace, and credential-pattern checks pass. No
+  test or build contacted Salesforce.
+
+Corrections and deviations:
+
+- The initial design inferred that the base64-looking callback
+  `signatureKey` should be decoded. Salesforce's signing instructions decode
+  only `x-sfmc-ens-signature` and use the callback key directly. The package,
+  tests, example, recipe, and docs now treat `signatureKey` as opaque UTF-8
+  HMAC key material.
+- The initial design required `compositeId`, `mid`, `eid`, and `info` on every
+  event. Official family documentation disproves that universal envelope:
+  Automation Studio omits email tracking fields and OTT families can represent
+  tenant ids differently. Only `eventCategoryType` and `timestampUTC` are
+  universal package requirements; other fields remain validated optional
+  projections over the complete `raw` provider object.
+- `compositeId` is deprecated for transactional email and absent elsewhere, so
+  the package does not expose a universal delivery or conversation key. The
+  example composes a local identity only after validating the selected email
+  families' tenant and composite object fields.
+- Unsigned callback verification remains on the same provider-required
+  `/events` endpoint but is fail-closed unless the application deliberately
+  configures a setup handler. Flue returns the required empty `200`; the
+  application still owns `/platform/v1/ens-verify`, OAuth, and callback
+  lifecycle.
+- Cloudflare validation uses Flue's canonical `nodejs_compat` configuration.
+  The verification and Fetch-client paths happen to require only standard Web
+  APIs, but avoiding supported Node APIs is not a compatibility requirement.
+
+Foundation reflection:
+
+- A provider batch fits the existing single-object handler contract cleanly as
+  `{ c, batch }`. Provider order, one acknowledgment, and exact raw body remain
+  local semantics; shared batching machinery would remove useful protocol
+  distinctions without solving a concrete failure.
+- An unsigned setup payload followed by signed traffic does not justify a
+  shared setup abstraction. Notion and Salesforce have different challenge,
+  lifecycle, authentication, and response semantics, while the existing fixed
+  route and extensible callback contracts already express both.
+- Provider acknowledgment ranges remain documentation and test concerns.
+  Normal `Response` passthrough is the useful shared contract; a generic
+  acknowledgment wrapper would duplicate Hono and obscure intentional
+  redelivery responses.
+- Fixed discovery, one-object callbacks, ordinary JSON and `Response`
+  handling, project-owned clients and tools, and the actual `nodejs_compat`
+  workerd gate all held. No shared runtime machinery change is justified.
+
+Focused review:
+
+- One independent review identified stale lockfile risk, fail-closed handling
+  of unrecognized optional event-field shapes, non-canonical example identity
+  serialization, and a guide/example event-list mismatch.
+- The lockfile had already been regenerated before review completion and a
+  frozen install passes. Optional fields now project only when they match the
+  documented common type while remaining intact in `raw`; tests protect this
+  future-family behavior. The example now serializes a fixed canonical
+  reference and rejects non-canonical encodings, and the guide shows the same
+  six grouped email cases as the executable module.
+- No remaining concrete correctness, security, provider protocol, Hono,
+  timeout, body handling, type-contract, Cloudflare, example-client,
+  packaging, documentation, recipe, or durable test gap was identified.
+- Residual risks are provider-owned or explicit: ENS provides no universal
+  delivery id or signed timestamp, retries can repeat a whole batch for up to
+  seven days, setup verification is intentionally unsigned, and
+  already-started JavaScript work cannot be forcibly cancelled after timeout.
+
 Research these one at a time. A provider being popular is not enough to relax
 the HTTP, clean-room, or Cloudflare gates.
 

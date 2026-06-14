@@ -6,24 +6,25 @@ description: Receive verified provider events and connect them to Flue agents.
 A channel receives provider HTTP events, verifies and normalizes them, and lets
 your application decide what happens next. Flue provides ingress packages for:
 
-| Provider    | Package             | Discovered routes                                                                       |
-| ----------- | ------------------- | --------------------------------------------------------------------------------------- |
-| GitHub      | `@flue/github`      | `/channels/<file>/webhook`                                                              |
-| Stripe      | `@flue/stripe`      | `/channels/<file>/webhook`                                                              |
-| Notion      | `@flue/notion`      | `/channels/<file>/webhook`                                                              |
-| Resend      | `@flue/resend`      | `/channels/<file>/webhook`                                                              |
-| Shopify     | `@flue/shopify`     | `/channels/<file>/webhook`                                                              |
-| Intercom    | `@flue/intercom`    | `/channels/<file>/webhook` (`HEAD`, `POST`)                                             |
-| Zendesk     | `@flue/zendesk`     | `/channels/<file>/webhook`                                                              |
-| Slack       | `@flue/slack`       | `/channels/<file>/events`, `/channels/<file>/interactions`, `/channels/<file>/commands` |
-| Discord     | `@flue/discord`     | `/channels/<file>/interactions`                                                         |
-| Teams       | `@flue/teams`       | `/channels/<file>/activities`                                                           |
-| Google Chat | `@flue/google-chat` | `/channels/<file>/interactions`, `/channels/<file>/events`                              |
-| Linear      | `@flue/linear`      | `/channels/<file>/webhook`                                                              |
-| Telegram    | `@flue/telegram`    | `/channels/<file>/webhook`                                                              |
-| WhatsApp    | `@flue/whatsapp`    | `/channels/<file>/webhook`                                                              |
-| Twilio      | `@flue/twilio`      | `/channels/<file>/webhook`, `/channels/<file>/status`                                   |
-| Messenger   | `@flue/messenger`   | `/channels/<file>/webhook`                                                              |
+| Provider                   | Package                            | Discovered routes                                                                       |
+| -------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------- |
+| GitHub                     | `@flue/github`                     | `/channels/<file>/webhook`                                                              |
+| Stripe                     | `@flue/stripe`                     | `/channels/<file>/webhook`                                                              |
+| Notion                     | `@flue/notion`                     | `/channels/<file>/webhook`                                                              |
+| Resend                     | `@flue/resend`                     | `/channels/<file>/webhook`                                                              |
+| Shopify                    | `@flue/shopify`                    | `/channels/<file>/webhook`                                                              |
+| Intercom                   | `@flue/intercom`                   | `/channels/<file>/webhook` (`HEAD`, `POST`)                                             |
+| Zendesk                    | `@flue/zendesk`                    | `/channels/<file>/webhook`                                                              |
+| Salesforce Marketing Cloud | `@flue/salesforce-marketing-cloud` | `/channels/<file>/events`                                                               |
+| Slack                      | `@flue/slack`                      | `/channels/<file>/events`, `/channels/<file>/interactions`, `/channels/<file>/commands` |
+| Discord                    | `@flue/discord`                    | `/channels/<file>/interactions`                                                         |
+| Teams                      | `@flue/teams`                      | `/channels/<file>/activities`                                                           |
+| Google Chat                | `@flue/google-chat`                | `/channels/<file>/interactions`, `/channels/<file>/events`                              |
+| Linear                     | `@flue/linear`                     | `/channels/<file>/webhook`                                                              |
+| Telegram                   | `@flue/telegram`                   | `/channels/<file>/webhook`                                                              |
+| WhatsApp                   | `@flue/whatsapp`                   | `/channels/<file>/webhook`                                                              |
+| Twilio                     | `@flue/twilio`                     | `/channels/<file>/webhook`, `/channels/<file>/status`                                   |
+| Messenger                  | `@flue/messenger`                  | `/channels/<file>/webhook`                                                              |
 
 The packages own signature verification, body limits, provider handshakes,
 identity checks, typed event normalization, and acknowledgement behavior. They
@@ -41,6 +42,7 @@ flue add resend --print | codex
 flue add shopify --print | codex
 flue add intercom --print | codex
 flue add zendesk --print | codex
+flue add salesforce-marketing-cloud --print | codex
 flue add slack --print | codex
 flue add discord --print | codex
 flue add teams --print | codex
@@ -73,6 +75,7 @@ See the provider guides for [GitHub](/docs/guide/channels/github/),
 [Shopify](/docs/guide/channels/shopify/),
 [Intercom](/docs/guide/channels/intercom/),
 [Zendesk](/docs/guide/channels/zendesk/),
+[Salesforce Marketing Cloud](/docs/guide/channels/salesforce-marketing-cloud/),
 [Slack](/docs/guide/channels/slack/),
 [Discord](/docs/guide/channels/discord/),
 [Microsoft Teams](/docs/guide/channels/teams/),
@@ -97,6 +100,8 @@ src/channels/shopify.ts -> /channels/shopify/webhook
 src/channels/intercom.ts
                          -> /channels/intercom/webhook (HEAD, POST)
 src/channels/zendesk.ts  -> /channels/zendesk/webhook
+src/channels/salesforce-marketing-cloud.ts
+                         -> /channels/salesforce-marketing-cloud/events
 src/channels/slack.ts   -> /channels/slack/events
                           /channels/slack/interactions
                           /channels/slack/commands

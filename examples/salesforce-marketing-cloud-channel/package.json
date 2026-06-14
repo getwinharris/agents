@@ -1,0 +1,23 @@
+{
+	"name": "salesforce-marketing-cloud-channel-example",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "flue build --target node",
+		"build:cloudflare": "flue build --target cloudflare",
+		"check:types": "tsc --noEmit",
+		"test": "vitest run --config vitest.config.ts && vitest run --config vitest.workerd.config.ts"
+	},
+	"dependencies": {
+		"@flue/runtime": "workspace:*",
+		"@flue/salesforce-marketing-cloud": "workspace:*"
+	},
+	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "0.16.15",
+		"@flue/cli": "workspace:*",
+		"@types/node": "^22.10.10",
+		"agents": "^0.14.1",
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.6"
+	}
+}

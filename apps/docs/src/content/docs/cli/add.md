@@ -54,6 +54,7 @@ flue add resend --print | codex
 flue add shopify --print | codex
 flue add intercom --print | codex
 flue add zendesk --print | codex
+flue add salesforce-marketing-cloud --print | codex
 flue add slack --print | codex
 flue add discord --print | codex
 flue add teams --print | codex
