@@ -20,13 +20,13 @@ function sortDirectoryItems(a: DirectoryItem, b: DirectoryItem): number {
 const channels: DirectoryItem[] = [
 	{ name: 'Discord', href: '/docs/ecosystem/channels/discord/', icon: 'https://svgl.app/library/discord.svg', background: '#5865f2', iconClass: 'monochrome-white' },
 	{ name: 'Facebook', href: '/docs/ecosystem/channels/messenger/', mark: 'messenger', background: '#ffffff', keywords: 'messenger' },
-	{ name: 'GitHub', href: '/docs/ecosystem/channels/github/', icon: 'https://svgl.app/library/github_light.svg', background: '#181717', iconClass: 'invert' },
+	{ name: 'GitHub', href: '/docs/ecosystem/channels/github/', icon: 'https://svgl.app/library/github_light.svg', background: '#181717', iconClass: 'monochrome-white' },
 	{ name: 'Google Chat', href: '/docs/ecosystem/channels/google-chat/', icon: 'https://svgl.app/library/google-chat.svg', background: '#ffffff' },
 	{ name: 'Intercom', href: '/docs/ecosystem/channels/intercom/', mark: 'intercom', background: '#286efa' },
-	{ name: 'Linear', href: '/docs/ecosystem/channels/linear/', icon: 'https://svgl.app/library/linear.svg', background: '#000000', iconClass: 'monochrome-white' },
+	{ name: 'Linear', href: '/docs/ecosystem/channels/linear/', icon: 'https://svgl.app/library/linear.svg', background: '#181717', iconClass: 'monochrome-white' },
 	{ name: 'Microsoft Teams', href: '/docs/ecosystem/channels/teams/', icon: 'https://svgl.app/library/microsoft-teams.svg', background: '#ffffff' },
 	{ name: 'Notion', href: '/docs/ecosystem/channels/notion/', icon: 'https://svgl.app/library/notion.svg', background: '#ffffff' },
-	{ name: 'Resend', href: '/docs/ecosystem/channels/resend/', icon: 'https://svgl.app/library/resend-icon-white.svg', background: '#000000' },
+	{ name: 'Resend', href: '/docs/ecosystem/channels/resend/', icon: 'https://svgl.app/library/resend-icon-white.svg', background: '#181717' },
 	{ name: 'Salesforce Marketing Cloud', href: '/docs/ecosystem/channels/salesforce-marketing-cloud/', icon: 'https://svgl.app/library/salesforce.svg', background: '#ffffff', keywords: 'salesforce marketing cloud sfmc' },
 	{ name: 'Shopify', href: '/docs/ecosystem/channels/shopify/', icon: 'https://svgl.app/library/shopify.svg', background: '#ffffff' },
 	{ name: 'Slack', href: '/docs/ecosystem/channels/slack/', icon: 'https://svgl.app/library/slack.svg', background: '#ffffff' },
@@ -39,25 +39,30 @@ const channels: DirectoryItem[] = [
 channels.sort(sortDirectoryItems);
 
 const deploy: DirectoryItem[] = [
+	{ name: 'AWS', href: '/docs/ecosystem/deploy/aws/', icon: 'https://svgl.app/library/aws_dark.svg', background: '#181717', keywords: 'ecs express fargate ec2 cloud' },
 	{ name: 'Cloudflare', href: '/docs/ecosystem/deploy/cloudflare/', icon: 'https://svgl.app/library/cloudflare.svg', background: '#ffffff', keywords: 'workers' },
-	{ name: 'GitHub Actions', href: '/docs/ecosystem/deploy/github-actions/', icon: 'https://svgl.app/library/github_light.svg', background: '#181717', iconClass: 'invert', keywords: 'ci cd' },
+	{ name: 'Docker', href: '/docs/ecosystem/deploy/docker/', icon: 'https://svgl.app/library/docker.svg', background: '#ffffff', keywords: 'container image' },
+	{ name: 'Fly.io', href: '/docs/ecosystem/deploy/fly/', icon: 'https://svgl.app/library/fly.svg', background: '#ffffff', keywords: 'hosting machines container' },
+	{ name: 'GitHub Actions', href: '/docs/ecosystem/deploy/github-actions/', icon: 'https://svgl.app/library/github_light.svg', background: '#181717', iconClass: 'monochrome-white', keywords: 'ci cd' },
 	{ name: 'GitLab CI/CD', href: '/docs/ecosystem/deploy/gitlab-ci/', icon: 'https://svgl.app/library/gitlab.svg', background: '#ffffff', keywords: 'ci cd' },
-	{ name: 'Node.js', href: '/docs/ecosystem/deploy/node/', mark: 'JS', background: '#339933', keywords: 'node hosting server' },
+	{ name: 'Node.js', href: '/docs/ecosystem/deploy/node/', icon: 'https://svgl.app/library/nodejs.svg', background: '#ffffff', keywords: 'node hosting server' },
+	{ name: 'Railway', href: '/docs/ecosystem/deploy/railway/', icon: 'https://svgl.app/library/railway.svg', background: '#181717', iconClass: 'invert', keywords: 'hosting node container' },
 	{ name: 'Render', href: '/docs/ecosystem/deploy/render/', icon: 'https://svgl.app/library/render_black.svg', background: '#ffffff', iconClass: 'ecosystem-logo-large', keywords: 'hosting node' },
+	{ name: 'SST', href: '/docs/ecosystem/deploy/sst/', icon: 'https://svgl.app/library/sst.svg', background: '#ffffff', keywords: 'iac infrastructure aws fargate' },
 ];
 deploy.sort(sortDirectoryItems);
 
 const sandboxes: DirectoryItem[] = [
-	{ name: 'boxd', href: '/docs/ecosystem/sandboxes/boxd/', mark: 'b', background: '#121212' },
+	{ name: 'boxd', href: '/docs/ecosystem/sandboxes/boxd/', background: '#2563eb' },
 	{ name: 'Cloudflare Sandbox', href: '/docs/ecosystem/sandboxes/cloudflare/', icon: 'https://svgl.app/library/cloudflare.svg', background: '#ffffff' },
 	{ name: '@cloudflare/shell', href: '/docs/ecosystem/sandboxes/cloudflare-shell/', icon: 'https://svgl.app/library/cloudflare.svg', background: '#ffffff', keywords: 'cloudflare shell', sortName: 'Cloudflare Shell' },
-	{ name: 'Daytona', href: '/docs/ecosystem/sandboxes/daytona/', brand: 'daytona', background: '#161616' },
+	{ name: 'Daytona', href: '/docs/ecosystem/sandboxes/daytona/', brand: 'daytona', background: '#181717' },
 	{ name: 'E2B', href: '/docs/ecosystem/sandboxes/e2b/', brand: 'e2b', background: '#ffffff' },
-	{ name: 'exe.dev', href: '/docs/ecosystem/sandboxes/exedev/', mark: '>_', background: '#18222d' },
-	{ name: 'islo', href: '/docs/ecosystem/sandboxes/islo/', mark: 'is', background: '#4f46e5' },
-	{ name: 'Mirage', href: '/docs/ecosystem/sandboxes/mirage/', mark: 'M', background: '#7c3aed' },
+	{ name: 'exe.dev', href: '/docs/ecosystem/sandboxes/exedev/', background: '#2563eb' },
+	{ name: 'islo', href: '/docs/ecosystem/sandboxes/islo/', background: '#2563eb' },
+	{ name: 'Mirage', href: '/docs/ecosystem/sandboxes/mirage/', background: '#2563eb' },
 	{ name: 'Modal', href: '/docs/ecosystem/sandboxes/modal/', brand: 'modal', background: '#ffffff' },
-	{ name: 'smolvm', href: '/docs/ecosystem/sandboxes/smolvm/', mark: 'sm', background: '#ef4444' },
+	{ name: 'smolvm', href: '/docs/ecosystem/sandboxes/smolvm/', background: '#2563eb' },
 	{ name: 'Vercel Sandbox', href: '/docs/ecosystem/sandboxes/vercel/', icon: 'https://svgl.app/library/vercel.svg', background: '#ffffff' },
 ];
 sandboxes.sort(sortDirectoryItems);
@@ -123,7 +128,7 @@ sandboxes.sort(sortDirectoryItems);
 
 		<section class="ecosystem-section mb-14" data-ecosystem-section>
 			<h2 id="deploy" class="mb-6 scroll-mt-20 text-3xl font-semibold tracking-[-0.03em] text-gray-950">Deploy</h2>
-			<ul class="ecosystem-grid ecosystem-grid-left" role="list">
+			<ul class="ecosystem-grid" role="list">
 				{deploy.map((item) => (
 					<li data-ecosystem-item data-search={`${item.name} ${item.keywords ?? ''}`.toLowerCase()}>
 						<a class="ecosystem-item group" href={item.href} aria-label={item.name}>
@@ -185,7 +190,7 @@ sandboxes.sort(sortDirectoryItems);
 											</defs>
 										</svg>
 									) : (
-										<span class="ecosystem-mark">{item.mark}</span>
+										<span class="ecosystem-default-grid" aria-hidden="true" />
 									)
 								}
 							</span>
@@ -239,8 +244,7 @@ sandboxes.sort(sortDirectoryItems);
 		list-style: none;
 	}
 
-	.ecosystem-grid.is-filtering,
-	.ecosystem-grid-left {
+	.ecosystem-grid.is-filtering {
 		justify-content: start;
 	}
 
@@ -309,6 +313,19 @@ sandboxes.sort(sortDirectoryItems);
 		width: 62%;
 		height: auto;
 		max-height: 62%;
+	}
+
+	/* Default placeholder for ecosystem items without a logo: a 30deg white
+	   drafting grid over a light blue gradient, brighter at the top as if lit
+	   from above (the homepage blue accent). Clipped to the rounded tile. */
+	.ecosystem-default-grid {
+		width: 100%;
+		height: 100%;
+		border-radius: inherit;
+		background:
+			repeating-linear-gradient(30deg, rgb(255 255 255 / 0.26) 0, rgb(255 255 255 / 0.26) 1px, transparent 1px, transparent 13px),
+			repeating-linear-gradient(120deg, rgb(255 255 255 / 0.26) 0, rgb(255 255 255 / 0.26) 1px, transparent 1px, transparent 13px),
+			linear-gradient(180deg, #5a98f6 0%, #3173ea 100%);
 	}
 
 	.ecosystem-daytona-logo {

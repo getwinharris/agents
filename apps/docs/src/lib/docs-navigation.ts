@@ -208,10 +208,7 @@ export const docsSections: DocsSection[] = [
 					{ title: 'Microsoft Teams', slug: 'ecosystem/channels/teams' },
 					{ title: 'Notion', slug: 'ecosystem/channels/notion' },
 					{ title: 'Resend', slug: 'ecosystem/channels/resend' },
-					{
-						title: 'Salesforce Marketing Cloud',
-						slug: 'ecosystem/channels/salesforce-marketing-cloud',
-					},
+					{ title: 'Salesforce', slug: 'ecosystem/channels/salesforce-marketing-cloud' },
 					{ title: 'Shopify', slug: 'ecosystem/channels/shopify' },
 					{ title: 'Slack', slug: 'ecosystem/channels/slack' },
 					{ title: 'Stripe', slug: 'ecosystem/channels/stripe' },
@@ -224,11 +221,16 @@ export const docsSections: DocsSection[] = [
 			{
 				title: 'Deploy',
 				items: [
+					{ title: 'AWS', slug: 'ecosystem/deploy/aws' },
 					{ title: 'Cloudflare', slug: 'ecosystem/deploy/cloudflare' },
+					{ title: 'Docker', slug: 'ecosystem/deploy/docker' },
+					{ title: 'Fly.io', slug: 'ecosystem/deploy/fly' },
 					{ title: 'GitHub Actions', slug: 'ecosystem/deploy/github-actions' },
 					{ title: 'GitLab CI/CD', slug: 'ecosystem/deploy/gitlab-ci' },
 					{ title: 'Node.js', slug: 'ecosystem/deploy/node' },
+					{ title: 'Railway', slug: 'ecosystem/deploy/railway' },
 					{ title: 'Render', slug: 'ecosystem/deploy/render' },
+					{ title: 'SST', slug: 'ecosystem/deploy/sst' },
 				],
 			},
 			{

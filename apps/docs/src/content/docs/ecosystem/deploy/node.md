@@ -7,7 +7,7 @@ Build and deploy Flue agents as a Node.js server. This guide walks you through c
 
 By the end, you will have a Flue agent running as a Node.js server, and you will know how to add subagents, sandbox context, external CLIs, remote sandboxes, and durable session storage when your agent needs them.
 
-This guide focuses on deploying the generated Node server. First review the [CLI overview](/docs/cli/overview/) for the development lifecycle and build output, then see [Routing](/docs/guide/routing/) for direct HTTP agent delivery, workflow endpoints, and asynchronous `dispatch(...)` from application-owned routes.
+This guide focuses on deploying the generated Node server. First review the [CLI overview](/docs/cli/overview/) for the development lifecycle and build output, then see [Routing](/docs/guide/routing/) for direct HTTP agent delivery, workflow endpoints, and asynchronous `dispatch(...)` from application-owned routes. To package the server as a container image, see [Deploy Agents with Docker](/docs/ecosystem/deploy/docker/).
 
 ## Project layout
 
@@ -270,35 +270,6 @@ The default root-mounted Flue application can expose:
 - `GET /runs/:runId` — stream workflow-run events via the Durable Streams protocol (`?meta` reads the run record).
 
 Flue does not add a health endpoint or deployment-inspection routes by default. Define a host-required health route in `app.ts`, and [compose your own admin endpoints](/docs/api/routing-api/#compose-your-own-admin-endpoints) behind operator authorization if deployment-wide inspection is required. Agent prompt routes advance sessions without creating runs; workflow invocations are the executions represented by workflow run IDs and inspectable through run tooling.
-
-### Deploying with Docker
-
-```dockerfile
-FROM node:22-slim
-WORKDIR /app
-# The build externalizes your dependencies, so node_modules
-# are needed at runtime.
-COPY package.json package-lock.json ./
-RUN npm ci --production
-COPY dist/ ./dist/
-ENV PORT=8080
-EXPOSE 8080
-CMD ["node", "dist/server.mjs"]
-```
-
-```bash
-docker build -t my-flue-server .
-docker run -p 8080:8080 -e OPENAI_API_KEY=sk-... my-flue-server
-```
-
-### Deploying elsewhere
-
-The output is just a Node.js server, so it runs anywhere:
-
-- **systemd / PM2** — `pm2 start dist/server.mjs`
-- **Railway / Render** — Point the start command at `node dist/server.mjs`
-- **Fly.io** — Use the Dockerfile above with `fly launch`
-- **AWS / GCP / Azure** — Deploy as a container or directly on a VM
 
 ### Choosing a sandbox strategy
 

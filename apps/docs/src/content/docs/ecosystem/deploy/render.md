@@ -1,88 +1,17 @@
 ---
 title: Deploy Agents on Render
-description: Deploy Flue agents to Render as a Node.js web service.
+description: Run the Flue Node server as a long-running Render web service.
 ---
 
-Deploy Flue agents to Render as a Node.js web service. This guide starts from the [Flue template](https://render.com/templates/flue), builds on [Deploy Agents on Node.js](/docs/ecosystem/deploy/node/), and focuses on the Render-specific setup: Blueprints, service configuration, environment variables, and managed persistence.
+Flue's Node target is a long-running HTTP server, not a serverless function, so it deploys to Render as a web service that stays up between requests. This guide covers the Render-specific setup; the build itself is the same `node` target described in [Deploy Agents on Node.js](/docs/ecosystem/deploy/node/) — `npx flue build --target node` produces `dist/server.mjs`, which you start with `node dist/server.mjs`.
 
-By the end, you will have a live Render web service running Flue agents, and you will know how to add Render-managed persistence on top.
+The fastest start is the [Flue template](https://render.com/templates/flue): a one-click Blueprint that provisions a Node web service running the translation and assistant agents. The [Flue + Postgres template](https://render.com/templates/flue-with-postgresql) is the same service with a Render Postgres database wired in. Both render the rest of this guide as the explanation of what they set up.
 
-## Prerequisites
+## Deploy
 
-- Familiarity with the [Deploy Agents on Node.js](/docs/ecosystem/deploy/node/) guide.
-- An API key for your model provider. The template prompts for `ANTHROPIC_API_KEY` by default.
+Render reads a Blueprint — a `render.yaml` at the repo root — to provision the service as code. A Flue web service is a Node runtime with the build and start commands from the Node guide:
 
-## 1. Deploy the template
-
-Open the [Flue template](https://render.com/templates/flue) and click **Deploy to Render**. Render walks you through:
-
-1. Authorizing Render's GitHub OAuth app.
-2. Copying the template repo to your GitHub account.
-3. Returning to Render and creating a free account if you are not signed in.
-4. Opening the Blueprint deploy page for the new repo.
-
-On the deploy page, paste your AI provider API key when prompted, then click **Deploy**. The Blueprint provisions a Node.js web service that runs `npm ci && npx flue build --target node` and starts it with `node dist/server.mjs`. If its Blueprint config uses `/health` for health checks, its authored `app.ts` must define that route; Flue does not generate a health endpoint automatically.
-
-The template uses `plan: free` so first-time deploys cost nothing. Free instances spin down after 15 minutes of inactivity, and the next request pays a multi-second cold start while the Node process restarts. For agents that see sporadic traffic in production, bump the service to `starter` or higher in `render.yaml` (or from the Render Dashboard) to keep it warm.
-
-When the deploy finishes, copy your service URL from the Render Dashboard. The rest of this guide uses `https://<service>.onrender.com`.
-
-## 2. Test the live service
-
-Start with the health endpoint:
-
-```bash
-curl https://<service>.onrender.com/health
-```
-
-A successful response confirms Render is forwarding traffic to the process started by `node dist/server.mjs`. If a call hangs or returns an error, open your service in the Render Dashboard and watch the **Logs** tab while you re-run the request. Every Flue agent invocation prints there.
-
-Now call the `translate` workflow:
-
-```bash
-curl 'https://<service>.onrender.com/workflows/translate?wait=result' \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Hello world", "language": "French"}'
-```
-
-`?wait=result` requests a completed workflow response rather than the default `202` admission response containing a `runId`. The returned `result` should match the workflow's structured output, like:
-
-```json
-{
-  "translation": "Bonjour le monde",
-  "confidence": "high"
-}
-```
-
-The translation itself can vary by model. The shape is what matters.
-
-Try a short conversation with the `assistant` agent:
-
-```bash
-curl 'https://<service>.onrender.com/agents/assistant/session-1?wait=result' \
-  -H "Content-Type: application/json" \
-  -d '{"message": "What is the capital of Japan?"}'
-```
-
-Then send a follow-up using the same session ID:
-
-```bash
-curl 'https://<service>.onrender.com/agents/assistant/session-1?wait=result' \
-  -H "Content-Type: application/json" \
-  -d '{"message": "How many people live there?"}'
-```
-
-Reusing the ID keeps Flue's session scope stable. On Node.js, that session state lives in memory unless you add a `db.ts` persistence adapter. As with workflows, `?wait=result` keeps the request attached until the prompt completes and returns `{ result, streamUrl, offset }`; without it, the route returns a `202` admission response with stream coordinates instead of the reply. Either way these prompts advance an agent session — they do not create workflow runs or return `runId`.
-
-Render closes idle HTTP connections after about 100 seconds. Most prompt-and-response agents finish well inside that window, but if you build agents that run long tool chains or large multi-step prompts, drop `?wait=result` from these examples and read the returned stream coordinates instead, or use a scheduled / background runner (see [Going further](#going-further)) rather than a single blocking request.
-
-If you only need direct attached agent prompts or application webhook routes that dispatch inputs into in-memory sessions, you can stop here.
-
-## 3. Review the web service config
-
-Open the template's `render.yaml`. Its web service follows this shape:
-
-```yaml
+```yaml title="render.yaml"
 services:
   - type: web
     name: flue-agents
@@ -96,24 +25,24 @@ services:
         sync: false
 ```
 
-This is the Render side of what the Node guide already covers:
+- `buildCommand` compiles the Flue Node target. The build externalizes your dependencies rather than bundling them, so `node_modules` must be present at runtime — `npm ci` installs them, and `@flue/cli` must be available to the build command.
+- `startCommand` runs the generated server, which binds the `PORT` Render injects and serves agents at `/agents/<name>/<id>` and workflows at `/workflows/<name>`.
+- `healthCheckPath` lets Render verify each deploy before shifting traffic to it — but only if your application defines that route (see [Health and streaming](#health-and-streaming)).
 
-- `buildCommand` compiles Flue's Node target.
-- `startCommand` runs the generated server, which binds to `PORT` and serves workflows at `/workflows/<name>` and agents at `/agents/<name>/<id>`.
-- `healthCheckPath` lets Render verify each deploy before it shifts traffic, provided your authored application exposes `/health` in `app.ts`.
-- `sync: false` keeps the secret out of the Blueprint. Render prompts for the value on first deploy and stores it on the service.
+Push the file and create a Blueprint from the Render Dashboard (**New > Blueprint**), or click **Deploy to Render** from a template. Render copies the template repo to your GitHub account, prompts for any `sync: false` secrets, and deploys. To auto-deploy on every push, set `autoDeployTrigger: commit` on the service (this replaces the deprecated `autoDeploy` field).
 
-If you ever move this setup into a different repo, drop the same `render.yaml` at its root, then create a new Blueprint from the Render Dashboard (**New > Blueprint**) and pick that repo.
+The template uses `plan: free`, so first deploys cost nothing. Free web services spin down after 15 minutes without inbound traffic, and the next request pays a cold start — about a minute — while the Node process restarts. In-memory session state is also lost across that restart. For agents that see sporadic production traffic, move to `starter` or higher to keep the service warm, and add Postgres for durable sessions.
 
-## 4. Change model configuration
+## Environment and secrets
 
-Provider keys belong in environment variables, either in the Render Dashboard or in `render.yaml` with `sync: false`. Common choices:
+The built server reads only the environment present when it starts — it does not load `.env` — so configuration lives in Render environment variables, set in the Dashboard or declared in `render.yaml`. Flue needs the API key for your model provider, plus an optional model specifier:
 
-- `ANTHROPIC_API_KEY` for Anthropic.
-- `OPENAI_API_KEY` for OpenAI.
-- `OPENROUTER_API_KEY` for OpenRouter.
+| Variable                               | Purpose                                                                                         |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | Authenticates calls to your model provider. Use the name your provider expects.                 |
+| `MODEL_SPECIFIER`                      | Optional default model, e.g. `anthropic/claude-sonnet-4-6`, if your app reads one from the environment. |
 
-If your app reads a model specifier from the environment, set it next to the matching provider key:
+Declare secret values with `sync: false` so they stay out of the Blueprint — Render prompts for them on first deploy and stores them on the service. Non-secret values like a model specifier can carry a literal `value`:
 
 ```yaml
 envVars:
@@ -123,25 +52,15 @@ envVars:
     sync: false
 ```
 
-Once the next deploy goes live, call the translation workflow again:
+Render ignores `sync: false` variables when updating an existing Blueprint, so rotate those secrets from the Dashboard. Do not set the reserved `FLUE_MODE` or `FLUE_CLI_*` variables in production.
 
-```bash
-curl 'https://<service>.onrender.com/workflows/translate?wait=result' \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Good morning", "language": "Spanish"}'
-```
+## Persistence
 
-A successful response means the new env values reached the running service and Flue can still talk to the provider.
+The Node target keeps agent sessions and accepted submissions in memory by default. That state is lost on every restart, deploy, and free-plan spin-down, and it is not shared across instances — an in-memory service that scales past one instance routes follow-up requests to processes that never saw the original session.
 
-## 5. Add session persistence
+For durable, shared session history, add a Render Postgres database to the Blueprint and wire its connection string into the web service with `fromDatabase`:
 
-In-memory sessions disappear on every deploy or restart, and they don't help once you scale beyond one instance. If your agents need conversations that survive that, back them with a Render data store using a `PersistenceAdapter`. See [Database](/docs/guide/database/) for `db.ts` and available adapters.
-
-> **Starting fresh and want persistence built in?** Deploy the [Flue + Postgres template](https://render.com/templates/flue-with-postgresql) instead of the base template. It ships everything in this section preconfigured: a Render Postgres database wired into the web service via `DATABASE_URL` and a `db.ts` using `@flue/postgres`. The walkthrough below is for adding the same setup to a service you've already deployed from the base template.
-
-Render Postgres is the best default for durable session history. Extend the template's `render.yaml` with a database and wire `DATABASE_URL` into the web service:
-
-```yaml
+```yaml title="render.yaml"
 databases:
   - name: flue-db
     plan: basic-256mb
@@ -163,13 +82,11 @@ services:
         sync: false
 ```
 
-Install the `@flue/postgres` adapter:
+`fromDatabase` supplies the database's internal connection string — the one Render recommends for services in the same account and region, since it stays on the private network. Install the adapter and read `DATABASE_URL` in `db.ts`:
 
 ```bash
 npm install @flue/postgres
 ```
-
-Create a `db.ts` that reads `DATABASE_URL`:
 
 ```typescript title=".flue/db.ts"
 import { postgres } from '@flue/postgres';
@@ -177,48 +94,24 @@ import { postgres } from '@flue/postgres';
 export default postgres(process.env.DATABASE_URL!);
 ```
 
-Flue discovers `db.ts` at build time and wires it into the generated server entry. The adapter handles schema creation, session snapshots, and durable submission state automatically.
+Flue discovers `db.ts` at build time and wires it into the generated server — schema creation, session snapshots, and durable submission state are handled by the adapter. See [Database](/docs/guide/database/) for the adapter contract and alternatives. Note that a `free` Postgres database expires 30 days after creation; use a `basic-256mb` or larger plan for anything you intend to keep.
 
-The `connectionString` from `fromDatabase` is Render's internal Postgres URL, which doesn't require SSL. If you ever swap to the external connection string, add `ssl: { rejectUnauthorized: false }` to the `Pool` config.
+## Health and streaming
 
-To verify persistence end to end, run a fact-recall test that survives a process restart:
+Flue does not generate a `/health` route. If you set `healthCheckPath`, define the matching route in `app.ts` — otherwise the check never passes and Render holds the deploy back. Drop `healthCheckPath` if you don't want a health gate.
 
-1. Commit the updated `render.yaml` and the new `db.ts`, then wait for the database-aware deploy to go live.
-2. Plant a fact in a fresh session:
-
-   ```bash
-   curl 'https://<service>.onrender.com/agents/assistant/persist-test?wait=result' \
-     -H "Content-Type: application/json" \
-     -d '{"message": "Remember this number for me: 42."}'
-   ```
-
-3. Restart the service from the Render Dashboard (**Manual Deploy > Restart Service**) so the in-memory state of the previous process is gone.
-4. Once the service is healthy, ask for the fact back:
-
-   ```bash
-   curl 'https://<service>.onrender.com/agents/assistant/persist-test?wait=result' \
-     -H "Content-Type: application/json" \
-     -d '{"message": "What number did I ask you to remember?"}'
-   ```
-
-If the response references `42`, your persistence adapter is reading and writing through Postgres correctly. If the agent has no idea, persistence isn't being read on session resume.
+Streamed runs are served over a long-lived `GET /runs/:runId` connection (long-poll/SSE). Render imposes no fixed idle timeout on a web service connection and allows a request to run up to 100 minutes, so a single streaming connection is well within bounds. The real risk to a long-lived stream is instance replacement: Render may replace an instance during a deploy or routine maintenance, and terminating the old instance closes every connection to it. For agents that run long tool chains, prefer reading the run's stream coordinates and reconnecting to `/runs/:runId` over holding one blocking `?wait=result` request, so a client can resume after a reconnect. The server's `SIGTERM` shutdown delay (default 30s, raise via `maxShutdownDelaySeconds` up to 300s) governs how long in-flight work has to finish during a graceful shutdown.
 
 ## Going further
 
-A few patterns this guide doesn't cover yet:
+- **Scheduled workflows.** Model periodic tasks (nightly summaries, cache refreshes) as a Render cron job rather than inbound agent traffic. Add a `type: cron` service with a `schedule` (standard cron syntax, evaluated in UTC) whose `startCommand` is `npx flue run <workflow> --target node`. Each fire builds, runs the workflow once, and exits — close any Postgres connections so the process terminates cleanly. Render runs at most one instance of a given cron job at a time and stops a run after 12 hours.
+- **Background workers.** For continuous, queue-driven delivery, add a `type: worker` service. A worker has no public port; it runs `node dist/server.mjs` (or a custom entry), makes attached agent requests and waits for results, or has application code call `dispatch(...)` for asynchronous delivery identified by `dispatchId`.
 
-- **Scheduled workflows.** Some tasks are better modeled as periodic workflows than as inbound agent messages (nightly summaries, weekly reports, cache refreshes). Deploy them as a Render cron job whose `startCommand` is `npx flue run <workflow> --target node`. Each fire builds, runs the workflow once, and exits.
-- **Queue-backed workers.** For continuous, queue-backed agent delivery, reach for a Render background worker. A worker can make an attached agent request and wait for its result, or application code can use `dispatch(...)` for asynchronous delivery identified by `dispatchId`. When Key Value is backing a queue, set `maxmemoryPolicy: noeviction` so jobs are never evicted.
+## References
 
-For more, see Render's [Cron Jobs](https://render.com/docs/cron-jobs), [Background Workers](https://render.com/docs/background-workers), and the [Blueprint reference](https://render.com/docs/blueprint-spec).
-
-## Troubleshooting
-
-When a step doesn't behave as expected, run through these quick checks:
-
-| Symptom                              | Check                                                                                             |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| Health check fails                   | Make sure `startCommand` is `node dist/server.mjs` and that the build produced `dist/server.mjs`. |
-| Agent call returns a provider error  | Confirm the matching provider key is set in the service's environment variables.                  |
-| Build can't find `flue`              | Make sure `@flue/cli` is installed and available during the build or start command.               |
-| Agent forgets context after a deploy | Add a `db.ts` persistence adapter backed by Postgres (see [Database](/docs/guide/database/)).     |
+- [Blueprint YAML reference](https://render.com/docs/blueprint-spec) — official `render.yaml` field reference: `type`, `runtime`, `buildCommand`, `startCommand`, `healthCheckPath`, `envVars` with `sync: false`, `autoDeployTrigger`, `databases`, and `fromDatabase`.
+- [Free instances](https://render.com/docs/free) — official spin-down (15 min), cold-start, and free-Postgres expiry (30 days) behavior.
+- [Connect to Render Postgres](https://render.com/docs/postgresql-creating-connecting) — official internal vs. external connection string guidance.
+- [Cron jobs](https://render.com/docs/cronjobs) — official scheduling rules: UTC, standard cron syntax, single active run, 12-hour max.
+- [Background workers](https://render.com/docs/background-workers) — official guide to no-public-port worker services.
+- [Real-time AI chat infrastructure](https://render.com/articles/real-time-ai-chat-websockets-infrastructure) — Render's own write-up of the 100-minute max request duration and persistent-connection model for streaming.
