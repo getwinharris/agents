@@ -5,7 +5,7 @@ description: Receive verified Messenger Page events with a project-owned Graph A
 
 ## Add Messenger
 
-Run the Messenger recipe through your coding agent:
+Run the Messenger blueprint through your coding agent:
 
 ```sh
 flue add channel messenger --print | codex
@@ -57,9 +57,7 @@ export const channel = createMessengerChannel({
             type: 'messenger.message',
             messageId: event.message.mid,
             text: event.message.text,
-            attachmentTypes: (event.message.attachments ?? []).map(
-              (attachment) => attachment.type,
-            ),
+            attachmentTypes: (event.message.attachments ?? []).map((attachment) => attachment.type),
             quickReplyPayload: event.message.quick_reply?.payload,
           },
         });
@@ -91,7 +89,7 @@ export function postMessage(ref: MessengerConversationRef) {
 }
 ```
 
-The recipe creates `src/messenger-client.ts` with the Fetch client used above.
+The blueprint creates `src/messenger-client.ts` with the Fetch client used above.
 Bind the tool from the agent with
 `postMessage(channel.parseConversationKey(id))`.
 

@@ -5,7 +5,7 @@ description: Receive verified WhatsApp Business Cloud deliveries with a project-
 
 ## Add WhatsApp
 
-Run the WhatsApp recipe through your coding agent:
+Run the WhatsApp blueprint through your coding agent:
 
 ```sh
 flue add channel whatsapp --print | codex

@@ -5,7 +5,7 @@ description: Receive signed GitHub webhooks and use Octokit from application-own
 
 ## Add GitHub
 
-Run the GitHub recipe through your coding agent:
+Run the GitHub blueprint through your coding agent:
 
 ```sh
 flue add channel github --print | codex

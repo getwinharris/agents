@@ -5,7 +5,7 @@ description: Receive verified Linear resource and agent-session webhooks with a 
 
 ## Add Linear
 
-Run the Linear recipe through your coding agent:
+Run the Linear blueprint through your coding agent:
 
 ```sh
 flue add channel linear --print | codex

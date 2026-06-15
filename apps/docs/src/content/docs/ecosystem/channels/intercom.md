@@ -5,14 +5,14 @@ description: Receive verified Intercom notifications and use a workspace-bound o
 
 ## Add Intercom
 
-Run the Intercom recipe through your coding agent:
+Run the Intercom blueprint through your coding agent:
 
 ```sh
 flue add channel intercom --print | codex
 ```
 
 It installs `@flue/intercom` and the official
-`intercom-client@7.0.3`. The recipe creates named `channel` and project-owned
+`intercom-client@7.0.3`. The blueprint creates named `channel` and project-owned
 `client` exports.
 
 Configure one URL in Intercom's Developer Hub:

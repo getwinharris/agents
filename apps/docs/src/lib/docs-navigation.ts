@@ -109,7 +109,7 @@ export const docsSections: DocsSection[] = [
 			{
 				title: 'Advanced',
 				items: [
-					{ title: 'Sandbox Connector API', slug: 'api/sandbox-api' },
+					{ title: 'Sandbox Adapter API', slug: 'api/sandbox-api' },
 					{ title: 'Data Persistence API', slug: 'api/data-persistence-api' },
 				],
 			},

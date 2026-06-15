@@ -65,7 +65,7 @@ Use a remote sandbox when agent work needs an environment that should not run on
 
 A remote sandbox is supplied through an integration appropriate to the provider or platform. Your application is responsible for deciding which workspace belongs to which agent instance or workflow, what credentials and network access it receives, whether it may be reused, and when it is deleted or expired.
 
-See the Ecosystem **Sandboxes** integrations, such as [Daytona](/docs/ecosystem/sandboxes/daytona/), to connect a provider-managed remote sandbox. If you need to implement an integration, see the [Sandbox Connector API](/docs/api/sandbox-api/).
+See the Ecosystem **Sandboxes** integrations, such as [Daytona](/docs/ecosystem/sandboxes/daytona/), to connect a provider-managed remote sandbox. If you need to implement an integration, see the [Sandbox Adapter API](/docs/api/sandbox-api/).
 
 Cloudflare deployments can use [Cloudflare Sandbox](/docs/ecosystem/sandboxes/cloudflare/) for a native container-backed Linux sandbox. Use it when an agent deployed on Cloudflare needs tools such as git, package installation, or native commands; its setup and lifecycle details belong in the integration guide.
 
@@ -75,11 +75,11 @@ A sandbox integration may expose different model-facing capabilities than the vi
 
 The sandbox controls workspace and command access. It does not determine whether a session retains conversation history. Keep these decisions separate:
 
-| Decision                                                            | Controlled by                                                            |
-| ------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Conversation history available in a later session interaction       | Session persistence via `db.ts` adapter or the target default.           |
-| Files, installed packages, and generated artifacts available later  | The sandbox or workspace lifecycle you choose.                           |
-| Access to repositories, APIs, credentials, and network destinations | The sandbox environment, tools, and application authorization policy.    |
+| Decision                                                            | Controlled by                                                         |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Conversation history available in a later session interaction       | Session persistence via `db.ts` adapter or the target default.        |
+| Files, installed packages, and generated artifacts available later  | The sandbox or workspace lifecycle you choose.                        |
+| Access to repositories, APIs, credentials, and network destinations | The sandbox environment, tools, and application authorization policy. |
 
 A persisted session does not make the virtual sandbox durable. Likewise, a durable remote workspace does not by itself preserve a session conversation.
 
@@ -91,5 +91,5 @@ Choose the narrowest sandbox that supports the task. Expanding the environment e
 - [Workflows](/docs/guide/workflows/) — stage files and collect artifacts during finite work.
 - [Tools](/docs/guide/tools/) — expose bounded application actions separately from workspace access.
 - [Skills](/docs/guide/skills/) — bundle procedures or provide workspace-discovered skills.
-- [Sandbox Connector API](/docs/api/sandbox-api/) — implement a provider-backed sandbox integration.
+- [Sandbox Adapter API](/docs/api/sandbox-api/) — implement a provider-backed sandbox integration.
 - [Daytona](/docs/ecosystem/sandboxes/daytona/) and [Cloudflare Sandbox](/docs/ecosystem/sandboxes/cloudflare/) — configure remote sandbox integrations.

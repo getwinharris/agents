@@ -5,7 +5,7 @@
 **/node_modules/
 **/.turbo/
 **/.cache/
-packages/cli/bin/_connectors.generated.ts
-connectors/sandbox*.md
-connectors/channel*.md
+packages/cli/bin/_blueprints.generated.ts
+blueprints/sandbox*.md
+blueprints/channel*.md
 plans/

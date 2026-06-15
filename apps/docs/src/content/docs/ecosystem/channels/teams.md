@@ -5,7 +5,7 @@ description: Receive authenticated Teams activities and use a project-owned Bot 
 
 ## Add Microsoft Teams
 
-Run the Teams recipe through your coding agent:
+Run the Teams blueprint through your coding agent:
 
 ```sh
 flue add channel teams --print | codex
@@ -15,7 +15,7 @@ It installs `@flue/teams` for authenticated Bot Connector ingress and creates a
 project-owned Fetch client for outbound messages.
 
 Microsoft's current JavaScript Agents and Teams SDKs declare Node runtimes and
-use Node-oriented authentication or hosting packages. The recipe uses the same
+use Node-oriented authentication or hosting packages. The blueprint uses the same
 documented OAuth client-credentials and Bot Connector REST protocols directly
 through Fetch so the integration runs on Node and Cloudflare Workers.
 

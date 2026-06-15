@@ -1,6 +1,6 @@
 ---
 name: channel-conformance
-description: Research, implement, review, and validate one first-party Flue HTTP channel across its package, example, connector recipe, documentation, Node runtime, Cloudflare Workers runtime, and publish artifact. Use when adding a provider channel, expanding an existing channel's verified HTTP surface, auditing channel conformance, or evaluating whether a provider is eligible for the stateless webhook model.
+description: Research, implement, review, and validate one first-party Flue HTTP channel across its package, example, channel blueprint, documentation, Node runtime, Cloudflare Workers runtime, and publish artifact. Use when adding a provider channel, expanding an existing channel's verified HTTP surface, auditing channel conformance, or evaluating whether a provider is eligible for the stateless webhook model.
 ---
 
 # Channel Conformance
@@ -128,7 +128,7 @@ must inspect the evidence, resolve conflicts, and own correctness.
 
 Before editing, write a short design brief in the active plan:
 
-- package, connector, file, and route names;
+- package, blueprint, file, and route names;
 - constructor inputs and optional surfaces;
 - verification strategy and runtime dependencies;
 - provider-native callback payload, authoritative type source, and
@@ -158,7 +158,7 @@ contracts. Verify requests before invoking application code.
 
 ## Implement The Complete Provider Slice
 
-Implement the package, tests, example, connector recipe, setup guide, API
+Implement the package, tests, example, channel blueprint, setup guide, API
 reference, navigation, package preparation mapping, and changelog entry as one
 provider workstream. Inspect current repository patterns because the package
 set and build wiring may have changed.
@@ -174,7 +174,7 @@ Keep package runtime dependencies minimal:
   improves correctness;
 - accept or depend on a provider SDK inside the channel package only when the
   provider's own verified-ingress API is the best cross-runtime implementation;
-- otherwise keep provider SDKs in the editable example and connector recipe.
+- otherwise keep provider SDKs in the editable example and channel blueprint.
 
 The example must demonstrate the intended developer experience:
 
@@ -224,8 +224,8 @@ compatibility stubs are not. Actual workerd execution remains the gate.
 Run focused package and example checks during implementation, then the relevant
 repository-wide gates. Prepare and pack the package, inspect the tarball, and
 compile a clean strict consumer from packed artifacts. Exercise the named
-recipe through the real built `flue add` path and build the documentation and
-connector registry.
+blueprint through the real built `flue add` path and build the documentation and
+blueprint registry.
 
 Run a built-example webhook smoke test with locally generated valid and invalid
 requests. Confirm that no test or build contacts the provider.
@@ -311,7 +311,7 @@ Finish with:
 
 - the implemented capability and route set;
 - Node and workerd evidence;
-- package, example, recipe, docs, and artifact evidence;
+- package, example, blueprint, docs, and artifact evidence;
 - foundation improvements or suggestions;
 - recorded deviations and deferrals;
 - remaining risks.

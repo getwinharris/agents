@@ -77,13 +77,13 @@ A build packages the discovered application for its runtime target. It does not 
 
 ## Command reference
 
-| Command                              | Description                                                       |
-| ------------------------------------ | ----------------------------------------------------------------- |
-| [`flue init`](/docs/cli/init/)       | Create an initial `flue.config.ts`.                               |
-| [`flue dev`](/docs/cli/dev/)         | Start a watch-mode local development server.                      |
-| [`flue connect`](/docs/cli/connect/) | Open an interactive local agent-instance connection.              |
-| [`flue run`](/docs/cli/run/)         | Execute one workflow invocation locally.                          |
-| [`flue logs`](/docs/cli/logs/)       | Replay or follow workflow-run events from a running server.       |
-| [`flue build`](/docs/cli/build/)     | Create deployable application artifacts.                          |
-| [`flue add`](/docs/cli/add/)         | Fetch sandbox, channel, or database installation recipes for a coding agent. |
-| [`flue docs`](/docs/cli/docs/)       | List, read, and search the bundled Flue documentation.            |
+| Command                              | Description                                                                     |
+| ------------------------------------ | ------------------------------------------------------------------------------- |
+| [`flue init`](/docs/cli/init/)       | Create an initial `flue.config.ts`.                                             |
+| [`flue dev`](/docs/cli/dev/)         | Start a watch-mode local development server.                                    |
+| [`flue connect`](/docs/cli/connect/) | Open an interactive local agent-instance connection.                            |
+| [`flue run`](/docs/cli/run/)         | Execute one workflow invocation locally.                                        |
+| [`flue logs`](/docs/cli/logs/)       | Replay or follow workflow-run events from a running server.                     |
+| [`flue build`](/docs/cli/build/)     | Create deployable application artifacts.                                        |
+| [`flue add`](/docs/cli/add/)         | Fetch sandbox, channel, or database installation blueprints for a coding agent. |
+| [`flue docs`](/docs/cli/docs/)       | List, read, and search the bundled Flue documentation.                          |

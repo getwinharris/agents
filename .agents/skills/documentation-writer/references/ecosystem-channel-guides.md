@@ -29,7 +29,7 @@ Start with:
 3. An `Add <Provider>` section using `flue add channel <provider>`.
 
 Present `flue add` as a command developers can run in their terminal or through
-their coding agent. Describe the recipe's result, including the channel
+their coding agent. Describe the blueprint's result, including the channel
 package, outbound client, generated channel module, and named exports when
 those details help the reader understand the result.
 

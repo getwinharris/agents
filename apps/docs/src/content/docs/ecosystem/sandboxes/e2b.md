@@ -4,9 +4,9 @@ description: Connect a Flue agent to an E2B Linux sandbox.
 lastReviewedAt: 2026-05-30
 ---
 
-The E2B connector adapts an initialized E2B sandbox from the `e2b` package into Flue's sandbox interface. Use it for provider-managed Linux execution when an agent needs shell commands and workspace files outside the application host.
+The E2B adapter adapts an initialized E2B sandbox from the `e2b` package into Flue's sandbox interface. Use it for provider-managed Linux execution when an agent needs shell commands and workspace files outside the application host.
 
-## Add the connector
+## Add the adapter
 
 ```bash
 pnpm exec flue add sandbox e2b
@@ -37,4 +37,4 @@ const agent = createAgent(() => ({
 
 Select templates, timeouts, network access, secret exposure, and resource reuse through your application and provider policy. Flue adapts the active environment; it does not choose provider retention for you.
 
-See [Sandboxes](/docs/guide/sandboxes/) and [Sandbox Connector API](/docs/api/sandbox-api/).
+See [Sandboxes](/docs/guide/sandboxes/) and [Sandbox Adapter API](/docs/api/sandbox-api/).

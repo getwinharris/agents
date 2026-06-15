@@ -65,7 +65,7 @@ Passing `env: { ...process.env }` exposes the full host environment to the model
 
 ## Remote sandboxes
 
-When agent work needs per-session isolation, a Linux toolchain, or a provider-managed environment, use a remote sandbox connector instead of `local()`. Remote sandboxes run on external infrastructure and connect through the [Sandbox Connector API](/docs/api/sandbox-api/).
+When agent work needs per-session isolation, a Linux toolchain, or a provider-managed environment, use a remote sandbox adapter instead of `local()`. Remote sandboxes run on external infrastructure and connect through the [Sandbox Adapter API](/docs/api/sandbox-api/).
 
 See the Ecosystem [Sandboxes](/docs/ecosystem/#sandboxes) catalog for available integrations, including [Daytona](/docs/ecosystem/sandboxes/daytona/), [E2B](/docs/ecosystem/sandboxes/e2b/), and [Modal](/docs/ecosystem/sandboxes/modal/).
 
@@ -114,5 +114,3 @@ function sqlite(path?: string): PersistenceAdapter;
 ```
 
 Creates the built-in Node SQLite persistence adapter. Omit `path` for in-memory storage, or pass a file path for persistence across process restarts.
-
-

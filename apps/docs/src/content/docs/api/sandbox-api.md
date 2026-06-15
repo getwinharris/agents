@@ -1,15 +1,15 @@
 ---
-title: Sandbox Connector API
+title: Sandbox Adapter API
 description: Adapt a provider sandbox SDK into Flue's public sandbox contract.
 ---
 
-A sandbox connector adapts a third-party sandbox provider's SDK into Flue's `SandboxFactory` interface so that agents can run shell commands and read or write files inside that sandbox.
+A sandbox adapter adapts a third-party sandbox provider's SDK into Flue's `SandboxFactory` interface so that agents can run shell commands and read or write files inside that sandbox.
 
-If you are a coding agent building a connector for a user, follow this document literally and produce one TypeScript file that exports a factory function such as `daytona(...)` returning a `SandboxFactory`.
+If you are a coding agent building a sandbox adapter for a user, follow this document literally and produce one TypeScript file that exports a factory function such as `daytona(...)` returning a `SandboxFactory`.
 
 ## High-level shape
 
-A connector is one TypeScript file. It exports a factory function that takes an already-initialized provider sandbox plus options and returns a `SandboxFactory`. Flue calls `factory.createSessionEnv({ id })` once per initialized harness and uses the returned `SessionEnv` for all shell and file operations.
+A sandbox adapter is one TypeScript file. It exports a factory function that takes an already-initialized provider sandbox plus options and returns a `SandboxFactory`. Flue calls `factory.createSessionEnv({ id })` once per initialized harness and uses the returned `SessionEnv` for all shell and file operations.
 
 ```ts
 // <source-dir>/connectors/<provider>.ts
@@ -33,7 +33,7 @@ export function provider(sandbox: ProviderSandbox): SandboxFactory {
 }
 ```
 
-Connectors are pure adapters. They map a provider sandbox to a `SessionEnv` rooted at the provider-owned base cwd and stop there. They must not apply a created agent's `cwd`: Flue resolves that value once against the connector's base cwd during `init()`. Connectors do not manage the sandbox's lifetime. The user owns what they create.
+Sandbox adapters are pure adapters. They map a provider sandbox to a `SessionEnv` rooted at the provider-owned base cwd and stop there. They must not apply a created agent's `cwd`: Flue resolves that value once against the adapter's base cwd during `init()`. Sandbox adapters do not manage the sandbox's lifetime. The user owns what they create.
 
 ## Imports
 
@@ -46,7 +46,7 @@ Import these from `@flue/runtime`:
 - `SessionEnv` is what `createSandboxSessionEnv` returns. Do not construct one yourself.
 - `FileStat` is the return type for `stat()`.
 
-Do not import internal runtime paths. `@flue/runtime` is the public surface for connector authors.
+Do not import internal runtime paths. `@flue/runtime` is the public surface for adapter authors.
 
 ## TypeScript contracts
 
@@ -76,7 +76,7 @@ export interface SandboxApi {
 }
 ```
 
-`timeoutMs` is the primary cancellation contract. Every connector should honor it by forwarding to the provider SDK's native timeout option. `signal` is optional: connectors whose provider SDK supports mid-flight cancellation should forward it; others may ignore it.
+`timeoutMs` is the primary cancellation contract. Every adapter should honor it by forwarding to the provider SDK's native timeout option. `signal` is optional: adapters whose provider SDK supports mid-flight cancellation should forward it; others may ignore it.
 
 ### `SandboxFactory`
 
@@ -87,7 +87,7 @@ export interface SandboxFactory {
 }
 ```
 
-`createSessionEnv` is called once per initialized harness — one call per `init()` — and every session and task session of that harness shares the returned `SessionEnv`. The `id` option is the context id (`ctx.id`): the agent instance id for direct agent requests, or the workflow run id inside a workflow. Multiple harnesses initialized in the same context receive the same `id`, so a connector that keys provider resources on `id` must tolerate repeated calls with the same value.
+`createSessionEnv` is called once per initialized harness — one call per `init()` — and every session and task session of that harness shares the returned `SessionEnv`. The `id` option is the context id (`ctx.id`): the agent instance id for direct agent requests, or the workflow run id inside a workflow. Multiple harnesses initialized in the same context receive the same `id`, so an adapter that keys provider resources on `id` must tolerate repeated calls with the same value.
 
 `tools` replaces the framework's default model-facing tool list for this sandbox. Omit it for the standard filesystem and shell tools.
 
@@ -116,11 +116,11 @@ export interface FileStat {
 
 ### `SessionEnv`
 
-Return a `SessionEnv` from `createSessionEnv`, but get it from `createSandboxSessionEnv(api, cwd)`. Do not write `SessionEnv` methods by hand in a connector.
+Return a `SessionEnv` from `createSessionEnv`, but get it from `createSandboxSessionEnv(api, cwd)`. Do not write `SessionEnv` methods by hand in an adapter.
 
 ## Required `SandboxApi` methods
 
-Implement every method below. If your provider SDK does not have a direct analogue for an operation, fall back to shell commands through `exec()`. The Daytona connector does this for `mkdir -p`, for example.
+Implement every method below. If your provider SDK does not have a direct analogue for an operation, fall back to shell commands through `exec()`. The Daytonan adapter does this for `mkdir -p`, for example.
 
 ### `readFile(path)`
 
@@ -134,7 +134,7 @@ Return raw bytes as a `Uint8Array`. If the SDK gives you a Node `Buffer`, wrap i
 
 Write `content` to `path`. Accept both `string` and `Uint8Array`. Convert strings to UTF-8 bytes before sending them to providers that only accept buffers.
 
-Connectors need not create parent directories; the runtime guarantees it. When a write fails, `createSandboxSessionEnv` calls your `mkdir(parent, { recursive: true })` and retries the write once, so `FlueFs.writeFile` behaves identically across every sandbox mode. Let missing-parent errors from the provider propagate — do not add your own parent creation.
+Sandbox adapters need not create parent directories; the runtime guarantees it. When a write fails, `createSandboxSessionEnv` calls your `mkdir(parent, { recursive: true })` and retries the write once, so `FlueFs.writeFile` behaves identically across every sandbox mode. Let missing-parent errors from the provider propagate — do not add your own parent creation.
 
 ### `stat(path)`
 
@@ -158,25 +158,25 @@ Delete a file or directory. Honor `options.recursive` and `options.force`.
 
 ### `exec(command, options?)`
 
-Run a shell command. Honor `options.cwd`, `options.env`, and `options.timeoutMs`. The `timeoutMs` hint is measured in milliseconds. Forward it to the provider SDK's native timeout option, converting units when the provider uses something other than milliseconds. Implementations MAY round `timeoutMs` UP to their coarsest supported granularity, never down: a provider that only accepts whole seconds should use `Math.ceil(options.timeoutMs / 1000)` so the enforced deadline is never shorter than the requested one. If the provider SDK does not expose a native timeout option, translate the hint into `AbortSignal.timeout(options.timeoutMs)` and pass that signal to an SDK that accepts one, or as a last resort race the call against a timer and reject. Make a best-effort attempt to honor `timeoutMs`: it is how the model-facing bash tool stops a command and retries. Returning an exit-code-124 result with timeout details in `stderr` matches the convention used by other connectors and `timeout(1)`.
+Run a shell command. Honor `options.cwd`, `options.env`, and `options.timeoutMs`. The `timeoutMs` hint is measured in milliseconds. Forward it to the provider SDK's native timeout option, converting units when the provider uses something other than milliseconds. Implementations MAY round `timeoutMs` UP to their coarsest supported granularity, never down: a provider that only accepts whole seconds should use `Math.ceil(options.timeoutMs / 1000)` so the enforced deadline is never shorter than the requested one. If the provider SDK does not expose a native timeout option, translate the hint into `AbortSignal.timeout(options.timeoutMs)` and pass that signal to an SDK that accepts one, or as a last resort race the call against a timer and reject. Make a best-effort attempt to honor `timeoutMs`: it is how the model-facing bash tool stops a command and retries. Returning an exit-code-124 result with timeout details in `stderr` matches the convention used by other adapters and `timeout(1)`.
 
 If the provider SDK also supports an `AbortSignal`, forward `options.signal` for true mid-flight cancellation. If it cannot observe a signal, ignore that option. The `createSandboxSessionEnv` wrapper performs pre- and post-operation `signal.aborted` checks. Do not fake mid-flight signal cancellation with `Promise.race`: the underlying remote process would keep running.
 
-The Daytona connector demonstrates the rounding rule: Daytona's `executeCommand` accepts whole seconds, so it forwards `Math.ceil(options.timeoutMs / 1000)`.
+The Daytonan adapter demonstrates the rounding rule: Daytona's `executeCommand` accepts whole seconds, so it forwards `Math.ceil(options.timeoutMs / 1000)`.
 
 If the provider does not separately expose `stderr`, return `''`. Default `exitCode` to `0` only when the call clearly succeeded.
 
 ## Sandbox lifetime
 
-Flue does not manage sandbox lifetime. The user creates the sandbox and decides when or whether to delete it. Connectors must not call `sandbox.delete()`, `sandbox.terminate()`, `sandbox.kill()`, or any equivalent on the user's behalf.
+Flue does not manage sandbox lifetime. The user creates the sandbox and decides when or whether to delete it. Sandbox adapters must not call `sandbox.delete()`, `sandbox.terminate()`, `sandbox.kill()`, or any equivalent on the user's behalf.
 
-Connector factories therefore take no `cleanup` option, and `createSandboxSessionEnv` takes no cleanup callback. If the connector opens a real socket such as SSH, it may manage that socket internally, but it must not assume Flue will trigger teardown.
+Sandbox adapter factories therefore take no `cleanup` option, and `createSandboxSessionEnv` takes no cleanup callback. If the adapter opens a real socket such as SSH, it may manage that socket internally, but it must not assume Flue will trigger teardown.
 
 ## Reference implementation
 
-See the deployed [Daytona connector](https://flueframework.com/cli/connectors/daytona.md) for a complete implementation. It demonstrates shell fallback for recursive mkdir, `exists()` error handling, and buffer or string conversion in `writeFile()`.
+See the deployed [Daytona blueprint](https://flueframework.com/cli/blueprints/daytona.md) for a complete implementation. It demonstrates shell fallback for recursive mkdir, `exists()` error handling, and buffer or string conversion in `writeFile()`.
 
-## Connector file location
+## Sandbox adapter file location
 
 The user's project root does not change. The selected source directory inside it may vary. Flue selects the first existing directory in this order:
 
@@ -184,14 +184,14 @@ The user's project root does not change. The selected source directory inside it
 2. `<root>/src/`
 3. `<root>/`
 
-Write the connector to `<source-dir>/connectors/<name>.ts`. If the selected source directory is unclear, ask the user before writing.
+Write the adapter to `<source-dir>/connectors/<name>.ts`. If the selected source directory is unclear, ask the user before writing.
 
-## Verify a generated connector
+## Verify a generated sandbox adapter
 
 Before finishing:
 
 1. Typecheck the file with `npx tsc --noEmit` or the project's existing typecheck command.
-2. Confirm that the connector imports from `@flue/runtime`.
+2. Confirm that the adapter imports from `@flue/runtime`.
 3. If the project does not depend on the provider SDK, tell the user to install it.
 4. Tell the user which environment variables they need to set.
-5. Show a minimal snippet wiring the connector into an agent.
+5. Show a minimal snippet wiring the adapter into an agent.

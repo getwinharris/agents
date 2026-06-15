@@ -15,14 +15,14 @@ application or agents need.
 
 ## Add a channel
 
-Use `flue add` to give your coding agent the integration recipe for a
+Use `flue add` to give your coding agent the integration blueprint for a
 first-party channel:
 
 ```sh
 flue add channel slack --print | codex
 ```
 
-The recipe inspects the project and creates a module such as
+The blueprint inspects the project and creates a module such as
 `src/channels/slack.ts`. A typical channel module exports:
 
 ```ts title="src/channels/slack.ts"
@@ -52,19 +52,19 @@ and provider-specific setup.
 ## Custom Channel
 
 When Flue does not provide a first-party channel, give `flue add` the provider's
-webhook documentation and select the generic channel recipe:
+webhook documentation and select the generic channel blueprint:
 
 ```sh
 flue add channel https://provider.example/webhooks --print | codex
 ```
 
-The recipe guides your coding agent through creating a discovered
+The blueprint guides your coding agent through creating a discovered
 `channels/<provider>.ts` module, verifying requests against the unconsumed body,
 preserving provider-native events, and adding the provider's established SDK for
 outbound calls. Review the generated code and test valid and invalid signatures,
 protocol handshakes, responses, and the configured Node or Cloudflare target.
 
-See the [generic channel recipe](https://github.com/withastro/flue/blob/main/connectors/channel.md)
+See the [generic channel blueprint](https://github.com/withastro/flue/blob/main/blueprints/channel.md)
 for the full implementation and verification checklist.
 
 ## Understand ownership
@@ -304,7 +304,7 @@ and workerd. Flue Cloudflare builds enable `nodejs_compat`.
 
 The outbound client remains application-owned. A client import successfully
 bundling for Cloudflare is not proof that every SDK operation works there.
-Provider recipes select a credible cross-runtime client, and examples execute a
+Provider blueprints select a credible cross-runtime client, and examples execute a
 representative client operation in workerd without contacting the provider.
 Validate any additional SDK paths your application depends on.
 

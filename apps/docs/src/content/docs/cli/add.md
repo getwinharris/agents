@@ -1,6 +1,6 @@
 ---
 title: flue add
-description: Reference for discovering and applying Flue connector installation recipes.
+description: Reference for discovering and applying Flue implementation blueprints.
 lastReviewedAt: 2026-06-14
 ---
 
@@ -8,37 +8,37 @@ lastReviewedAt: 2026-06-14
 
 ```bash
 flue add
-flue add <category> <name-or-url> [--print]
+flue add <kind> <name-or-url> [--print]
 ```
 
 ## Description
 
-`flue add` fetches Markdown installation instructions for a coding agent. It does not install packages or write project files itself.
+`flue add` fetches a Markdown implementation blueprint for a coding agent. It does not install packages or write project files itself.
 
-With no arguments, the command lists known connectors. With a category and known connector name, it fetches that connector's recipe. With a category and absolute URL, it fetches the generic category recipe and uses the URL as the coding agent's research starting point. Paths are not accepted.
+With no arguments, the command lists known blueprints. With a kind and known name, it fetches that blueprint. With a kind and absolute URL, it fetches the generic blueprint for that kind and uses the URL as the coding agent's research starting point. Paths are not accepted.
 
 ## Arguments
 
 | Argument        | Description                                                                          |
 | --------------- | ------------------------------------------------------------------------------------ |
-| `<category>`    | Connector category: `sandbox`, `channel`, or `database`.                             |
-| `<name-or-url>` | Known connector slug or alias, or an absolute URL used as a research starting point. |
+| `<kind>`        | Blueprint kind: `sandbox`, `channel`, or `database`.                                 |
+| `<name-or-url>` | Known blueprint slug or alias, or an absolute URL used as a research starting point. |
 
 ## Options
 
-| Option    | Description                                                               |
-| --------- | ------------------------------------------------------------------------- |
-| `--print` | Write raw recipe Markdown to stdout regardless of coding-agent detection. |
+| Option    | Description                                                                  |
+| --------- | ---------------------------------------------------------------------------- |
+| `--print` | Write raw blueprint Markdown to stdout regardless of coding-agent detection. |
 
-## Connector categories
+## Blueprint kinds
 
-| Category   | Description                                                        |
-| ---------- | ------------------------------------------------------------------ |
-| `sandbox`  | Build a sandbox connector from provider documentation or source.   |
-| `channel`  | Add verified provider ingress, an SDK client, and app-owned tools. |
-| `database` | Add a database-backed persistence adapter.                         |
+| Kind       | Description                                                    |
+| ---------- | -------------------------------------------------------------- |
+| `sandbox`  | Build a sandbox adapter from provider documentation or source. |
+| `channel`  | Add verified provider ingress, a client, and app-owned tools.  |
+| `database` | Add a database-backed persistence adapter.                     |
 
-Run `flue add` without arguments to list the currently known connector recipes.
+Run `flue add` without arguments to list the currently known blueprints.
 
 ## Examples
 
@@ -70,5 +70,4 @@ flue add channel https://provider.example/webhooks --print | codex
 flue add database https://database.example/docs --print | codex
 ```
 
-See [Sandboxes](/docs/guide/sandboxes/), [Channels](/docs/guide/channels/), and
-the [Ecosystem](/docs/ecosystem/) for connector guidance.
+See [Sandboxes](/docs/guide/sandboxes/), [Channels](/docs/guide/channels/), and the [Ecosystem](/docs/ecosystem/) for implementation guidance.

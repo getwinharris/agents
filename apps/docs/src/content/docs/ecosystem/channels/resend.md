@@ -5,13 +5,13 @@ description: Receive verified Resend webhooks and retrieve inbound email through
 
 ## Add Resend
 
-Run the Resend recipe through your coding agent:
+Run the Resend blueprint through your coding agent:
 
 ```sh
 flue add channel resend --print | codex
 ```
 
-It installs `@flue/resend` and the official `resend@6.12.4` SDK. The recipe
+It installs `@flue/resend` and the official `resend@6.12.4` SDK. The blueprint
 creates a channel module with named `channel` and project-owned `client`
 exports.
 

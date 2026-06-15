@@ -5,7 +5,7 @@ description: Receive verified Telegram Bot API Updates with a project-owned gram
 
 ## Add Telegram
 
-Run the Telegram recipe through your coding agent:
+Run the Telegram blueprint through your coding agent:
 
 ```sh
 flue add channel telegram --print | codex
@@ -37,8 +37,7 @@ export const channel = createTelegramChannel({
 
   // Path: /channels/telegram/webhook
   async webhook({ update }) {
-    const incoming =
-      update.message ?? update.channel_post ?? update.business_message;
+    const incoming = update.message ?? update.channel_post ?? update.business_message;
     if (incoming) {
       await dispatch(assistant, {
         id: channel.conversationKey(conversationFromMessage(incoming)),

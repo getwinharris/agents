@@ -23,7 +23,7 @@
 		},
 		"apps-www#build": {
 			"dependsOn": ["^build"],
-			"inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/connectors/**"]
+			"inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/blueprints/**"]
 		},
 		"//#check:lint": {},
 		"check:types": {

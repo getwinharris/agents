@@ -41,13 +41,9 @@ Flue generates the Durable Object classes and bindings, but your `wrangler.jsonc
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": [
-        "FlueRegistry",
-        "FlueSupportChatAgent",
-        "FlueTranslateWorkflow"
-      ]
-    }
-  ]
+      "new_sqlite_classes": ["FlueRegistry", "FlueSupportChatAgent", "FlueTranslateWorkflow"],
+    },
+  ],
 }
 ```
 
@@ -61,8 +57,8 @@ Cloudflare requires an ordered migration history that accounts for every Durable
 {
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["FlueRegistry", "FlueSupportChatAgent"] },
-    { "tag": "v2", "new_sqlite_classes": ["FlueTranslateWorkflow"] }
-  ]
+    { "tag": "v2", "new_sqlite_classes": ["FlueTranslateWorkflow"] },
+  ],
 }
 ```
 
@@ -73,9 +69,12 @@ For example, if you remove an agent or workflow that was previously deployed, ap
 ```jsonc
 {
   "migrations": [
-    { "tag": "v1", "new_sqlite_classes": ["FlueRegistry", "FlueSupportChatAgent", "FlueTranslateWorkflow"] },
-    { "tag": "v2", "deleted_classes": ["FlueSupportChatAgent"] }
-  ]
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["FlueRegistry", "FlueSupportChatAgent", "FlueTranslateWorkflow"],
+    },
+    { "tag": "v2", "deleted_classes": ["FlueSupportChatAgent"] },
+  ],
 }
 ```
 
@@ -85,8 +84,11 @@ Similarly, use `renamed_classes` when a deployed class changes its name, such as
 {
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["FlueRegistry", "FlueSupportChatAgent"] },
-    { "tag": "v2", "renamed_classes": [{ "from": "FlueSupportChatAgent", "to": "FlueSupportAssistantAgent" }] }
-  ]
+    {
+      "tag": "v2",
+      "renamed_classes": [{ "from": "FlueSupportChatAgent", "to": "FlueSupportAssistantAgent" }],
+    },
+  ],
 }
 ```
 
@@ -146,15 +148,15 @@ See [Cloudflare Sandbox](/docs/ecosystem/sandboxes/cloudflare/) for container co
 
 By default, Flue agents use a lightweight in-memory virtual sandbox. This is fast and sufficient for prompt-and-response agents or agents that only need tools and structured results. When an agent needs a durable workspace with structured code execution instead of a full Linux container, use Cloudflare Shell with Codemode.
 
-[Cloudflare Shell](https://developers.cloudflare.com/agents/api-reference/cloudflare-shell/) provides a durable `Workspace` with a model-facing `code` tool backed by [`@cloudflare/codemode`](https://developers.cloudflare.com/agents/api-reference/codemode/). The agent interacts with files through structured code operations rather than shell commands. This means `harness.shell(...)` and `session.shell(...)` do not run arbitrary Linux commands through this connector.
+[Cloudflare Shell](https://developers.cloudflare.com/agents/api-reference/cloudflare-shell/) provides a durable `Workspace` with a model-facing `code` tool backed by [`@cloudflare/codemode`](https://developers.cloudflare.com/agents/api-reference/codemode/). The agent interacts with files through structured code operations rather than shell commands. This means `harness.shell(...)` and `session.shell(...)` do not run arbitrary Linux commands through this sandbox adapter.
 
-Add the connector to your project:
+Add the sandbox adapter to your project:
 
 ```bash
 pnpm exec flue add sandbox cloudflare-shell
 ```
 
-Then import its helpers from your generated connector file, not from `@flue/runtime/cloudflare`:
+Then import its helpers from your generated sandbox adapter file, not from `@flue/runtime/cloudflare`:
 
 ```ts
 import { getDefaultWorkspace, getShellSandbox } from '../connectors/cloudflare-shell';
@@ -195,10 +197,7 @@ export const cloudflare = extend({
 ```ts
 export const cloudflare = extend({
   wrap: (Final) =>
-    Sentry.instrumentDurableObjectWithSentry(
-      (env) => ({ dsn: env.SENTRY_DSN }),
-      Final,
-    ),
+    Sentry.instrumentDurableObjectWithSentry((env) => ({ dsn: env.SENTRY_DSN }), Final),
 });
 ```
 
@@ -275,7 +274,7 @@ The returned `CloudflareContext` includes:
 
 Throws outside of Cloudflare runtime work.
 
-This is intended for advanced application-owned integrations such as custom Cloudflare sandbox connectors. Most applications do not need to call this directly.
+This is intended for advanced application-owned integrations such as custom Cloudflare sandbox adapters. Most applications do not need to call this directly.
 
 ### `getDurableObjectIdentity()`
 

@@ -4,15 +4,15 @@ description: Connect a Flue agent to an application-owned Daytona sandbox.
 lastReviewedAt: 2026-06-01
 ---
 
-The Daytona connector adapts an already-initialized Daytona sandbox from `@daytona/sdk` into Flue's sandbox interface. Use it when a Node-hosted application needs a provider-managed Linux environment with filesystem and shell operations.
+The Daytona adapter adapts an already-initialized Daytona sandbox from `@daytona/sdk` into Flue's sandbox interface. Use it when a Node-hosted application needs a provider-managed Linux environment with filesystem and shell operations.
 
-## Add the connector
+## Add the adapter
 
 ```bash
 pnpm exec flue add sandbox daytona
 ```
 
-The generated connector expects your application to create and own the Daytona sandbox. It does not decide sandbox identity, retention, or cleanup for you.
+The generated adapter expects your application to create and own the Daytona sandbox. It does not decide sandbox identity, retention, or cleanup for you.
 
 ## Requirements
 
@@ -39,6 +39,6 @@ const agent = createAgent(() => ({
 }));
 ```
 
-Configure images, snapshots, regions, environment variables, and volumes through the Daytona SDK before passing the sandbox to `daytona(...)`. For a narrower working directory, configure `cwd` on the created agent; Flue resolves it once against the connector's provider-owned base directory during `init()`.
+Configure images, snapshots, regions, environment variables, and volumes through the Daytona SDK before passing the sandbox to `daytona(...)`. For a narrower working directory, configure `cwd` on the created agent; Flue resolves it once against the adapter's provider-owned base directory during `init()`.
 
-See [Sandboxes](/docs/guide/sandboxes/#remote-sandboxes), [Sandbox Connector API](/docs/api/sandbox-api/), and [Daytona's TypeScript SDK reference](https://www.daytona.io/docs/en/typescript-sdk/daytona/).
+See [Sandboxes](/docs/guide/sandboxes/#remote-sandboxes), [Sandbox Adapter API](/docs/api/sandbox-api/), and [Daytona's TypeScript SDK reference](https://www.daytona.io/docs/en/typescript-sdk/daytona/).

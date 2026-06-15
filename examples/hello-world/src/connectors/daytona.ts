@@ -1,5 +1,5 @@
 /**
- * Daytona connector for Flue.
+ * Daytona adapter for Flue.
  *
  * Wraps an already-initialized Daytona sandbox into Flue's SandboxFactory
  * interface. The user creates and configures the sandbox using the Daytona

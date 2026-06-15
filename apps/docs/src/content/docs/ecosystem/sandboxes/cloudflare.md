@@ -3,7 +3,7 @@ title: Cloudflare Sandbox
 description: Run Flue agent work inside Cloudflare container-backed sandboxes.
 ---
 
-Cloudflare Sandbox uses `@cloudflare/sandbox` to provide a container-backed Linux environment to a Flue application deployed on Cloudflare. This integration is platform-native: it is not a connector module for a Node-target application.
+Cloudflare Sandbox uses `@cloudflare/sandbox` to provide a container-backed Linux environment to a Flue application deployed on Cloudflare. This integration is platform-native: it is not an adapter module for a Node-target application.
 
 ## Use the Cloudflare target
 

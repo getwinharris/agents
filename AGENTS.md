@@ -21,6 +21,8 @@ Runs are workflow-only. Direct HTTP/WebSocket agent prompts and dispatched agent
 
 Use `harness` as the variable name for the return value of `init()`. Agents have names; agent instances have ids; harnesses and sessions have names; operations have generated ids.
 
+A blueprint is a Markdown implementation guide returned by `flue add`; its kind is `sandbox`, `database`, or `channel`. Use “sandbox adapter” for project-owned implementations while preserving generated `src/connectors/` paths, runtime API identifiers, and Microsoft Bot Connector terminology.
+
 ## Project Structure
 
 - `packages/runtime/` — Runtime library (`@flue/runtime`): sessions, agent harnesses, tools, and sandbox plumbing.

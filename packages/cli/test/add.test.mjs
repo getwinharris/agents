@@ -70,7 +70,7 @@ before(async () => {
 			response.writeHead(404).end('Not found');
 			return;
 		}
-		const source = await readFile(join(repoRoot, 'connectors', file), 'utf8');
+		const source = await readFile(join(repoRoot, 'blueprints', file), 'utf8');
 		response.writeHead(200, { 'content-type': 'text/markdown; charset=utf-8' });
 		response.end(stripFrontmatter(source));
 	});
@@ -87,7 +87,7 @@ after(async () => {
 });
 
 describe('flue add', () => {
-	it('lists named recipes and every generic category when no name is given', async () => {
+	it('lists named blueprints and every generic kind when no name is given', async () => {
 		const result = await runCli(['add']);
 		assert.equal(result.code, 0);
 		assert.match(result.stderr, /flue add channel github\s+channel\s+https:\/\/github\.com/);
@@ -153,7 +153,7 @@ describe('flue add', () => {
 		assert.ok(result.stderr.includes('flue add database <url>'));
 	});
 
-	it('prints the WhatsApp channel recipe', async () => {
+	it('prints the WhatsApp channel blueprint', async () => {
 		const result = await runCli(['add', 'channel', 'whatsapp', '--print']);
 
 		assert.equal(result.code, 0);
@@ -163,7 +163,7 @@ describe('flue add', () => {
 		assert.ok(result.stdout.includes('X-Hub-Signature-256'));
 	});
 
-	it('prints the Stripe recipe with snapshot and thin event support', async () => {
+	it('prints the Stripe blueprint with snapshot and thin event support', async () => {
 		const result = await runCli(['add', 'channel', 'stripe', '--print']);
 
 		assert.equal(result.code, 0);
@@ -175,7 +175,7 @@ describe('flue add', () => {
 		assert.ok(result.stdout.includes('nodejs_compat'));
 	});
 
-	it('prints the Notion recipe with setup and signed-event guidance', async () => {
+	it('prints the Notion blueprint with setup and signed-event guidance', async () => {
 		const result = await runCli(['add', 'channel', 'notion', '--print']);
 
 		assert.equal(result.code, 0);
@@ -187,7 +187,7 @@ describe('flue add', () => {
 		assert.ok(result.stdout.includes('nodejs_compat'));
 	});
 
-	it('prints the Resend recipe with signed ingress and fake-client guidance', async () => {
+	it('prints the Resend blueprint with signed ingress and fake-client guidance', async () => {
 		const result = await runCli(['add', 'channel', 'resend', '--print']);
 
 		assert.equal(result.code, 0);
@@ -203,7 +203,7 @@ describe('flue add', () => {
 		assert.ok(result.stdout.includes('Never create a receiving domain'));
 	});
 
-	it('prints the Shopify recipe with signed ingress and a shop-bound GraphQL client', async () => {
+	it('prints the Shopify blueprint with signed ingress and a shop-bound GraphQL client', async () => {
 		const result = await runCli(['add', 'channel', 'shopify', '--print']);
 
 		assert.equal(result.code, 0);
@@ -220,7 +220,7 @@ describe('flue add', () => {
 		assert.ok(result.stdout.includes('Never register a live webhook'));
 	});
 
-	it('prints the Intercom recipe with endpoint validation and the official SDK', async () => {
+	it('prints the Intercom blueprint with endpoint validation and the official SDK', async () => {
 		const result = await runCli(['add', 'channel', 'intercom', '--print']);
 
 		assert.equal(result.code, 0);
@@ -234,7 +234,7 @@ describe('flue add', () => {
 		assert.ok(result.stdout.includes('Never register or modify a live webhook'));
 	});
 
-	it('prints the Zendesk recipe with signed ingress and a ticket-bound Fetch client', async () => {
+	it('prints the Zendesk blueprint with signed ingress and a ticket-bound Fetch client', async () => {
 		const result = await runCli(['add', 'channel', 'zendesk', '--print']);
 
 		assert.equal(result.code, 0);
@@ -248,7 +248,7 @@ describe('flue add', () => {
 		assert.ok(result.stdout.includes('Never create or modify a live webhook'));
 	});
 
-	it('prints the Salesforce Marketing Cloud recipe with signed ENS batches', async () => {
+	it('prints the Salesforce Marketing Cloud blueprint with signed ENS batches', async () => {
 		const result = await runCli(['add', 'channel', 'salesforce-marketing-cloud', '--print']);
 
 		assert.equal(result.code, 0);
@@ -261,7 +261,7 @@ describe('flue add', () => {
 		assert.ok(result.stdout.includes('Never register or modify a live callback'));
 	});
 
-	it('prints the Twilio recipe with the Workers-compatible Fetch path', async () => {
+	it('prints the Twilio blueprint with the Workers-compatible Fetch path', async () => {
 		const result = await runCli(['add', 'channel', 'twilio', '--print']);
 
 		assert.equal(result.code, 0);
@@ -273,7 +273,7 @@ describe('flue add', () => {
 		assert.ok(result.stdout.includes('Do not install the official `twilio` Node helper'));
 	});
 
-	it('prints the Messenger recipe with verified batches and the Graph Fetch path', async () => {
+	it('prints the Messenger blueprint with verified batches and the Graph Fetch path', async () => {
 		const result = await runCli(['add', 'channel', 'messenger', '--print']);
 
 		assert.equal(result.code, 0);
@@ -285,7 +285,7 @@ describe('flue add', () => {
 		assert.ok(result.stdout.includes('Graph API Fetch client'));
 	});
 
-	it('prints the Teams channel recipe with the Workers-compatible Fetch path', async () => {
+	it('prints the Teams channel blueprint with the Workers-compatible Fetch path', async () => {
 		const result = await runCli(['add', 'channel', 'teams', '--print']);
 		assert.equal(result.code, 0);
 		assert.ok(result.stdout.startsWith('# Add a Microsoft Teams Channel to Flue'));
@@ -295,7 +295,7 @@ describe('flue add', () => {
 		assert.ok(result.stdout.includes('https://api.botframework.com/.default'));
 	});
 
-	it('prints the Google Chat recipe with both verified HTTP surfaces', async () => {
+	it('prints the Google Chat blueprint with both verified HTTP surfaces', async () => {
 		const result = await runCli(['add', 'channel', 'google-chat', '--print']);
 		assert.equal(result.code, 0);
 		assert.ok(result.stdout.startsWith('# Add a Google Chat Channel to Flue'));
@@ -306,7 +306,7 @@ describe('flue add', () => {
 		assert.ok(result.stdout.includes('https://www.googleapis.com/auth/chat.bot'));
 	});
 
-	it('prints the Linear recipe with verified ingress and the official SDK path', async () => {
+	it('prints the Linear blueprint with verified ingress and the official SDK path', async () => {
 		const result = await runCli(['add', 'channel', 'linear', '--print']);
 		assert.equal(result.code, 0);
 		assert.ok(result.stdout.startsWith('# Add a Linear Channel to Flue'));
@@ -317,7 +317,7 @@ describe('flue add', () => {
 		assert.ok(result.stdout.includes('nodejs_compat'));
 	});
 
-	it('prints the Telegram recipe with verified ingress and the Workers client path', async () => {
+	it('prints the Telegram blueprint with verified ingress and the Workers client path', async () => {
 		const result = await runCli(['add', 'channel', 'telegram', '--print']);
 		assert.equal(result.code, 0);
 		assert.ok(result.stdout.startsWith('# Add a Telegram Channel to Flue'));
@@ -328,7 +328,7 @@ describe('flue add', () => {
 		assert.ok(result.stdout.includes('nodejs_compat'));
 	});
 
-	it('prints provider-native payload guidance when the Slack recipe is requested', async () => {
+	it('prints provider-native payload guidance when the Slack blueprint is requested', async () => {
 		const result = await runCli(['add', 'channel', 'slack', '--print']);
 		assert.equal(result.code, 0);
 		assert.ok(result.stdout.startsWith('# Add a Slack Channel to Flue'));
@@ -345,7 +345,7 @@ describe('flue add', () => {
 		assert.ok(!result.stdout.startsWith('---'));
 	});
 
-	it('prints provider-native payload guidance when the Discord recipe is requested', async () => {
+	it('prints provider-native payload guidance when the Discord blueprint is requested', async () => {
 		const result = await runCli(['add', 'channel', 'discord', '--print']);
 		assert.equal(result.code, 0);
 		assert.ok(result.stdout.startsWith('# Add a Discord Channel to Flue'));
@@ -360,7 +360,7 @@ describe('flue add', () => {
 		assert.ok(!result.stdout.startsWith('---'));
 	});
 
-	it('prints database recipes with their transaction-safe runner wiring', async () => {
+	it('prints database blueprints with their transaction-safe runner wiring', async () => {
 		const postgres = await runCli(['add', 'database', 'postgres', '--print']);
 		assert.equal(postgres.code, 0);
 		assert.ok(postgres.stdout.includes('@flue/postgres'));
@@ -381,7 +381,7 @@ describe('flue add', () => {
 		assert.ok(turso.stdout.includes('tx.close()'));
 	});
 
-	it('substitutes any absolute research URL into the generic category recipe', async () => {
+	it('substitutes any absolute research URL into the generic kind blueprint', async () => {
 		const url = 'git+ssh://git@example.test/provider.git';
 		const result = await runCli(['add', 'channel', url, '--print']);
 		assert.equal(result.code, 0);
@@ -397,10 +397,10 @@ describe('flue add', () => {
 		assert.ok(result.stderr.includes(`flue add channel '${url}' --print | claude`));
 	});
 
-	it('rejects an unknown category with every known category in the guidance', async () => {
+	it('rejects an unknown kind with every known kind in the guidance', async () => {
 		const result = await runCli(['add', 'unknown', 'https://docs.example.test', '--print']);
 		assert.equal(result.code, 1);
-		assert.ok(result.stderr.includes('Known categories: channel, database, sandbox'));
+		assert.ok(result.stderr.includes('Known kinds: channel, database, sandbox'));
 	});
 
 	it('rejects the removed category flag', async () => {
@@ -415,26 +415,24 @@ describe('flue add', () => {
 		assert.ok(result.stderr.includes('Unknown flag for `flue add`: --category'));
 	});
 
-	it('rejects a legacy one-positional connector invocation', async () => {
+	it('rejects a legacy one-positional blueprint invocation', async () => {
 		const result = await runCli(['add', 'slack', '--print']);
 		assert.equal(result.code, 1);
-		assert.ok(result.stderr.includes('Missing connector name or URL'));
+		assert.ok(result.stderr.includes('Missing blueprint name or URL'));
 	});
 
-	it('rejects a connector name under the wrong category', async () => {
+	it('rejects a blueprint name under the wrong kind', async () => {
 		const result = await runCli(['add', 'database', 'slack', '--print']);
 		assert.equal(result.code, 1);
-		assert.ok(result.stderr.includes('Connector "slack" not found in category "database"'));
+		assert.ok(result.stderr.includes('Blueprint "slack" not found for kind "database"'));
 		assert.ok(result.stderr.includes('flue add database postgres'));
 		assert.ok(!result.stderr.includes('flue add channel slack'));
 	});
 
-	it('treats an unknown non-URL value as a connector name', async () => {
+	it('treats an unknown non-URL value as a blueprint name', async () => {
 		const result = await runCli(['add', 'channel', 'unknown-provider', '--print']);
 		assert.equal(result.code, 1);
-		assert.ok(
-			result.stderr.includes('Connector "unknown-provider" not found in category "channel"'),
-		);
+		assert.ok(result.stderr.includes('Blueprint "unknown-provider" not found for kind "channel"'));
 	});
 
 	it('rejects an extra positional argument', async () => {

@@ -177,7 +177,7 @@ function adaptStat(s: CfFsStat): FileStat {
 	};
 }
 
-// Raw JSON Schema: connector tools feed the agent loop directly, which
+// Raw JSON Schema: adapter tools feed the agent loop directly, which
 // accepts plain JSON Schema parameter documents.
 const CodeParams = {
 	type: 'object',

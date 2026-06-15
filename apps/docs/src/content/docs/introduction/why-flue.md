@@ -8,7 +8,7 @@ description: Build autonomous AI agents and powerful workflows with a programmab
 
 ## Features
 
-**Flue is a complete framework for agentic software.** It includes everything you need to build, run, and deploy agents, built-in. It also connects to the wider ecosystem—MCP servers, sandbox connectors, chat surfaces, and observability backends—so you can customize a project to your exact use case and needs.
+**Flue is a complete framework for agentic software.** It includes everything you need to build, run, and deploy agents, built-in. It also connects to the wider ecosystem—MCP servers, sandbox adapters, chat surfaces, and observability backends—so you can customize a project to your exact use case and needs.
 
 Some highlights include:
 

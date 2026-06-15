@@ -5,7 +5,7 @@ description: Receive verified Marketing Cloud Engagement ENS batches and compose
 
 ## Add Salesforce Marketing Cloud
 
-Run the Salesforce Marketing Cloud Engagement recipe through your coding
+Run the Salesforce Marketing Cloud Engagement blueprint through your coding
 agent:
 
 ```sh

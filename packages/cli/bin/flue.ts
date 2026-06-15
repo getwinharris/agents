@@ -19,7 +19,7 @@ import {
 import { resolveConfigCandidates } from '../src/lib/config-paths.ts';
 import { DEFAULT_DEV_PORT, dev } from '../src/lib/dev.ts';
 import { createEnvLoader, type EnvLoader, selectEnvFile } from '../src/lib/env.ts';
-import { CATEGORY_ROOTS, CONNECTORS } from './_connectors.generated.ts';
+import { BLUEPRINTS, KIND_ROOTS } from './_blueprints.generated.ts';
 
 interface ApplicationConfigArgs {
 	target?: 'node' | 'cloudflare';
@@ -97,7 +97,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  flue connect <agent> <instance-id> [--target node] [--root <path>] [--output <path>] [--config <path>] [--env <path>]\n' +
 			'  flue build   [--target <node|cloudflare>] [--root <path>] [--output <path>] [--config <path>] [--env <path>]\n' +
 			'  flue init  --target <node|cloudflare> [--root <path>] [--force]\n' +
-			'  flue add   [<category> <name|url>] [--print]\n' +
+			'  flue add   [<kind> <name|url>] [--print]\n' +
 			'  flue docs  [read <path> | search <query>]\n' +
 			"  flue logs  <workflowRunId> [--server <url>] [--header 'Name: value'] [--follow|-f|--no-follow] [--since <offset>] [--types a,b,c] [--limit <n>] [--format pretty|ndjson]\n" +
 			'\n' +
@@ -107,7 +107,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  connect  Build + open an interactive local connection to an agent instance.\n' +
 			'  build    Build a deployable artifact to ./dist (production deploys).\n' +
 			'  init   Scaffold a starter flue.config.ts in the target directory.\n' +
-			'  add    Install a connector. Pipes installation instructions for an AI coding agent to follow.\n' +
+			'  add    Fetch a blueprint implementation guide for an AI coding agent to follow.\n' +
 			'  docs   Browse the Flue docs. No args lists pages; `read` prints a page as markdown; `search` prints JSON results.\n' +
 			'  logs   Tail or replay workflow run events from a running Flue server. Read-only — does not invoke work.\n' +
 			'\n' +
@@ -120,7 +120,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			`  --port <number>      Port for the dev server. Default: ${DEFAULT_DEV_PORT}\n` +
 			'  --env <path>         Select one alternate .env-format file for build/dev/run/connect before config loads.\n' +
 			'                       Without --env, these commands load <project>/.env when present. Shell values win.\n' +
-			'  --print              (flue add) Print the raw connector markdown to stdout regardless of whether the caller is an agent.\n' +
+			'  --print              (flue add) Print the raw blueprint Markdown to stdout regardless of whether the caller is an agent.\n' +
 			'  --force              (flue init) Overwrite an existing flue.config.* in the target directory.\n' +
 			'\n' +
 			'Examples:\n' +
@@ -208,7 +208,7 @@ interface DevArgs {
 
 interface AddArgs {
 	command: 'add';
-	category: string;
+	kind: string;
 	target: string;
 	print: boolean;
 }
@@ -427,12 +427,12 @@ function parseAddArgs(rest: string[]): AddArgs {
 	}
 
 	if (positionals.length === 0) {
-		return { command: 'add', category: '', target: '', print };
+		return { command: 'add', kind: '', target: '', print };
 	}
 
 	if (positionals.length < 2) {
 		console.error(
-			'Missing connector name or URL.\n\nUsage:\n  flue add <category> <name|url> [--print]',
+			'Missing blueprint name or URL.\n\nUsage:\n  flue add <kind> <name|url> [--print]',
 		);
 		process.exit(1);
 	}
@@ -446,7 +446,7 @@ function parseAddArgs(rest: string[]): AddArgs {
 
 	return {
 		command: 'add',
-		category: positionals[0] ?? '',
+		kind: positionals[0] ?? '',
 		target: positionals[1] ?? '',
 		print,
 	};
@@ -1686,94 +1686,95 @@ function initCommand(args: InitArgs) {
 
 // ─── `flue add` ─────────────────────────────────────────────────────────────
 
-// Default registry base. Can be overridden via FLUE_REGISTRY_URL for local
-// development against `pnpm --filter @flue/www dev`. Internal-only env var;
-// not part of any documented user-facing surface.
-const DEFAULT_REGISTRY_URL = 'https://flueframework.com/cli/connectors';
+// Default blueprint registry base. FLUE_REGISTRY_URL is an internal-only
+// override used for local development against `pnpm --filter @flue/www dev`.
+const DEFAULT_REGISTRY_URL = 'https://flueframework.com/cli/blueprints';
 
 function registryUrlFor(slug: string): string {
 	const base = (process.env.FLUE_REGISTRY_URL ?? DEFAULT_REGISTRY_URL).replace(/\/+$/, '');
 	return `${base}/${slug}.md`;
 }
 
-/**
- * Resolve a user-supplied name to a registered connector. Tries an exact
- * match (slug or alias) first, then falls back to a case-insensitive match.
- * Returns the matched connector entry, or undefined if nothing matched.
- */
-function resolveConnector(category: string, name: string): (typeof CONNECTORS)[number] | undefined {
-	const connectors = CONNECTORS.filter((connector) => connector.category === category);
-	const bySlug = connectors.find((connector) => connector.slug === name);
+function resolveBlueprint(kind: string, name: string): (typeof BLUEPRINTS)[number] | undefined {
+	const blueprints = BLUEPRINTS.filter((blueprint) => blueprint.kind === kind);
+	const bySlug = blueprints.find((blueprint) => blueprint.slug === name);
 	if (bySlug) return bySlug;
-	const byAlias = connectors.find((connector) => connector.aliases.includes(name));
+	const byAlias = blueprints.find((blueprint) => blueprint.aliases.includes(name));
 	if (byAlias) return byAlias;
 	const lower = name.toLowerCase();
-	return connectors.find(
-		(connector) =>
-			connector.slug.toLowerCase() === lower ||
-			connector.aliases.some((alias) => alias.toLowerCase() === lower),
+	return blueprints.find(
+		(blueprint) =>
+			blueprint.slug.toLowerCase() === lower ||
+			blueprint.aliases.some((alias) => alias.toLowerCase() === lower),
 	);
 }
 
 /**
  * Render a 3-column table aligned by the longest entry. Simple and
- * intentionally unfussy — connector listings are always small.
+ * intentionally unfussy — blueprint listings are always small.
  */
-function renderConnectorTable(
-	rows: { command: string; category: string; website: string }[],
-): string {
+function renderBlueprintTable(rows: { command: string; kind: string; website: string }[]): string {
 	if (rows.length === 0) return '  (none)';
-	const cmdW = Math.max(...rows.map((r) => r.command.length));
-	const catW = Math.max(...rows.map((r) => r.category.length));
+	const commandWidth = Math.max(...rows.map((row) => row.command.length));
+	const kindWidth = Math.max(...rows.map((row) => row.kind.length));
 	const gap = '     ';
 	return rows
-		.map((r) => `  ${r.command.padEnd(cmdW)}${gap}${r.category.padEnd(catW)}${gap}${r.website}`)
+		.map(
+			(row) =>
+				`  ${row.command.padEnd(commandWidth)}${gap}${row.kind.padEnd(kindWidth)}${gap}${row.website}`,
+		)
 		.join('\n');
 }
 
-function categoryRootHint(): string {
-	if (CATEGORY_ROOTS.length === 0) return '';
+const blueprintResultByKind: Record<string, string> = {
+	sandbox: 'sandbox adapter',
+	database: 'database adapter',
+	channel: 'channel',
+};
+
+function kindRootHint(): string {
+	if (KIND_ROOTS.length === 0) return '';
 	const lines: string[] = [];
 	lines.push('');
 	lines.push(`Don't see what you need?`);
-	for (const root of CATEGORY_ROOTS) {
+	for (const root of KIND_ROOTS) {
 		lines.push('');
-		lines.push(`  flue add ${root.category} <url>`);
-		lines.push(`    Build a ${root.category} connector from scratch. Pass a URL pointing at the`);
+		lines.push(`  flue add ${root.kind} <url>`);
+		lines.push(
+			`    Build a ${blueprintResultByKind[root.kind] ?? root.kind} from scratch. Pass a URL pointing at the`,
+		);
 		lines.push(`    provider's docs (homepage, SDK reference, GitHub repo, anything useful) as`);
 		lines.push(`    the agent's starting point. Pipe to your coding agent.`);
 	}
 	return lines.join('\n');
 }
 
-function availableConnectorRows(category?: string) {
-	return CONNECTORS.filter((connector) => !category || connector.category === category).map(
-		(connector) => ({
-			command: `flue add ${connector.category} ${connector.slug}`,
-			category: connector.category,
-			website: connector.website,
-		}),
-	);
+function availableBlueprintRows(kind?: string) {
+	return BLUEPRINTS.filter((blueprint) => !kind || blueprint.kind === kind).map((blueprint) => ({
+		command: `flue add ${blueprint.kind} ${blueprint.slug}`,
+		kind: blueprint.kind,
+		website: blueprint.website,
+	}));
 }
 
 function printListing(stream: NodeJS.WriteStream) {
-	stream.write('flue add <category> <name|url>\n\n');
-	stream.write('Available connectors:\n');
-	stream.write(renderConnectorTable(availableConnectorRows()));
+	stream.write('flue add <kind> <name|url>\n\n');
+	stream.write('Available blueprints:\n');
+	stream.write(renderBlueprintTable(availableBlueprintRows()));
 	stream.write('\n');
-	const hint = categoryRootHint();
+	const hint = kindRootHint();
 	if (hint) stream.write(`${hint}\n`);
 }
 
-function printUnknownConnector(category: string, name: string, stream: NodeJS.WriteStream) {
-	stream.write(`Connector "${name}" not found in category "${category}".\n\n`);
-	stream.write(`Available ${category} connectors:\n`);
-	stream.write(renderConnectorTable(availableConnectorRows(category)));
+function printUnknownBlueprint(kind: string, name: string, stream: NodeJS.WriteStream) {
+	stream.write(`Blueprint "${name}" not found for kind "${kind}".\n\n`);
+	stream.write(`Available ${kind} blueprints:\n`);
+	stream.write(renderBlueprintTable(availableBlueprintRows(kind)));
 	stream.write('\n\nTo build one from scratch with your coding agent:\n');
-	stream.write(`  flue add ${category} <url>\n`);
+	stream.write(`  flue add ${kind} <url>\n`);
 }
 
-async function fetchConnectorMarkdown(
+async function fetchBlueprintMarkdown(
 	slug: string,
 ): Promise<{ body: string } | { notFound: true }> {
 	const url = registryUrlFor(slug);
@@ -1782,14 +1783,14 @@ async function fetchConnectorMarkdown(
 		res = await fetch(url);
 	} catch (err) {
 		console.error(
-			`[flue] Failed to reach the connector registry at ${url}.\n` +
+			`[flue] Failed to reach the blueprint registry at ${url}.\n` +
 				`  ${err instanceof Error ? err.message : String(err)}`,
 		);
 		process.exit(1);
 	}
 	if (res.status === 404) return { notFound: true };
 	if (!res.ok) {
-		console.error(`[flue] Connector registry returned HTTP ${res.status} for ${url}.`);
+		console.error(`[flue] Blueprint registry returned HTTP ${res.status} for ${url}.`);
 		process.exit(1);
 	}
 	return { body: await res.text() };
@@ -2017,10 +2018,10 @@ function docsCommand(args: DocsArgs): void {
 }
 
 function printHumanInstructions(args: AddArgs) {
-	const cmd = `flue add ${args.category} ${shellQuote(args.target)}`;
+	const cmd = `flue add ${args.kind} ${shellQuote(args.target)}`;
 	const stream = process.stderr;
 	stream.write(`${cmd}\n\n`);
-	stream.write('To install this connector, pipe it to your coding agent:\n\n');
+	stream.write('To apply this blueprint, pipe it to your coding agent:\n\n');
 	stream.write(`  ${cmd} --print | claude\n`);
 	stream.write(`  ${cmd} --print | codex\n`);
 	stream.write(`  ${cmd} --print | cursor-agent\n`);
@@ -2031,19 +2032,18 @@ function printHumanInstructions(args: AddArgs) {
 }
 
 /**
- * Shared tail of `flue add`: fetch the connector markdown for `slug`, then
- * either write it to stdout (agent mode / --print) or print human
- * instructions. `substituteUrl` replaces `{{URL}}` placeholders in
- * category-root markdown.
+ * Shared tail of `flue add`: fetch blueprint Markdown for `slug`, then write
+ * it to stdout in agent mode or print human instructions. `substituteUrl`
+ * replaces `{{URL}}` placeholders in kind-root blueprints.
  */
-async function emitConnectorMarkdown(
+async function emitBlueprintMarkdown(
 	args: AddArgs,
 	opts: { slug: string; notFoundLabel: string; substituteUrl?: string },
 ) {
-	const result = await fetchConnectorMarkdown(opts.slug);
+	const result = await fetchBlueprintMarkdown(opts.slug);
 	if ('notFound' in result) {
 		console.error(
-			`[flue] The connector registry did not have markdown for ${opts.notFoundLabel}. ` +
+			`[flue] The blueprint registry did not have Markdown for ${opts.notFoundLabel}. ` +
 				`Your installed CLI may be out of sync with the registry — try updating @flue/cli.`,
 		);
 		process.exit(1);
@@ -2065,16 +2065,16 @@ async function emitConnectorMarkdown(
 }
 
 async function addCommand(args: AddArgs) {
-	if (!args.category && !args.target) {
+	if (!args.kind && !args.target) {
 		printListing(process.stderr);
 		return;
 	}
 
-	const root = CATEGORY_ROOTS.find((entry) => entry.category === args.category);
+	const root = KIND_ROOTS.find((entry) => entry.kind === args.kind);
 	if (!root) {
 		console.error(
-			`[flue] Unknown category "${args.category}". Known categories: ${
-				CATEGORY_ROOTS.map((entry) => entry.category).join(', ') || '(none)'
+			`[flue] Unknown blueprint kind "${args.kind}". Known kinds: ${
+				KIND_ROOTS.map((entry) => entry.kind).join(', ') || '(none)'
 			}`,
 		);
 		process.exit(1);
@@ -2086,21 +2086,21 @@ async function addCommand(args: AddArgs) {
 	} catch {}
 
 	if (url) {
-		await emitConnectorMarkdown(args, {
-			slug: root.category,
-			notFoundLabel: `category "${args.category}"`,
+		await emitBlueprintMarkdown(args, {
+			slug: root.kind,
+			notFoundLabel: `kind "${args.kind}"`,
 			substituteUrl: args.target,
 		});
 		return;
 	}
 
-	const known = resolveConnector(args.category, args.target);
+	const known = resolveBlueprint(args.kind, args.target);
 	if (!known) {
-		printUnknownConnector(args.category, args.target, process.stderr);
+		printUnknownBlueprint(args.kind, args.target, process.stderr);
 		process.exit(1);
 	}
 
-	await emitConnectorMarkdown(args, { slug: known.slug, notFoundLabel: `"${known.slug}"` });
+	await emitBlueprintMarkdown(args, { slug: known.slug, notFoundLabel: `"${known.slug}"` });
 }
 
 // ─── Entry Point ────────────────────────────────────────────────────────────

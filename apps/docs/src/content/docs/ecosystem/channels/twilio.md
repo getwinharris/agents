@@ -5,7 +5,7 @@ description: Receive verified Twilio SMS and MMS webhooks with a project-owned F
 
 ## Add Twilio
 
-Run the Twilio recipe through your coding agent:
+Run the Twilio blueprint through your coding agent:
 
 ```sh
 flue add channel twilio --print | codex
@@ -90,7 +90,7 @@ export function postMessage(ref: TwilioConversationRef) {
 }
 ```
 
-The recipe creates `src/twilio-client.ts` with the Fetch client used above.
+The blueprint creates `src/twilio-client.ts` with the Fetch client used above.
 Bind the tool from the agent with
 `postMessage(channel.parseConversationKey(id))`.
 

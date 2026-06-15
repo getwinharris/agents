@@ -5,14 +5,14 @@ description: Receive signed Notion webhook events and use the official client fr
 
 ## Add Notion
 
-Run the Notion recipe through your coding agent:
+Run the Notion blueprint through your coding agent:
 
 ```sh
 flue add channel notion --print | codex
 ```
 
 It installs `@flue/notion` and the official
-`@notionhq/client@5.22.0`. The recipe creates a channel module with named
+`@notionhq/client@5.22.0`. The blueprint creates a channel module with named
 `channel` and `client` exports.
 
 Configure the webhook URL as:

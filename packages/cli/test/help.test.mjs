@@ -34,10 +34,10 @@ describe('flue (top-level flags)', () => {
 		}
 	});
 
-	it('documents positional flue add categories without the removed category flag', async () => {
+	it('documents positional flue add kinds without the removed category flag', async () => {
 		const result = await runCli(['--help']);
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.includes('flue add   [<category> <name|url>] [--print]'));
+		assert.ok(result.stdout.includes('flue add   [<kind> <name|url>] [--print]'));
 		assert.ok(!result.stdout.includes('--category'));
 	});
 

@@ -4,17 +4,17 @@ description: Connect a Flue agent to an application-owned boxd Linux VM.
 lastReviewedAt: 2026-05-30
 ---
 
-The boxd connector adapts an already-initialized boxd `Box` from `@boxd-sh/sdk` into Flue's sandbox interface. Use it when an agent needs a provider-backed Linux virtual machine with filesystem and shell behavior rather than the lightweight default workspace.
+The boxd adapter adapts an already-initialized boxd `Box` from `@boxd-sh/sdk` into Flue's sandbox interface. Use it when an agent needs a provider-backed Linux virtual machine with filesystem and shell behavior rather than the lightweight default workspace.
 
-## Add the connector
+## Add the adapter
 
-Run the connector installation flow in your Flue project:
+Run the adapter installation flow in your Flue project:
 
 ```bash
 pnpm exec flue add sandbox boxd
 ```
 
-The generated connector expects your application to create and own the boxd VM. It does not decide VM identity, retention, or cleanup for you.
+The generated adapter expects your application to create and own the boxd VM. It does not decide VM identity, retention, or cleanup for you.
 
 ## Requirements
 
@@ -31,4 +31,4 @@ Choose boxd when a task requires real Linux command behavior in an isolated prov
 
 Before reusing a VM across sessions or tenants, define identity, authorization, egress, secrets, and cleanup policies. Conversation persistence remains controlled separately by Flue session storage.
 
-See [Sandboxes](/docs/guide/sandboxes/) for execution-boundary design and [Sandbox Connector API](/docs/api/sandbox-api/) for the adapter contract.
+See [Sandboxes](/docs/guide/sandboxes/) for execution-boundary design and [Sandbox Adapter API](/docs/api/sandbox-api/) for the adapter contract.

@@ -5,14 +5,14 @@ description: Receive verified Shopify webhooks and use a shop-bound Admin GraphQ
 
 ## Add Shopify
 
-Run the Shopify recipe through your coding agent:
+Run the Shopify blueprint through your coding agent:
 
 ```sh
 flue add channel shopify --print | codex
 ```
 
 It installs `@flue/shopify` and the official lightweight
-`@shopify/admin-api-client@1.1.2`. The recipe creates a channel module with
+`@shopify/admin-api-client@1.1.2`. The blueprint creates a channel module with
 named `channel` and project-owned `client` exports.
 
 Configure a JSON webhook subscription with this URL:

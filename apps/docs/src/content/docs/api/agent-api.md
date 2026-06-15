@@ -206,20 +206,20 @@ The initializer runs whenever the runtime initializes a harness from the created
 
 #### `AgentRuntimeConfig`
 
-| Field           | Type                        | Description                                                                                                                                                                                                         |
-| --------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `description`   | `string`                    | Optional organizational metadata describing what this agent does. Overrides the profile description when set. Per-initialization metadata only — for a static description that surfaces in the deployment manifest and `listAgents()`, use the module-level `description` export instead.                   |
-| `profile`       | `AgentProfile`              | Reusable baseline profile. Created-agent fields replace or extend profile values.                                                                                                                                   |
-| `model`         | `string \| false`           | Default model specifier. Set to `false` to require call-level model selection.                                                                                                                                      |
-| `instructions`  | `string`                    | Instructions prepended to discovered workspace context.                                                                                                                                                             |
-| `skills`        | `Skill[]`                   | Additional registered skills available to initialized sessions.                                                                                                                                                     |
-| `tools`         | `ToolDefinition[]`          | Additional custom model-callable tools available to initialized sessions.                                                                                                                                           |
-| `subagents`     | `AgentProfile[]`            | Additional named profiles available for delegated `session.task()` operations.                                                                                                                                      |
-| `thinkingLevel` | `ThinkingLevel`             | Default reasoning effort. Individual operations may override this value.                                                                                                                                            |
-| `compaction`    | `false \| CompactionConfig` | Automatic conversation-compaction configuration. `false` disables threshold compaction; overflow recovery and explicit `session.compact()` calls still compact when needed.                                         |
-| `durability`    | `DurabilityConfig`          | Durability configuration for durable agent submissions. Controls recovery attempt limits and submission timeouts.                                                                                                   |
-| `cwd`           | `string`                    | Working directory inside the initialized sandbox.                                                                                                                                                                   |
-| `sandbox`       | `SandboxFactory`            | Sandbox factory used to construct the initialized environment. Omit for the default in-memory sandbox; use `bash(...)` to wrap a custom just-bash factory (`BashFactory`). See [Sandboxes](/docs/guide/sandboxes/). |
+| Field           | Type                        | Description                                                                                                                                                                                                                                                                               |
+| --------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `description`   | `string`                    | Optional organizational metadata describing what this agent does. Overrides the profile description when set. Per-initialization metadata only — for a static description that surfaces in the deployment manifest and `listAgents()`, use the module-level `description` export instead. |
+| `profile`       | `AgentProfile`              | Reusable baseline profile. Created-agent fields replace or extend profile values.                                                                                                                                                                                                         |
+| `model`         | `string \| false`           | Default model specifier. Set to `false` to require call-level model selection.                                                                                                                                                                                                            |
+| `instructions`  | `string`                    | Instructions prepended to discovered workspace context.                                                                                                                                                                                                                                   |
+| `skills`        | `Skill[]`                   | Additional registered skills available to initialized sessions.                                                                                                                                                                                                                           |
+| `tools`         | `ToolDefinition[]`          | Additional custom model-callable tools available to initialized sessions.                                                                                                                                                                                                                 |
+| `subagents`     | `AgentProfile[]`            | Additional named profiles available for delegated `session.task()` operations.                                                                                                                                                                                                            |
+| `thinkingLevel` | `ThinkingLevel`             | Default reasoning effort. Individual operations may override this value.                                                                                                                                                                                                                  |
+| `compaction`    | `false \| CompactionConfig` | Automatic conversation-compaction configuration. `false` disables threshold compaction; overflow recovery and explicit `session.compact()` calls still compact when needed.                                                                                                               |
+| `durability`    | `DurabilityConfig`          | Durability configuration for durable agent submissions. Controls recovery attempt limits and submission timeouts.                                                                                                                                                                         |
+| `cwd`           | `string`                    | Working directory inside the initialized sandbox.                                                                                                                                                                                                                                         |
+| `sandbox`       | `SandboxFactory`            | Sandbox factory used to construct the initialized environment. Omit for the default in-memory sandbox; use `bash(...)` to wrap a custom just-bash factory (`BashFactory`). See [Sandboxes](/docs/guide/sandboxes/).                                                                       |
 
 #### `CreatedAgent`
 
@@ -276,14 +276,14 @@ interface FlueContext<TPayload = unknown, TEnv = Record<string, any>> {
 
 The execution context passed to workflow handlers. Pass type parameters to type `payload` and `env` (for example, the `Env` interface generated by `wrangler types`). The typing is compile-time only — there is no runtime validation of `payload`.
 
-| Member    | Type                   | Description                                                                                    |
-| --------- | ---------------------- | ----------------------------------------------------------------------------------------------- |
-| `id`      | `string`               | Workflow run/instance id, or the stable agent instance id during agent processing.              |
-| `payload` | `TPayload`             | The invocation payload, snapshotted when the invocation is accepted.                            |
-| `env`     | `TEnv`                 | Platform env bindings: `process.env` on Node.js, the Worker env on Cloudflare.                  |
-| `req`     | `Request \| undefined` | The standard Fetch `Request` for the current invocation. See [`ctx.req`](#ctxreq) below.        |
-| `log`     | `FlueLogger`           | Emit observable structured log events. See [`ctx.log`](#ctxlog) below.                          |
-| `init`    | function               | Initialize a created agent for this invocation. See [`ctx.init(...)`](#ctxinit) below.          |
+| Member    | Type                   | Description                                                                              |
+| --------- | ---------------------- | ---------------------------------------------------------------------------------------- |
+| `id`      | `string`               | Workflow run/instance id, or the stable agent instance id during agent processing.       |
+| `payload` | `TPayload`             | The invocation payload, snapshotted when the invocation is accepted.                     |
+| `env`     | `TEnv`                 | Platform env bindings: `process.env` on Node.js, the Worker env on Cloudflare.           |
+| `req`     | `Request \| undefined` | The standard Fetch `Request` for the current invocation. See [`ctx.req`](#ctxreq) below. |
+| `log`     | `FlueLogger`           | Emit observable structured log events. See [`ctx.log`](#ctxlog) below.                   |
+| `init`    | function               | Initialize a created agent for this invocation. See [`ctx.init(...)`](#ctxinit) below.   |
 
 ### `ctx.req`
 
@@ -543,12 +543,12 @@ Runs a shell command and records its command exchange in conversation state.
 
 #### `ShellOptions`
 
-| Field       | Type                     | Description                                                                               |
-| ----------- | ------------------------ | ----------------------------------------------------------------------------------------- |
-| `env`       | `Record<string, string>` | Environment variables supplied to the command.                                            |
-| `cwd`       | `string`                 | Working directory supplied to the command.                                                |
-| `timeoutMs` | `number`                 | Wall-clock deadline in milliseconds, forwarded to the sandbox connector's native timeout. |
-| `signal`    | `AbortSignal`            | Cancel this operation.                                                                    |
+| Field       | Type                     | Description                                                                             |
+| ----------- | ------------------------ | --------------------------------------------------------------------------------------- |
+| `env`       | `Record<string, string>` | Environment variables supplied to the command.                                          |
+| `cwd`       | `string`                 | Working directory supplied to the command.                                              |
+| `timeoutMs` | `number`                 | Wall-clock deadline in milliseconds, forwarded to the sandbox adapter's native timeout. |
+| `signal`    | `AbortSignal`            | Cancel this operation.                                                                  |
 
 #### `ShellResult`
 
@@ -610,7 +610,7 @@ interface FlueFs {
 }
 ```
 
-Paths may be absolute or relative. Relative paths use the configured `cwd`, or the sandbox connector's default when `cwd` is omitted; use absolute paths for portability across connectors. These operations are out-of-band and do not appear in conversation history.
+Paths may be absolute or relative. Relative paths use the configured `cwd`, or the sandbox adapter's default when `cwd` is omitted; use absolute paths for portability across sandbox adapters. These operations are out-of-band and do not appear in conversation history.
 
 `writeFile()` creates missing parent directories automatically, in every sandbox mode — no prior `mkdir()` is needed before writing to a nested path.
 
@@ -626,4 +626,4 @@ interface FileStat {
 }
 ```
 
-`isSymbolicLink`, `size`, and `mtime` are omitted when the sandbox connector's provider does not expose them.
+`isSymbolicLink`, `size`, and `mtime` are omitted when the sandbox adapter's provider does not expose them.

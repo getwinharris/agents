@@ -5,7 +5,7 @@ description: Receive verified Zendesk events and use a ticket-bound Fetch client
 
 ## Add Zendesk
 
-Run the Zendesk recipe through your coding agent:
+Run the Zendesk blueprint through your coding agent:
 
 ```sh
 flue add channel zendesk --print | codex
@@ -13,7 +13,7 @@ flue add channel zendesk --print | codex
 
 It installs `@flue/zendesk` and creates a channel module with named `channel`
 and project-owned `client` exports. Zendesk has no officially supported Node
-server SDK, so the recipe uses a narrow native Fetch client instead of adding a
+server SDK, so the blueprint uses a narrow native Fetch client instead of adding a
 community wrapper.
 
 Create a JSON event-subscription webhook with:

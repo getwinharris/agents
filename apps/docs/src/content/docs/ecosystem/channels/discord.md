@@ -17,12 +17,12 @@ following command in your terminal, or your coding agent of choice.
 flue add channel discord
 ```
 
-The recipe installs and configures `@flue/discord` for inbound HTTP
+The blueprint installs and configures `@flue/discord` for inbound HTTP
 interactions, along with a project-owned `@discordjs/rest` client for outbound
 API calls. After running the command, you will have a new
 `src/channels/discord.ts` module exporting `channel` and `client`.
 
-Discord does not publish an official JavaScript REST SDK. The recipe uses the
+Discord does not publish an official JavaScript REST SDK. The blueprint uses the
 community-maintained `@discordjs/rest` client. Your application owns that client
 and its outbound API calls; `@flue/discord` handles only verified inbound HTTP
 interactions.

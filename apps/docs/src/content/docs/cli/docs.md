@@ -22,11 +22,11 @@ The catalog, page Markdown, and search JSON print to stdout; usage hints and err
 
 ## Subcommands
 
-| Subcommand       | Description                                          |
-| ---------------- | ---------------------------------------------------- |
-| _(none)_         | List every documentation page with path and title.   |
-| `read <path>`    | Print one documentation page as Markdown.            |
-| `search <query>` | Search the documentation and print results as JSON.  |
+| Subcommand       | Description                                         |
+| ---------------- | --------------------------------------------------- |
+| _(none)_         | List every documentation page with path and title.  |
+| `read <path>`    | Print one documentation page as Markdown.           |
+| `search <query>` | Search the documentation and print results as JSON. |
 
 ## Page paths
 
@@ -46,16 +46,16 @@ Unknown pages exit with status `1`.
 
 ```json
 {
-	"query": "durable execution",
-	"results": [
-		{
-			"path": "concepts/durable-execution",
-			"title": "Durable Agents",
-			"description": "Understand how Flue agents and workflows handle server restarts, interrupted connections, and other disruptions.",
-			"excerpt": "Durable execution is about recovering safely when running work is disrupted by a server restart, deployment, lost connec…",
-			"score": 138.34
-		}
-	]
+  "query": "durable execution",
+  "results": [
+    {
+      "path": "concepts/durable-execution",
+      "title": "Durable Agents",
+      "description": "Understand how Flue agents and workflows handle server restarts, interrupted connections, and other disruptions.",
+      "excerpt": "Durable execution is about recovering safely when running work is disrupted by a server restart, deployment, lost connec…",
+      "score": 138.34
+    }
+  ]
 }
 ```
 
@@ -65,7 +65,7 @@ Unknown pages exit with status `1`.
 flue docs
 flue docs read guide/sandboxes
 flue docs search "durable execution"
-flue docs search sandbox connector
+flue docs search sandbox adapter
 ```
 
 For coding agents, the typical loop is `flue docs search <query>` to find a page, then `flue docs read <path>` to read it.

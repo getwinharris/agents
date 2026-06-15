@@ -5,7 +5,7 @@ description: Receive verified Stripe webhooks and use the official SDK from appl
 
 ## Add Stripe
 
-Run the Stripe recipe through your coding agent:
+Run the Stripe blueprint through your coding agent:
 
 ```sh
 flue add channel stripe --print | codex
@@ -13,7 +13,7 @@ flue add channel stripe --print | codex
 
 It installs `@flue/stripe` and Stripe's official `stripe` SDK. The SDK verifies
 inbound payloads and remains the project-owned client for outbound API calls.
-The recipe creates `src/channels/stripe.ts` with named `channel` and `client`
+The blueprint creates `src/channels/stripe.ts` with named `channel` and `client`
 exports.
 
 Configure the Stripe event destination as:

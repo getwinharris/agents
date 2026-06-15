@@ -4,9 +4,9 @@ description: Connect a Flue agent to an application-owned Vercel Sandbox environ
 lastReviewedAt: 2026-05-30
 ---
 
-The Vercel Sandbox connector adapts an initialized `@vercel/sandbox` `Sandbox` into Flue's sandbox interface. Use it when application code should execute agent work inside a Vercel-managed sandbox rather than on its host filesystem.
+The Vercel Sandbox adapter adapts an initialized `@vercel/sandbox` `Sandbox` into Flue's sandbox interface. Use it when application code should execute agent work inside a Vercel-managed sandbox rather than on its host filesystem.
 
-## Add the connector
+## Add the adapter
 
 ```bash
 pnpm exec flue add sandbox vercel
@@ -18,7 +18,7 @@ pnpm exec flue add sandbox vercel
 | ------------------- | ------------------------------------------------------------------------------------- |
 | Provider package    | `@vercel/sandbox`                                                                     |
 | Authentication      | `VERCEL_OIDC_TOKEN` or the authentication flow appropriate to your Vercel environment |
-| Integration shape   | Application creates a sandbox, then passes it through the generated connector         |
+| Integration shape   | Application creates a sandbox, then passes it through the generated adapter           |
 | Lifecycle ownership | Your application decides retention and cleanup                                        |
 
 ## Typical use
@@ -37,4 +37,4 @@ const agent = createAgent(() => ({
 
 Keep Vercel authentication values in trusted application configuration and determine whether sandboxes should be fresh per job or reusable for stable agent identities.
 
-See [Sandboxes](/docs/guide/sandboxes/) and [Sandbox Connector API](/docs/api/sandbox-api/).
+See [Sandboxes](/docs/guide/sandboxes/) and [Sandbox Adapter API](/docs/api/sandbox-api/).

@@ -17,7 +17,7 @@ following command in your terminal, or your coding agent of choice.
 flue add channel slack
 ```
 
-The recipe installs and configures `@flue/slack` for inbound requests, along
+The blueprint installs and configures `@flue/slack` for inbound requests, along
 with Slack's official `@slack/web-api` SDK for making outbound API calls. After
 running the command, you will have a new `src/channels/slack.ts` channel with
 new `/channels/slack/*` webhook routes set up and ready to receive events.

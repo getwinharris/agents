@@ -288,7 +288,7 @@ The agent can use its built-in tools — grep, glob, read — to search and read
 
 ## Support agents with context files
 
-For support agents, you can seed Flue's default virtual sandbox with the knowledge required for a request. The agent can search and read these files using its built-in `grep`, `glob`, and `read` tools without provisioning a container or installing a connector.
+For support agents, you can seed Flue's default virtual sandbox with the knowledge required for a request. The agent can search and read these files using its built-in `grep`, `glob`, and `read` tools without provisioning a container or installing a sandbox adapter.
 
 `.flue/workflows/support.ts`:
 
@@ -315,7 +315,7 @@ export async function run({ init, payload }: FlueContext<{ message: string }>) {
 }
 ```
 
-This remains the default just-bash virtual sandbox: it starts quickly, supports shell and filesystem tools, and requires no Worker Loader binding. If an application needs durable external storage or a full Linux environment, choose and own a connector appropriate to that requirement.
+This remains the default just-bash virtual sandbox: it starts quickly, supports shell and filesystem tools, and requires no Worker Loader binding. If an application needs durable external storage or a full Linux environment, choose and own a sandbox adapter appropriate to that requirement.
 
 ## Connecting a remote sandbox
 

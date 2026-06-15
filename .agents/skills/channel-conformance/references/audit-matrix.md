@@ -128,17 +128,17 @@ pnpm --dir packages/cli exec flue build --target cloudflare
 Run the Cloudflare build from the example directory or use its configured
 equivalent. Follow the repository's dependency build order.
 
-## Connector And Documentation
+## Blueprint And Documentation
 
-- `connectors/channel--<provider>.md` has valid registry frontmatter.
-- The recipe inspects the target project and adapts source root, environment,
+- `blueprints/channel--<provider>.md` has valid blueprint frontmatter.
+- The blueprint inspects the target project and adapts source root, environment,
   agent, and target conventions.
 - It installs the channel package and project-owned client.
 - It creates named `channel` and `client` exports.
 - It explains ingress and outbound credentials separately.
 - It instructs local synthetic verification and fake-transport client tests.
 - It never tells the coding agent to contact the provider.
-- `flue add channel <provider> --print` returns the intended recipe.
+- `flue add channel <provider> --print` returns the intended blueprint.
 - The channel guide teaches setup, route URLs, callbacks, client composition,
   useful outbound examples where applicable, retries, and runtime support
   without claiming turnkey deployment.
@@ -209,7 +209,7 @@ Before committing, record:
 - package and example test results;
 - actual workerd execution evidence;
 - built-example signed or authenticated smoke result;
-- recipe and docs build results;
+- blueprint and docs build results;
 - packed artifact and clean consumer result;
 - clean-room fixture affirmation;
 - independent review findings and resolutions;

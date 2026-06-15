@@ -224,9 +224,9 @@ No container startup, real project context, fast iteration. If you need a tighte
 
 The examples above use either the default virtual sandbox or the local sandbox. When you need full isolation per session — each user gets their own Linux environment with git, Node.js, Python, etc. — you want a remote sandbox.
 
-Flue connects to remote sandboxes through small adapter files called connectors, installed with `flue add`. Run `flue add` with no arguments to see what's currently supported, or `flue add sandbox <url>` to have your coding agent build a connector for an unsupported provider against the [sandbox connector spec](/docs/api/sandbox-api/).
+Flue connects to remote sandboxes through project-owned sandbox adapters installed from `flue add` blueprints. Run `flue add` with no arguments to see what's currently supported, or `flue add sandbox <url>` to have your coding agent build an adapter for an unsupported provider against the [Sandbox Adapter API](/docs/api/sandbox-api/).
 
-The Ecosystem catalog lists available provider integrations, including [Daytona](/docs/ecosystem/sandboxes/daytona/), [E2B](/docs/ecosystem/sandboxes/e2b/), [Modal](/docs/ecosystem/sandboxes/modal/), and [Vercel Sandbox](/docs/ecosystem/sandboxes/vercel/). Other connectors follow the same application-owned lifecycle shape.
+The Ecosystem catalog lists available provider integrations, including [Daytona](/docs/ecosystem/sandboxes/daytona/), [E2B](/docs/ecosystem/sandboxes/e2b/), [Modal](/docs/ecosystem/sandboxes/modal/), and [Vercel Sandbox](/docs/ecosystem/sandboxes/vercel/). Other adapters follow the same application-owned lifecycle shape.
 
 ### When to use a remote sandbox
 
@@ -278,6 +278,6 @@ Here's the progression of sandbox types available on Node.js, from simplest to m
 1. **Empty virtual sandbox** — `createAgent(() => ({ model: 'openai/gpt-5.5' }))`. Fast, cheap, stateless. Good for prompt-and-response agents.
 2. **Virtual sandbox with shell setup** — Use `session.shell()` to write files and configure the workspace. Still fast and cheap, good for agents that need small amounts of static context.
 3. **Local sandbox** — `createAgent(() => ({ sandbox: local(), model: 'anthropic/claude-sonnet-4-6' }))`. Direct host filesystem and shell access. Ideal for self-hosted agents, CI tasks, and dev tooling — anywhere the host environment already provides isolation. Import `local` from `@flue/runtime/node` and pass `env: { ... }` to expose specific host env vars to the agent's shell.
-4. **Remote sandbox** — Full isolated Linux environment via a sandbox connector. For multi-tenant agents, coding sandboxes, and anything that needs per-session isolation.
+4. **Remote sandbox** — Full isolated Linux environment via a sandbox adapter. For multi-tenant agents, coding sandboxes, and anything that needs per-session isolation.
 
 Start simple. Move up when you need to.

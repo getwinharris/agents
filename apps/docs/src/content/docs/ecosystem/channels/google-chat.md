@@ -17,7 +17,7 @@ following command in your terminal, or your coding agent of choice.
 flue add channel google-chat
 ```
 
-The recipe installs and configures `@flue/google-chat` for authenticated inbound
+The blueprint installs and configures `@flue/google-chat` for authenticated inbound
 requests and `jose` for a project-owned outbound Fetch client. After running the
 command, you will have a new `src/channels/google-chat.ts` module exporting
 `channel`, `client`, and an application-owned message tool.
