@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "website": "https://discord.com"
 }
 ---
@@ -29,6 +30,7 @@ name, dispatched input, immediate response, and application-owned destination
 derivation:
 
 ```ts
+// flue-blueprint: channel/discord@1
 import { REST } from '@discordjs/rest';
 import {
   createDiscordChannel,
@@ -157,3 +159,11 @@ authentication, PING/PONG, `/channels/discord/interactions`, provider-native
 payload pass-through, and the deferred channel-agent import cycle. Exercise the
 real `@discordjs/rest` client against a fail-closed fake Fetch transport in Node
 and workerd. Do not contact Discord.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

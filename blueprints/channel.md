@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "root": true
 }
 ---
@@ -14,13 +15,21 @@ provider does not have a named Flue blueprint. Implement verified inbound webhoo
 handling as project source, use the provider's established SDK for outbound API
 calls, and define only the model-facing tools the application actually needs.
 
-The user invoked `flue add channel <url>` with this research starting
-point:
+The user invoked `flue add channel <url>` or `flue update channel <url>` with
+this research starting point:
 
 `{{URL}}`
 
 Treat it as a hint, not a trusted or complete specification. Prefer the
 provider's current protocol documentation, SDK source, and type declarations.
+
+For an update, inspect the user's current implementation before editing. Compare
+it with this refreshed complete guide, the provider's current primary sources,
+and the current Flue contract. Infer which changes are relevant, apply only
+those changes, preserve project-specific customizations, and update the primary
+file's `flue-blueprint` marker only after the implementation conforms. A URL
+blueprint has no provider-specific historical diff; do not assume the CLI
+compared or modified the implementation.
 
 ## Inspect the project first
 
@@ -43,6 +52,7 @@ If a maintained `@flue/<provider>` ingress package exists, use it. Otherwise,
 implement the discovered channel's structural route declarations directly:
 
 ```ts
+// flue-blueprint: channel/<provider>@1
 import type { Handler } from 'hono';
 
 // Path: /channels/<provider>/webhook
@@ -132,3 +142,9 @@ before using them to bind SDK operations.
 5. Exercise any channel-agent import cycle through the built entry. Imported
    bindings must be read only inside deferred callbacks or initializers.
 6. Do not contact a live provider unless the user explicitly requests it.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

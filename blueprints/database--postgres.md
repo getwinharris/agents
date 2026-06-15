@@ -1,5 +1,5 @@
 ---
-{ "kind": "database", "website": "https://www.postgresql.org" }
+{ "kind": "database", "version": 1, "website": "https://www.postgresql.org" }
 ---
 
 # Add a Postgres Database to Flue
@@ -50,6 +50,7 @@ that runs its callback inside one transaction on a single connection, and
 Using the porsager `postgres` driver:
 
 ```ts title="src/db.ts"
+// flue-blueprint: database/postgres@1
 import { postgres, type PostgresQuery } from '@flue/postgres';
 import sql from 'postgres';
 
@@ -68,6 +69,7 @@ issue `BEGIN`/`COMMIT`/`ROLLBACK` itself — a pool cannot run a transaction
 across arbitrary connections:
 
 ```ts title="src/db.ts"
+// flue-blueprint: database/postgres@1
 import { postgres } from '@flue/postgres';
 import { Pool } from 'pg';
 
@@ -119,3 +121,11 @@ keeps one; don't introduce a new secret-management convention without need.
    `flue_*` tables on first run. Restart it and confirm existing state is
    reloaded rather than recreated.
 4. Do not point the adapter at a production database to test.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

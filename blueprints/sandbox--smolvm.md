@@ -1,6 +1,7 @@
 ---
 {
   "kind": "sandbox",
+  "version": 1,
   "website": "https://smolmachines.com",
   "aliases": ["smolvm-embedded"]
 }
@@ -47,6 +48,7 @@ Write this file verbatim. Do not "improve" it — it conforms to the published
 `SandboxApi` contract, and the shell quoting in particular is load-bearing.
 
 ```ts
+// flue-blueprint: sandbox/smolvm@1
 /**
  * smolvm adapter for Flue.
  *
@@ -283,3 +285,11 @@ so the OCI layer cache stays warm. For one-shot work, `withMachine` from
 3. Tell the user the next steps: install `smolvm-embedded` (if you didn't),
    confirm they are on a macOS or Linux host with hypervisor support, and
    run `flue dev` (or `flue run <workflow>`) to try it.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

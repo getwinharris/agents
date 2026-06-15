@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "website": "https://www.microsoft.com/microsoft-teams"
 }
 ---
@@ -52,6 +53,7 @@ Create `<source-dir>/channels/teams.ts`. Adapt the imported agent, dispatched
 input, event policy, and tool:
 
 ```ts
+// flue-blueprint: channel/teams@1
 import { defineTool, dispatch } from '@flue/runtime';
 import { createTeamsChannel, type TeamsConversationRef } from '@flue/teams';
 import assistant from '../agents/assistant.ts';
@@ -155,3 +157,11 @@ local RSA key pair, OpenID metadata, JWKS, and signed Bot Connector JWTs. Test
 valid and invalid audience, issuer, expiry, endorsement, service URL, tenant,
 and activity payloads. Exercise OAuth and one outbound message against an
 injected local Fetch transport. Do not contact Microsoft services.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

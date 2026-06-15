@@ -1,6 +1,7 @@
 ---
 {
   "kind": "sandbox",
+  "version": 1,
   "root": true
 }
 ---
@@ -21,8 +22,8 @@ reasonably infer from the spec or the worked example.
 
 ## Starting point
 
-The user invoked `flue add sandbox <url>` with this argument as
-their starting point for the provider's documentation:
+The user invoked `flue add sandbox <url>` or `flue update sandbox <url>` with
+this argument as their starting point for the provider's documentation:
 
 `{{URL}}`
 
@@ -30,6 +31,14 @@ It's user-provided and was passed through verbatim — it might be the docs
 root, an SDK reference, a GitHub repo, a marketing page, or something less
 useful. Treat it as a hint, not a verified docs link, and use your judgment
 on where to go from there to collect the necessary information to complete your goal.
+
+For an update, inspect the user's current adapter before editing. Compare it
+with this refreshed complete guide, the provider's current primary sources,
+and the current Flue contract. Infer which changes are relevant, apply only
+those changes, preserve project-specific customizations, and update the primary
+file's `flue-blueprint` marker only after the adapter conforms. A URL blueprint
+has no provider-specific historical diff; do not assume the CLI compared or
+modified the implementation.
 
 ## References
 
@@ -47,7 +56,9 @@ These are the things that aren't obvious from the spec or the example.
 
 - **File location.** Select the first existing source directory in this order:
   `<root>/.flue/`, `<root>/src/`, then `<root>/`. Write the adapter to
-  `<source-dir>/sandboxes/<name>.ts`. Ask the user if their layout is unusual.
+  `<source-dir>/sandboxes/<name>.ts`. Its first generated line must be
+  `// flue-blueprint: sandbox/<provider>@1`, replacing `<provider>` with the
+  selected provider slug. Ask the user if their layout is unusual.
 - **Imports.** The published surface is `@flue/runtime`. Don't import
   from `@flue/runtime/internal` or any other internal path.
 - **Cancellation.** `SandboxApi.exec()` receives `timeout` (primary) and
@@ -80,3 +91,9 @@ These are the things that aren't obvious from the spec or the example.
   user agreed (e.g. `package.json` to add a dep).
 - The published surface is `@flue/runtime`. Don't import from
   `@flue/runtime/internal` or anywhere else.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "website": "https://developer.salesforce.com/docs/marketing/marketing-cloud/guide/ens.html"
 }
 ---
@@ -188,6 +189,7 @@ Create `<source-dir>/channels/salesforce-marketing-cloud.ts`. Adapt environment
 access, the selected event families, and dispatched input to the project:
 
 ```ts
+// flue-blueprint: channel/salesforce-marketing-cloud@1
 import {
   createSalesforceMarketingCloudChannel,
   type SalesforceMarketingCloudEvent,
@@ -458,3 +460,11 @@ Never register or modify a live callback, subscribe to live events, perform
 OAuth, request a real token, call `/ens-verify` against Salesforce, or contact
 any Salesforce API during implementation or testing. Use only original
 synthetic signed events and fake Fetch transports.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

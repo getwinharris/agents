@@ -2,86 +2,17 @@
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+	type BlueprintRecord,
+	type KindRootRecord,
+	parseBlueprintFrontmatter,
+	validateBlueprintBody,
+} from '../src/lib/blueprint-index.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '../../..');
 const blueprintsDir = join(repoRoot, 'blueprints');
 const outFile = join(here, '../bin/_blueprints.generated.ts');
-
-interface FrontmatterCommon {
-	kind: string;
-}
-interface FrontmatterBlueprint extends FrontmatterCommon {
-	website: string;
-	aliases: string[];
-	root?: undefined;
-}
-interface FrontmatterRoot extends FrontmatterCommon {
-	root: true;
-}
-type Frontmatter = FrontmatterBlueprint | FrontmatterRoot;
-
-interface BlueprintRecord {
-	slug: string;
-	kind: string;
-	website: string;
-	aliases: string[];
-	file: string;
-}
-interface KindRootRecord {
-	kind: string;
-	file: string;
-}
-
-function parseFrontmatter(source: string, file: string): Frontmatter {
-	if (!source.startsWith('---\n')) {
-		throw new Error(`[blueprints] ${file}: missing JSON frontmatter (file must start with '---').`);
-	}
-	const end = source.indexOf('\n---\n', 4);
-	if (end < 0) {
-		throw new Error(`[blueprints] ${file}: frontmatter is not closed (no trailing '---').`);
-	}
-	const json = source.slice(4, end).trim();
-	let parsed: any;
-	try {
-		parsed = JSON.parse(json);
-	} catch (err) {
-		throw new Error(
-			`[blueprints] ${file}: frontmatter is not valid JSON: ${err instanceof Error ? err.message : String(err)}`,
-		);
-	}
-	if (!parsed || typeof parsed !== 'object') {
-		throw new Error(`[blueprints] ${file}: frontmatter must be a JSON object.`);
-	}
-	if (typeof parsed.kind !== 'string' || !parsed.kind) {
-		throw new Error(`[blueprints] ${file}: frontmatter missing required string field "kind".`);
-	}
-	if (parsed.root === true) {
-		return { kind: parsed.kind, root: true };
-	}
-	if (typeof parsed.website !== 'string' || !parsed.website) {
-		throw new Error(
-			`[blueprints] ${file}: frontmatter missing required string field "website" (or set "root": true for a kind root).`,
-		);
-	}
-	let aliases: string[] = [];
-	if ('aliases' in parsed && parsed.aliases !== undefined) {
-		if (!Array.isArray(parsed.aliases)) {
-			throw new Error(
-				`[blueprints] ${file}: frontmatter "aliases" must be an array of strings if present.`,
-			);
-		}
-		for (const alias of parsed.aliases) {
-			if (typeof alias !== 'string' || !alias.trim()) {
-				throw new Error(
-					`[blueprints] ${file}: frontmatter "aliases" must contain only non-empty strings.`,
-				);
-			}
-		}
-		aliases = parsed.aliases;
-	}
-	return { kind: parsed.kind, website: parsed.website, aliases };
-}
 
 async function main() {
 	const allFiles = (await readdir(blueprintsDir))
@@ -96,7 +27,8 @@ async function main() {
 		const stem = file.slice(0, -'.md'.length);
 		const dashIndex = stem.indexOf('--');
 		const source = await readFile(join(blueprintsDir, file), 'utf-8');
-		const frontmatter = parseFrontmatter(source, file);
+		const frontmatter = parseBlueprintFrontmatter(source, file);
+		validateBlueprintBody(source, file, frontmatter.version);
 
 		if (dashIndex >= 0) {
 			if (frontmatter.root) {
@@ -135,6 +67,7 @@ async function main() {
 			blueprints.push({
 				slug,
 				kind,
+				version: frontmatter.version,
 				website: frontmatter.website,
 				aliases: frontmatter.aliases,
 				file,
@@ -157,7 +90,7 @@ async function main() {
 				);
 			}
 			seenNames.set(normalizedStem, file);
-			kindRoots.push({ kind: frontmatter.kind, file });
+			kindRoots.push({ kind: frontmatter.kind, version: frontmatter.version, file });
 		}
 	}
 
@@ -165,16 +98,16 @@ async function main() {
 	const blueprintsLiteral = blueprints
 		.map(
 			(blueprint) =>
-				`\t{ slug: ${JSON.stringify(blueprint.slug)}, kind: ${JSON.stringify(blueprint.kind)}, website: ${JSON.stringify(blueprint.website)}, aliases: ${JSON.stringify(blueprint.aliases)} },`,
+				`\t{ slug: ${JSON.stringify(blueprint.slug)}, kind: ${JSON.stringify(blueprint.kind)}, version: ${blueprint.version}, website: ${JSON.stringify(blueprint.website)}, aliases: ${JSON.stringify(blueprint.aliases)} },`,
 		)
 		.join('\n');
 	const rootsLiteral = kindRoots
-		.map((root) => `\t{ kind: ${JSON.stringify(root.kind)} },`)
+		.map((root) => `\t{ kind: ${JSON.stringify(root.kind)}, version: ${root.version} },`)
 		.join('\n');
 	const out =
 		banner +
-		`export const BLUEPRINTS: readonly { readonly slug: string; readonly kind: string; readonly website: string; readonly aliases: readonly string[] }[] = [\n${blueprintsLiteral}\n];\n\n` +
-		`export const KIND_ROOTS: readonly { readonly kind: string }[] = [\n${rootsLiteral}\n];\n`;
+		`export const BLUEPRINTS: readonly { readonly slug: string; readonly kind: string; readonly version: number; readonly website: string; readonly aliases: readonly string[] }[] = [\n${blueprintsLiteral}\n];\n\n` +
+		`export const KIND_ROOTS: readonly { readonly kind: string; readonly version: number }[] = [\n${rootsLiteral}\n];\n`;
 
 	await mkdir(dirname(outFile), { recursive: true });
 	await writeFile(outFile, out, 'utf-8');

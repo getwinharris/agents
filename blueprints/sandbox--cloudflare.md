@@ -1,6 +1,7 @@
 ---
 {
   "kind": "sandbox",
+  "version": 1,
   "website": "https://developers.cloudflare.com/sandbox",
   "aliases": ["@cloudflare/sandbox"]
 }
@@ -227,3 +228,11 @@ without first confirming the basics work on `--target cloudflare`.
   version different from the `@cloudflare/sandbox` npm package version
   the user actually installed. They have to match.
 - The `@cloudflare/sandbox` package is a separate Cloudflare-published dependency the user installs themselves. Don't import from `@flue/runtime/internal`.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change, and preserve customizations. This blueprint has no primary marked file, so comparison is the durable update path; do not add a marker to an auxiliary or deployment file.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

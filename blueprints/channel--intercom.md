@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "website": "https://developers.intercom.com"
 }
 ---
@@ -85,6 +86,7 @@ Create `<source-dir>/channels/intercom.ts`. Adapt the imported agent,
 conversation parser, dispatched input, and tool to the application:
 
 ```ts
+// flue-blueprint: channel/intercom@1
 import {
   createIntercomChannel,
   type IntercomConversationRef,
@@ -335,3 +337,11 @@ confirm the official client identifies that runtime correctly.
 
 Never register or modify a live webhook, install an app, perform OAuth, request
 a real token, or contact an Intercom API during implementation or testing.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

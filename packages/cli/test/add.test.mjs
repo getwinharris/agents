@@ -451,3 +451,43 @@ describe('flue add', () => {
 		assert.ok(result.stderr.includes('Unexpected extra argument for `flue add`: extra'));
 	});
 });
+
+describe('flue update', () => {
+	it('prints the exact same named blueprint as flue add', async () => {
+		const added = await runCli(['add', 'channel', 'slack', '--print']);
+		const updated = await runCli(['update', 'channel', 'slack', '--print']);
+
+		assert.equal(updated.code, 0);
+		assert.equal(updated.stdout, added.stdout);
+	});
+
+	it('prints the exact same URL-substituted blueprint as flue add', async () => {
+		const url = 'https://docs.example.test/?version=2&source=cli';
+		const added = await runCli(['add', 'channel', url, '--print']);
+		const updated = await runCli(['update', 'channel', url, '--print']);
+
+		assert.equal(updated.code, 0);
+		assert.equal(updated.stdout, added.stdout);
+		assert.ok(!updated.stdout.includes('{{URL}}'));
+	});
+
+	it('uses the invoked command in human instructions', async () => {
+		const result = await runCli(['update', 'channel', 'slack']);
+
+		assert.equal(result.code, 0);
+		assert.ok(result.stderr.includes("flue update channel 'slack'"));
+		assert.ok(result.stderr.includes("flue update channel 'slack' --print | claude"));
+		assert.ok(!result.stderr.includes('flue add channel slack'));
+	});
+
+	it('requires both positional arguments instead of listing blueprints', async () => {
+		const missingBoth = await runCli(['update']);
+		const missingName = await runCli(['update', 'channel']);
+
+		assert.equal(missingBoth.code, 1);
+		assert.ok(missingBoth.stderr.includes('flue update <kind> <name|url> [--print]'));
+		assert.ok(!missingBoth.stderr.includes('Available blueprints:'));
+		assert.equal(missingName.code, 1);
+		assert.ok(missingName.stderr.includes('Missing blueprint name or URL'));
+	});
+});

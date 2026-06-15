@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "website": "https://github.com"
 }
 ---
@@ -27,6 +28,7 @@ Create `<source-dir>/channels/github.ts`. Adapt the imported agent and dispatche
 input to the application, but preserve this ownership and routing shape:
 
 ```ts
+// flue-blueprint: channel/github@1
 import { createGitHubChannel } from '@flue/github';
 import { defineTool, dispatch } from '@flue/runtime';
 import { Octokit } from '@octokit/rest';
@@ -163,3 +165,11 @@ the issue-comment and pull-request review-comment variants,
 within ten seconds and does not auto-retry, so admit durable work quickly and
 deduplicate on `deliveryId` when it matters. Exercise one Octokit call through a
 fake Fetch transport in workerd. Do not contact GitHub.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

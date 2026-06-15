@@ -131,6 +131,7 @@ export const docsSections: DocsSection[] = [
 					{ title: 'build', slug: 'cli/build' },
 					{ title: 'logs', slug: 'cli/logs' },
 					{ title: 'add', slug: 'cli/add' },
+					{ title: 'update', slug: 'cli/update' },
 					{ title: 'docs', slug: 'cli/docs' },
 				],
 			},

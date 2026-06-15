@@ -1,6 +1,7 @@
 ---
 {
   "kind": "sandbox",
+  "version": 1,
   "website": "https://developers.cloudflare.com/workers/runtime-apis/bindings/worker-loader/",
   "aliases": ["@cloudflare/shell"]
 }
@@ -33,6 +34,7 @@ Write this file verbatim. It requires a Cloudflare Worker target with a
 `worker_loaders` binding.
 
 ```ts
+// flue-blueprint: sandbox/cloudflare-shell@1
 import {
 	STATE_TYPES,
 	Workspace,
@@ -400,3 +402,11 @@ export async function run({ init, env }: FlueContext<unknown, Env>) {
 2. Confirm the import path matches where you wrote `cloudflare-shell.ts`.
 3. Confirm `wrangler.jsonc` has a `worker_loaders` binding matching the code.
 4. Tell the user to use `flue dev --target cloudflare`; if local Wrangler cannot simulate Worker Loader, use remote dev or deploy a preview Worker.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "website": "https://resend.com"
 }
 ---
@@ -35,6 +36,7 @@ Create `<source-dir>/channels/resend.ts`. Adapt the imported agent, dispatched
 input, local message identity, and retrieval tool to the application:
 
 ```ts
+// flue-blueprint: channel/resend@1
 import { createResendChannel } from '@flue/resend';
 import { defineTool, dispatch } from '@flue/runtime';
 import { Resend } from 'resend';
@@ -214,3 +216,11 @@ that fake transport in Node and workerd.
 Never create a receiving domain, change MX records, register a webhook, send an
 email, retrieve live content, or otherwise contact Resend during implementation
 or testing.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

@@ -1,6 +1,7 @@
 ---
 {
   "kind": "sandbox",
+  "version": 1,
   "website": "https://islo.dev"
 }
 ---
@@ -45,6 +46,7 @@ Write this file verbatim. Do not "improve" it — it conforms to the published
 `SandboxApi` contract, and the shell quoting in particular is load-bearing.
 
 ```ts
+// flue-blueprint: sandbox/islo@1
 /**
  * islo adapter for Flue. Adapts a named islo sandbox to Flue's SandboxApi
  * by shelling out to the islo CLI. The user owns the sandbox lifecycle.
@@ -297,3 +299,11 @@ export async function run ({ init }: FlueContext) {
    run `islo login` (or make `ISLO_API_KEY` available at runtime per the
    Authentication section above), pre-provision a sandbox with
    `islo use <name>`, then run `flue dev` (or `flue run <workflow>`) to try it.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

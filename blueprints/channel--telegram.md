@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "website": "https://core.telegram.org/bots/api"
 }
 ---
@@ -36,6 +37,7 @@ grammY). At most one of its optional fields is present per update, so branch on
 those fields directly. Derive the conversation key from the native `Message`.
 
 ```ts
+// flue-blueprint: channel/telegram@1
 import {
   createTelegramChannel,
   type TelegramConversationRef,
@@ -216,3 +218,11 @@ cover:
 - Node and Cloudflare project builds.
 
 Do not contact Telegram or copy third-party fixtures.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

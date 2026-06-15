@@ -1,5 +1,5 @@
 ---
-{ "kind": "database", "website": "https://turso.tech" }
+{ "kind": "database", "version": 1, "website": "https://turso.tech" }
 ---
 
 # Add a Turso Database to Flue
@@ -45,6 +45,7 @@ callback in one `write` transaction, and `close`. `@libsql/client` returns a
 `ResultSet`, so map its `rows`/`columns` into plain objects:
 
 ```ts title="src/db.ts"
+// flue-blueprint: database/turso@1
 import { libsql } from '@flue/libsql';
 import { createClient, type ResultSet } from '@libsql/client';
 
@@ -109,3 +110,11 @@ when the project keeps one.
    `flue_*` tables on first run. Restart it and confirm existing state is
    reloaded rather than recreated.
 4. Do not point the adapter at a production database to test.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

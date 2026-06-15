@@ -1,6 +1,7 @@
 ---
 {
   "kind": "sandbox",
+  "version": 1,
   "website": "https://docs.mirage.strukto.ai",
   "aliases": ["@struktoai/mirage-node", "@struktoai/mirage-browser"]
 }
@@ -51,6 +52,7 @@ Write this file verbatim. Do not "improve" it — it conforms to the published
 `SandboxApi` contract.
 
 ```ts
+// flue-blueprint: sandbox/mirage@1
 /**
  * Mirage adapter for Flue.
  *
@@ -388,3 +390,11 @@ export async function run ({ init }: FlueContext) {
    any credentials for resources they mount are available at runtime (per
    the Authentication section above), and run `flue dev` (or
    `flue run <workflow>`) to try it.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

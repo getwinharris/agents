@@ -1,5 +1,5 @@
 ---
-{ "kind": "database", "root": true }
+{ "kind": "database", "version": 1, "root": true }
 ---
 
 # Generic Database Adapter
@@ -24,8 +24,8 @@ reasonably infer from the spec or the worked example.
 
 ## Starting point
 
-The user invoked `flue add database <url>` with this argument as
-their starting point for the backend's documentation:
+The user invoked `flue add database <url>` or `flue update database <url>` with
+this argument as their starting point for the backend's documentation:
 
 `{{URL}}`
 
@@ -33,6 +33,14 @@ It's user-provided and was passed through verbatim — it might be the docs
 root, a driver reference, a GitHub repo, a marketing page, or something less
 useful. Treat it as a hint, not a verified docs link, and use your judgment on
 where to go from there to collect the information you need.
+
+For an update, inspect the user's current adapter before editing. Compare it
+with this refreshed complete guide, the backend's current primary sources, and
+the current Flue contract. Infer which changes are relevant, apply only those
+changes, preserve project-specific customizations, and update the primary
+file's `flue-blueprint` marker only after the adapter conforms. A URL blueprint
+has no backend-specific historical diff; do not assume the CLI compared or
+modified the implementation.
 
 ## References
 
@@ -55,8 +63,10 @@ These are the things that aren't obvious from the spec or the example.
 - **File location.** The adapter is a single source-root `db.ts`, not a file
   under `sandboxes/`. Select the first existing source directory in this
   order: `<root>/.flue/`, `<root>/src/`, then `<root>/`, and write `db.ts`
-  there. Flue discovers it at build time and wires the default export into the
-  generated Node server. Ask the user if their layout is unusual.
+  there. Its first generated line must be
+  `// flue-blueprint: database/<provider>@1`, replacing `<provider>` with the
+  selected provider slug. Flue discovers it at build time and wires the default
+  export into the generated Node server. Ask the user if their layout is unusual.
 - **Imports.** The contract types and helpers live at `@flue/runtime/adapter`.
   Don't import from `@flue/runtime/internal` or any other internal path.
 - **`migrate()` runs at startup.** The generated server calls `migrate()` once
@@ -96,3 +106,9 @@ These are the things that aren't obvious from the spec or the example.
   agreed (e.g. `package.json` to add a dependency).
 - The published surface is `@flue/runtime/adapter`. Don't import from
   `@flue/runtime/internal` or anywhere else.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

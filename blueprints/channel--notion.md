@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "website": "https://developers.notion.com"
 }
 ---
@@ -35,6 +36,7 @@ Create `<source-dir>/channels/notion.ts`. Adapt the imported agent, dispatched
 input, page identity, and tool to the application:
 
 ```ts
+// flue-blueprint: channel/notion@1
 import { Client } from '@notionhq/client';
 import { createNotionChannel } from '@flue/notion';
 import { defineTool, dispatch } from '@flue/runtime';
@@ -242,3 +244,11 @@ original synthetic payloads and test:
 
 The fake transport must fail if a request escapes its expected local URL.
 Do not create a live subscription or contact Notion from tests.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

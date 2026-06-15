@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "website": "https://stripe.com"
 }
 ---
@@ -35,6 +36,7 @@ input, and customer policy to the application, but preserve the project-owned
 client and fixed route:
 
 ```ts
+// flue-blueprint: channel/stripe@1
 import Stripe from 'stripe';
 import { createStripeChannel } from '@flue/stripe';
 import { defineTool, dispatch } from '@flue/runtime';
@@ -200,3 +202,11 @@ Do not use this ordinary webhook blueprint for synchronous real-time Issuing
 authorization decisions. Event-destination registration, signing-secret
 rotation, OAuth, API-key storage, ordering, replay recovery, and business
 persistence remain application concerns.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

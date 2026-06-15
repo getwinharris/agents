@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "website": "https://slack.com"
 }
 ---
@@ -29,6 +30,7 @@ Create `<source-dir>/channels/slack.ts`. Adapt the imported agent and dispatched
 input to the application:
 
 ```ts
+// flue-blueprint: channel/slack@1
 import { defineTool, dispatch } from '@flue/runtime';
 import { createSlackChannel } from '@flue/slack';
 import { WebClient } from '@slack/web-api';
@@ -159,3 +161,11 @@ Hono error handling.
 
 Exercise `WebClient` methods used by the application through fake Fetch
 responses in Node or workerd. Do not contact Slack.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

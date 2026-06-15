@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "website": "https://linear.app/developers"
 }
 ---
@@ -32,6 +33,7 @@ Create `<source-dir>/channels/linear.ts`. Adapt the imported agent, dispatched
 input, event policy, and tool:
 
 ```ts
+// flue-blueprint: channel/linear@1
 import {
   createLinearChannel,
   type LinearConversationRef,
@@ -231,3 +233,11 @@ Sign the exact bytes locally and cover:
 - Node and Cloudflare project builds.
 
 Do not contact Linear or copy third-party fixtures.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

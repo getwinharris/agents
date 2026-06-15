@@ -98,6 +98,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  flue build   [--target <node|cloudflare>] [--root <path>] [--output <path>] [--config <path>] [--env <path>]\n' +
 			'  flue init  --target <node|cloudflare> [--root <path>] [--force]\n' +
 			'  flue add   [<kind> <name|url>] [--print]\n' +
+			'  flue update <kind> <name|url> [--print]\n' +
 			'  flue docs  [read <path> | search <query>]\n' +
 			"  flue logs  <workflowRunId> [--server <url>] [--header 'Name: value'] [--follow|-f|--no-follow] [--since <offset>] [--types a,b,c] [--limit <n>] [--format pretty|ndjson]\n" +
 			'\n' +
@@ -108,6 +109,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  build    Build a deployable artifact to ./dist (production deploys).\n' +
 			'  init   Scaffold a starter flue.config.ts in the target directory.\n' +
 			'  add    Fetch a blueprint implementation guide for an AI coding agent to follow.\n' +
+			'  update Fetch an updated blueprint implementation guide for an AI coding agent to follow.\n' +
 			'  docs   Browse the Flue docs. No args lists pages; `read` prints a page as markdown; `search` prints JSON results.\n' +
 			'  logs   Tail or replay workflow run events from a running Flue server. Read-only — does not invoke work.\n' +
 			'\n' +
@@ -120,7 +122,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			`  --port <number>      Port for the dev server. Default: ${DEFAULT_DEV_PORT}\n` +
 			'  --env <path>         Select one alternate .env-format file for build/dev/run/connect before config loads.\n' +
 			'                       Without --env, these commands load <project>/.env when present. Shell values win.\n' +
-			'  --print              (flue add) Print the raw blueprint Markdown to stdout regardless of whether the caller is an agent.\n' +
+			'  --print              (flue add/update) Print the raw blueprint Markdown to stdout regardless of whether the caller is an agent.\n' +
 			'  --force              (flue init) Overwrite an existing flue.config.* in the target directory.\n' +
 			'\n' +
 			'Examples:\n' +
@@ -138,6 +140,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  flue add channel slack | codex\n' +
 			'  flue add sandbox https://e2b.dev | claude\n' +
 			'  flue add channel https://developers.notion.com/reference/webhooks | codex\n' +
+			'  flue update channel slack | claude\n' +
 			'  flue docs\n' +
 			'  flue docs read guide/sandboxes\n' +
 			'  flue docs search "durable execution"\n' +
@@ -206,12 +209,21 @@ interface DevArgs {
 	envFile: string | undefined;
 }
 
-interface AddArgs {
-	command: 'add';
+interface BlueprintCommandOptions {
 	kind: string;
 	target: string;
 	print: boolean;
 }
+
+interface AddArgs extends BlueprintCommandOptions {
+	command: 'add';
+}
+
+interface UpdateArgs extends BlueprintCommandOptions {
+	command: 'update';
+}
+
+type BlueprintCommandArgs = AddArgs | UpdateArgs;
 
 interface DocsArgs {
 	command: 'docs';
@@ -255,7 +267,7 @@ type ParsedArgs =
 	| ConnectArgs
 	| BuildArgs
 	| DevArgs
-	| AddArgs
+	| BlueprintCommandArgs
 	| DocsArgs
 	| InitArgs
 	| LogsArgs;
@@ -410,7 +422,10 @@ function printCloudflareConnectUnsupported(): never {
 	process.exit(1);
 }
 
-function parseAddArgs(rest: string[]): AddArgs {
+function parseBlueprintCommandArgs(
+	command: 'add' | 'update',
+	rest: string[],
+): BlueprintCommandArgs {
 	const positionals: string[] = [];
 	let print = false;
 
@@ -418,7 +433,7 @@ function parseAddArgs(rest: string[]): AddArgs {
 		if (arg === '--print') {
 			print = true;
 		} else if (arg.startsWith('--')) {
-			console.error(`Unknown flag for \`flue add\`: ${arg}`);
+			console.error(`Unknown flag for \`flue ${command}\`: ${arg}`);
 			printUsage();
 			process.exit(1);
 		} else {
@@ -426,26 +441,26 @@ function parseAddArgs(rest: string[]): AddArgs {
 		}
 	}
 
-	if (positionals.length === 0) {
-		return { command: 'add', kind: '', target: '', print };
+	if (command === 'add' && positionals.length === 0) {
+		return { command, kind: '', target: '', print };
 	}
 
 	if (positionals.length < 2) {
 		console.error(
-			'Missing blueprint name or URL.\n\nUsage:\n  flue add <kind> <name|url> [--print]',
+			`Missing blueprint ${positionals.length === 0 ? 'kind and name or URL' : 'name or URL'}.\n\nUsage:\n  flue ${command} <kind> <name|url> [--print]`,
 		);
 		process.exit(1);
 	}
 
 	const extra = positionals[2];
 	if (extra !== undefined) {
-		console.error(`Unexpected extra argument for \`flue add\`: ${extra}`);
+		console.error(`Unexpected extra argument for \`flue ${command}\`: ${extra}`);
 		printUsage();
 		process.exit(1);
 	}
 
 	return {
-		command: 'add',
+		command,
 		kind: positionals[0] ?? '',
 		target: positionals[1] ?? '',
 		print,
@@ -687,8 +702,8 @@ function parseArgs(argv: string[]): ParsedArgs {
 		process.exit(0);
 	}
 
-	if (command === 'add') {
-		return parseAddArgs(rest);
+	if (command === 'add' || command === 'update') {
+		return parseBlueprintCommandArgs(command, rest);
 	}
 
 	if (command === 'docs') {
@@ -2017,8 +2032,8 @@ function docsCommand(args: DocsArgs): void {
 	process.stderr.write('\nRead a page with: flue docs read <path>\n');
 }
 
-function printHumanInstructions(args: AddArgs) {
-	const cmd = `flue add ${args.kind} ${shellQuote(args.target)}`;
+function printHumanInstructions(args: BlueprintCommandArgs) {
+	const cmd = `flue ${args.command} ${args.kind} ${shellQuote(args.target)}`;
 	const stream = process.stderr;
 	stream.write(`${cmd}\n\n`);
 	stream.write('To apply this blueprint, pipe it to your coding agent:\n\n');
@@ -2032,12 +2047,12 @@ function printHumanInstructions(args: AddArgs) {
 }
 
 /**
- * Shared tail of `flue add`: fetch blueprint Markdown for `slug`, then write
+ * Shared tail of blueprint commands: fetch blueprint Markdown for `slug`, then write
  * it to stdout in agent mode or print human instructions. `substituteUrl`
  * replaces `{{URL}}` placeholders in kind-root blueprints.
  */
 async function emitBlueprintMarkdown(
-	args: AddArgs,
+	args: BlueprintCommandArgs,
 	opts: { slug: string; notFoundLabel: string; substituteUrl?: string },
 ) {
 	const result = await fetchBlueprintMarkdown(opts.slug);
@@ -2064,8 +2079,8 @@ async function emitBlueprintMarkdown(
 	printHumanInstructions(args);
 }
 
-async function addCommand(args: AddArgs) {
-	if (!args.kind && !args.target) {
+async function blueprintCommand(args: BlueprintCommandArgs) {
+	if (args.command === 'add' && !args.kind && !args.target) {
 		printListing(process.stderr);
 		return;
 	}
@@ -2131,8 +2146,8 @@ async function main() {
 			delete process.env[INTERNAL_DEV_SESSION];
 			await devCommand(args);
 		} else superviseDevCommand(args);
-	} else if (args.command === 'add') {
-		await addCommand(args);
+	} else if (args.command === 'add' || args.command === 'update') {
+		await blueprintCommand(args);
 	} else if (args.command === 'docs') {
 		docsCommand(args);
 	} else if (args.command === 'init') {

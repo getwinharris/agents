@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "website": "https://developers.facebook.com/docs/whatsapp/cloud-api"
 }
 ---
@@ -35,6 +36,7 @@ Create `<source-dir>/channels/whatsapp.ts`. Adapt the imported agent,
 dispatched input, handled events, and tool:
 
 ```ts
+// flue-blueprint: channel/whatsapp@1
 import {
   createWhatsAppChannel,
   type WebhookMessage,
@@ -271,3 +273,11 @@ Create original synthetic payloads from the current official schemas and cover:
 - Node and Cloudflare project builds.
 
 Do not contact Meta or copy third-party fixtures.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

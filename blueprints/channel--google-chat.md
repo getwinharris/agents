@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "website": "https://developers.google.com/workspace/chat"
 }
 ---
@@ -56,6 +57,7 @@ Create `<source-dir>/channels/google-chat.ts`. Adapt the imported agent,
 dispatched input, event policy, and tool:
 
 ```ts
+// flue-blueprint: channel/google-chat@1
 import { createGoogleChatChannel, type GoogleChatConversationRef } from '@flue/google-chat';
 import { defineTool, dispatch } from '@flue/runtime';
 import assistant from '../agents/assistant.ts';
@@ -232,3 +234,11 @@ shape, and response behavior. Exercise service-account assertion signing,
 OAuth exchange construction, thread/space mismatch rejection, and one outbound
 message against an injected fake Fetch transport in both Node and workerd. Make
 the fake fail on every unexpected URL so no test can contact Google services.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

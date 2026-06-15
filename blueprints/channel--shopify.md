@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "website": "https://shopify.dev"
 }
 ---
@@ -40,6 +41,7 @@ order fields to the application. Keep the Admin client bound to one trusted
 shop domain, API version, and access token:
 
 ```ts
+// flue-blueprint: channel/shopify@1
 import {
   type ClientResponse,
   createAdminApiClient,
@@ -363,3 +365,11 @@ must validate the exact operations they ship.
 
 Never register a live webhook, mutate a Shopify app, request a real token, or
 contact the Admin API during implementation or testing.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.

@@ -1,6 +1,7 @@
 ---
 {
   "kind": "channel",
+  "version": 1,
   "website": "https://developer.zendesk.com"
 }
 ---
@@ -179,6 +180,7 @@ Create `<source-dir>/channels/zendesk.ts`. Adapt the imported agent, selected
 event types, and payload validation to the application:
 
 ```ts
+// flue-blueprint: channel/zendesk@1
 import {
   createZendeskChannel,
   type JsonValue,
@@ -432,3 +434,11 @@ destination and confirm `process` and `Buffer` are provided by
 
 Never create or modify a live webhook, subscribe to live events, request a real
 token, or contact Zendesk during implementation or testing.
+
+When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
+
+## Upgrade Guide
+
+### Version 1 — 2026-06-14
+
+Initial version.
