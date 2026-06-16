@@ -1,5 +1,5 @@
 ---
-{ 'kind': 'database', 'version': 1, 'root': true }
+{ "kind": "database", "version": 1, "root": true }
 ---
 
 # Generic Database Adapter

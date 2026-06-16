@@ -1,5 +1,5 @@
 ---
-{ 'kind': 'database', 'version': 1, 'website': 'https://www.mysql.com' }
+{ "kind": "database", "version": 1, "website": "https://www.mysql.com" }
 ---
 
 # Add a MySQL Database to Flue

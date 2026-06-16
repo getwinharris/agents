@@ -1,5 +1,5 @@
 ---
-{ 'kind': 'database', 'version': 1, 'website': 'https://supabase.com' }
+{ "kind": "database", "version": 1, "website": "https://supabase.com" }
 ---
 
 # Add a Supabase Database to Flue

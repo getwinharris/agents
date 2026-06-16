@@ -1,5 +1,5 @@
 ---
-{ 'kind': 'database', 'version': 1, 'website': 'https://valkey.io' }
+{ "kind": "database", "version": 1, "website": "https://valkey.io" }
 ---
 
 # Add a Valkey Database to Flue

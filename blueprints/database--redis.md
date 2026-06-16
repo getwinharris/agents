@@ -1,5 +1,5 @@
 ---
-{ 'kind': 'database', 'version': 1, 'website': 'https://redis.io' }
+{ "kind": "database", "version": 1, "website": "https://redis.io" }
 ---
 
 # Add a Redis Database to Flue

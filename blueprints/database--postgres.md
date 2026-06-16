@@ -1,5 +1,5 @@
 ---
-{ 'kind': 'database', 'version': 1, 'website': 'https://www.postgresql.org' }
+{ "kind": "database", "version": 1, "website": "https://www.postgresql.org" }
 ---
 
 # Add a Postgres Database to Flue

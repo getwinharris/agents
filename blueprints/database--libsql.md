@@ -1,5 +1,5 @@
 ---
-{ 'kind': 'database', 'version': 1, 'website': 'https://github.com/tursodatabase/libsql' }
+{ "kind": "database", "version": 1, "website": "https://github.com/tursodatabase/libsql" }
 ---
 
 # Add a libSQL Database to Flue

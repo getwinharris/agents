@@ -1,5 +1,5 @@
 ---
-{ 'kind': 'database', 'version': 1, 'website': 'https://turso.tech' }
+{ "kind": "database", "version": 1, "website": "https://turso.tech" }
 ---
 
 # Add a Turso Database to Flue

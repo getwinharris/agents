@@ -1,5 +1,5 @@
 ---
-{ 'kind': 'database', 'version': 1, 'website': 'https://www.mongodb.com' }
+{ "kind": "database", "version": 1, "website": "https://www.mongodb.com" }
 ---
 
 # Add MongoDB to Flue
