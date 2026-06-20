@@ -13,12 +13,14 @@ const definedActions = new WeakSet<object>();
 
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
 export type ActionInputSchema = v.GenericSchema<Record<string, unknown>, unknown>;
-export type ActionOutputSchema = v.GenericSchema<any, {} | null>;
+export type ActionOutputSchema = v.GenericSchema<any, NonNullable<unknown> | null>;
 
 export type ActionContext<S extends ActionInputSchema | undefined> = {
 	readonly harness: FlueHarness;
 	readonly log: FlueLogger;
-} & (S extends ActionInputSchema ? { readonly input: v.InferOutput<S> } : {});
+} & (S extends ActionInputSchema
+	? { readonly input: v.InferOutput<S> }
+	: Record<never, never>);
 
 type ActionRunResult<S extends ActionOutputSchema | undefined> = S extends ActionOutputSchema
 	? v.InferInput<S>

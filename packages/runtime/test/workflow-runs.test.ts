@@ -91,7 +91,9 @@ describe('invoke()', () => {
 
 		expectTypeOf(invoke).toBeCallableWith(required, { input: { count: 1 } });
 		expectTypeOf(invoke).toBeCallableWith(omitted, {});
-		expectTypeOf<{ input: {} }>().not.toMatchTypeOf<WorkflowInvokeRequest<typeof omitted>>();
+		expectTypeOf<{ input: Record<never, never> }>().not.toMatchTypeOf<
+			WorkflowInvokeRequest<typeof omitted>
+		>();
 	});
 
 	it('rejects supplied input when a Workflow Action declares no input', async () => {
