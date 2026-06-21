@@ -22,14 +22,10 @@ After running this example with a Sentry DSN configured:
 - Sentry tags use a stable `flue.*` prefix, so pivoting on
   `flue.run.id` in Sentry's search box finds every capture from a
   single Flue run.
-- A failing workflow run in Sentry can be replayed in full by feeding the
-  `flue.run.id` tag back into the Flue CLI:
+- A failing workflow run in Sentry can be inspected through SDK `client.runs`
+  or the raw `/runs` APIs using its `flue.run.id` tag.
 
-  ```
-  flue logs <flue.run.id>
-  ```
-
-This example contains workflows, so `runId`, `/runs`, and `flue logs` apply. Direct or dispatched agent interactions are not workflow runs; correlate them by agent instance/session, request identity, or `dispatchId` instead.
+This example contains workflows, so `runId` and `/runs` apply. Direct or dispatched agent interactions are not workflow runs; correlate them by agent instance/session, request identity, or `dispatchId` instead.
 
 ## What this example does NOT do
 
@@ -193,18 +189,9 @@ curl -X POST http://localhost:3583/workflows/explicit?wait=result \
 Each response includes a top-level `runId` field. That's the same id
 you'll see as the `flue.run.id` tag in Sentry.
 
-### 5. Replay a captured run
+### 5. Inspect a captured run
 
-Take a `flue.run.id` from Sentry and feed it back to the CLI:
-
-```bash
-flue logs run_01HX...
-```
-
-The CLI streams the full event log of that run — including the
-`run_end` event that triggered the Sentry capture. Each example workflow intentionally
-exports an allow-through `runs` handler so the CLI can read these runs; production
-projects should protect run access with authentication.
+Take a `flue.run.id` from Sentry and pass it to SDK `client.runs.events()` for a catch-up read or `client.runs.stream()` for live events. The raw `/runs/<runId>` APIs expose the same run — including the `run_end` event that triggered the Sentry capture. Each example workflow intentionally exports an allow-through `runs` handler so clients can read these runs; production projects should protect run access with authentication.
 
 ## Adapting this to your project
 

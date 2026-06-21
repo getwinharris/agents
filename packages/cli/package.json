@@ -37,7 +37,6 @@
 	"dependencies": {
 		"@cloudflare/vite-plugin": "^1.39.2",
 		"@flue/runtime": "workspace:*",
-		"@flue/sdk": "workspace:*",
 		"@vercel/detect-agent": "^1.2.3",
 		"minisearch": "^7.2.0",
 		"package-up": "^5.0.0",

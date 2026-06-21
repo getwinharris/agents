@@ -186,7 +186,7 @@ interface RunStore {
 }
 ```
 
-The run store persists workflow-run records and serves run lookup and listing for `/runs`, `flue logs`, and the [inspection primitives](#inspection-primitives). Event payloads live in `EventStreamStore`. Agent prompts and dispatched agent input do not create workflow runs.
+The run store persists workflow-run records and serves run lookup and listing for SDK `client.runs`, raw `/runs` APIs, and the [inspection primitives](#inspection-primitives). Event payloads live in `EventStreamStore`. Agent prompts and dispatched agent input do not create workflow runs.
 
 | Method        | Contract                                                                                                                                                                                                                                                                            |
 | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

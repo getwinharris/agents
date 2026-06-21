@@ -17,7 +17,7 @@ Workflow                     — `workflows/<name>.ts`; exports `run(...)`
 └─ Workflow run/invocation    — unique `ctx.id === runId`; initializes local agent definitions via `init(agent)` when needed
 ```
 
-Runs are workflow-only. Direct HTTP/WebSocket agent prompts and dispatched agent inputs operate within persistent sessions and must not be described as runs. `dispatch(...)` is identified by `dispatchId`; `/runs` and `flue logs` inspect workflow runs only.
+Runs are workflow-only. Direct HTTP/WebSocket agent prompts and dispatched agent inputs operate within persistent sessions and must not be described as runs. `dispatch(...)` is identified by `dispatchId`; SDK `client.runs` and raw `/runs` APIs inspect workflow runs only.
 
 Use `harness` as the variable name for the return value of `init()`. Agents have names; agent instances have ids; harnesses and sessions have names; operations have generated ids.
 

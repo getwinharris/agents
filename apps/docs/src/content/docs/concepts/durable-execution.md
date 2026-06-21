@@ -92,7 +92,7 @@ Workflows are finite function invocations. Each invocation runs your authored `r
 
 Flue workflows are not resumable. If a workflow is interrupted, Flue does not checkpoint arbitrary TypeScript execution and continue the function from the last completed line or step. Your application decides whether starting the workflow again is appropriate.
 
-Interrupted-run cleanup differs by target. On Cloudflare, recovery terminalizes an interrupted run as errored — emitting `run_resume` then `run_end` — and closes its event stream so readers see the end of the stream. Node.js currently has no equivalent recovery path: a run orphaned by a crash is never terminalized and its event stream is never closed. With a file-backed adapter the run record and its events survive the restart, but the orphaned run remains listed as `active`. Live readers of that run's stream (long-poll, SSE, or `flue logs -f`) wait indefinitely; use a catch-up read to inspect the events persisted before the crash.
+Interrupted-run cleanup differs by target. On Cloudflare, recovery terminalizes an interrupted run as errored — emitting `run_resume` then `run_end` — and closes its event stream so readers see the end of the stream. Node.js currently has no equivalent recovery path: a run orphaned by a crash is never terminalized and its event stream is never closed. With a file-backed adapter the run record and its events survive the restart, but the orphaned run remains listed as `active`. Live readers of that run's stream, including long-poll, SSE, and `client.runs.stream()`, wait indefinitely; use `client.runs.events()` or a raw catch-up read to inspect the events persisted before the crash.
 
 ### Retry workflows explicitly
 
@@ -113,4 +113,4 @@ If a job requires checkpointed steps that resume automatically after disruption,
 
 Use a workflow's `runId` to inspect its recorded outcome and events independently of the connection that started it. HTTP and SDK inspection requires the owning workflow to expose and authorize its run resources; server-side inspection primitives are unaffected. This is useful for debugging, live progress, and operational tooling.
 
-Agent prompts and dispatched agent input do not create workflow runs. Use agent operation observation for continuing agents, and reserve workflow history and `flue logs` for workflow invocations. See [Workflows](/docs/guide/workflows/) for authoring and run inspection, and [Observability](/docs/guide/observability/) for runtime events and telemetry.
+Agent prompts and dispatched agent input do not create workflow runs. Use agent operation observation for continuing agents, and reserve workflow history and SDK or raw run inspection for workflow invocations. See [Workflows](/docs/guide/workflows/) for authoring and run inspection, and [Observability](/docs/guide/observability/) for runtime events and telemetry.

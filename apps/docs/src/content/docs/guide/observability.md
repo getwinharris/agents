@@ -41,13 +41,7 @@ export default defineWorkflow({
 
 `log.info(...)`, `log.warn(...)`, and `log.error(...)` accept structured attributes. Use attributes for values that you may later search, aggregate, or forward to a monitoring system. See [`ActionContext`](/docs/api/action-api/#actioncontext) for the Action logging contract.
 
-When a workflow invoked through a running application reports its `runId`, and its module exposes `runs` middleware, use that identifier to inspect the run from the command line:
-
-```bash
-pnpm exec flue logs <runId> --server http://localhost:3583
-```
-
-Pass credentials required by the workflow's `runs` middleware with `--header`. `flue logs` applies only to workflows; direct prompts and `dispatch(...)` inputs belong to continuing agent sessions instead.
+When a workflow invoked through a running application reports its `runId`, and its module exposes `runs` middleware, use SDK [`client.runs`](/docs/sdk/runs/) to retrieve its record and events or follow its live stream. Configure application-required credentials on the SDK client. The raw [`/runs` APIs](/docs/api/streaming-protocol/) provide the same HTTP surface. Run inspection applies only to workflows; direct prompts and `dispatch(...)` inputs belong to continuing agent sessions instead.
 
 A workflow's `startedAt` timestamp is captured before durable admission finishes. Live observers receive `run_start` after admission setup, immediately before workflow code begins. This distinction matters when admission itself takes time: `startedAt` describes the admitted invocation's full lifetime, while `run_start` marks the beginning of live workflow execution.
 

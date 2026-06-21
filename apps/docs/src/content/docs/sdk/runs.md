@@ -76,4 +76,4 @@ interface FlueEventStream<T> extends AsyncIterable<T> {
 }
 ```
 
-`offset` is a resume checkpoint (the server's `Stream-Next-Offset`). It is batch-granular: it advances to a batch's next-offset only once every event in that batch has been delivered. Resuming from a checkpointed `offset` never skips undelivered events — at worst it re-delivers events of the batch that was in flight when the checkpoint was taken (at-least-once). For per-event checkpoints, use the event's `eventIndex` instead (on workflow-run streams it equals the stream sequence); `flue logs --format ndjson` prints a per-event `offset` derived from it.
+`offset` is a resume checkpoint (the server's `Stream-Next-Offset`). It is batch-granular: it advances to a batch's next-offset only once every event in that batch has been delivered. Resuming from a checkpointed `offset` never skips undelivered events — at worst it re-delivers events of the batch that was in flight when the checkpoint was taken (at-least-once). For per-event checkpoints, use the event's `eventIndex` instead; on workflow-run streams it equals the stream sequence.

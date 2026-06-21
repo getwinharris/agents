@@ -194,7 +194,7 @@ Hono application, mounts `flue()` at `/`, and default-exports the app. Install a
 direct `hono` dependency when authoring that file.
 
 `observe(...)` is isolate-local. Workflow failures carry `runId` and can be
-inspected with `flue logs <runId>`. Direct and dispatched
+inspected with SDK `client.runs` or raw `/runs` APIs. Direct and dispatched
 agent interactions are not workflow runs; their failed top-level operations and
 failed durable settlements use agent instance, session, operation, submission,
 and dispatch correlation instead.

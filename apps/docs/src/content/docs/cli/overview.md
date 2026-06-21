@@ -13,7 +13,7 @@ npx flue dev
 
 The CLI requires Node.js `>=22.19.0`. Cloudflare development and deployment also require `wrangler` as a development dependency.
 
-The CLI follows the application lifecycle: initialize a target, develop against it locally, exercise agents and workflows, inspect workflow runs, and create the artifact you deploy. Each command page documents its complete arguments, options, output, and target-specific behavior.
+The CLI follows the application lifecycle: initialize a target, develop against it locally, exercise agents and workflows, and create the artifact you deploy. Each command page documents its complete arguments, options, output, and target-specific behavior.
 
 ## Initialize and configure
 
@@ -55,15 +55,7 @@ npx flue run summarize-ticket --input '{"ticket":"Ticket details"}'
 
 These commands use private local execution and do not pass through application ingress middleware. Deployed applications instead receive input through their published routes and transports. See [`flue connect`](/docs/cli/connect/) and [`flue run`](/docs/cli/run/) for their exact contracts.
 
-## Inspect workflow runs
-
-Use `flue logs` to replay or follow events for a workflow run owned by a running Flue server:
-
-```bash
-npx flue logs run_01JX...
-```
-
-Runs are workflow-only. The owning workflow must expose its run resources; pass any required credentials with `--header`. Direct agent prompts and dispatched agent inputs are persistent session interactions, not runs. A one-shot `flue run` process streams its own events and cannot be inspected later with `flue logs`. See [`flue logs`](/docs/cli/logs/) for details.
+Workflow runs exposed by a running application can be inspected through SDK [`client.runs`](/docs/sdk/runs/) or the raw [`/runs` APIs](/docs/api/streaming-protocol/). A one-shot `flue run` process streams its own events and does not publish run-inspection routes.
 
 ## Build and deploy
 
@@ -83,7 +75,6 @@ A build packages the discovered application for its runtime target. It does not 
 | [`flue dev`](/docs/cli/dev/)         | Start a watch-mode local development server.                                    |
 | [`flue connect`](/docs/cli/connect/) | Open an interactive local agent-instance connection.                            |
 | [`flue run`](/docs/cli/run/)         | Execute one workflow invocation locally.                                        |
-| [`flue logs`](/docs/cli/logs/)       | Replay or follow workflow-run events from a running server.                     |
 | [`flue build`](/docs/cli/build/)     | Create deployable application artifacts.                                        |
 | [`flue add`](/docs/cli/add/)         | Fetch sandbox, channel, or database installation blueprints for a coding agent. |
 | [`flue update`](/docs/cli/update/)   | Fetch a current blueprint so a coding agent can apply its newer upgrade guides. |

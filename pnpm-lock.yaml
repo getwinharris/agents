@@ -857,9 +857,6 @@ importers:
       '@flue/runtime':
         specifier: workspace:*
         version: link:../runtime
-      '@flue/sdk':
-        specifier: workspace:*
-        version: link:../sdk
       '@vercel/detect-agent':
         specifier: ^1.2.3
         version: 1.2.3

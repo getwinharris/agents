@@ -59,12 +59,6 @@ describe('flue (argument parsing)', () => {
 		assert.ok(result.stderr.includes('Missing value for --target'), result.stderr);
 	});
 
-	it('reports a missing logs string value when the next argument is a boolean flag', async () => {
-		const result = await runCli(['logs', 'run-1', '--server', '--no-follow']);
-		assert.equal(result.code, 1);
-		assert.ok(result.stderr.includes('Missing value for --server'), result.stderr);
-	});
-
 	it('accepts a flag-like string value when provided inline', async () => {
 		const result = await runCli(['run', 'hello', '--target=--root']);
 		assert.equal(result.code, 1);

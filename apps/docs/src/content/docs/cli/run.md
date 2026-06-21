@@ -37,7 +37,7 @@ A workflow invocation is a finite run with a run ID. Use `flue connect` for inte
 
 Build diagnostics are written to stdout before execution. Run identity and streamed events are written to stderr. A successful non-null terminal workflow result is written as formatted JSON to stdout.
 
-The printed run ID identifies this workflow invocation in inline output and CI logs. The temporary child process owns its run record and streams events directly to the command. It does not publish run-inspection routes, and its history disappears when the command exits. Use `flue logs` only for runs owned by a selected running server.
+The printed run ID identifies this workflow invocation in inline output and CI logs. The temporary child process owns its run record and streams events directly to the command. It does not publish run-inspection routes, and its history disappears when the command exits. SDK and raw HTTP run inspection apply only to runs owned by a running application server.
 
 ## Target support
 

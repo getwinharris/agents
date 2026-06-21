@@ -5,9 +5,6 @@ import path from 'node:path';
 import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import { type ParseArgsOptionsConfig, parseArgs as parseNodeArgs } from 'node:util';
-import { formatOffset } from '@flue/runtime/adapter';
-import type { FlueEvent, RunRecord } from '@flue/sdk';
-import { createFlueClient, type FlueEventStream } from '@flue/sdk';
 import { determineAgent } from '@vercel/detect-agent';
 import MiniSearch from 'minisearch';
 import { build } from '../src/lib/build.ts';
@@ -104,7 +101,6 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  flue add   [<kind> <name|url>] [--print]\n' +
 			'  flue update <kind> <name|url> [--print]\n' +
 			'  flue docs  [read <path> | search <query>]\n' +
-			"  flue logs  <workflowRunId> [--server <url>] [--header 'Name: value'] [--follow|-f|--no-follow] [--since <offset>] [--types a,b,c] [--limit <n>] [--format pretty|ndjson]\n" +
 			'\n' +
 			'Commands:\n' +
 			'  dev    Long-running watch-mode dev server. Rebuilds and reloads on file changes.\n' +
@@ -115,7 +111,6 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  add    Fetch a blueprint implementation guide for an AI coding agent to follow.\n' +
 			'  update Fetch an updated blueprint implementation guide for an AI coding agent to follow.\n' +
 			'  docs   Browse the Flue docs. No args lists pages; `read` prints a page as markdown; `search` prints JSON results.\n' +
-			'  logs   Tail or replay workflow run events from a running Flue server. Read-only — does not invoke work.\n' +
 			'\n' +
 			'Flags:\n' +
 			'  --root <path>        Project root. Default: current working directory.\n' +
@@ -148,9 +143,6 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  flue docs\n' +
 			'  flue docs read guide/sandboxes\n' +
 			'  flue docs search "durable execution"\n' +
-			'  flue logs run_01H...                              # tail a workflow run\n' +
-			'  flue logs run_01H... --no-follow                  # replay a workflow run\n' +
-			'  flue logs run_01H... --types tool,log,run_end --format ndjson\n' +
 			'\n' +
 			'Note: set the model in `defineAgent(() => ({ model: "provider-id/model-id" }))` ' +
 			'or per-call `{ model: ... }` on prompt/skill/task.',
@@ -244,28 +236,6 @@ interface InitArgs {
 	force: boolean;
 }
 
-interface LogsArgs {
-	command: 'logs';
-	runId: string;
-	/** Base URL of the running Flue server. */
-	server: string;
-	headers: Record<string, string>;
-	/**
-	 * Whether to keep streaming live events (`true`) or exit after the
-	 * initial replay (`false`). `undefined` means "auto" — follow if the
-	 * selected run is still active, replay-and-exit if it's already
-	 * terminal. CLI flags `--follow` / `--no-follow` set it explicitly.
-	 */
-	follow: boolean | undefined;
-	/** Opaque DS offset to resume after (e.g. the ndjson `offset` field). */
-	since: string | undefined;
-	/** Filter to a specific set of event types (comma-separated on the CLI). */
-	types: ReadonlySet<string> | undefined;
-	/** Cap emitted event count. Applied client-side. */
-	limit: number | undefined;
-	format: 'pretty' | 'ndjson';
-}
-
 type ParsedArgs =
 	| RunArgs
 	| ConnectArgs
@@ -273,8 +243,7 @@ type ParsedArgs =
 	| DevArgs
 	| BlueprintCommandArgs
 	| DocsArgs
-	| InitArgs
-	| LogsArgs;
+	| InitArgs;
 
 type ParsedOptionToken = Extract<
 	NonNullable<ReturnType<typeof parseNodeArgs>['tokens']>[number],
@@ -308,20 +277,18 @@ function parseCommandOptions(
 	options: ParseArgsOptionsConfig,
 	allowed: ReadonlySet<string>,
 	known: ReadonlySet<string> = allowed,
-	allowNegative = false,
 ) {
 	const parsed = parseNodeArgs({
 		args,
 		options,
 		allowPositionals: true,
-		allowNegative,
 		strict: false,
 		tokens: true,
 	});
 	for (const token of (parsed.tokens ?? []).filter(
 		(token): token is ParsedOptionToken => token.kind === 'option',
 	)) {
-		const optionName = token.rawName.startsWith('--no-') ? token.rawName.slice(5) : token.name;
+		const optionName = token.name;
 		if (!known.has(token.rawName)) {
 			fail(`Unknown flag for \`flue ${command}\`: ${token.rawName}`, true);
 		}
@@ -541,126 +508,6 @@ function parseDocsArgs(rest: string[]): DocsArgs {
 	process.exit(1);
 }
 
-function parseLogsHeader(value: string | undefined, headers: Headers): void {
-	if (!value) {
-		console.error('Missing value for --header');
-		process.exit(1);
-	}
-	const separator = value.indexOf(':');
-	if (separator === -1) {
-		console.error('Invalid value for --header (expected "Name: value")');
-		process.exit(1);
-	}
-	const name = value.slice(0, separator).trim();
-	const headerValue = value.slice(separator + 1).trim();
-	const normalizedName = name.toLowerCase();
-	if (normalizedName === 'accept') {
-		console.error(`Cannot set reserved \`flue logs\` header: ${name}`);
-		process.exit(1);
-	}
-	try {
-		if (headers.has(name)) {
-			console.error(`Duplicate \`flue logs\` header: ${name}`);
-			process.exit(1);
-		}
-		headers.set(name, headerValue);
-	} catch {
-		console.error('Invalid value for --header (expected "Name: value")');
-		process.exit(1);
-	}
-}
-
-function parseLogsArgs(rest: string[]): LogsArgs {
-	const logsFlags = new Set([
-		'--server',
-		'--header',
-		'--follow',
-		'-f',
-		'--no-follow',
-		'--since',
-		'--types',
-		'--limit',
-		'--format',
-	]);
-	const { positionals, values } = parseCommandOptions(
-		'logs',
-		rest,
-		{
-			server: { type: 'string' },
-			header: { type: 'string', multiple: true },
-			follow: { type: 'boolean', short: 'f' },
-			since: { type: 'string' },
-			types: { type: 'string' },
-			limit: { type: 'string' },
-			format: { type: 'string' },
-		},
-		logsFlags,
-		logsFlags,
-		true,
-	);
-
-	const server =
-		stringFlag(values, 'server', 'Missing value for --server') ??
-		`http://127.0.0.1:${DEFAULT_DEV_PORT}`;
-	const headers = new Headers();
-	const follow = values.follow;
-	if (follow !== undefined && typeof follow !== 'boolean') fail('--follow does not accept a value');
-	const since = stringFlag(values, 'since', 'Missing value for --since');
-	let types: ReadonlySet<string> | undefined;
-	let limit: number | undefined;
-	let format: LogsArgs['format'] = 'pretty';
-
-	for (const header of stringListFlag(values, 'header', 'Missing value for --header')) {
-		parseLogsHeader(header, headers);
-	}
-	const typesValue = stringFlag(values, 'types', 'Missing value for --types');
-	if (typesValue !== undefined) {
-		const parts = typesValue
-			.split(',')
-			.map((t) => t.trim())
-			.filter(Boolean);
-		if (parts.length > 0) types = new Set(parts);
-	}
-	const limitValue = stringFlag(
-		values,
-		'limit',
-		'Invalid value for --limit (expected a positive integer)',
-	);
-	if (limitValue !== undefined) {
-		limit = Number.parseInt(limitValue, 10);
-		if (!Number.isFinite(limit) || limit <= 0) {
-			fail('Invalid value for --limit (expected a positive integer)');
-		}
-	}
-	const formatValue = stringFlag(values, 'format', 'Missing value for --format');
-	if (formatValue !== undefined) {
-		if (formatValue !== 'pretty' && formatValue !== 'ndjson') {
-			fail(`Invalid value for --format: "${formatValue}". Allowed: pretty, ndjson`);
-		}
-		format = formatValue;
-	}
-
-	if (positionals.length < 1) fail('Missing required argument for `flue logs`: <runId>', true);
-	if (positionals.length > 1) {
-		fail(`Unexpected extra arguments for \`flue logs\`: ${positionals.slice(1).join(' ')}`, true);
-	}
-
-	const runId = positionals[0];
-	if (!runId) fail('Missing required argument for `flue logs`: <runId>', true);
-
-	return {
-		command: 'logs',
-		runId,
-		server,
-		headers: Object.fromEntries(headers),
-		follow,
-		since,
-		types,
-		limit,
-		format,
-	};
-}
-
 function parseInitArgs(rest: string[]): InitArgs {
 	const { positionals, values } = parseCommandOptions(
 		'init',
@@ -718,10 +565,6 @@ function parseArgs(argv: string[]): ParsedArgs {
 
 	if (command === 'init') {
 		return parseInitArgs(rest);
-	}
-
-	if (command === 'logs') {
-		return parseLogsArgs(rest);
 	}
 
 	// `--target` is optional at parse time — the config file may supply it.
@@ -1006,8 +849,6 @@ function logEvent(event: any) {
 			// Structural lifecycle events. `flue run` is a one-shot,
 			// linear consumer that already shows tool I/O and text
 			// streaming inline; operation banners would be noise.
-			// `flue logs --format pretty` renders them via
-			// `logsRenderPretty`.
 			break;
 	}
 }
@@ -1459,201 +1300,6 @@ async function connectCommand(args: ConnectArgs) {
 	}
 	closing = true;
 	stopLocalProcess();
-}
-
-// ─── `flue logs` ────────────────────────────────────────────────────────────
-
-function formatDuration(ms: number | undefined): string {
-	if (ms === undefined) return '';
-	if (ms < 1000) return `${ms}ms`;
-	if (ms < 60_000) return `${(ms / 1000).toFixed(2)}s`;
-	const m = Math.floor(ms / 60_000);
-	const s = ((ms % 60_000) / 1000).toFixed(1);
-	return `${m}m${s}s`;
-}
-
-/** Render a single event for `flue logs --format pretty`. */
-function logsRenderPretty(event: FlueEvent): void {
-	const { type } = event;
-	if (type === 'run_start') {
-		console.error(`${dim('run:start')} ${event.runId}  workflow=${event.workflowName}`);
-		return;
-	}
-	if (type === 'run_end') {
-		const duration = formatDuration(event.durationMs);
-		if (event.isError) {
-			const err = event.error as { message?: string } | undefined;
-			console.error(
-				`${dim('run:end')}   ${event.runId}  ERROR  ${err?.message ?? ''}  (${duration})`,
-			);
-		} else {
-			console.error(`${dim('run:end')}   ${event.runId}  ok  (${duration})`);
-		}
-		return;
-	}
-	if (type === 'operation_start') {
-		console.error(`${dim('op:start')}  ${event.operationKind}`);
-		return;
-	}
-	if (type === 'operation') {
-		const duration = formatDuration(event.durationMs);
-		console.error(`${dim('op:done')}   ${event.operationKind}${duration ? `  (${duration})` : ''}`);
-		return;
-	}
-	logEvent(event);
-}
-
-function createLogsClient(args: LogsArgs) {
-	return createFlueClient({
-		baseUrl: args.server,
-		headers: args.headers,
-	});
-}
-
-function getRunWorkflowName(run: RunRecord): string {
-	const record = run as RunRecord & {
-		workflowName?: string;
-		owner?: { workflowName?: string };
-	};
-	return record.workflowName ?? record.owner?.workflowName ?? 'unknown';
-}
-
-function logsEmitEvent(event: FlueEvent, format: LogsArgs['format']): void {
-	if (format === 'ndjson') {
-		// ndjson lines carry a per-event resume offset derived from eventIndex
-		// (on run streams, event index == stream sequence; flue logs reads
-		// runs only). The stream's own offset getter is batch-granular and
-		// would skip events if used as a mid-batch checkpoint.
-		const offset =
-			typeof event.eventIndex === 'number' ? formatOffset(event.eventIndex) : undefined;
-		const output = offset ? { ...event, offset } : event;
-		process.stdout.write(`${JSON.stringify(output)}\n`);
-	} else {
-		logsRenderPretty(event);
-	}
-}
-
-async function logsCommand(args: LogsArgs): Promise<void> {
-	const client = createLogsClient(args);
-	if (args.format === 'pretty') {
-		console.error(brand(['flue logs', args.runId, args.follow === false ? 'replay' : 'stream']));
-	}
-
-	let shouldFollow: boolean;
-	if (args.follow === false) {
-		shouldFollow = false;
-	} else {
-		// Probe the run before streaming, even with explicit --follow: the DS
-		// stream client retries connection errors indefinitely, so an
-		// unreachable server would otherwise hang forever with no output.
-		let run: RunRecord;
-		try {
-			run = await client.runs.get(args.runId);
-		} catch (err) {
-			cliError(
-				`Failed to fetch run ${args.runId}: ${err instanceof Error ? err.message : String(err)}`,
-			);
-			process.exit(1);
-		}
-		// Run ids are opaque; surface the owning workflow from the run record.
-		if (args.format === 'pretty') {
-			row('workflow', getRunWorkflowName(run));
-			row('status', run.status);
-			console.error('');
-		}
-		shouldFollow = args.follow ?? run.status === 'active';
-	}
-
-	// One-shot mode: catch-up read via DS, then exit.
-	if (!shouldFollow) {
-		let events: FlueEvent[];
-		try {
-			events = await client.runs.events(args.runId, {
-				offset: args.since ?? '-1',
-				backoffOptions: {
-					initialDelay: 100,
-					maxDelay: 60_000,
-					multiplier: 1.3,
-					maxRetries: 3,
-				},
-			});
-		} catch (err) {
-			cliError(
-				`Failed to read events for run ${args.runId}: ${err instanceof Error ? err.message : String(err)}`,
-			);
-			process.exit(1);
-		}
-
-		let exitCode = 0;
-		let emittedCount = 0;
-		for (const event of events) {
-			if (event.type === 'run_end' && event.isError) exitCode = 2;
-			if (args.types && !args.types.has(event.type)) continue;
-
-			logsEmitEvent(event, args.format);
-			emittedCount++;
-
-			if (args.limit !== undefined && emittedCount >= args.limit) break;
-		}
-		if (args.format === 'pretty') flushBuffers();
-		process.exitCode = exitCode;
-		return;
-	}
-
-	// Follow mode: stream via DS protocol with live tailing.
-	const stream: FlueEventStream<FlueEvent> = client.runs.stream(args.runId, {
-		offset: args.since ?? '-1',
-		live: true,
-	});
-
-	// Follow mode owns signal handling: drop handlers registered earlier so
-	// they cannot preempt graceful cancellation. Dependencies loaded at import
-	// time (e.g. wrangler) install SIGINT/SIGTERM handlers that call
-	// process.exit() synchronously, which would skip stream cancellation, the
-	// buffer flush in `finally`, and the 130 exit code below.
-	process.removeAllListeners('SIGINT');
-	process.removeAllListeners('SIGTERM');
-	let signalled = false;
-	const onSignal = () => {
-		signalled = true;
-		stream.cancel();
-	};
-	process.on('SIGINT', onSignal);
-	process.on('SIGTERM', onSignal);
-
-	let emittedCount = 0;
-	let exitCode = 0;
-
-	try {
-		for await (const event of stream) {
-			if (event.type === 'run_end' && event.isError) exitCode = 2;
-			if (args.types && !args.types.has(event.type)) continue;
-
-			logsEmitEvent(event, args.format);
-			emittedCount++;
-
-			if (event.type === 'run_end') {
-				break;
-			}
-			if (args.limit !== undefined && emittedCount >= args.limit) break;
-		}
-	} catch (err) {
-		if (!signalled) {
-			cliError(`Stream interrupted: ${err instanceof Error ? err.message : String(err)}`);
-			exitCode = 1;
-		}
-	} finally {
-		process.off('SIGINT', onSignal);
-		process.off('SIGTERM', onSignal);
-		if (args.format === 'pretty') flushBuffers();
-	}
-
-	// The SDK's FlueEventStream swallows abort errors and returns done:true,
-	// so signal-driven cancellation exits the loop cleanly rather than via
-	// the catch block. Check the flag to set the correct exit code.
-	if (signalled) exitCode = 130;
-
-	process.exitCode = exitCode;
 }
 
 // ─── `flue init` ────────────────────────────────────────────────────────────
@@ -2150,11 +1796,9 @@ async function blueprintCommand(args: BlueprintCommandArgs) {
 
 const args = parseArgs(process.argv.slice(2));
 
-// `dev` manages its own supervisor shutdown; `logs` follow mode installs its
-// own handlers that cancel the stream and flush buffers before exiting.
-// Neither spawns a local process, so they skip the hard-exit handlers (which
-// would otherwise run first in listener order and preempt graceful paths).
-if (args.command !== 'dev' && args.command !== 'logs') {
+// `dev` manages its own supervisor shutdown, so it skips the hard-exit
+// handlers that would otherwise run first and preempt its graceful path.
+if (args.command !== 'dev') {
 	process.on('SIGINT', () => {
 		stopLocalProcess();
 		process.exit(130);
@@ -2180,8 +1824,6 @@ async function main() {
 		docsCommand(args);
 	} else if (args.command === 'init') {
 		initCommand(args);
-	} else if (args.command === 'logs') {
-		await logsCommand(args);
 	} else if (args.command === 'connect') {
 		await connectCommand(args);
 	} else {

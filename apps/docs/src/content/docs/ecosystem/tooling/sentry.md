@@ -80,7 +80,7 @@ The generated bridge reports:
 - `ctx.log.error(...)` as an exception when the log has an `error` attribute;
 - other error logs as error-level Sentry messages.
 
-Captures include relevant `flue.*` correlation tags. Workflow failures include `flue.run.id`, which can be inspected with `flue logs <runId>` when the workflow exposes its run resources. Persistent-agent captures use instance, session, operation, submission, and optional dispatch correlation instead. See [Observability](/docs/guide/observability/) for Flue's identity and observer model.
+Captures include relevant `flue.*` correlation tags. Workflow failures include `flue.run.id`, which can be inspected with SDK `client.runs` or raw `/runs` APIs when the workflow exposes its run resources. Persistent-agent captures use instance, session, operation, submission, and optional dispatch correlation instead. See [Observability](/docs/guide/observability/) for Flue's identity and observer model.
 
 The bridge intentionally skips failed operations and tools because those failures may be recovered and later duplicated by a fatal workflow report. It also avoids arbitrary log attributes, prompts, responses, tool arguments, and complete event payloads. Make an explicit data-handling decision before expanding that policy.
 

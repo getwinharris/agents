@@ -46,8 +46,6 @@ cli/docs -- flue docs
   Reference for listing, reading, and searching the bundled Flue documentation.
 cli/init -- flue init
   Reference for creating an initial Flue project configuration file.
-cli/logs -- flue logs
-  Reference for reading and following workflow run events from a Flue server.
 cli/overview -- CLI
   Use the Flue CLI to configure, develop, exercise, inspect, and build an application.
 cli/run -- flue run
