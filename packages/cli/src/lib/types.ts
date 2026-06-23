@@ -67,6 +67,7 @@ export interface BuildContext {
 	 * `db.ts` > `db.mts` > `db.js` > `db.mjs`.
 	 */
 	dbEntry?: string;
+	log?: 'normal' | 'silent';
 	temporaryLocalExposure?: boolean;
 }
 

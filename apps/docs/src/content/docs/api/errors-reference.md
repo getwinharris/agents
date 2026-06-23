@@ -30,7 +30,7 @@ Caller-safe error details exposed by Flue transports. Unknown failures become a 
 | `dev`     | Additional local development guidance when available.                                     |
 | `meta`    | Structured error-specific metadata when available. For example, validation issue details. |
 
-`dev` is omitted unless the runtime has additional guidance and is running locally. Temporary local `flue run` and `flue console` runtimes use local error rendering on Node.js and in Cloudflare's Vite/workerd development runtime. An absolute `--server` attachment renders whatever envelope that server provides; preview and production builds omit local-only guidance.
+`dev` is omitted unless the runtime has additional guidance and is running locally. Temporary local `flue run` runtimes use local error rendering on Node.js and in Cloudflare's Vite/workerd development runtime. An absolute `--server` attachment renders whatever envelope that server provides; preview and production builds omit local-only guidance.
 
 ### Categories
 

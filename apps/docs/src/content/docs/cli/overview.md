@@ -32,14 +32,7 @@ npx flue run assistant --input '{"message":"Summarize this repository."}'
 npx flue run summarize-ticket --input '{"ticket":"Ticket details"}'
 ```
 
-`flue console` opens an interactive transcript. Agents accept follow-up prompts on one instance; workflow consoles remain open for read-only inspection after one invocation:
-
-```bash
-npx flue console support-assistant
-npx flue console summarize-ticket --input '{"ticket":"Ticket details"}'
-```
-
-Without an absolute `--server`, both commands start the configured Node.js or Cloudflare runtime temporarily. They call through the authored `app.ts` and an existing `flue()` mount, so normal application and resource middleware executes. Route-free resources are temporarily available through that mount for local use; this does not alter deployment behavior or create a mount.
+Without an absolute `--server`, the command starts the configured Node.js or Cloudflare runtime temporarily. It calls through the authored `app.ts` and an existing `flue()` mount, so normal application and resource middleware executes. Route-free resources are temporarily available through that mount for local use; this does not alter deployment behavior or create a mount.
 
 Use `--server /api/flue` for a non-root authored local mount. An absolute URL attaches to an already-running local or deployed application:
 
@@ -49,7 +42,7 @@ npx flue run workflow:summarize-ticket \
   --input '{"ticket":"Ticket details"}'
 ```
 
-See [`flue run`](/docs/cli/run/) and [`flue console`](/docs/cli/console/) for input, identity, headers, resource qualification, and server behavior.
+See [`flue run`](/docs/cli/run/) for input, identity, headers, resource qualification, and server behavior.
 
 ## Build and deploy
 
@@ -68,7 +61,6 @@ A build packages the discovered application for its runtime target. It does not 
 | [`flue init`](/docs/cli/init/)       | Create an initial `flue.config.ts`.                                             |
 | [`flue dev`](/docs/cli/dev/)         | Serve and watch the local application.                                          |
 | [`flue run`](/docs/cli/run/)         | Execute one agent prompt or workflow invocation, then exit.                     |
-| [`flue console`](/docs/cli/console/) | Interact with an agent or inspect one workflow invocation in a terminal UI.     |
 | [`flue build`](/docs/cli/build/)     | Create deployable application artifacts.                                        |
 | [`flue add`](/docs/cli/add/)         | Fetch sandbox, channel, or database installation blueprints for a coding agent. |
 | [`flue update`](/docs/cli/update/)   | Fetch a current blueprint so a coding agent can apply its newer upgrade guides. |

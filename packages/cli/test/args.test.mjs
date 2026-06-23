@@ -81,28 +81,6 @@ describe('flue (argument parsing)', () => {
 		assert.ok(result.stderr.includes('`flue dev` does not accept --input'), result.stderr);
 	});
 
-	it('rejects console without a TTY before local startup', async () => {
-		const result = await runCli(['console', 'workflow:hello', '--target', 'node']);
-		assert.equal(result.code, 1);
-		assert.ok(result.stderr.includes('requires an interactive TTY'), result.stderr);
-		assert.ok(result.stderr.includes('flue run'), result.stderr);
-		assert.ok(!result.stderr.includes('Resource "workflow:hello" not found'), result.stderr);
-	});
-
-	it('validates malformed console input and headers before the TTY requirement', async () => {
-		const input = await runCli(['console', 'agent:hello', '--input', '{']);
-		assert.ok(input.stderr.includes('Invalid JSON for --input'), input.stderr);
-		const header = await runCli(['console', 'agent:hello', '--header', 'invalid']);
-		assert.ok(header.stderr.includes('Invalid header'), header.stderr);
-	});
-
-	it('treats the removed connect command as unknown', async () => {
-		const result = await runCli(['connect', 'assistant', 'thread-1']);
-		assert.equal(result.code, 1);
-		assert.ok(result.stderr.includes('Usage:'), result.stderr);
-		assert.ok(!result.stderr.includes('flue connect <'), result.stderr);
-	});
-
 	it('accepts the workflow --id flag for resource-aware validation', async () => {
 		const result = await runCli(['run', 'workflow:hello', '--id', 'chosen-run', '--target', 'node']);
 		assert.equal(result.code, 1);

@@ -33,7 +33,7 @@ Determine the following. Ask the user only for information you do not already kn
    - If they do not answer, or are not sure yet, create a minimal \`hello-world\` agent module only. Do not create a workflow by default.
    - Choose **agent only** for a continuing assistant or event-driven agent with an identity and sessions that can accept interactions over time. Examples: a chat assistant, support agent, coding agent, or message-driven triage agent.
    - Choose **agent + workflow** when they also need a bounded job that runs once and returns a result. Examples: summarize a ticket, generate a report, handle a CI task, or execute scheduled/batch orchestration.
-   - Do not create a workflow merely to test or talk to an agent. An agent can be used locally with \`flue console <agent-name>\`.
+   - Do not create a workflow merely to test an agent. Use `flue run <agent-name> --input '{"message":"..."}'` for one local prompt.
 2. Where should the project live on disk?
    - Use filesystem tools to inspect the current working directory first, then confirm the target directory with the user.
    - Flue supports three authored source layouts:
@@ -76,7 +76,7 @@ Before implementing, restate the chosen requirements to yourself as an implement
 3. Always create one minimal **agent module** matching the user's idea, keeping it closer to "hello world" than a production app.
    - Put it in the selected layout's immediate \`agents/\` directory, using a lower-kebab-case filename such as \`src/agents/hello-world.ts\`.
    - It must default-export \`defineAgent(() => ({ model: '<exact model specifier>', instructions: '<short purpose-specific instruction>' }))\`.
-   - Do not export \`route\` unless the user needs direct HTTP access. For a basic local starter, use \`flue console <agent-name>\` instead; the temporary runtime exposes route-free resources through the application's existing authored \`flue()\` mount.
+   - Do not export `route` unless the user needs direct HTTP access. For a basic local starter, use `flue run <agent-name> --input '{"message":"..."}'`; the temporary runtime exposes route-free resources through the application's existing authored `flue()` mount.
 4. If the selected shape is **agent + workflow**, create one minimal **workflow module** for the finite job.
    - Put it in the selected layout's immediate \`workflows/\` directory, using a lower-kebab-case filename.
     - Import \`defineWorkflow\` and the agent definition, then default-export \`defineWorkflow({ agent, async run({ harness }) { ... } })\`. Open a session from the supplied harness, perform one purpose-specific operation, and return its result.
@@ -99,7 +99,7 @@ Before implementing, restate the chosen requirements to yourself as an implement
    - If \`tsconfig.json\` already exists, do not replace it. Make the smallest safe change needed to include the generated authored-source files.
    - TypeScript may ignore hidden directories by default, so projects using the \`.flue\` layout usually need \`.flue/**/*.ts\` included explicitly.
 6. Add only the dependencies and config required by the selected deploy guide and chosen starter shape.
-7. Run the most relevant validation command you can, such as build, typecheck, \`flue console\` for an agent, or \`flue run\` when a finite agent prompt or workflow was created. If you cannot run it, explain why.
+7. Run the most relevant validation command you can, such as build, typecheck, or \`flue run\` when a finite agent prompt or workflow was created. If you cannot run it, explain why.
 8. Finish with the exact next commands the user should run, including how to set any required secrets and how to interact with the agent definition or invoke the workflow.
 
 ## Step 4: Verify Implementation
@@ -130,7 +130,7 @@ In your final response, include a short checklist with the project directory, so
   - \`npx flue docs\` — list all documentation pages
 - Important: For local development, prefer \`flue dev --target node\` or \`flue dev --target cloudflare\`. The dev server defaults to port 3583, watches for file changes, and rebuilds + reloads on edits.
   - Instead of: combining \`flue build\` with \`wrangler dev\` (the previous workflow). \`flue dev --target cloudflare\` covers that case directly and stays in sync with what \`wrangler deploy\` will bundle.
-- Important: \`flue run\` and \`flue console\` support both Node.js and Cloudflare targets. Without an absolute \`--server\`, they start the normal target-specific application temporarily, execute \`app.ts\` and middleware, and expose route-free resources through an existing authored \`flue()\` mount.
+- Important: \`flue run\` supports both Node.js and Cloudflare targets. Without an absolute \`--server\`, it starts the normal target-specific application temporarily, executes \`app.ts\` and middleware, and exposes route-free resources through an existing authored \`flue()\` mount.
 - Important: use \`--server /api/flue\` for a non-root authored local mount. Use an absolute URL such as \`--server https://example.com/api/flue\` to attach to an existing server; qualify the resource as \`agent:<name>\` or \`workflow:<name>\`. \`--server\` never creates or moves routes.
 `;
 

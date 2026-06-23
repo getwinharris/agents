@@ -54,17 +54,17 @@ export default defineAgent(() => ({
 
 The default export of `agents/hello-world.ts` is what registers the agent — the filename makes it available in Flue as `hello-world`.
 
-### 3. Talk to your agent locally
+### 3. Run your agent locally
 
-Open an interactive console for the discovered agent:
+Execute one prompt against the discovered agent:
 
 ```bash
-npx flue console hello-world
+npx flue run hello-world --input '{"message":"Tell me a joke."}'
 ```
 
-The console starts your configured Node.js or Cloudflare runtime, displays the generated agent-instance ID, and waits for your first message. Type a prompt and press Enter; follow-up prompts continue on the same instance until you exit.
+The command starts your configured Node.js or Cloudflare runtime, invokes the agent through the application, prints its response, and exits.
 
-Congratulations! You have created your first Flue agent and opened a local conversation with it. From here, you can shape its behavior, add capabilities, or deploy it as part of an application.
+Congratulations! You have created and run your first Flue agent. From here, you can shape its behavior, add capabilities, or deploy it as part of an application.
 
 ## Next steps
 

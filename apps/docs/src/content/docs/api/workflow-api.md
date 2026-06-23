@@ -51,7 +51,7 @@ export const runs: WorkflowRunsHandler = runMiddleware;
 
 `route` enables and controls `POST /workflows/:name` only. `runs` separately exposes and controls every HTTP operation on existing runs owned by this workflow, including `GET`, `HEAD`, `?meta`, unsupported methods, and future run methods. Both are ordinary Hono middleware and may return a response or call `next()`.
 
-Without `runs`, the HTTP run resource returns the same generic `404` as an unknown or removed workflow run. Unsupported methods return `405` only after Flue resolves an exposed run and its middleware authorizes the request. Neither export affects `invoke()`, `listRuns()`, `getRun()`, or schedules. Temporary local `flue run` and `flue console` runtimes additionally expose route-free resources through an existing authored `flue()` mount; absolute `--server` attachments do not.
+Without `runs`, the HTTP run resource returns the same generic `404` as an unknown or removed workflow run. Unsupported methods return `405` only after Flue resolves an exposed run and its middleware authorizes the request. Neither export affects `invoke()`, `listRuns()`, `getRun()`, or schedules. Temporary local `flue run` runtimes additionally expose route-free resources through an existing authored `flue()` mount; absolute `--server` attachments do not.
 
 ## `invoke()`
 

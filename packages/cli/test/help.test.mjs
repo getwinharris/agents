@@ -34,14 +34,6 @@ describe('flue (top-level flags)', () => {
 		}
 	});
 
-	it('documents the console command and shared execution flags', async () => {
-		const result = await runCli(['--help']);
-		assert.equal(result.code, 0);
-		assert.ok(result.stdout.includes('flue console <name>'));
-		assert.ok(result.stdout.includes('[--server <path|url>]'));
-		assert.ok(result.stdout.includes("[--header 'Name: value']"));
-	});
-
 	it('documents positional blueprint commands without the removed category flag', async () => {
 		const result = await runCli(['--help']);
 		assert.equal(result.code, 0);

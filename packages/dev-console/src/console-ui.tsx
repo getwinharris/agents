@@ -1,22 +1,19 @@
 import { Box, render, Static, Text, useApp, useInput, usePaste } from 'ink';
 import TextInput from 'ink-text-input';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import type { ConsoleController } from './console-controller.ts';
+import type { ConsoleController, ConsoleQueuedPrompt } from './console-controller.ts';
 import { boundedShutdown } from './console-shutdown.ts';
-import { transcriptDisplayRecords, type TranscriptRecord } from './console-transcript.ts';
+import { type TranscriptRecord, transcriptPendingRecords } from './console-transcript.ts';
 
-export function ConsoleUi({ controller }: { controller: ConsoleController }) {
+function ConsoleUi({ controller }: { controller: ConsoleController }) {
 	const { exit } = useApp();
 	const snapshot = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
 	const [draft, setDraft] = useState('');
 	const [closing, setClosing] = useState(false);
-	const pending = useMemo(
-		() => transcriptDisplayRecords(snapshot.transcript).slice(snapshot.transcript.records.length),
-		[snapshot.transcript],
-	);
+	const pending = useMemo(() => transcriptPendingRecords(snapshot.transcript), [snapshot.transcript]);
 
 	useEffect(() => {
-		if (snapshot.status === 'closed' || snapshot.status === 'detached') exit();
+		if (snapshot.status === 'closed') exit();
 	}, [exit, snapshot.status]);
 
 	const close = (exitCode?: number) => {
@@ -45,9 +42,8 @@ export function ConsoleUi({ controller }: { controller: ConsoleController }) {
 		setDraft((value) => `${value}${text.replace(/[\r\n]+/g, ' ')}`);
 	});
 
-	const subject = snapshot.resource
-		? `${snapshot.resource.kind} ${snapshot.resource.name}${snapshot.id ? `  ${snapshot.id}` : ''}`
-		: 'validating resource';
+	const resourceId = snapshot.resource.kind === 'agent' ? snapshot.resource.instanceId : snapshot.id;
+	const subject = `${snapshot.resource.kind} ${snapshot.resource.name}${resourceId ? `  ${resourceId}` : ''}`;
 	const status = closing ? 'closing' : snapshot.active ? 'prompt active' : snapshot.status;
 
 	return (
@@ -56,12 +52,13 @@ export function ConsoleUi({ controller }: { controller: ConsoleController }) {
 				{(record) => <TranscriptLine key={record.id} record={record} />}
 			</Static>
 			{pending.map((record) => <TranscriptLine key={record.id} record={record} />)}
+			{snapshot.queuedPrompts.length > 0 ? <QueuedPrompts prompts={snapshot.queuedPrompts} /> : null}
 			<Box marginTop={1}>
 				<Text dimColor>{subject}</Text>
 				<Text dimColor>  ·  </Text>
 				<Text color={snapshot.status === 'failed' ? 'red' : snapshot.active ? 'yellow' : 'green'}>{status}</Text>
 			</Box>
-			{snapshot.resource?.kind === 'agent' ? (
+			{snapshot.resource.kind === 'agent' ? (
 				<Box borderStyle="round" borderColor={snapshot.status === 'failed' ? 'red' : 'blue'} paddingX={1}>
 					<Text color="blue">› </Text>
 					{snapshot.composerEnabled && !closing ? (
@@ -72,30 +69,42 @@ export function ConsoleUi({ controller }: { controller: ConsoleController }) {
 								const message = value.trim();
 								if (!message) return;
 								setDraft('');
-								submitConsoleMessage(controller, message);
+								void controller.submit(message).catch(() => {});
 							}}
 							placeholder={snapshot.active ? 'Send another message' : 'Message agent'}
 						/>
-					) : <Text dimColor>{closing ? 'Closing' : snapshot.active ? 'Prompt active' : 'Starting'}</Text>}
+					) : <Text dimColor>{closing ? 'Closing' : 'Prompt active'}</Text>}
 				</Box>
 			) : null}
 		</>
 	);
 }
 
-export function submitConsoleMessage(controller: ConsoleController, message: string): void {
-	void controller.submit(message).catch(() => {});
+function MessageLine({ label, text }: { label: 'you' | 'agent'; text: string }) {
+	const user = label === 'you';
+	return (
+		<Box flexDirection="column" marginTop={1}>
+			<Text bold color={user ? 'white' : 'black'} backgroundColor={user ? 'blue' : 'cyan'}> {label} </Text>
+			<Text>{text}</Text>
+		</Box>
+	);
+}
+
+function QueuedPrompts({ prompts }: { prompts: readonly ConsoleQueuedPrompt[] }) {
+	return (
+		<Box flexDirection="column" marginTop={1}>
+			<Text dimColor backgroundColor="blue"> queue </Text>
+			{prompts.map((prompt) => <Text key={prompt.id} dimColor>{prompt.message}</Text>)}
+		</Box>
+	);
 }
 
 function TranscriptLine({ record }: { record: TranscriptRecord }) {
 	if (record.tone === 'user' || record.tone === 'normal') {
-		const user = record.tone === 'user';
-		return (
-			<Box marginY={1}>
-				<Text bold color={user ? 'white' : 'black'} backgroundColor={user ? 'blue' : 'cyan'}> {user ? 'you' : 'agent'} </Text>
-				<Text>  {record.text}</Text>
-			</Box>
-		);
+		return <MessageLine label={record.tone === 'user' ? 'you' : 'agent'} text={record.text} />;
+	}
+	if (record.layout === 'thinking') {
+		return <Box marginY={1}><Text dimColor>{record.text}</Text></Box>;
 	}
 	return <Text dimColor={record.tone === 'dim'} color={record.tone === 'error' ? 'red' : record.tone === 'success' ? 'green' : record.tone === 'accent' ? 'blue' : undefined}>{record.text}</Text>;
 }

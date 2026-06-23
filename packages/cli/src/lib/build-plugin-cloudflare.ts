@@ -615,7 +615,7 @@ export default {
 			effectiveConfig,
 			path: userConfigPath,
 		} = await readUserWranglerConfig(ctx.root);
-		if (userConfigPath) {
+		if (userConfigPath && ctx.log !== 'silent') {
 			note(`wrangler ${userConfigPath}`);
 		}
 		validateUserWranglerConfig({ config: userConfig, effectiveConfig });

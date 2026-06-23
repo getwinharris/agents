@@ -131,7 +131,7 @@ export const runs: WorkflowRunsHandler = async (c, next) => {
 };
 ```
 
-`runs` receives an ordinary Hono context and may deny or call `next()`. It applies to `GET`, `HEAD`, `?meta`, unsupported methods, and future run methods. Without it, existing runs return the same generic `404` as unknown or removed runs. A request reaches `405` for an unsupported method only after the run is exposed and authorized. These exports do not affect ambient `invoke()`, `listRuns()`, `getRun()`, or schedules. A temporary local `flue run` or `flue console` process additionally exposes route-free resources and run reads through an existing authored `flue()` mount; an absolute `--server` attachment uses only the server's authored exposure.
+`runs` receives an ordinary Hono context and may deny or call `next()`. It applies to `GET`, `HEAD`, `?meta`, unsupported methods, and future run methods. Without it, existing runs return the same generic `404` as unknown or removed runs. A request reaches `405` for an unsupported method only after the run is exposed and authorized. These exports do not affect ambient `invoke()`, `listRuns()`, `getRun()`, or schedules. A temporary local `flue run` process additionally exposes route-free resources and run reads through an existing authored `flue()` mount; an absolute `--server` attachment uses only the server's authored exposure.
 
 An agent used only through application-owned `dispatch(...)` calls does not need a public transport export.
 

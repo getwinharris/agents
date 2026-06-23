@@ -23,7 +23,7 @@ import type {
 import { streamSimple } from '@earendil-works/pi-ai';
 import type * as v from 'valibot';
 import { abortErrorFor, createCallHandle } from './abort.ts';
-import { parseActionInput, runActionWithParsedInput, type ActionDefinition } from './action.ts';
+import { type ActionDefinition, parseActionInput, runActionWithParsedInput } from './action.ts';
 import {
 	createActivateSkillTool,
 	createPackagedSkillReadTool,
@@ -51,6 +51,7 @@ import {
 } from './compaction.ts';
 import { isWorkspaceSkill, skillsDirIn } from './context.ts';
 import {
+	DelegationDepthExceededError,
 	ModelNotConfiguredError,
 	OperationFailedError,
 	SessionBusyError,
@@ -58,7 +59,6 @@ import {
 	SkillNotRegisteredError,
 	SubagentNotDeclaredError,
 	SubmissionTimeoutError,
-	DelegationDepthExceededError,
 	ToolNameConflictError,
 } from './errors.ts';
 import {
@@ -66,7 +66,7 @@ import {
 	redactEventImages,
 	redactObservationDetailImages,
 } from './event-redaction.ts';
-import { interceptExecution, type FlueExecutionContext } from './execution-interceptor.ts';
+import { type FlueExecutionContext, interceptExecution } from './execution-interceptor.ts';
 import { assertImagesWithinLimit } from './persisted-images.ts';
 import {
 	buildPackagedSkillPrompt,
@@ -77,9 +77,9 @@ import {
 	createResultTools,
 	FINISH_TOOL_NAME,
 	GIVE_UP_TOOL_NAME,
+	prepareResultTool,
 	type ResultToolBundle,
 	ResultUnavailableError,
-	prepareResultTool,
 } from './result.ts';
 import type {
 	AgentSubmissionInput,
@@ -100,7 +100,6 @@ import {
 import { reconstructInterruptedStream, StreamChunkWriter } from './runtime/stream-chunks.ts';
 import { createFlueFs } from './sandbox.ts';
 import { valibotToJsonSchema } from './schema.ts';
-import { getSkillReferenceDirectory } from './skill-package.ts';
 import {
 	createUserContextMessage,
 	renderSignalMessage,
@@ -108,6 +107,7 @@ import {
 } from './session-history.ts';
 import { childSessionStorageKey } from './session-identity.ts';
 import { execShellWithEvents, getErrorMessage } from './shell.ts';
+import { getSkillReferenceDirectory } from './skill-package.ts';
 import {
 	classifySubmissionState,
 	countConsecutiveRetryableModelErrors,
@@ -115,8 +115,8 @@ import {
 	isCompletedAssistantResponse,
 	isRetryableModelError,
 } from './submission-state.ts';
-import { getPreparedToolAdapter } from './tool-adapter.ts';
 import { assertToolDefinition, parseToolInput, validateToolOutput } from './tool.ts';
+import { getPreparedToolAdapter } from './tool-adapter.ts';
 import type {
 	AgentConfig,
 	AgentProfile,
@@ -126,9 +126,9 @@ import type {
 	FlueEvent,
 	FlueEventInput,
 	FlueEventInputCallback,
-	FlueObservationDetail,
 	FlueFs,
 	FlueHarness,
+	FlueObservationDetail,
 	FlueSession,
 	MessageEntry,
 	ModelRequestInfo,
@@ -740,11 +740,11 @@ export class Session implements FlueSession, AgentSubmissionSession {
 					if (aEvent.type === 'text_delta') {
 						this.emit({ type: 'text_delta', text: aEvent.delta });
 					} else if (aEvent.type === 'thinking_start') {
-						this.emit({ type: 'thinking_start' });
+						this.emit({ type: 'thinking_start', contentIndex: aEvent.contentIndex });
 					} else if (aEvent.type === 'thinking_delta') {
-						this.emit({ type: 'thinking_delta', delta: aEvent.delta });
+						this.emit({ type: 'thinking_delta', contentIndex: aEvent.contentIndex, delta: aEvent.delta });
 					} else if (aEvent.type === 'thinking_end') {
-						this.emit({ type: 'thinking_end', content: aEvent.content });
+						this.emit({ type: 'thinking_end', contentIndex: aEvent.contentIndex, content: aEvent.content });
 					}
 					break;
 				}

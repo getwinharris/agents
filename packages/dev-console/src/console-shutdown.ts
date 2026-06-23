@@ -1,12 +1,10 @@
-import type { ExecutionLifecycle } from './execution-lifecycle.ts';
-
-const EXECUTION_SHUTDOWN_TIMEOUT_MS = 5000;
+const SHUTDOWN_TIMEOUT_MS = 5000;
 
 export interface BoundedShutdownOptions {
 	close(): Promise<void>;
 	forceCloseSync(): void;
 	exitCode: number;
-	timeoutMs?: number;
+	beforeTerminate?: () => void;
 	terminate?: (code: number) => unknown;
 }
 
@@ -23,29 +21,15 @@ export async function boundedShutdown(options: BoundedShutdownOptions): Promise<
 				timer = setTimeout(() => {
 					timedOut = true;
 					resolve();
-				}, options.timeoutMs ?? EXECUTION_SHUTDOWN_TIMEOUT_MS);
+				}, SHUTDOWN_TIMEOUT_MS);
 			}),
 		]);
 	} finally {
 		if (timer) clearTimeout(timer);
 		if (timedOut) {
 			options.forceCloseSync();
+			options.beforeTerminate?.();
 			(options.terminate ?? process.exit)(options.exitCode);
 		}
 	}
-}
-
-export function closeExecutionForSignal(
-	signal: NodeJS.Signals,
-	lifecycle: ExecutionLifecycle,
-	terminate?: (code: number) => unknown,
-): Promise<void> {
-	const exitCode = signal === 'SIGINT' ? 130 : 143;
-	lifecycle.cancel();
-	return boundedShutdown({
-		close: () => lifecycle.close(),
-		forceCloseSync: () => lifecycle.forceCloseSync(),
-		exitCode,
-		terminate,
-	});
 }

@@ -112,7 +112,6 @@ export const docsSections: DocsSection[] = [
 					{ title: 'init', slug: 'cli/init' },
 					{ title: 'dev', slug: 'cli/dev' },
 					{ title: 'run', slug: 'cli/run' },
-					{ title: 'console', slug: 'cli/console' },
 					{ title: 'build', slug: 'cli/build' },
 					{ title: 'add', slug: 'cli/add' },
 					{ title: 'update', slug: 'cli/update' },

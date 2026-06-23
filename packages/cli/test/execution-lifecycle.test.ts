@@ -35,7 +35,7 @@ describe('createExecutionLifecycle()', () => {
 			resource: 'workflow:deploy',
 			server: 'https://example.com/flue',
 		});
-		await lifecycle.prepare();
+		await lifecycle.start();
 
 		expect(() => lifecycle.forceCloseSync()).not.toThrow();
 		expect(() => lifecycle.forceCloseSync()).not.toThrow();

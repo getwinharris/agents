@@ -82,5 +82,3 @@ Local execution supports both Node.js and Cloudflare. Cloudflare uses the normal
 flue run assistant --input '{"message":"Draft a release summary."}'
 flue run summarize --target cloudflare --input '{"text":"hello"}' --env .env.staging
 ```
-
-Use [`flue console`](/docs/cli/console/) to remain in an interactive agent transcript or inspect a completed workflow invocation.

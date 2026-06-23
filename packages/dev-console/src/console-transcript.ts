@@ -6,6 +6,7 @@ export interface TranscriptRecord {
 	readonly id: number;
 	readonly text: string;
 	readonly tone: TranscriptTone;
+	readonly layout?: 'thinking';
 }
 
 export interface ConsoleTranscript {
@@ -16,14 +17,13 @@ export interface ConsoleTranscript {
 
 export type TranscriptAction =
 	| { type: 'event'; event: FlueEvent }
-	| { type: 'server'; stream: 'stdout' | 'stderr'; line: string }
 	| { type: 'prompt'; message: string }
-	| { type: 'result'; result: unknown }
 	| { type: 'error'; error: unknown }
-	| { type: 'status'; message: string };
+	| { type: 'clear-streaming' };
 
-export const TRANSCRIPT_LIMIT = 1000;
+const TRANSCRIPT_LIMIT = 1000;
 const DETAIL_LIMIT = 240;
+const FALLBACK_STREAM_KEY = 'active';
 
 export function createConsoleTranscript(): ConsoleTranscript {
 	return { records: [], nextId: 0, streaming: {} };
@@ -33,31 +33,28 @@ export function reduceConsoleTranscript(
 	state: ConsoleTranscript,
 	action: TranscriptAction,
 ): ConsoleTranscript {
-	if (action.type === 'server') {
-		if (isSuppressedServerOutput(action.line)) return state;
-		return append(state, `server ${action.stream}  ${action.line}`, action.stream === 'stdout' ? 'dim' : 'error');
-	}
 	if (action.type === 'prompt') return append(state, action.message, 'user');
-	if (action.type === 'result') return state;
-	if (action.type === 'error') return append(state, `error  ${errorMessage(action.error)}`, 'error');
-	if (action.type === 'status') return append(state, action.message, 'dim');
+	if (action.type === 'error') return append({ ...state, streaming: {} }, `error  ${errorMessage(action.error)}`, 'error');
+	if (action.type === 'clear-streaming') return { ...state, streaming: {} };
 	return reduceEvent(state, action.event);
 }
 
 function reduceEvent(state: ConsoleTranscript, event: FlueEvent): ConsoleTranscript {
 	if (event.type === 'text_delta') {
-		const key = event.turnId ?? `event:${event.eventIndex}`;
+		const key = event.turnId ?? FALLBACK_STREAM_KEY;
 		return { ...state, streaming: { ...state.streaming, [key]: `${state.streaming[key] ?? ''}${event.text}` } };
 	}
 	if (event.type === 'message_end') {
-		const key = event.turnId;
-		const text = messageText(event.message) || (key ? state.streaming[key] : undefined) || '';
-		const streaming = { ...state.streaming };
-		if (key) delete streaming[key];
-		return text ? append({ ...state, streaming }, text, 'normal') : { ...state, streaming };
+		const key = event.turnId ?? FALLBACK_STREAM_KEY;
+		const text = messageText(event.message) || state.streaming[key] || state.streaming[FALLBACK_STREAM_KEY] || '';
+		return text ? append({ ...state, streaming: {} }, text, 'normal') : { ...state, streaming: {} };
 	}
-	if (event.type === 'thinking_start') return append(state, 'thinking', 'dim');
-	if (event.type === 'tool_start') return append(state, `tool  ${event.toolName}`, 'dim');
+	if (event.type === 'thinking_start' || event.type === 'thinking_delta') return state;
+	if (event.type === 'thinking_end') {
+		const content = sanitize(event.content);
+		return content ? append(state, `Thinking...\n${content}`, 'dim', 'thinking') : state;
+	}
+	if (event.type === 'tool_start') return append(state, `tool  ${event.toolName} ${toolDetail(event.toolName, event.args)}`, 'dim');
 	if (event.type === 'tool') {
 		return append(
 			state,
@@ -82,32 +79,30 @@ function reduceEvent(state: ConsoleTranscript, event: FlueEvent): ConsoleTranscr
 	if (event.type === 'run_start') return append(state, `run ${event.runId} started`, 'dim');
 	if (event.type === 'run_resume') return append(state, `run ${event.runId} resumed`, 'dim');
 	if (event.type === 'run_end') return append(state, `run ${event.runId} ${event.isError ? 'failed' : 'completed'} ${event.durationMs}ms`, event.isError ? 'error' : 'success');
-	if (event.type === 'submission_settled') return state;
 	return state;
 }
 
-function isSuppressedServerOutput(line: string): boolean {
-	return (
-		line.includes('ExperimentalWarning: SQLite is an experimental feature and might change at any time') ||
-		line.includes('Use `node --trace-warnings')
-	);
-}
-
-function append(state: ConsoleTranscript, raw: string, tone: TranscriptTone): ConsoleTranscript {
-	const text = sanitize(raw);
+function append(
+	state: ConsoleTranscript,
+	raw: string,
+	tone: TranscriptTone,
+	layout?: TranscriptRecord['layout'],
+): ConsoleTranscript {
+	const text = layout === 'thinking'
+		? raw.split('\n').map(sanitize).filter(Boolean).join('\n')
+		: sanitize(raw);
 	if (!text) return state;
-	const records = [...state.records, { id: state.nextId, text, tone }].slice(-TRANSCRIPT_LIMIT);
+	const records = [...state.records, { id: state.nextId, text, tone, layout }].slice(-TRANSCRIPT_LIMIT);
 	return { ...state, records, nextId: state.nextId + 1 };
 }
 
-export function transcriptDisplayRecords(state: ConsoleTranscript): readonly TranscriptRecord[] {
-	const pending = Object.values(state.streaming)
+export function transcriptPendingRecords(state: ConsoleTranscript): readonly TranscriptRecord[] {
+	return Object.values(state.streaming)
 		.filter(Boolean)
 		.map((text, index) => ({ id: state.nextId + index, text: sanitize(text), tone: 'normal' as const }));
-	return [...state.records, ...pending];
 }
 
-export function sanitize(value: string): string {
+function sanitize(value: string): string {
 	let clean = '';
 	let escapeState: 'none' | 'start' | 'csi' | 'osc' | 'oscEscape' = 'none';
 	for (const character of value) {
@@ -162,17 +157,20 @@ function errorMessage(error: unknown): string {
 	return detail(error);
 }
 
+function toolDetail(name: string, args: unknown): string {
+	if (!isRecord(args)) return '';
+	const key = name === 'bash' || name === 'shell' ? 'command' : name === 'grep' || name === 'glob' ? 'pattern' : 'path';
+	const value = args[key];
+	return typeof value === 'string' ? detail(value) : '';
+}
+
 function messageText(message: unknown): string {
 	if (!isRecord(message) || message.role !== 'assistant') return '';
 	const { content } = message;
 	if (typeof content === 'string') return content;
 	if (!Array.isArray(content)) return '';
 	return content
-		.map((part) => {
-			if (!isRecord(part)) return '';
-			if (typeof part.text === 'string') return part.text;
-			return '';
-		})
+		.map((part) => isRecord(part) && typeof part.text === 'string' ? part.text : '')
 		.filter(Boolean)
 		.join('\n');
 }

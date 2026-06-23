@@ -25,10 +25,9 @@ export interface ExecutionLifecycleOptions {
 	instanceId?: string;
 	onRuntimeOutput?: (line: string, stream: LocalHttpRuntimeOutput['stream']) => void;
 	onResourceResolved?: (resource: RunResource) => void;
-	onStatus?: (status: 'preparing' | 'building' | 'starting' | 'ready') => void;
 }
 
-export interface PreparedExecution {
+interface PreparedExecution {
 	readonly resource: RunResource;
 	readonly instanceId: string | undefined;
 	readonly target: 'node' | 'cloudflare' | undefined;
@@ -38,14 +37,13 @@ export interface PreparedExecution {
 	readonly remote: boolean;
 }
 
-export interface StartedExecution extends PreparedExecution {
+interface StartedExecution extends PreparedExecution {
 	readonly client: FlueClient;
 	readonly baseUrl: string;
 }
 
 export interface ExecutionLifecycle {
 	readonly signal: AbortSignal;
-	prepare(): Promise<PreparedExecution>;
 	start(): Promise<StartedExecution>;
 	cancel(reason?: unknown): void;
 	close(): Promise<void>;
@@ -109,11 +107,6 @@ export function createExecutionLifecycle(options: ExecutionLifecycleOptions): Ex
 
 	return {
 		signal: controller.signal,
-		prepare() {
-			if (prepared) return prepared;
-			prepared = prepare();
-			return prepared;
-		},
 		start() {
 			if (started) return started;
 			started = start();
@@ -129,7 +122,6 @@ export function createExecutionLifecycle(options: ExecutionLifecycleOptions): Ex
 	async function prepare(): Promise<PreparedExecution> {
 		try {
 			throwIfAborted(controller.signal);
-			options.onStatus?.('preparing');
 			const remote = isAbsoluteServer(options.server);
 			const resource = remote
 				? resolveRemoteResource(options.resource)
@@ -157,7 +149,6 @@ export function createExecutionLifecycle(options: ExecutionLifecycleOptions): Ex
 			if (!prepared) prepared = prepare();
 			const preparedExecution = await prepared;
 			if (!preparedExecution.remote) await startLocalRuntime();
-			options.onStatus?.('ready');
 			const baseUrl = preparedExecution.remote
 				? resolveServerUrl(options.server)
 				: resolveServerUrl(options.server, runtime?.url as string);
@@ -180,7 +171,6 @@ export function createExecutionLifecycle(options: ExecutionLifecycleOptions): Ex
 
 	async function startLocalRuntime(): Promise<void> {
 		if (!application) throw new Error('[flue] Local application was not resolved.');
-		options.onStatus?.('building');
 		if (application.cfg.target === 'cloudflare') {
 			cloudflareInputDirExisted = fs.existsSync(path.join(application.cfg.root, '.flue-vite'));
 			cloudflareScratch = snapshotFiles([
@@ -197,7 +187,6 @@ export function createExecutionLifecycle(options: ExecutionLifecycleOptions): Ex
 			envFile: application.envFile,
 			env: process.env,
 			signal: controller.signal,
-			onBuildComplete: () => options.onStatus?.('starting'),
 			onOutput: ({ line, stream }) => options.onRuntimeOutput?.(line, stream),
 		});
 	}

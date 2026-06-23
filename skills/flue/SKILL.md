@@ -38,8 +38,6 @@ cli/add -- flue add
   Reference for discovering and applying Flue implementation blueprints.
 cli/build -- flue build
   Reference for creating deployable Flue application artifacts.
-cli/console -- flue console
-  Reference for interactively exercising an agent or inspecting one workflow invocation.
 cli/dev -- flue dev
   Reference for starting a watch-mode local Flue development server.
 cli/docs -- flue docs
@@ -107,6 +105,8 @@ ecosystem/tooling/sentry -- Sentry
 ecosystem/tooling/vitest-evals -- Vitest Evals
 getting-started/quickstart -- Getting Started
   Set up a Flue project automatically or create your first agent manually.
+guide/actions -- Actions
+  Define finite agent-backed operations that can be reused by workflows and agents.
 guide/building-agents -- Agents
   Create an agent, configure its capabilities, and send it messages over time.
 guide/channels -- Channels
@@ -140,7 +140,7 @@ guide/targets/node -- Node.js
 guide/tools -- Tools
   Give agents application capabilities through custom tools and MCP servers.
 guide/workflows -- Workflows
-  Create finite agent-backed operations from inline or reusable Actions.
+  Create, invoke, and expose finite agent-backed operations.
 introduction/why-flue -- Why Flue?
   Build autonomous AI agents and powerful workflows with a programmable TypeScript harness, and run them anywhere.
 reference/configuration -- Configuration

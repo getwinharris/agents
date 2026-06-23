@@ -16,9 +16,7 @@ import {
 	type UserFlueConfig,
 } from '../src/lib/config.ts';
 import { resolveConfigCandidates } from '../src/lib/config-paths.ts';
-import { type ConsoleController, createConsoleController } from '../src/lib/console-controller.ts';
-import { closeConsoleForSignal, closeExecutionForSignal } from '../src/lib/console-shutdown.ts';
-import { openConsoleUi } from '../src/lib/console-ui.tsx';
+import { closeExecutionForSignal } from '../src/lib/console-shutdown.ts';
 import { DEFAULT_DEV_PORT, dev } from '../src/lib/dev.ts';
 import { createEnvLoader, type EnvLoader, selectEnvFile } from '../src/lib/env.ts';
 import {
@@ -101,7 +99,6 @@ function printUsage(log: (message: string) => void = console.error) {
 		'Usage:\n' +
 			'  flue dev   [--target <node|cloudflare>] [--root <path>] [--output <path>] [--config <path>] [--port <number>] [--env <path>]\n' +
 			"  flue run     <name> [--target <node|cloudflare>] [--id <id>] [--input <json>] [--server <path|url>] [--header 'Name: value'] [--root <path>] [--output <path>] [--config <path>] [--env <path>]\n" +
-			"  flue console <name> [--target <node|cloudflare>] [--id <id>] [--input <json>] [--server <path|url>] [--header 'Name: value'] [--root <path>] [--output <path>] [--config <path>] [--env <path>]\n" +
 			'  flue build   [--target <node|cloudflare>] [--root <path>] [--output <path>] [--config <path>] [--env <path>]\n' +
 			'  flue init  --target <node|cloudflare> [--root <path>] [--force]\n' +
 			'  flue add   [<kind> <name|url>] [--print]\n' +
@@ -111,7 +108,6 @@ function printUsage(log: (message: string) => void = console.error) {
 			'Commands:\n' +
 			'  dev    Long-running watch-mode dev server. Rebuilds and reloads on file changes.\n' +
 			'  run      Invoke one agent or workflow through its normal HTTP application, then exit.\n' +
-			'  console  Inspect one agent instance or workflow invocation in an interactive terminal.\n' +
 			'  build    Build a deployable artifact to ./dist (production deploys).\n' +
 			'  init   Scaffold a starter flue.config.ts in the target directory.\n' +
 			'  add    Fetch a blueprint implementation guide for an AI coding agent to follow.\n' +
@@ -155,7 +151,7 @@ function printUsage(log: (message: string) => void = console.error) {
 }
 
 interface RunArgs {
-	command: 'run' | 'console';
+	command: 'run';
 	resource: string;
 	target: 'node' | 'cloudflare' | undefined;
 	input: string | undefined;
@@ -333,7 +329,7 @@ function targetFlag(value: string | undefined): 'node' | 'cloudflare' | undefine
 }
 
 function parseFlags(
-	command: 'build' | 'dev' | 'run' | 'console',
+	command: 'build' | 'dev' | 'run',
 	args: string[],
 	allowed: ReadonlySet<string>,
 ): {
@@ -573,7 +569,7 @@ function parseArgs(argv: string[]): ParsedArgs {
 		};
 	}
 
-	if (command === 'run' || command === 'console') {
+	if (command === 'run') {
 		const flags = parseFlags(
 			command,
 			rest,
@@ -794,61 +790,6 @@ function displayPath(root: string, filePath: string): string {
 }
 
 let activeExecution: ExecutionLifecycle | undefined;
-let activeConsole: ConsoleController | undefined;
-let activeConsoleUi: { close(): void } | undefined;
-
-async function consoleCommand(args: RunArgs) {
-	if (!process.stdin.isTTY || !process.stderr.isTTY) {
-		throw new Error(
-			'[flue] `flue console` requires an interactive TTY. Use `flue run` for non-interactive execution.',
-		);
-	}
-	const input = args.input === undefined ? undefined : JSON.parse(args.input);
-	const outputBuffer: Array<{ line: string; stream: 'stdout' | 'stderr' }> = [];
-	let controller: ConsoleController | undefined;
-	const lifecycle = createExecutionLifecycle({
-		resource: args.resource,
-		target: args.target,
-		server: args.server,
-		headers: args.headers,
-		explicitRoot: args.explicitRoot,
-		explicitOutput: args.explicitOutput,
-		configFile: args.configFile,
-		envFile: args.envFile,
-		instanceId: args.id,
-		onRuntimeOutput: (line, stream) => {
-			if (controller) controller.recordServerOutput(line, stream);
-			else outputBuffer.push({ line, stream });
-		},
-		onStatus: (status) => controller?.setLifecycleStatus(status),
-	});
-	activeExecution = lifecycle;
-	let failure: unknown;
-	try {
-		const prepared = await lifecycle.prepare();
-		if (prepared.resource.kind === 'agent' && input !== undefined) parseAgentInput(input);
-		controller = createConsoleController({ lifecycle, initialInput: input });
-		activeConsole = controller;
-		for (const output of outputBuffer) controller.recordServerOutput(output.line, output.stream);
-		const ui = openConsoleUi(controller);
-		activeConsoleUi = ui;
-		void controller.start();
-		await ui.waitUntilExit();
-		await controller.close();
-	} catch (error) {
-		failure = error;
-	} finally {
-		try {
-			await (controller?.close() ?? lifecycle.close());
-		} catch (error) {
-			failure ??= error;
-		}
-		if (activeConsole === controller) activeConsole = undefined;
-		activeConsoleUi = undefined;
-		if (activeExecution === lifecycle) activeExecution = undefined;
-	}
-	if (failure !== undefined && process.exitCode !== 130 && process.exitCode !== 143) throw failure;
-}
 
 async function run(args: RunArgs) {
 	let resourceKind: 'agent' | 'workflow' | undefined;
@@ -1451,14 +1392,7 @@ const args = parseArgs(process.argv.slice(2));
 // handlers that would otherwise run first and preempt its graceful path.
 if (args.command !== 'dev') {
 	const shutdown = (signal: NodeJS.Signals) => {
-		if (activeConsole) {
-			const controller = activeConsole;
-			void closeConsoleForSignal(signal, controller, () => activeConsoleUi?.close()).catch(
-				(error) => {
-					cliError(error instanceof Error ? error.message : String(error));
-				},
-			);
-		} else if (activeExecution) {
+		if (activeExecution) {
 			void closeExecutionForSignal(signal, activeExecution).catch((error) => {
 				cliError(error instanceof Error ? error.message : String(error));
 			});
@@ -1486,18 +1420,16 @@ async function main() {
 		initCommand(args);
 	} else if (args.command === 'run') {
 		await run(args);
-	} else if (args.command === 'console') {
-		await consoleCommand(args);
 	}
 }
 
 void main().then(
 	() => {
-		if (args.command === 'run' || args.command === 'console') process.exit(process.exitCode ?? 0);
+		if (args.command === 'run') process.exit(process.exitCode ?? 0);
 	},
 	(err) => {
 		cliError(err instanceof Error ? err.message : String(err));
 		if (process.exitCode === undefined) process.exitCode = 1;
-		if (args.command === 'run' || args.command === 'console') process.exit(process.exitCode);
+		if (args.command === 'run') process.exit(process.exitCode);
 	},
 );

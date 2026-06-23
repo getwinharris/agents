@@ -106,7 +106,7 @@ const events = await client.runs.events(runId);
 
 Invocation returns `{ runId }`, or `{ runId, result }` with `wait: 'result'`. The `runs` export also controls SDK `client.runs` and raw `GET` and `HEAD` requests to `/runs/<runId>`. Without the corresponding export, HTTP clients receive `404`. Run data may contain sensitive inputs, results, and model activity, so do not treat a run ID as a credential.
 
-These exports do not affect schedules, ambient `invoke()`, or server-side `listRuns()` and `getRun()`. A temporary local `flue run` or `flue console` process additionally exposes route-free resources through an existing authored `flue()` mount; remote attachment uses the server's authored exposure. See the [Workflow API HTTP exports](/docs/api/workflow-api/#http-exports) for the complete contract.
+These exports do not affect schedules, ambient `invoke()`, or server-side `listRuns()` and `getRun()`. A temporary local `flue run` process additionally exposes route-free resources through an existing authored `flue()` mount; remote attachment uses the server's authored exposure. See the [Workflow API HTTP exports](/docs/api/workflow-api/#http-exports) for the complete contract.
 
 ## Use the workflow harness
 
