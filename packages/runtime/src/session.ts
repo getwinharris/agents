@@ -2728,6 +2728,13 @@ export class Session implements FlueSession, AgentSubmissionSession {
 					),
 					{ directSubmissionId: input.submissionId },
 				),
+			emitPersistedInput: (entry) => {
+				this.emit({
+					type: 'message_end',
+					message: entry.message,
+					turnId: `direct-submission:${input.submissionId}:input`,
+				});
+			},
 			errorLabel: `direct(${input.submissionId})`,
 			callSite: 'this direct input',
 			onInputApplied: options?.onInputApplied,
@@ -2755,6 +2762,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 	private async runPersistedContextInput(options: {
 		findInput: () => MessageEntry | undefined;
 		persistInput: () => string;
+		emitPersistedInput?: (entry: MessageEntry) => void;
 		journal?: ProcessAgentSubmissionOptions['journal'];
 		startedAt?: number;
 		timeoutAt?: number;
@@ -2779,6 +2787,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 				this.activeTimeoutAt = durability.timeoutAt;
 				try {
 					let inputEntry = options.findInput();
+					const inputAlreadyPersisted = inputEntry !== undefined;
 					if (!inputEntry) {
 						options.persistInput();
 						this.rebuildHarnessContext();
@@ -2791,6 +2800,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 							reason: 'the input could not be persisted',
 						});
 					}
+					if (!inputAlreadyPersisted) options.emitPersistedInput?.(inputEntry);
 					await options.onInputApplied?.(durability);
 					const state = classifySubmissionState(this.history.getActivePathSince(inputEntry.id), {
 						contextWindow: this.agentLoop.state.model.contextWindow ?? 0,

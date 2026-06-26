@@ -1855,6 +1855,102 @@ describe('NodeAgentCoordinator', () => {
 			expect(await executionStore.submissions.hasUnsettledSubmissions()).toBe(false);
 		});
 
+		it('appends the direct user message before assistant output', async () => {
+			const dbPath = createTempDbPath();
+			const provider = createFauxProvider();
+			provider.setResponses([fauxAssistantMessage('Durable reply.')]);
+			const executionStore = await openExecutionStore(dbPath);
+			const eventStreamStore = createTestEventStreamStore();
+			const coordinator = createNodeAgentCoordinator({
+				submissions: executionStore.submissions,
+				sessions: executionStore.sessions,
+				agents: [
+					{
+						name: 'assistant',
+						definition: defineAgent(() => ({
+							model: `${provider.getModel().provider}/${provider.getModel().id}`,
+						})),
+					},
+				],
+				createContext: makeFauxCreateContext(provider, executionStore),
+				eventStreamStore,
+			});
+
+			const receipt = await coordinator
+				.createAdmission('assistant', 'instance-1')({ message: 'Hello durable history' });
+			const stream = await eventStreamStore.readEvents(agentStreamPath('assistant', 'instance-1'), {
+				offset: '-1',
+			});
+			const events = stream.events.map((event) => event.data as Record<string, unknown>);
+			const userIndex = events.findIndex(
+				(event) => event.type === 'message_end' && (event.message as { role?: string }).role === 'user',
+			);
+			const assistantIndex = events.findIndex(
+				(event) => event.type === 'message_end' && (event.message as { role?: string }).role === 'assistant',
+			);
+
+			expect(events[userIndex]).toMatchObject({
+				type: 'message_end',
+				submissionId: receipt.submissionId,
+				message: {
+					role: 'user',
+					content: [{ type: 'text', text: 'Hello durable history' }],
+				},
+			});
+			expect(userIndex).toBeGreaterThanOrEqual(0);
+			expect(assistantIndex).toBeGreaterThan(userIndex);
+		});
+
+		it('continues a direct prompt when user event persistence fails', async () => {
+			const dbPath = createTempDbPath();
+			const provider = createFauxProvider();
+			provider.setResponses([fauxAssistantMessage('Best-effort reply.')]);
+			const executionStore = await openExecutionStore(dbPath);
+			const eventStreamStore = createTestEventStreamStore();
+			const originalAppend = eventStreamStore.appendEvent.bind(eventStreamStore);
+			let failedUserAppend = false;
+			eventStreamStore.appendEvent = async (path, event) => {
+				if (
+					!failedUserAppend &&
+					(event as { type?: string; message?: { role?: string } }).type === 'message_end' &&
+					(event as { message?: { role?: string } }).message?.role === 'user'
+				) {
+					failedUserAppend = true;
+					throw new Error('event store unavailable');
+				}
+				return originalAppend(path, event);
+			};
+			const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+			const coordinator = createNodeAgentCoordinator({
+				submissions: executionStore.submissions,
+				sessions: executionStore.sessions,
+				agents: [
+					{
+						name: 'assistant',
+						definition: defineAgent(() => ({
+							model: `${provider.getModel().provider}/${provider.getModel().id}`,
+						})),
+					},
+				],
+				createContext: makeFauxCreateContext(provider, executionStore),
+				eventStreamStore,
+			});
+
+			try {
+				const receipt = await coordinator
+					.createAdmission('assistant', 'instance-1')({ message: 'Hello best effort' });
+
+				expect(receipt.result).toMatchObject({ text: 'Best-effort reply.' });
+				expect(failedUserAppend).toBe(true);
+				expect(consoleError).toHaveBeenCalledWith(
+					'[flue:event-stream] Direct user event persistence failed before provider execution:',
+					expect.any(Error),
+				);
+			} finally {
+				consoleError.mockRestore();
+			}
+		});
+
 		it('appends the terminal result before settling a direct prompt', async () => {
 			const dbPath = createTempDbPath();
 			const provider = createFauxProvider();

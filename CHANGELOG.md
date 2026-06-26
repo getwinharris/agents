@@ -6,6 +6,10 @@
 
 - Added durable structured data parts. Workflows, custom tools, and model-invoked Actions can emit validated JSON activity with `emitData()`, while `@flue/react` exposes AI SDK-compatible `data-*` message parts and reconciles lifecycle updates by name and id.
 
+### Fixes & Other Changes
+
+- Direct prompts now emit their persisted user message before model output so `@flue/react` can reconstruct it after refresh.
+
 ## @flue/runtime, @flue/cli, @flue/sdk, and @flue/react 1.0.0-beta.6 - 2026-06-25
 
 ### Fixes & Other Changes

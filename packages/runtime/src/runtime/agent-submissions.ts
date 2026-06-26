@@ -694,6 +694,16 @@ export async function processSubmission(opts: ProcessSubmissionOptions): Promise
 							'[flue] Agent submission attempt lost ownership before input application.',
 						);
 					}
+					if (submission.kind === 'direct') {
+						try {
+							await ctx.flushEventCallbacks();
+						} catch (callbackError) {
+							console.error(
+								'[flue:event-stream] Direct user event persistence failed before provider execution:',
+								callbackError,
+							);
+						}
+					}
 				},
 				startedAt: submission.startedAt,
 				timeoutAt:
