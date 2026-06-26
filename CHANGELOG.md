@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## @flue/runtime, @flue/cli, @flue/sdk, and @flue/react 1.0.0-beta.7 - 2026-06-25
 
 ### New Features
 
