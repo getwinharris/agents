@@ -76,7 +76,7 @@ function createTempDbPath(): string {
 }
 
 async function killAtDurableBoundary(
-	mode: 'input-marker' | 'stream-recovery' | 'tool-repair' | 'tool-outcome' | 'settlement',
+	mode: 'input-marker' | 'stream-recovery' | 'tool-repair' | 'tool-outcome' | 'settlement' | 'child-tool-repair',
 	dbPath: string,
 ): Promise<void> {
 	const child = fork(
@@ -642,6 +642,69 @@ describe('NodeAgentCoordinator', () => {
 			expect(outcomes).toHaveLength(1);
 			expect(outcomes[0]).toMatchObject({ toolCallId: 'tool-call-1', isError: true });
 			expect(records.filter((record) => record.type === 'tool_results_committed')).toHaveLength(1);
+		});
+
+		// Canonical #378 scenario, end to end: a real process kill mid subagent
+		// tool-work, recovered by a real coordinator. The parent must reattach and
+		// resume its in-flight child, resolve the task call from the child's real
+		// result, and never re-run the child's interrupted tool.
+		it('resumes an interrupted subagent and resolves the parent task call after a real process kill', async () => {
+			const dbPath = createTempDbPath();
+			await killAtDurableBoundary('child-tool-repair', dbPath);
+			const adapter = sqlite(dbPath);
+			await adapter.migrate?.();
+			const { executionStore, conversationStreamStore, attachmentStore } = await adapter.connect();
+			const provider = createFauxProvider();
+			provider.setResponses([
+				fauxAssistantMessage('Child finished the delegated work.'),
+				fauxAssistantMessage('Parent done with the delegated result.'),
+			]);
+			let childToolRuns = 0;
+			const lookup = defineTool({
+				name: 'lookup',
+				description: 'Look up.',
+				input: v.object({}),
+				run: async () => {
+					childToolRuns += 1;
+					return 'must not run';
+				},
+			});
+			const model = `${provider.getModel().provider}/${provider.getModel().id}`;
+			const coordinator = createNodeAgentCoordinator({
+				submissions: executionStore.submissions,
+				agents: [{
+					name: 'assistant',
+					definition: defineAgent(() => ({
+						model,
+						subagents: [{ name: 'reviewer', model, tools: [lookup] }],
+					})),
+				}],
+				createContext: makeFauxCreateContext(provider),
+				conversationStreamStore,
+				attachmentStore,
+			});
+
+			await coordinator.reconcileSubmissions();
+			await coordinator.waitForIdle();
+
+			// The child's interrupted tool was never re-run.
+			expect(childToolRuns).toBe(0);
+			const records = (await conversationStreamStore.read(agentStreamPath('assistant', 'instance-1')))
+				.batches.flatMap((batch) => batch.records);
+			// The parent's task call resolved from the real child result, not a marker.
+			const taskOutcome = records.find(
+				(record) => record.type === 'tool_outcome' && record.toolCallId === 'task-call-1',
+			);
+			expect(taskOutcome).toMatchObject({
+				toolName: 'task',
+				isError: false,
+				content: [{ type: 'text', text: 'Child finished the delegated work.' }],
+			});
+			// The child's interrupted lookup got a single interrupted marker.
+			const childOutcome = records.find(
+				(record) => record.type === 'tool_outcome' && record.toolCallId === 'child-lookup-1',
+			);
+			expect(childOutcome).toMatchObject({ toolCallId: 'child-lookup-1', isError: true });
 		});
 
 		it('finalizes canonical settlement after a real process kill before operational finalization', async () => {

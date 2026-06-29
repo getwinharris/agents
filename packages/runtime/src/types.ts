@@ -371,7 +371,10 @@ export interface AgentProfile {
 	/**
 	 * Durability configuration for durable agent submissions. Controls
 	 * recovery attempt limits and submission timeouts. Rejected on subagent
-	 * profiles — delegated task sessions run inside the parent operation.
+	 * profiles: a delegated task runs inside the parent operation and shares the
+	 * parent's durability envelope (timeout and retry budget). On recovery the
+	 * parent resumes its in-flight subagent in-process, so a subagent has no
+	 * independent durability configuration of its own.
 	 */
 	durability?: DurabilityConfig;
 }

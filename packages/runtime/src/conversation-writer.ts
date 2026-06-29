@@ -98,7 +98,7 @@ export class ConversationRecordWriter {
 		return (await this.loadReducedState()).conversations.get(conversationId);
 	}
 
-	async findInProgressAssistant(conversationId: string, submissionId: string) {
+	async findInProgressAssistant(conversationId: string, submissionId: string | undefined) {
 		const conversation = await this.getConversation(conversationId);
 		return [...(conversation?.inProgressMessages.values() ?? [])].find(
 			(message) => message.submissionId === submissionId,

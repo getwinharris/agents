@@ -193,6 +193,122 @@ if (mode === 'tool-repair' || mode === 'tool-outcome') {
 	}
 }
 
+if (mode === 'child-tool-repair') {
+	// Canonical #378 scenario: killed after a parent `task` tool call was made
+	// durable and its child ran into durable tool-work, but before any task
+	// outcome was recorded. Recovery must reattach the child, resume it to
+	// completion, and resolve the parent's task call from the child's result.
+	const taskCallId = 'task-call-1';
+	const taskId = '00000000-0000-4000-8000-000000000000';
+	const childConversationId = `conversation-child-${mode}`;
+	const childSession = `task:default:${taskId}`;
+	const childScope = { ...scope, conversationId: childConversationId, session: childSession };
+	// Parent assistant: a single `task` tool call, completed (toolUse), no outcome.
+	await append([
+		{
+			...scope,
+			id: 'record-parent-assistant-started',
+			type: 'assistant_message_started',
+			messageId: 'entry_tool_assistant',
+			parentId: inputEntryId,
+			modelInfo: { api: 'faux', provider: 'faux', model: 'reviewer' },
+		},
+		{
+			...scope,
+			id: 'record-parent-task-call',
+			type: 'assistant_tool_call',
+			messageId: 'entry_tool_assistant',
+			blockId: 'block-task',
+			blockIndex: 0,
+			toolCallId: taskCallId,
+			name: 'task',
+			arguments: { prompt: 'Do the delegated work.', agent: 'reviewer' },
+		},
+		{
+			...scope,
+			id: 'record-parent-assistant-completed',
+			type: 'assistant_message_completed',
+			messageId: 'entry_tool_assistant',
+			stopReason: 'toolUse',
+			usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
+		},
+	]);
+	// Child conversation + the parent's retained link, atomically.
+	await append([
+		{
+			v: 1,
+			id: 'record-child-created',
+			type: 'conversation_created',
+			kind: 'task',
+			conversationId: childConversationId,
+			harness: 'default',
+			session: childSession,
+			timestamp,
+			affinityKey: `affinity-child-${mode}`,
+			createdAt: timestamp,
+			parentConversationId: conversationId,
+			taskId,
+			agent: 'reviewer',
+		},
+		{
+			v: 1,
+			id: 'record-child-retained',
+			type: 'child_session_retained',
+			conversationId,
+			harness: 'default',
+			session: 'default',
+			timestamp,
+			child: {
+				type: 'task',
+				conversationId: childConversationId,
+				harness: 'default',
+				session: childSession,
+				taskId,
+				parentToolCallId: taskCallId,
+				parentAssistantEntryId: 'entry_tool_assistant',
+			},
+		},
+	]);
+	// Child transcript: its input, then an interrupted tool call (no outcome).
+	await append([
+		{
+			...childScope,
+			id: 'record-child-user',
+			type: 'user_message',
+			messageId: 'entry_child_user',
+			parentId: null,
+			content: [{ type: 'text', text: 'Do the delegated work.' }],
+		},
+		{
+			...childScope,
+			id: 'record-child-assistant-started',
+			type: 'assistant_message_started',
+			messageId: 'entry_child_assistant',
+			parentId: 'entry_child_user',
+			modelInfo: { api: 'faux', provider: 'faux', model: 'reviewer' },
+		},
+		{
+			...childScope,
+			id: 'record-child-tool-call',
+			type: 'assistant_tool_call',
+			messageId: 'entry_child_assistant',
+			blockId: 'block-child-lookup',
+			blockIndex: 0,
+			toolCallId: 'child-lookup-1',
+			name: 'lookup',
+			arguments: {},
+		},
+		{
+			...childScope,
+			id: 'record-child-assistant-completed',
+			type: 'assistant_message_completed',
+			messageId: 'entry_child_assistant',
+			stopReason: 'toolUse',
+			usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
+		},
+	]);
+}
+
 if (mode === 'settlement') {
 	const settlement = {
 		...scope,

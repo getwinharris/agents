@@ -65,6 +65,14 @@ A file-backed SQLite adapter protects against restart on the same host. Survivin
 | Ownership | Durable Object routing provides one owner per instance. | One process-local owner. | One live Node owner per instance; shared storage supports replacement, not active-active ownership. |
 | Interrupted workflow | Recovery terminalizes the run and closes its stream. | The run is lost with memory. | The stored run remains orphaned and active. |
 
+### Delegated tasks (subagents)
+
+A model-invoked `task(...)` delegates work to a subagent that runs inside the parent operation, writing its own durable conversation records as it goes. If the process disappears while a subagent is mid-flight, recovery resumes that subagent in-process from its durable records — continuing an interrupted stream or an unfinished tool batch exactly as a top-level agent recovers — and resolves the parent's `task` tool call from the resumed result. The subagent shares the parent's durability envelope (timeout and retry budget) and has no independent durability configuration.
+
+If a subagent's profile no longer exists after a redeploy, that one `task` call resolves with an error so the parent can continue; recovery never silently abandons work that a retry could still complete.
+
+Programmatic `session.task(...)` calls made directly from your own code are not recovered this way: like other programmatic session calls, they have no durable submission to resume from.
+
 ### Keep workspace state separate
 
 Persisting a conversation does not make sandbox files durable. The default virtual sandbox is an in-memory workspace, while a durable remote workspace does not preserve conversation records by itself. Choose workspace and conversation persistence independently. See [Sandboxes](/docs/guide/sandboxes/).

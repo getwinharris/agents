@@ -61,6 +61,7 @@ import {
 	projectConversationModelContextEntries,
 } from './conversation-projections.ts';
 import {
+	type CanonicalChildSessionRef,
 	type ConversationRecord,
 	generateConversationEntryId,
 	generateConversationRecordId,
@@ -291,6 +292,15 @@ export interface CreateTaskSessionOptions {
 	 */
 	parentToolCallId?: string;
 	parentAssistantEntryId?: string;
+	/**
+	 * Reattach to an existing child conversation instead of minting a new
+	 * identity. Set during recovery, when the parent resumes an in-flight
+	 * subagent in-process: the child `conversation_created` and
+	 * `child_session_retained` records already exist durably, so creation is
+	 * skipped and the existing conversation is loaded. Config is rebuilt from
+	 * the (live, in-process) parent exactly as a fresh task would build it.
+	 */
+	existing?: { conversationId: string };
 }
 
 export type CreateTaskSession = (options: CreateTaskSessionOptions) => Promise<Session>;
@@ -1115,27 +1125,180 @@ export class Session implements FlueSession, AgentSubmissionSession {
 	 * derived from persisted canonical history. No-op when no trailing partial
 	 * batch exists.
 	 */
-	private async repairTrailingPartialToolBatch(inputEntryId: string): Promise<void> {
+	private async repairTrailingPartialToolBatch(
+		inputEntryId: string,
+		signal: AbortSignal,
+	): Promise<void> {
 		const conversation = await this.requireConversation();
 		const following = getActiveConversationPathSince(conversation, inputEntryId);
 		if (!following) return;
 		const messages = following.flatMap((entry) => entry.type === 'message' ? [entry] : []);
 		const partial = findTrailingPartialToolBatch(messages);
 		if (!partial) return;
+		// Subagent recovery (Model B): resolve any unresolved `task` calls in this
+		// batch by resuming their in-flight children in-process, BEFORE the atomic
+		// commit, so the committed outcome is the real child result rather than an
+		// interrupted marker. Sequential and pre-commit by design (see plan §P1.4).
+		const resolvedTaskOutcomes = await this.resumeUnresolvedTaskCalls(
+			conversation,
+			partial,
+			signal,
+		);
 		await this.appendRepairedToolResultBatch(
 			partial.entryId,
 			partial.toolCalls,
 			messages,
 			conversation.activeLeafId,
 			conversation,
+			resolvedTaskOutcomes,
 		);
 	}
 
 	/**
+	 * Resume each unresolved model-invoked `task` call in a trailing partial
+	 * batch from its durable child conversation, returning a real `tool_outcome`
+	 * record per resolved call (keyed by tool call id). Calls without a
+	 * `child_session_retained` link (e.g. programmatic `session.task()`) are left
+	 * for the interrupted-marker path. Failure policy (D-B): a provably-permanent
+	 * config failure (`SubagentNotDeclaredError`) yields an error outcome so the
+	 * parent continues degraded; every other failure propagates so the parent's
+	 * retry budget re-attempts (never silently abandon possibly-recoverable work).
+	 */
+	private async resumeUnresolvedTaskCalls(
+		conversation: ReducedConversationState,
+		partial: { entryId: string; assistant: AssistantMessage; toolCalls: ReadonlyArray<{ id: string; name: string }> },
+		signal: AbortSignal,
+	): Promise<Map<string, ConversationRecord>> {
+		const resolved = new Map<string, ConversationRecord>();
+		for (const toolCall of partial.toolCalls) {
+			if (toolCall.name !== 'task') continue;
+			if (conversation.toolOutcomes.get(toolOutcomeKey(partial.entryId, toolCall.id))) continue;
+			const ref = [...conversation.childConversations.values()].find(
+				(child): child is Extract<CanonicalChildSessionRef, { type: 'task' }> =>
+					child.type === 'task' && child.parentToolCallId === toolCall.id,
+			);
+			if (!ref) continue;
+			resolved.set(
+				toolCall.id,
+				await this.resumeChildTaskCall(partial.entryId, partial.assistant, toolCall.id, ref, signal),
+			);
+		}
+		return resolved;
+	}
+
+	/** Reattach to one in-flight child, resume it to completion, and build the
+	 *  parent's real `tool_outcome` for the originating `task` call. */
+	private async resumeChildTaskCall(
+		assistantEntryId: string,
+		assistant: AssistantMessage,
+		toolCallId: string,
+		ref: Extract<CanonicalChildSessionRef, { type: 'task' }>,
+		signal: AbortSignal,
+	): Promise<ConversationRecord> {
+		if (!this.createTaskSession) {
+			throw new Error('[flue] This session cannot resume task sessions.');
+		}
+		const toolCallBlock = assistant.content.find(
+			(block): block is Extract<typeof block, { type: 'toolCall' }> =>
+				block.type === 'toolCall' && block.id === toolCallId,
+		);
+		const args = (toolCallBlock?.arguments ?? {}) as { agent?: string; cwd?: string };
+		// D-B: a renamed/removed subagent across a deploy is deterministically
+		// unrecoverable — fall back to an error outcome for this one call only.
+		let taskAgent: AgentProfile | undefined;
+		try {
+			taskAgent = args.agent ? this.resolveDeclaredSubagent(args.agent) : undefined;
+		} catch (error) {
+			if (error instanceof SubagentNotDeclaredError) {
+				return this.taskResumeFailureOutcomeRecord(assistantEntryId, toolCallId, error);
+			}
+			throw error;
+		}
+
+		const taskStartMs = Date.now();
+		let child: Session | undefined;
+		try {
+			child = await this.createTaskSession({
+				parentSession: this.name,
+				parentConversationId: this.conversationId,
+				taskId: ref.taskId,
+				parentEnv: this.env,
+				cwd: args.cwd,
+				agent: taskAgent,
+				depth: this.delegationDepth + 1,
+				existing: { conversationId: ref.conversationId },
+				...(ref.parentToolCallId ? { parentToolCallId: ref.parentToolCallId } : {}),
+				...(ref.parentAssistantEntryId ? { parentAssistantEntryId: ref.parentAssistantEntryId } : {}),
+			});
+			// Registering with activeTasks lets the parent operation's abort reach
+			// the child (runOperation.onAbort aborts every active task).
+			this.activeTasks.add(child);
+			// Child shares the parent's deadline (D1). No `task_start` re-emit on
+			// resume (D-C) — only the terminal `task` event below.
+			const text = await child.resumeReattachedChild({ timeoutAt: this.activeTimeoutAt, signal });
+			this.emit({
+				type: 'task',
+				taskId: ref.taskId,
+				agent: taskAgent?.name,
+				isError: false,
+				result: text,
+				durationMs: durationSince(taskStartMs),
+				parentSession: this.name,
+				session: child.name,
+				conversationId: child.conversationId,
+			});
+			return this.taskResumeOutcomeRecord(assistantEntryId, toolCallId, text);
+		} finally {
+			if (child) {
+				await child.close();
+				this.activeTasks.delete(child);
+			}
+		}
+	}
+
+	private taskResumeOutcomeRecord(
+		assistantEntryId: string,
+		toolCallId: string,
+		text: string,
+	): ConversationRecord {
+		const key = `${encodeCanonicalId(assistantEntryId)}_${encodeCanonicalId(toolCallId)}`;
+		return {
+			...this.canonicalEnvelope('tool_outcome', `record_tool_outcome_${key}`),
+			type: 'tool_outcome',
+			assistantMessageId: assistantEntryId,
+			toolCallId,
+			toolName: 'task',
+			isError: false,
+			content: [{ type: 'text', text: text || '(task completed with no text)' }],
+		};
+	}
+
+	private taskResumeFailureOutcomeRecord(
+		assistantEntryId: string,
+		toolCallId: string,
+		error: SubagentNotDeclaredError,
+	): ConversationRecord {
+		const key = `${encodeCanonicalId(assistantEntryId)}_${encodeCanonicalId(toolCallId)}`;
+		return {
+			...this.canonicalEnvelope('tool_outcome', `record_tool_resume_failed_${key}`),
+			type: 'tool_outcome',
+			assistantMessageId: assistantEntryId,
+			toolCallId,
+			toolName: 'task',
+			isError: true,
+			content: [{ type: 'text', text: JSON.stringify({
+				type: 'subagent_unavailable',
+				message: error.message,
+			}) }],
+		};
+	}
+
+	/**
 	 * Shared repair core: build a complete ordered result batch for
-	 * `toolCalls`, preserving already-settled results (first-write-wins) and
-	 * synthesizing interrupted-marker error results for unresolved calls —
-	 * never a fabricated or assumed outcome. Returns the new leaf ID, or
+	 * `toolCalls`, preserving already-settled results (first-write-wins), using a
+	 * pre-resolved outcome where one was produced (resumed subagent task), and
+	 * synthesizing interrupted-marker error results for the remaining unresolved
+	 * calls — never a fabricated or assumed outcome. Returns the new leaf ID, or
 	 * undefined when every call already has a result.
 	 */
 	private async appendRepairedToolResultBatch(
@@ -1144,6 +1307,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 		following: ReducedMessageEntry[],
 		previousLeafId: string | null,
 		conversation: ReducedConversationState,
+		resolved: Map<string, ConversationRecord>,
 	): Promise<string | undefined> {
 		void following;
 		if (previousLeafId !== assistantEntryId) return undefined;
@@ -1161,6 +1325,12 @@ export class Session implements FlueSession, AgentSubmissionSession {
 			const outcome = conversation.toolOutcomes.get(toolOutcomeKey(assistantEntryId, toolCall.id));
 			if (outcome) {
 				outcomeIds.push(outcome.recordId);
+				continue;
+			}
+			const resolvedRecord = resolved.get(toolCall.id);
+			if (resolvedRecord) {
+				outcomeRecords.push(resolvedRecord);
+				outcomeIds.push(resolvedRecord.id);
 				continue;
 			}
 			const repairKey = `${encodeCanonicalId(assistantEntryId)}_${encodeCanonicalId(toolCall.id)}`;
@@ -1195,12 +1365,17 @@ export class Session implements FlueSession, AgentSubmissionSession {
 	}
 
 	async recoverInterruptedStream(
-		attempt: import('./agent-execution-store.ts').SubmissionAttemptRef,
+		attempt?: import('./agent-execution-store.ts').SubmissionAttemptRef,
 		turnId?: string,
 	): Promise<boolean> {
 		{
-			this.activeSubmissionId = attempt.submissionId;
-			this.activeSubmissionAttemptId = attempt.attemptId;
+			// Submission-agnostic: a top-level submission resume passes its attempt
+			// (records are stamped and the partial is discovered by submissionId);
+			// an in-process subagent reattach passes none — the child's records have
+			// no submissionId, so discovery matches on the conversation's single
+			// undefined-submission in-progress/aborted message.
+			this.activeSubmissionId = attempt?.submissionId;
+			this.activeSubmissionAttemptId = attempt?.attemptId;
 			// `turnId` only cosmetically stamps the appended recovery records;
 			// discovery of the partial to recover is by submissionId. Canonical-
 			// only recovery passes no turnId (the journal that once carried it is
@@ -1208,14 +1383,14 @@ export class Session implements FlueSession, AgentSubmissionSession {
 			this.activeTurnId = turnId;
 			const inProgress = await this.conversationWriter.findInProgressAssistant(
 				this.conversationId,
-				attempt.submissionId,
+				attempt?.submissionId,
 			);
 			if (!inProgress) {
 				const conversation = await this.conversationWriter.getConversation(this.conversationId);
 				const partial = conversation
 					? getActiveConversationPath(conversation).findLast(
 						(entry) => entry.type === 'message' &&
-							entry.submissionId === attempt.submissionId &&
+							entry.submissionId === attempt?.submissionId &&
 							entry.message.role === 'assistant' &&
 							entry.message.stopReason === 'aborted' &&
 							entry.message.content.some((block) => block.type === 'text' && block.text.length > 0),
@@ -2925,6 +3100,152 @@ export class Session implements FlueSession, AgentSubmissionSession {
 		});
 	}
 
+	/**
+	 * Resume the conversation from a persisted input entry to completion:
+	 * classify the canonical state after the input, repair an interrupted
+	 * trailing tool batch if needed, then drive the model turn(s). Conversation-
+	 * level and submission-agnostic — used both by the top-level submission resume
+	 * (`runPersistedContextInput`) and by an in-process subagent reattach
+	 * (`resumeReattachedChild`). Assumes any interrupted partial stream has
+	 * already been materialized (the coordinator does this for submissions via
+	 * `recoverInterruptedStream`; the child reattach calls it directly), so the
+	 * classified state is never `interrupted_partial` here.
+	 */
+	private async resumeConversationToCompletion(options: {
+		inputEntryId: string;
+		errorLabel: string;
+		signal: AbortSignal;
+	}): Promise<void> {
+		const state = classifyConversationSubmission(
+			await this.requireConversation(),
+			options.inputEntryId,
+			{ contextWindow: this.agentLoop.state.model.contextWindow ?? 0 },
+		);
+		switch (state.kind) {
+			case 'absent':
+				// Unreachable: `following` is only classified for a found input
+				// entry, and absence was already handled above.
+				throw new OperationFailedError({
+					operation: options.errorLabel,
+					reason: 'the input could not be persisted',
+				});
+			case 'advanced_past_input':
+				throw new OperationFailedError({
+					operation: options.errorLabel,
+					reason: 'the session advanced past this input before it completed',
+				});
+			case 'terminal_error':
+				throw new OperationFailedError({
+					operation: options.errorLabel,
+					reason: state.reason,
+				});
+			case 'completed':
+			case 'resume': {
+				// Divergence preserved from before consolidation (see
+				// submission-state.ts): a completed response flagged as silent
+				// overflow is compacted and continued here, while inspection
+				// reports it 'completed'.
+				if (state.kind === 'completed' && !state.overflow) break;
+				// A turn interrupted mid-tool-batch must not replay: repair
+				// the partial batch first (recorded results preserved,
+				// unresolved calls marked interrupted) so the resumed turn
+				// continues from the repaired results instead of re-executing
+				// tool calls that already completed.
+				if (state.kind === 'resume' && state.mode === 'tool_results_partial') {
+					await this.repairTrailingPartialToolBatch(options.inputEntryId, options.signal);
+				}
+				// Recovery for the persisted trailing assistant (overflow
+				// compaction, transient-retry backoff) happens inside the turn
+				// loop, which evaluates the resume assistant before its first
+				// `continue()`.
+				await this.runModelTurnWithRecovery({
+					start: () => this.agentLoop.continue(),
+					signal: options.signal,
+					resume: { assistant: state.assistant, errorLabel: options.errorLabel },
+				});
+				this.throwIfError(options.errorLabel);
+				break;
+			}
+			case 'tool_use_unresolved': {
+				// A tool turn made durable but interrupted before ANY tool
+				// outcome was recorded. Repair the batch — every unresolved
+				// call gets an explicit unknown-outcome error, never a
+				// re-execution — and continue, identical to a partial batch.
+				// (Before the turn-journal removal this was reached only when
+				// the journal said the turn never started, and was settled
+				// as-is; canonical recovery cannot prove "never started", so it
+				// conservatively repairs and lets the model proceed.)
+				await this.repairTrailingPartialToolBatch(options.inputEntryId, options.signal);
+				await this.runModelTurnWithRecovery({
+					start: () => this.agentLoop.continue(),
+					signal: options.signal,
+					resume: { assistant: state.assistant, errorLabel: options.errorLabel },
+				});
+				this.throwIfError(options.errorLabel);
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Resume a reattached subagent (recovery only) to completion, returning its
+	 * final assistant text for the parent's `task` outcome. Runs in the child's
+	 * own operation so child-internal events stay on the child context; inherits
+	 * the parent's deadline; materializes any interrupted partial stream (D-A,
+	 * identical to top-level recovery) before classifying and continuing from the
+	 * child's durable input. Idempotent: an already-completed child resumes as a
+	 * no-op and returns its recorded text.
+	 */
+	private resumeReattachedChild(options: {
+		timeoutAt?: number;
+		signal?: AbortSignal;
+	}): CallHandle<string> {
+		return createCallHandle(options.signal, (signal) =>
+			this.runOperation('prompt', signal, async () => {
+				const previousTimeout = this.activeTimeoutAt;
+				this.activeTimeoutAt = options.timeoutAt;
+				try {
+					return await this.withCallOverrides(
+						{
+							tools: [],
+							// `model: undefined` resolves to the child's `config.model`,
+							// which equals the model the child ran on: a profile subagent
+							// uses its own configured model, and an agent-less task inherits
+							// the parent's `config.model` (durable submissions carry no
+							// per-call model override, so the parent always runs on
+							// `config.model`). If per-call model overrides are ever added to
+							// submissions, restore the model from the child's durable
+							// `assistant_message_started.modelInfo` instead.
+							model: undefined,
+							thinkingLevel: undefined,
+							callSite: 'this resumed task',
+						},
+						async () => {
+							await this.recoverInterruptedStream();
+							const conversation = await this.requireConversation();
+							// A task conversation's first user message is its single durable
+							// input (the original task prompt); resume continues from there.
+							const inputEntry = getActiveConversationPath(conversation).find(
+								(entry) => entry.type === 'message' && entry.message.role === 'user',
+							);
+							if (!inputEntry) {
+								throw new Error('[flue] Resumed task conversation has no durable input.');
+							}
+							await this.resumeConversationToCompletion({
+								inputEntryId: inputEntry.id,
+								errorLabel: 'task',
+								signal,
+							});
+							return this.getAssistantText();
+						},
+					);
+				} finally {
+					this.activeTimeoutAt = previousTimeout;
+				}
+			}),
+		);
+	}
+
 	private async runPersistedDirectSubmissionInput(
 		input: DirectAgentSubmissionInput,
 		signal: AbortSignal,
@@ -3015,75 +3336,11 @@ export class Session implements FlueSession, AgentSubmissionSession {
 					}
 					await this.rebuildCanonicalContext();
 					await options.onInputApplied?.(durability);
-					const state = classifyConversationSubmission(
-						await this.requireConversation(),
-						options.inputEntryId,
-						{ contextWindow: this.agentLoop.state.model.contextWindow ?? 0 },
-					);
-					switch (state.kind) {
-						case 'absent':
-							// Unreachable: `following` is only classified for a found input
-							// entry, and absence was already handled above.
-							throw new OperationFailedError({
-								operation: options.errorLabel,
-								reason: 'the input could not be persisted',
-							});
-						case 'advanced_past_input':
-							throw new OperationFailedError({
-								operation: options.errorLabel,
-								reason: 'the session advanced past this input before it completed',
-							});
-						case 'terminal_error':
-							throw new OperationFailedError({
-								operation: options.errorLabel,
-								reason: state.reason,
-							});
-						case 'completed':
-						case 'resume': {
-							// Divergence preserved from before consolidation (see
-							// submission-state.ts): a completed response flagged as silent
-							// overflow is compacted and continued here, while inspection
-							// reports it 'completed'.
-							if (state.kind === 'completed' && !state.overflow) break;
-							// A turn interrupted mid-tool-batch must not replay: repair
-							// the partial batch first (recorded results preserved,
-							// unresolved calls marked interrupted) so the resumed turn
-							// continues from the repaired results instead of re-executing
-							// tool calls that already completed.
-							if (state.kind === 'resume' && state.mode === 'tool_results_partial') {
-								await this.repairTrailingPartialToolBatch(options.inputEntryId);
-							}
-							// Recovery for the persisted trailing assistant (overflow
-							// compaction, transient-retry backoff) happens inside the turn
-							// loop, which evaluates the resume assistant before its first
-							// `continue()`.
-							await this.runModelTurnWithRecovery({
-								start: () => this.agentLoop.continue(),
-								signal: options.signal,
-								resume: { assistant: state.assistant, errorLabel: options.errorLabel },
-							});
-							this.throwIfError(options.errorLabel);
-							break;
-						}
-						case 'tool_use_unresolved': {
-							// A tool turn made durable but interrupted before ANY tool
-							// outcome was recorded. Repair the batch — every unresolved
-							// call gets an explicit unknown-outcome error, never a
-							// re-execution — and continue, identical to a partial batch.
-							// (Before the turn-journal removal this was reached only when
-							// the journal said the turn never started, and was settled
-							// as-is; canonical recovery cannot prove "never started", so it
-							// conservatively repairs and lets the model proceed.)
-							await this.repairTrailingPartialToolBatch(options.inputEntryId);
-							await this.runModelTurnWithRecovery({
-								start: () => this.agentLoop.continue(),
-								signal: options.signal,
-								resume: { assistant: state.assistant, errorLabel: options.errorLabel },
-							});
-							this.throwIfError(options.errorLabel);
-							break;
-						}
-					}
+					await this.resumeConversationToCompletion({
+						inputEntryId: options.inputEntryId,
+						errorLabel: options.errorLabel,
+						signal: options.signal,
+					});
 					return {
 						text: this.getAssistantText(),
 						usage: await this.aggregateCanonicalUsageSince(options.inputEntryId),

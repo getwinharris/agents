@@ -234,8 +234,57 @@ export class Harness implements FlueHarness {
 			thinkingLevel: taskAgent?.thinkingLevel ?? this.config.thinkingLevel,
 			compaction: taskAgent?.compaction ?? this.config.compaction,
 		};
-		const identity = createConversationIdentity();
 		const harnessScope = this.scopeName ? `${this.name}:${this.scopeName}` : this.name;
+		// Reattach (recovery) reuses the existing child conversation: its
+		// `conversation_created` + `child_session_retained` records are already
+		// durable (and reducer-validated on load), so creation is skipped. A fresh
+		// task mints a new identity and writes those records.
+		const conversationId =
+			options.existing?.conversationId ??
+			(await this.createChildConversation(options, harnessScope, sessionName, taskAgent));
+		const eventCallback: FlueEventInputCallback | undefined = this.eventCallback
+			? (event, observation) => {
+					this.eventCallback?.({
+						...event,
+						harness: event.harness ?? this.name,
+						parentSession: event.parentSession ?? options.parentSession,
+						taskId: event.taskId ?? options.taskId,
+					}, observation);
+				}
+			: undefined;
+
+		const conversation = await this.conversationWriter.getConversation(conversationId);
+		if (!conversation) throw new SessionNotFoundError({ session: sessionName, harness: this.name });
+		const session = new Session({
+			name: sessionName,
+			conversation,
+			config: taskConfig,
+			env: taskEnv,
+			onAgentEvent: eventCallback,
+			agentTools: taskAgent ? (taskAgent.tools ?? []) : this.agentTools,
+			toolFactory: this.toolFactory,
+			delegationDepth: options.depth,
+			createTaskSession: (childOptions) => this.createTaskSession(childOptions),
+			actions: taskConfig.actions ?? [],
+			createActionHarness: (actionOptions) => this.createActionHarness(actionOptions),
+			scopeSignal: this.scopeAbortController.signal,
+			conversationWriter: this.conversationWriter,
+			attachmentStore: this.attachmentStore,
+			executionContext: { ...this.executionContext, harness: harnessScope, taskId: options.taskId },
+		});
+		await session.initializeCanonicalContext();
+		return session;
+	}
+
+	/** Mint a fresh child conversation identity and durably record its creation
+	 *  plus the parent's retained link. Returns the new child conversation id. */
+	private async createChildConversation(
+		options: CreateTaskSessionOptions,
+		harnessScope: string,
+		sessionName: string,
+		taskAgent: AgentProfile | undefined,
+	): Promise<string> {
+		const identity = createConversationIdentity();
 		await this.conversationWriter.ensureChildConversation({
 			parent: {
 				conversationId: options.parentConversationId,
@@ -265,38 +314,7 @@ export class Harness implements FlueHarness {
 					: {}),
 			},
 		});
-		const eventCallback: FlueEventInputCallback | undefined = this.eventCallback
-			? (event, observation) => {
-					this.eventCallback?.({
-						...event,
-						harness: event.harness ?? this.name,
-						parentSession: event.parentSession ?? options.parentSession,
-						taskId: event.taskId ?? options.taskId,
-					}, observation);
-				}
-			: undefined;
-
-		const conversation = await this.conversationWriter.getConversation(identity.conversationId);
-		if (!conversation) throw new SessionNotFoundError({ session: sessionName, harness: this.name });
-		const session = new Session({
-			name: sessionName,
-			conversation,
-			config: taskConfig,
-			env: taskEnv,
-			onAgentEvent: eventCallback,
-			agentTools: taskAgent ? (taskAgent.tools ?? []) : this.agentTools,
-			toolFactory: this.toolFactory,
-			delegationDepth: options.depth,
-			createTaskSession: (childOptions) => this.createTaskSession(childOptions),
-			actions: taskConfig.actions ?? [],
-			createActionHarness: (actionOptions) => this.createActionHarness(actionOptions),
-			scopeSignal: this.scopeAbortController.signal,
-			conversationWriter: this.conversationWriter,
-			attachmentStore: this.attachmentStore,
-			executionContext: { ...this.executionContext, harness: harnessScope, taskId: options.taskId },
-		});
-		await session.initializeCanonicalContext();
-		return session;
+		return identity.conversationId;
 	}
 
 	private createActionHarness: import('./session.ts').CreateActionHarness = (options) => {
