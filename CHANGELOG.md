@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0-beta.9 - 2026-06-29
+
+### Fixes & Other Changes
+
+- Conversation message projections now include server-authored timestamps, and SDK/React clients preserve those timestamps while maintaining optimistic send state.
+- Cloudflare Durable Object agent execution now establishes the instance context at agent entry boundaries, fixing runtime paths that needed the active instance during direct prompt handling.
+- Released the database adapter packages (`@flue/libsql`, `@flue/mongodb`, `@flue/mysql`, `@flue/postgres`, and `@flue/redis`) on the current beta line.
+
 ## 1.0.0-beta.8 - 2026-06-29
 
 This pre-1.0 release reworks how an agent's conversation is durably recorded and communicated to clients, replacing the beta session-store model with one append-only canonical stream per instance behind a single client-facing protocol. The breaking surface is concentrated in this conversation layer; agent execution, models, tools, and workflows are unchanged. Because the persisted format changed, stores are reset-only (schema v4) with no migration from beta formats, so existing data must be cleared before upgrading. For guides and API reference, see the [documentation](https://flueframework.com/docs/).
