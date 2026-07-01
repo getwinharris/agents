@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Breaking Changes
+
+- **Direct agent prompts are fire-and-forget only.** The `?wait=result` synchronous mode on agent HTTP POSTs is removed; agent prompts always return a 202 admission. The in-process observer registry (`createAgentSubmissionObserverRegistry`, `AgentSubmissionObserver`, `AgentSubmissionObserverRegistry`), the `DirectAttachedOptions`/`invokeDirectAttached`/`runDirectSyncMode` admission path, and the `result` field on `SubmissionSettledRecord`, `AgentConversationSettlement`, `AgentSubmissionSettledEvent`, and the `submission_settled` FlueEvent variant are all removed. Callers that need the actual assistant reply should read it from the conversation transcript via `client.agents.history()` or the live conversation stream.
+- **`client.agents.prompt()` is removed.** Use `client.agents.send()` (fire-and-forget) plus `client.agents.wait()` (completion-await, now `Promise<void>`) plus `client.agents.history()` (to read the reply). `AgentPromptResult` and `AgentPromptResponse` types are removed from `@flue/sdk`.
+- **`client.agents.wait()` no longer resolves with a result.** It resolves `void` on completion and throws `FlueExecutionError` on failure or abort.
+- **`AttachedAgentEventCallback` type removed from `@flue/runtime`.** The `onEvent` callback parameter on admission no longer exists.
+- **`reconcileInterruptedSubmission` return type simplified.** Returns `AgentSubmission | undefined` (the replacement submission, or `undefined`) instead of the 5-variant `ReconciliationResult` discriminated union. Custom coordinator implementations that inspected `.disposition` should branch on truthiness instead.
+
 ### New Features
 
 - Public conversation messages now expose typed `purpose` (`user`, `assistant`, `dispatch`, or `advisory`) and `display` (`visible`, `hidden`, or `diagnostic`), plus optional `turnId` grouping and a `signal` descriptor, so clients can distinguish public chat from internal, control, and advisory activity without parsing message text, timestamps, or ordering. The classification is applied identically across `client.agents.history()` snapshots and live updates, and `@flue/sdk` / `@flue/react` shapes are updated in lockstep (#404).
