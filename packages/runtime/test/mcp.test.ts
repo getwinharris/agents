@@ -3,10 +3,15 @@ import {
 	fauxToolCall,
 	registerFauxProvider,
 } from '@earendil-works/pi-ai/compat';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
-import type { CallToolResult, Tool } from '@modelcontextprotocol/sdk/types.js';
+import {
+	CallToolRequestSchema,
+	type CallToolResult,
+	ListToolsRequestSchema,
+	type Tool,
+} from '@modelcontextprotocol/sdk/types.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { defineAgent, connectMcpServer } from '../src/index.ts';
 import { createFlueContext } from '../src/internal.ts';
@@ -495,7 +500,7 @@ describe('connectMcpServerWithClient()', () => {
 });
 
 describe('connectMcpServer()', () => {
-	it('connects and invokes tools when the default streamable HTTP transport negotiates with a local MCP server', async () => {
+	it('connects and invokes schema-bearing tools when the default streamable HTTP transport negotiates with a local MCP server', async () => {
 		const local = await createLocalMcpServer();
 		let connection: Awaited<ReturnType<typeof connectMcpServer>> | undefined;
 
@@ -506,7 +511,9 @@ describe('connectMcpServer()', () => {
 			});
 
 			expect(connection.tools.map((tool) => tool.name)).toEqual(['mcp__catalog__lookup']);
-			await expect(firstPreparedTool(connection.tools).execute({})).resolves.toBe('Found.');
+			await expect(firstPreparedTool(connection.tools).execute({})).resolves.toContain(
+				'"count": 1',
+			);
 			expect(
 				local.requests.some(
 					(request) => request.headers.get('mcp-session-id') === 'fixture-session',
@@ -534,9 +541,27 @@ async function createLocalMcpServer(): Promise<LocalMcpServer> {
 		enableJsonResponse: true,
 		sessionIdGenerator: () => 'fixture-session',
 	});
-	const server = new McpServer({ name: 'local-test-server', version: '1.0.0' });
-	server.registerTool('lookup', { description: 'Find a catalog entry.' }, async () => ({
+	const server = new Server(
+		{ name: 'local-test-server', version: '1.0.0' },
+		{ capabilities: { tools: {} } },
+	);
+	server.setRequestHandler(ListToolsRequestSchema, () => ({
+		tools: [
+			{
+				name: 'lookup',
+				description: 'Find a catalog entry.',
+				inputSchema: { type: 'object', properties: {} },
+				outputSchema: {
+					type: 'object',
+					properties: { count: { type: 'number' } },
+					required: ['count'],
+				},
+			},
+		],
+	}));
+	server.setRequestHandler(CallToolRequestSchema, () => ({
 		content: [{ type: 'text', text: 'Found.' }],
+		structuredContent: { count: 1 },
 	}));
 	await server.connect(transport);
 

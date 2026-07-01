@@ -8,7 +8,7 @@ import {
 	type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import type { JsonSchemaValidator } from '@modelcontextprotocol/sdk/validation';
-import { AjvJsonSchemaValidator } from '@modelcontextprotocol/sdk/validation/ajv';
+import { CfWorkerJsonSchemaValidator } from '@modelcontextprotocol/sdk/validation/cfworker';
 import { version as runtimeVersion } from '../package.json' with { type: 'json' };
 import { registerPreparedToolAdapter } from './tool-adapter.ts';
 import type { ToolDefinition } from './types.ts';
@@ -52,6 +52,8 @@ export interface McpServerConnection {
 
 type McpClient = Pick<Client, 'callTool' | 'close' | 'connect' | 'listTools'>;
 
+const mcpJsonSchemaValidator = new CfWorkerJsonSchemaValidator();
+
 /**
  * Connects to a remote MCP server and adapts its listed tools into ordinary
  * Flue tool definitions.
@@ -72,10 +74,15 @@ export async function connectMcpServer(
 		requestInit,
 		options.fetch,
 	);
-	const client = new Client({
-		name: 'flue',
-		version: runtimeVersion,
-	});
+	const client = new Client(
+		{
+			name: 'flue',
+			version: runtimeVersion,
+		},
+		{
+			jsonSchemaValidator: mcpJsonSchemaValidator,
+		},
+	);
 
 	return connectMcpServerWithClient(name, client, transport, {
 		timeout: options.timeoutMs,
@@ -142,7 +149,6 @@ function createMcpTools(
 	requestOptions: McpRequestOptions,
 ): ToolDefinition[] {
 	const names = new Set<string>();
-	const validator = new AjvJsonSchemaValidator();
 
 	const callableTools = tools.filter((tool) => {
 		if (tool.execution?.taskSupport !== 'required') return true;
@@ -155,7 +161,7 @@ function createMcpTools(
 	return callableTools.map((tool) => {
 		const toolName = createToolName(serverName, tool.name);
 		const outputValidator = tool.outputSchema
-			? validator.getValidator(tool.outputSchema)
+			? mcpJsonSchemaValidator.getValidator(tool.outputSchema)
 			: undefined;
 		if (names.has(toolName)) {
 			throw new Error(
