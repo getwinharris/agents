@@ -1,7 +1,7 @@
 ---
 title: Cloudflare
 description: Understand the Cloudflare-specific runtime behavior and APIs for Flue applications.
-lastReviewedAt: 2026-06-20
+lastReviewedAt: 2026-07-01
 ---
 
 The Cloudflare target builds your agents and workflows for the Cloudflare platform. Generated agents and workflows run inside Durable Objects, using the Agents SDK, Workers AI, Cloudflare Sandbox, Cloudflare Shell, and other Worker primitives where appropriate. Durable Objects give each agent instance its own persistent state, durable execution, and global addressability out of the box.
@@ -110,6 +110,42 @@ The submitting connection observes the work but does not own it. If a client dis
 When a Durable Object resumes after interruption, Flue decides what to do next from the stored input and canonical conversation progress. It requeues only when it can prove the input was not applied, recognizes already-completed output, and records an interruption instead of blindly repeating uncertain model or tool work.
 
 For the full recovery model, see [Durable Agents](/docs/concepts/durable-execution/).
+
+## Calling a private agent over a service binding
+
+A Flue Worker deployed without a public route can still be reached from another Worker through a [service binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/). The SDK client sends every request through its `fetch` option, so point that option at the binding instead of the network:
+
+```ts
+import { createFlueClient } from '@flue/sdk';
+
+type Env = { AGENT_APP: Fetcher };
+
+export default {
+  async fetch(request: Request, env: Env) {
+    const client = createFlueClient({
+      // The host is never dialed — only the pathname and query select a route.
+      // `baseUrl` must be absolute, so any placeholder origin works.
+      baseUrl: 'https://agent.internal',
+      fetch: (input, init) => env.AGENT_APP.fetch(new Request(input, init)),
+    });
+
+    const result = await client.agents.prompt('support', 'ticket-42', {
+      message: 'Summarize this ticket.',
+    });
+
+    return Response.json(result);
+  },
+};
+```
+
+The binding carries the same HTTP requests the public routes use, so every client operation works over it — `prompt`, `send`, `wait`, `abort`, `history`, and `observe` in both `long-poll` and `sse` modes. Streaming reads travel through the same `fetch`, so live conversation updates cross the binding and the owning Durable Object with no extra wiring.
+
+Attachments are the one exception. `client.agents.attachmentUrl(...)` returns a URL on the placeholder host and the client never fetches it for you; the same URL also appears on `file` parts in `observe()` and `history()` snapshots. To download attachment bytes over a binding, forward that URL through the same fetcher:
+
+```ts
+const url = client.agents.attachmentUrl('support', 'ticket-42', attachmentId);
+const response = await env.AGENT_APP.fetch(new Request(url));
+```
 
 ## Workers AI and AI Gateway
 
