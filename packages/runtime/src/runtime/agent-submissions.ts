@@ -463,7 +463,7 @@ export async function processSubmission(opts: ProcessSubmissionOptions): Promise
 				dispatchId: agentSubmissionDispatchId(input),
 			});
 		} catch (error) {
-			console.error('[flue:submission-observer] interaction start callback failed:', error);
+			console.error('[flue:submission-processing] interaction start callback failed:', error);
 		}
 	}
 
