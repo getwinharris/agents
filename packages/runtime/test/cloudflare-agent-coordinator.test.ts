@@ -118,6 +118,7 @@ function makeRecoveryContext(options: {
 		async recordSubmissionTerminal(input: AgentSubmissionInterruption) {
 			options.events?.push('record-terminal');
 			terminalRecords.push(input);
+			return [];
 		},
 	};
 	const ctx = {
@@ -523,7 +524,9 @@ describe('createCloudflareAgentRuntime()', () => {
 				processedInputs.push(input);
 				resolveProcessed();
 			},
-			async recordSubmissionTerminal() {},
+			async recordSubmissionTerminal() {
+				return [];
+			},
 		};
 		const runtime = makeRuntime({
 			createdAgent: {} as never,
@@ -700,7 +703,9 @@ describe('createCloudflareAgentRuntime()', () => {
 			async processSubmissionInput(input: unknown) {
 				processedInputs.push(input);
 			},
-			async recordSubmissionTerminal() {},
+			async recordSubmissionTerminal() {
+				return [];
+			},
 		};
 		// The submission fiber can resume on a fresh isolate with no ambient
 		// context, so it must establish its own. Enforce that by requiring an

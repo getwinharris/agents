@@ -1070,10 +1070,21 @@ export class SubmissionInterruptedError extends FlueError {
 /**
  * A durable submission exhausted its recovery attempt budget after its input
  * was applied: repeated attempts (interruption, restart, or transient
- * failure) consumed `maxAttempts` without a completed response.
+ * failure) consumed `maxAttempts` without a completed response. When
+ * terminalization settled tool calls whose outcomes could not be confirmed,
+ * `meta.interruptedTools` lists them; each has an explicit interrupted-error
+ * outcome in the conversation and was never assumed complete or retried.
  */
 export class SubmissionRetryExhaustedError extends FlueError {
-	constructor({ attemptCount, maxAttempts }: { attemptCount: number; maxAttempts: number }) {
+	constructor({
+		attemptCount,
+		maxAttempts,
+		interruptedTools,
+	}: {
+		attemptCount: number;
+		maxAttempts: number;
+		interruptedTools?: ReadonlyArray<{ readonly name: string; readonly id: string }>;
+	}) {
 		super({
 			type: 'submission_retry_exhausted',
 			message: `Submission exceeded maximum recovery attempts (${attemptCount}/${maxAttempts}).`,
@@ -1081,7 +1092,11 @@ export class SubmissionRetryExhaustedError extends FlueError {
 				'Recovery re-attempted the interrupted submission until its attempt budget ran out without a ' +
 				'completed response.',
 			dev: "The budget is configured via the agent definition's `durability.maxAttempts`.",
-			meta: { attemptCount, maxAttempts },
+			meta: {
+				attemptCount,
+				maxAttempts,
+				...(interruptedTools ? { interruptedTools } : {}),
+			},
 		});
 	}
 }

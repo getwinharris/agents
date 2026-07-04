@@ -66,6 +66,7 @@ import {
 } from './conversation-records.ts';
 import {
 	getActiveConversationPath,
+	type InProgressAssistantMessage,
 	type ReducedConversationState,
 	toolOutcomeKey,
 	toolResultEntryId,
@@ -108,6 +109,7 @@ import type {
 	AgentSubmissionInspection,
 	AgentSubmissionInterruption,
 	AgentSubmissionSession,
+	InterruptedToolCallRef,
 	ProcessAgentSubmissionOptions,
 } from './runtime/agent-submissions.ts';
 import { type AttachmentStore, createAttachmentRef } from './runtime/attachment-store.ts';
@@ -1360,34 +1362,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 				blocks.some((block) =>
 					(block.type === 'text' || block.type === 'reasoning') && block.deltas.join('').length > 0,
 				);
-			const records: ConversationRecord[] = [];
-			for (const block of blocks) {
-				if ((block.type === 'text' || block.type === 'reasoning') && !block.completed) {
-					records.push(block.type === 'text'
-						? {
-							...this.canonicalEnvelope('assistant_text_completed', `record_recovery_${inProgress.messageId}_${block.blockId}_completed`),
-							type: 'assistant_text_completed',
-							messageId: inProgress.messageId,
-							blockId: block.blockId,
-							deltaCount: block.deltas.length,
-						}
-						: {
-							...this.canonicalEnvelope('assistant_reasoning_completed', `record_recovery_${inProgress.messageId}_${block.blockId}_completed`),
-							type: 'assistant_reasoning_completed',
-							messageId: inProgress.messageId,
-							blockId: block.blockId,
-							deltaCount: block.deltas.length,
-						});
-				}
-			}
-			records.push({
-				...this.canonicalEnvelope('assistant_message_completed', `record_recovery_${inProgress.messageId}_aborted`),
-				type: 'assistant_message_completed',
-				messageId: inProgress.messageId,
-				stopReason: 'aborted',
-				usage: zeroProviderUsage(),
-				error: 'Stream interrupted before completion.',
-			});
+			const records = this.materializeInProgressStreamRecords(inProgress);
 			if (!continuable) {
 				await this.appendCanonical(records);
 				await this.rebuildCanonicalContext();
@@ -1414,29 +1389,199 @@ export class Session implements FlueSession, AgentSubmissionSession {
 		}
 	}
 
-	async recordSubmissionTerminal(input: AgentSubmissionInterruption): Promise<void> {
-		{
-			const aborted = input.reason === 'aborted';
-			const signalType = aborted ? 'submission_aborted' : 'submission_interrupted';
-			const slug = aborted ? 'submission_aborted' : 'submission_interrupted';
-			const recordId = `record_${slug}_${input.submissionId}`;
-			if (await this.conversationWriter.hasRecord(recordId)) return;
-			const parentId = await this.conversationWriter.getConversationLeaf(this.conversationId);
-			await this.appendCanonical([{
-				...this.canonicalEnvelope('signal', recordId),
-				type: 'signal',
-				messageId: `entry_${slug}_${input.submissionId}`,
-				parentId,
-				signalType,
-				content: input.message,
-				attributes: {
-					submissionId: input.submissionId,
-					kind: input.kind,
-					reason: input.reason,
-				},
-			}]);
-			await this.rebuildCanonicalContext();
+	/**
+	 * Build the canonical records that materialize an interrupted in-progress
+	 * assistant stream as a completed aborted entry: completion markers for the
+	 * unfinished text/reasoning blocks plus the aborted
+	 * `assistant_message_completed`. Record ids are deterministic and shared by
+	 * both consumers (`recoverInterruptedStream` and
+	 * `settleDanglingConversationState`), so whichever path appends first wins
+	 * and the other converges as a no-op.
+	 */
+	private materializeInProgressStreamRecords(
+		inProgress: InProgressAssistantMessage,
+	): ConversationRecord[] {
+		const records: ConversationRecord[] = [];
+		for (const block of inProgress.blocks.values()) {
+			if ((block.type === 'text' || block.type === 'reasoning') && !block.completed) {
+				records.push(block.type === 'text'
+					? {
+						...this.canonicalEnvelope('assistant_text_completed', `record_recovery_${inProgress.messageId}_${block.blockId}_completed`),
+						type: 'assistant_text_completed',
+						messageId: inProgress.messageId,
+						blockId: block.blockId,
+						deltaCount: block.deltas.length,
+					}
+					: {
+						...this.canonicalEnvelope('assistant_reasoning_completed', `record_recovery_${inProgress.messageId}_${block.blockId}_completed`),
+						type: 'assistant_reasoning_completed',
+						messageId: inProgress.messageId,
+						blockId: block.blockId,
+						deltaCount: block.deltas.length,
+					});
+			}
 		}
+		records.push({
+			...this.canonicalEnvelope('assistant_message_completed', `record_recovery_${inProgress.messageId}_aborted`),
+			type: 'assistant_message_completed',
+			messageId: inProgress.messageId,
+			stopReason: 'aborted',
+			usage: zeroProviderUsage(),
+			error: 'Stream interrupted before completion.',
+		});
+		return records;
+	}
+
+	/**
+	 * Settle any dangling conversation state left behind by an interrupted
+	 * driver so the conversation can safely come to rest: materialize an
+	 * unmaterialized in-progress assistant stream as an aborted entry (without
+	 * resumption signals — the conversation is settling, not resuming), and
+	 * marker-settle the trailing uncommitted tool batch. Recorded outcomes are
+	 * preserved first-write-wins; every unresolved call gets an explicit
+	 * unknown-outcome error — never a re-execution, and never a child resume
+	 * (that is budgeted attempt-path work; see `resumeUnresolvedTaskCalls`).
+	 * Returns the calls that were settled with interrupted markers.
+	 *
+	 * Both shapes are settleable by construction: `tool_results_committed` is
+	 * all-or-nothing, so a partial batch is always uncommitted and its toolUse
+	 * assistant is still the active leaf (nothing can follow it until commit),
+	 * which satisfies the commit-parent invariant; and the two shapes are
+	 * mutually exclusive per turn (a next-turn stream can only start after the
+	 * batch commits).
+	 *
+	 * `scope.submissionId` restricts settlement to state stamped with that
+	 * submission — the terminal-settlement path settles only the submission
+	 * being terminalized. `scope: 'any'` settles regardless of owner — used by
+	 * the new-input path, where submission serialization guarantees any
+	 * trailing dangling state was abandoned by a previous driver.
+	 */
+	private async settleDanglingConversationState(
+		scope: { submissionId: string } | 'any',
+	): Promise<ReadonlyArray<InterruptedToolCallRef>> {
+		const owns = (submissionId: string | undefined) =>
+			scope === 'any' || submissionId === scope.submissionId;
+		let conversation = await this.conversationWriter.getConversation(this.conversationId);
+		if (!conversation) return [];
+
+		// Ghost stream: an in-progress assistant at the active leaf that no
+		// recovery materialized (the terminal paths never run
+		// `recoverInterruptedStream`). Complete it as aborted so it stops
+		// projecting as still-streaming.
+		const inProgress = [...conversation.inProgressMessages.values()].find(
+			(message) => message.parentId === conversation?.activeLeafId,
+		);
+		if (inProgress && owns(inProgress.submissionId)) {
+			await this.appendCanonical(this.materializeInProgressStreamRecords(inProgress));
+			conversation = await this.requireConversation();
+		}
+
+		const messages = getActiveConversationPath(conversation).flatMap((entry) =>
+			entry.type === 'message' ? [entry] : [],
+		);
+		const partial = findTrailingPartialToolBatch(messages);
+		if (!partial || conversation.activeLeafId !== partial.entryId) {
+			if (inProgress) await this.rebuildCanonicalContext();
+			return [];
+		}
+		const batchEntry = conversation.entries.get(partial.entryId);
+		if (!owns(batchEntry?.type === 'message' ? batchEntry.submissionId : undefined)) return [];
+
+		const settled: InterruptedToolCallRef[] = [];
+		const resolved = new Map<string, ConversationRecord>();
+		for (const toolCall of partial.toolCalls) {
+			if (conversation.toolOutcomes.has(toolOutcomeKey(partial.entryId, toolCall.id))) continue;
+			settled.push({ name: toolCall.name, id: toolCall.id });
+			if (toolCall.name !== 'task') continue;
+			const ref = [...conversation.childConversations.values()].find(
+				(child): child is Extract<CanonicalChildSessionRef, { type: 'task' }> =>
+					child.type === 'task' && child.parentToolCallId === toolCall.id,
+			);
+			if (!ref) continue;
+			resolved.set(
+				toolCall.id,
+				this.taskInterruptedOutcomeRecord(partial.entryId, toolCall.id, ref.conversationId),
+			);
+		}
+		await this.appendRepairedToolResultBatch(
+			partial.entryId,
+			partial.toolCalls,
+			conversation,
+			resolved,
+		);
+		return settled;
+	}
+
+	/**
+	 * Interrupted-marker outcome for a `task` call settled at terminalization:
+	 * identical semantics (and record id) to the generic interrupted marker,
+	 * plus the retained child conversation id so apps and future turns can
+	 * locate the child's durable transcript. The child reference itself
+	 * (`child_session_retained`) is untouched.
+	 */
+	private taskInterruptedOutcomeRecord(
+		assistantEntryId: string,
+		toolCallId: string,
+		childConversationId: string,
+	): ConversationRecord {
+		const key = `${encodeCanonicalId(assistantEntryId)}_${encodeCanonicalId(toolCallId)}`;
+		return {
+			...this.canonicalEnvelope('tool_outcome', `record_tool_repair_outcome_${key}`),
+			type: 'tool_outcome',
+			assistantMessageId: assistantEntryId,
+			toolCallId,
+			toolName: 'task',
+			isError: true,
+			content: [{ type: 'text', text: JSON.stringify({
+				type: 'interrupted',
+				message: 'Tool execution was interrupted before completion. The outcome is unknown.',
+				childConversationId,
+			}) }],
+		};
+	}
+
+	async recordSubmissionTerminal(
+		input: AgentSubmissionInterruption,
+	): Promise<ReadonlyArray<InterruptedToolCallRef>> {
+		// Terminalizing a submission first settles its conversation to a
+		// deterministic rest state — ghost stream materialized, trailing batch
+		// marker-settled — so no tool call ever rests without a terminal outcome
+		// and the turn stays visible to future model context. This is the
+		// contract of terminalization, not a caller responsibility: every
+		// terminal path (retry exhaustion, timeout, post-input interruption,
+		// abort) routes through here.
+		const interruptedTools = await this.settleDanglingConversationState({
+			submissionId: input.submissionId,
+		});
+		let body = input.message;
+		if (interruptedTools.length > 0) {
+			const toolList = interruptedTools.map((t) => `  - ${t.name} (${t.id})`).join('\n');
+			body += `\n\nInterrupted tool call(s):\n${toolList}`;
+		}
+		const aborted = input.reason === 'aborted';
+		const signalType = aborted ? 'submission_aborted' : 'submission_interrupted';
+		const slug = aborted ? 'submission_aborted' : 'submission_interrupted';
+		const recordId = `record_${slug}_${input.submissionId}`;
+		if (await this.conversationWriter.hasRecord(recordId)) return interruptedTools;
+		const parentId = await this.conversationWriter.getConversationLeaf(this.conversationId);
+		await this.appendCanonical([{
+			...this.canonicalEnvelope('signal', recordId),
+			type: 'signal',
+			messageId: `entry_${slug}_${input.submissionId}`,
+			parentId,
+			signalType,
+			content: body,
+			attributes: {
+				submissionId: input.submissionId,
+				kind: input.kind,
+				reason: input.reason,
+				...(interruptedTools.length > 0
+					? { interruptedTools: JSON.stringify(interruptedTools) }
+					: {}),
+			},
+		}]);
+		await this.rebuildCanonicalContext();
+		return interruptedTools;
 	}
 
 	skill<S extends v.GenericSchema>(
@@ -3249,6 +3394,16 @@ export class Session implements FlueSession, AgentSubmissionSession {
 						options.inputEntryId,
 					);
 					if (!inputAlreadyPersisted) {
+						// A genuinely new input: this submission is about to drive the
+						// conversation, so any trailing dangling state (ghost stream,
+						// uncommitted tool batch) was abandoned by a previous driver —
+						// settle it before the new input extends the leaf. Without this,
+						// the dangling turn is buried mid-history where the context
+						// builder silently drops it. Resume re-entries (input already
+						// persisted) must NOT settle: their dangling state is live work
+						// the classify/repair path below owns, and a marker-settle here
+						// would pre-empt subagent resume.
+						await this.settleDanglingConversationState('any');
 						const parentId = await this.conversationWriter.getConversationLeaf(this.conversationId);
 						await this.appendCanonical([await options.createCanonicalInput(parentId)]);
 					}

@@ -12,6 +12,7 @@ import * as v from 'valibot';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { defineAgent } from '../src/agent-definition.ts';
 import type { AgentExecutionStore } from '../src/agent-execution-store.ts';
+import type { ConversationRecord } from '../src/conversation-records.ts';
 import { createFlueContext, type DispatchInput, resolveModel } from '../src/internal.ts';
 import {
 	createNodeAgentCoordinator,
@@ -192,6 +193,235 @@ async function createFauxCoordinator(
 		attachmentStore,
 	});
 	return { coordinator, executionStore };
+}
+
+/**
+ * Seed a running-but-abandoned submission (expired lease, crashed owner)
+ * whose canonical conversation was left dangling. Shapes:
+ * - 'task-call': a durable toolUse turn with one unresolved `task` call and a
+ *   retained child conversation (no outcome, no commit).
+ * - 'partial-batch': a durable toolUse turn with two `lookup` calls, one
+ *   outcome recorded, none committed.
+ * - 'ghost-stream': an in-progress assistant stream (started + one durable
+ *   delta) never completed.
+ */
+async function seedDanglingSubmission(options: {
+	dbPath: string;
+	dispatchId: string;
+	shape: 'task-call' | 'partial-batch' | 'ghost-stream';
+	durability?: { maxRetry: number; timeoutAt: number };
+}): Promise<{ conversationId: string; childConversationId?: string }> {
+	const adapter = sqlite(options.dbPath);
+	await adapter.migrate?.();
+	const { executionStore, conversationStreamStore } = await adapter.connect();
+	const input = makeDispatchInput({ dispatchId: options.dispatchId });
+	const attemptId = `attempt-${options.dispatchId}`;
+	await executionStore.submissions.admitDispatch(input);
+	await executionStore.submissions.markSubmissionCanonicalReady(input.dispatchId);
+	await executionStore.submissions.claimSubmission({
+		submissionId: input.dispatchId,
+		attemptId,
+		ownerId: 'crashed-owner',
+		leaseExpiresAt: 1,
+	});
+	const path = agentStreamPath(input.agent, input.id);
+	await conversationStreamStore.createStream(path, {
+		agentName: input.agent,
+		instanceId: input.id,
+	});
+	const claim = await conversationStreamStore.acquireProducer(path, 'crashed-owner');
+	let producerSequence = claim.nextProducerSequence;
+	const append = (records: ConversationRecord[]) =>
+		conversationStreamStore.append({
+			path,
+			producerId: claim.producerId,
+			producerEpoch: claim.producerEpoch,
+			incarnation: claim.incarnation,
+			producerSequence: producerSequence++,
+			submission: { submissionId: input.dispatchId, attemptId },
+			records,
+		});
+	const conversationId = `conversation-${options.dispatchId}`;
+	const timestamp = new Date().toISOString();
+	const scope = {
+		v: 1 as const,
+		conversationId,
+		harness: 'default',
+		session: 'default',
+		timestamp,
+		submissionId: input.dispatchId,
+		attemptId,
+	};
+	const inputEntryId = `entry_dispatch_${Buffer.from(input.dispatchId).toString('base64url')}`;
+	const usage = {
+		input: 0,
+		output: 0,
+		cacheRead: 0,
+		cacheWrite: 0,
+		totalTokens: 0,
+		cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+	};
+	await append([
+		{
+			v: 1,
+			id: `record-created-${options.dispatchId}`,
+			type: 'conversation_created',
+			kind: 'root',
+			conversationId,
+			harness: 'default',
+			session: 'default',
+			timestamp,
+			affinityKey: generateSessionAffinityKey(),
+			createdAt: timestamp,
+		},
+		{
+			...scope,
+			id: `record_dispatch_input_${input.dispatchId}`,
+			type: 'signal',
+			dispatchId: input.dispatchId,
+			messageId: inputEntryId,
+			parentId: null,
+			signalType: 'test.event',
+			content: 'Hello',
+		},
+	]);
+	await executionStore.submissions.markSubmissionInputApplied(
+		{ submissionId: input.dispatchId, attemptId },
+		options.durability ?? { maxRetry: 1, timeoutAt: Date.now() + 60_000 },
+	);
+
+	if (options.shape === 'ghost-stream') {
+		await append([
+			{
+				...scope,
+				id: 'record-stream-started',
+				type: 'assistant_message_started',
+				messageId: 'entry_stream_partial',
+				parentId: inputEntryId,
+				modelInfo: { api: 'faux', provider: 'faux', model: 'reviewer' },
+			},
+			{
+				...scope,
+				id: 'record-stream-text-started',
+				type: 'assistant_text_started',
+				messageId: 'entry_stream_partial',
+				blockId: 'block-stream',
+				blockIndex: 0,
+			},
+			{
+				...scope,
+				id: 'record-stream-delta',
+				type: 'assistant_text_delta',
+				messageId: 'entry_stream_partial',
+				blockId: 'block-stream',
+				sequence: 0,
+				delta: 'Durable partial',
+			},
+		]);
+		return { conversationId };
+	}
+
+	const toolCalls =
+		options.shape === 'task-call'
+			? [{ id: 'task-call-1', name: 'task', arguments: { prompt: 'Delegate.', agent: 'reviewer' } }]
+			: [
+					{ id: 'tool-call-1', name: 'lookup', arguments: {} },
+					{ id: 'tool-call-2', name: 'lookup', arguments: {} },
+				];
+	await append([
+		{
+			...scope,
+			id: 'record-tool-started',
+			type: 'assistant_message_started',
+			messageId: 'entry_tool_assistant',
+			parentId: inputEntryId,
+			modelInfo: { api: 'faux', provider: 'faux', model: 'reviewer' },
+		},
+		...toolCalls.map((toolCall, index) => ({
+			...scope,
+			id: `record-tool-call-${index}`,
+			type: 'assistant_tool_call' as const,
+			messageId: 'entry_tool_assistant',
+			blockId: `block-tool-${index}`,
+			blockIndex: index,
+			toolCallId: toolCall.id,
+			name: toolCall.name,
+			arguments: toolCall.arguments,
+		})),
+		{
+			...scope,
+			id: 'record-tool-completed',
+			type: 'assistant_message_completed',
+			messageId: 'entry_tool_assistant',
+			stopReason: 'toolUse',
+			usage,
+		},
+	]);
+
+	if (options.shape === 'partial-batch') {
+		await append([
+			{
+				...scope,
+				id: 'record-tool-outcome-1',
+				type: 'tool_outcome',
+				assistantMessageId: 'entry_tool_assistant',
+				toolCallId: 'tool-call-1',
+				toolName: 'lookup',
+				isError: false,
+				content: [{ type: 'text', text: 'Known completed result' }],
+			},
+		]);
+		return { conversationId };
+	}
+
+	// task-call: retained child conversation, no outcome recorded.
+	const taskId = '00000000-0000-4000-8000-000000000001';
+	const childConversationId = `conversation-child-${options.dispatchId}`;
+	const childSession = `task:default:${taskId}`;
+	await append([
+		{
+			v: 1,
+			id: 'record-child-created',
+			type: 'conversation_created',
+			kind: 'task',
+			conversationId: childConversationId,
+			harness: 'default',
+			session: childSession,
+			timestamp,
+			affinityKey: generateSessionAffinityKey(),
+			createdAt: timestamp,
+			parentConversationId: conversationId,
+			taskId,
+			agent: 'reviewer',
+		},
+		{
+			v: 1,
+			id: 'record-child-retained',
+			type: 'child_session_retained',
+			conversationId,
+			harness: 'default',
+			session: 'default',
+			timestamp,
+			child: {
+				type: 'task',
+				conversationId: childConversationId,
+				harness: 'default',
+				session: childSession,
+				taskId,
+				parentToolCallId: 'task-call-1',
+				parentAssistantEntryId: 'entry_tool_assistant',
+			},
+		},
+	]);
+	return { conversationId, childConversationId };
+}
+
+async function readCanonicalRecords(dbPath: string): Promise<ConversationRecord[]> {
+	const adapter = sqlite(dbPath);
+	await adapter.migrate?.();
+	const { conversationStreamStore } = await adapter.connect();
+	const read = await conversationStreamStore.read(agentStreamPath('assistant', 'instance-1'));
+	return read.batches.flatMap((batch) => batch.records);
 }
 
 // ---------------------------------------------------------------------------
@@ -896,6 +1126,260 @@ describe('NodeAgentCoordinator', () => {
 			// for this specific submission.
 			expect(submission?.error).toBeDefined();
 		});
+
+	describe('terminal settlement', { timeout: 30_000 }, () => {
+		it('settles an unresolved task call with an interrupted marker when the retry budget is exhausted', async () => {
+			const dbPath = createTempDbPath();
+			const { childConversationId } = await seedDanglingSubmission({
+				dbPath,
+				dispatchId: 'dispatch-exhausted-task',
+				shape: 'task-call',
+			});
+			const provider = createFauxProvider();
+			let providerCalls = 0;
+			provider.setResponses([
+				() => {
+					providerCalls += 1;
+					return fauxAssistantMessage('Must not run.');
+				},
+			]);
+			const { coordinator, executionStore } = await createFauxCoordinator(dbPath, provider);
+
+			await coordinator.reconcileSubmissions();
+			await coordinator.waitForIdle();
+
+			// Exhaustion settles without any provider work: no model call, no
+			// child resume.
+			expect(providerCalls).toBe(0);
+			const submission = await executionStore.submissions.getSubmission('dispatch-exhausted-task');
+			expect(submission).toMatchObject({ status: 'settled' });
+			expect(submission?.error).toBeDefined();
+
+			const records = await readCanonicalRecords(dbPath);
+			// The task call has a terminal outcome linking the retained child.
+			const outcome = records.find(
+				(record) => record.type === 'tool_outcome' && record.toolCallId === 'task-call-1',
+			);
+			expect(outcome).toMatchObject({ toolName: 'task', isError: true });
+			const outcomeText =
+				outcome?.type === 'tool_outcome' && outcome.content[0]?.type === 'text'
+					? JSON.parse(outcome.content[0].text)
+					: undefined;
+			expect(outcomeText).toMatchObject({
+				type: 'interrupted',
+				childConversationId,
+			});
+			expect(records.filter((record) => record.type === 'tool_results_committed')).toHaveLength(1);
+			// The retained child link is untouched.
+			expect(records.some((record) => record.type === 'child_session_retained')).toBe(true);
+			// The advisory carries the structured interrupted-call list.
+			const advisory = records.find(
+				(record) =>
+					record.type === 'signal' &&
+					record.signalType === 'submission_interrupted' &&
+					record.attributes?.submissionId === 'dispatch-exhausted-task',
+			);
+			expect(advisory).toBeDefined();
+			if (advisory?.type !== 'signal') throw new Error('Expected signal advisory.');
+			expect(advisory.attributes?.reason).toBe('exhausted_retry_budget');
+			expect(JSON.parse(advisory.attributes?.interruptedTools ?? '[]')).toEqual([
+				{ name: 'task', id: 'task-call-1' },
+			]);
+			await coordinator.shutdown();
+		});
+
+		it('preserves recorded outcomes and keeps the settled turn visible to the next submission', async () => {
+			const dbPath = createTempDbPath();
+			await seedDanglingSubmission({
+				dbPath,
+				dispatchId: 'dispatch-exhausted-batch',
+				shape: 'partial-batch',
+			});
+			const provider = createFauxProvider();
+			const { coordinator } = await createFauxCoordinator(dbPath, provider);
+			await coordinator.reconcileSubmissions();
+			await coordinator.waitForIdle();
+
+			const records = await readCanonicalRecords(dbPath);
+			const outcomes = records.filter((record) => record.type === 'tool_outcome');
+			expect(outcomes).toHaveLength(2);
+			expect(outcomes[0]).toMatchObject({
+				toolCallId: 'tool-call-1',
+				isError: false,
+				content: [{ type: 'text', text: 'Known completed result' }],
+			});
+			expect(outcomes[1]).toMatchObject({ toolCallId: 'tool-call-2', isError: true });
+			expect(records.filter((record) => record.type === 'tool_results_committed')).toHaveLength(1);
+
+			// Silent-erasure regression: the settled turn is included in the model
+			// context of the NEXT submission (an unsettled batch would be dropped).
+			let capturedContext = '';
+			provider.setResponses([
+				(context) => {
+					capturedContext = JSON.stringify(context.messages);
+					return fauxAssistantMessage('Follow-up reply.');
+				},
+			]);
+			await coordinator.admitDispatch(makeDispatchInput({ dispatchId: 'dispatch-follow-up' }));
+			await coordinator.waitForIdle();
+			expect(capturedContext).toContain('tool-call-1');
+			expect(capturedContext).toContain('Known completed result');
+			expect(capturedContext).toContain('tool-call-2');
+			expect(capturedContext).toContain('interrupted');
+			await coordinator.shutdown();
+		});
+
+		it('materializes a ghost in-progress stream as aborted without resumption signals', async () => {
+			const dbPath = createTempDbPath();
+			await seedDanglingSubmission({
+				dbPath,
+				dispatchId: 'dispatch-exhausted-stream',
+				shape: 'ghost-stream',
+			});
+			const provider = createFauxProvider();
+			const { coordinator, executionStore } = await createFauxCoordinator(dbPath, provider);
+			await coordinator.reconcileSubmissions();
+			await coordinator.waitForIdle();
+
+			expect(
+				await executionStore.submissions.getSubmission('dispatch-exhausted-stream'),
+			).toMatchObject({ status: 'settled' });
+			const records = await readCanonicalRecords(dbPath);
+			// The in-progress stream was completed as aborted...
+			expect(
+				records.find((record) => record.id === 'record_recovery_entry_stream_partial_block-stream_completed'),
+			).toBeDefined();
+			expect(
+				records.find((record) => record.id === 'record_recovery_entry_stream_partial_aborted'),
+			).toMatchObject({ type: 'assistant_message_completed', stopReason: 'aborted' });
+			// ...without inviting resumption.
+			expect(
+				records.some(
+					(record) =>
+						record.type === 'signal' &&
+						(record.signalType === 'stream_interrupted' || record.signalType === 'stream_continued'),
+				),
+			).toBe(false);
+			// The advisory has no interrupted tools (none were pending).
+			const advisory = records.find(
+				(record) => record.type === 'signal' && record.signalType === 'submission_interrupted',
+			);
+			expect(advisory).toBeDefined();
+			if (advisory?.type !== 'signal') throw new Error('Expected signal advisory.');
+			expect(advisory.attributes?.interruptedTools).toBeUndefined();
+			await coordinator.shutdown();
+		});
+
+		it('marker-settles the trailing batch when terminalized by timeout', async () => {
+			const dbPath = createTempDbPath();
+			await seedDanglingSubmission({
+				dbPath,
+				dispatchId: 'dispatch-timeout-task',
+				shape: 'task-call',
+				durability: { maxRetry: 5, timeoutAt: Date.now() - 1_000 },
+			});
+			const provider = createFauxProvider();
+			const { coordinator, executionStore } = await createFauxCoordinator(dbPath, provider);
+			await coordinator.reconcileSubmissions();
+			await coordinator.waitForIdle();
+
+			expect(await executionStore.submissions.getSubmission('dispatch-timeout-task')).toMatchObject(
+				{ status: 'settled' },
+			);
+			const records = await readCanonicalRecords(dbPath);
+			expect(
+				records.find((record) => record.type === 'tool_outcome' && record.toolCallId === 'task-call-1'),
+			).toMatchObject({ toolName: 'task', isError: true });
+			const advisory = records.find(
+				(record) => record.type === 'signal' && record.signalType === 'submission_interrupted',
+			);
+			if (advisory?.type !== 'signal') throw new Error('Expected signal advisory.');
+			expect(advisory.attributes?.reason).toBe('exceeded_timeout');
+			expect(JSON.parse(advisory.attributes?.interruptedTools ?? '[]')).toEqual([
+				{ name: 'task', id: 'task-call-1' },
+			]);
+			await coordinator.shutdown();
+		});
+
+		it('marker-settles the trailing batch when a crash-interrupted submission is aborted', async () => {
+			const dbPath = createTempDbPath();
+			await seedDanglingSubmission({
+				dbPath,
+				dispatchId: 'dispatch-aborted-batch',
+				shape: 'partial-batch',
+				durability: { maxRetry: 5, timeoutAt: Date.now() + 60_000 },
+			});
+			const provider = createFauxProvider();
+			const { coordinator, executionStore } = await createFauxCoordinator(dbPath, provider);
+			expect(await coordinator.abortInstance('assistant', 'instance-1')).toBe(true);
+			await coordinator.reconcileSubmissions();
+			await coordinator.waitForIdle();
+
+			expect(
+				await executionStore.submissions.getSubmission('dispatch-aborted-batch'),
+			).toMatchObject({ status: 'settled' });
+			const records = await readCanonicalRecords(dbPath);
+			expect(
+				records.find((record) => record.type === 'tool_outcome' && record.toolCallId === 'tool-call-2'),
+			).toMatchObject({ isError: true });
+			expect(records.filter((record) => record.type === 'tool_results_committed')).toHaveLength(1);
+			const advisory = records.find(
+				(record) => record.type === 'signal' && record.signalType === 'submission_aborted',
+			);
+			expect(advisory).toBeDefined();
+			if (advisory?.type !== 'signal') throw new Error('Expected signal advisory.');
+			expect(JSON.parse(advisory.attributes?.interruptedTools ?? '[]')).toEqual([
+				{ name: 'lookup', id: 'tool-call-2' },
+			]);
+			await coordinator.shutdown();
+		});
+
+		it('self-heals a conversation left dangling by an already-settled submission on the next input', async () => {
+			const dbPath = createTempDbPath();
+			// Pre-fix damage: the submission settled without settling its
+			// conversation (terminal paths used to skip repair entirely).
+			await seedDanglingSubmission({
+				dbPath,
+				dispatchId: 'dispatch-damaged',
+				shape: 'partial-batch',
+				durability: { maxRetry: 5, timeoutAt: Date.now() + 60_000 },
+			});
+			const store = await openExecutionStore(dbPath);
+			await store.submissions.failSubmission(
+				{ submissionId: 'dispatch-damaged', attemptId: 'attempt-dispatch-damaged' },
+				new Error('pre-fix damage'),
+			);
+
+			const provider = createFauxProvider();
+			let capturedContext = '';
+			provider.setResponses([
+				(context) => {
+					capturedContext = JSON.stringify(context.messages);
+					return fauxAssistantMessage('Healed reply.');
+				},
+			]);
+			const { coordinator, executionStore } = await createFauxCoordinator(dbPath, provider);
+			await coordinator.admitDispatch(makeDispatchInput({ dispatchId: 'dispatch-healer' }));
+			await coordinator.waitForIdle();
+
+			expect(await executionStore.submissions.getSubmission('dispatch-healer')).toMatchObject({
+				status: 'settled',
+			});
+			const records = await readCanonicalRecords(dbPath);
+			// The abandoned batch was settled before the new input extended the leaf.
+			const commitIndex = records.findIndex((record) => record.type === 'tool_results_committed');
+			const healerInputIndex = records.findIndex(
+				(record) => record.id === 'record_dispatch_input_dispatch-healer',
+			);
+			expect(commitIndex).toBeGreaterThan(-1);
+			expect(healerInputIndex).toBeGreaterThan(-1);
+			expect(commitIndex).toBeLessThan(healerInputIndex);
+			// And the repaired turn is visible to the healer's model context.
+			expect(capturedContext).toContain('Known completed result');
+			expect(capturedContext).toContain('tool-call-2');
+			await coordinator.shutdown();
+		});
+	});
 
 	describe('tool-use turns', () => {
 		it('records each tool outcome before committing the batch during a tool-use turn', async () => {

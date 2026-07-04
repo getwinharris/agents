@@ -40,6 +40,8 @@ After interruption, Flue decides what to do next from the canonical conversation
 
 This recovery is intentionally conservative because repeating model or tool activity can duplicate external effects. Use application-owned idempotency keys where repeated effects would be harmful. See [Deploy Agents on Cloudflare](/docs/ecosystem/deploy/cloudflare/) for platform configuration and migrations.
 
+When recovery cannot complete the work — the retry budget (`durability.maxAttempts`) is exhausted, the processing timeout expires, or an abort settles a crash-interrupted submission — the submission is terminalized and its conversation is settled to a deterministic rest state. Every tool call without a confirmed outcome receives an explicit interrupted-error result (never a re-execution), an interrupted partial stream is completed as aborted, and a terminal advisory records the reason with the interrupted calls as structured metadata. No tool call is ever left permanently unresolved, and the settled turn stays visible to future model context.
+
 ### Durable Agents on Node.js
 
 Without `db.ts`, Node uses process-local in-memory SQLite. Restarting the process loses conversations, accepted submissions, and workflow records.
@@ -70,6 +72,8 @@ A file-backed SQLite adapter protects against restart on the same host. Survivin
 A model-invoked `task(...)` delegates work to a subagent that runs inside the parent operation, writing its own durable conversation records as it goes. If the process disappears while a subagent is mid-flight, recovery resumes that subagent in-process from its durable records — continuing an interrupted stream or an unfinished tool batch exactly as a top-level agent recovers — and resolves the parent's `task` tool call from the resumed result. The subagent shares the parent's durability envelope (timeout and retry budget) and has no independent durability configuration.
 
 If a subagent's profile no longer exists after a redeploy, that one `task` call resolves with an error so the parent can continue; recovery never silently abandons work that a retry could still complete.
+
+If the parent's budget runs out while a subagent is still unresolved, the parent is terminalized like any other submission: the `task` call settles with an interrupted-error outcome that links the child's retained conversation, rather than resuming the child past the budget. The child's durable transcript remains available for inspection.
 
 Programmatic `session.task(...)` calls made directly from your own code are not recovered this way: like other programmatic session calls, they have no durable submission to resume from.
 

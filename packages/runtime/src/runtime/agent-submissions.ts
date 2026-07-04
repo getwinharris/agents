@@ -49,6 +49,13 @@ export interface AgentSubmissionInterruption {
 	readonly message: string;
 }
 
+/** A tool call whose outcome could not be confirmed and was settled with an
+ *  explicit interrupted-marker error at submission terminalization. */
+export interface InterruptedToolCallRef {
+	readonly name: string;
+	readonly id: string;
+}
+
 export type AgentSubmissionInspection = 'absent' | 'completed' | 'continuable' | 'uncertain';
 
 
@@ -78,7 +85,16 @@ export interface AgentSubmissionSession {
 		attempt: SubmissionAttemptRef,
 		turnId?: string,
 	): Promise<boolean>;
-	recordSubmissionTerminal(input: AgentSubmissionInterruption): Promise<void>;
+	/**
+	 * Record the terminal advisory for a failed/aborted submission. As the
+	 * contract of terminalization, first settles the conversation to a
+	 * deterministic rest state (ghost stream materialized, trailing tool batch
+	 * marker-settled) and returns the calls that were settled with interrupted
+	 * markers.
+	 */
+	recordSubmissionTerminal(
+		input: AgentSubmissionInterruption,
+	): Promise<ReadonlyArray<InterruptedToolCallRef>>;
 }
 
 interface AttachedAgentSubmissionReceipt {
@@ -249,24 +265,24 @@ export async function reconcileInterruptedSubmission(
 	// misdescribe work that never happened. The shared budget itself is
 	// intentional — only the message distinguishes the case.
 	if (submission.attemptCount >= submission.maxRetry) {
-		const error =
-			submission.inputAppliedAt === undefined
-				? new SubmissionInterruptedError({
-						phase: 'retry_exhausted_before_input',
-						attemptCount: submission.attemptCount,
-						maxAttempts: submission.maxRetry,
-					})
-				: new SubmissionRetryExhaustedError({
-						attemptCount: submission.attemptCount,
-						maxAttempts: submission.maxRetry,
-					});
 		await failInterruptedSubmission(
 			submissions,
 			submission,
 			attempt,
 			agent,
 			'exhausted_retry_budget',
-			error,
+			(interruptedTools) =>
+				submission.inputAppliedAt === undefined
+					? new SubmissionInterruptedError({
+							phase: 'retry_exhausted_before_input',
+							attemptCount: submission.attemptCount,
+							maxAttempts: submission.maxRetry,
+						})
+					: new SubmissionRetryExhaustedError({
+							attemptCount: submission.attemptCount,
+							maxAttempts: submission.maxRetry,
+							...(interruptedTools ? { interruptedTools } : {}),
+						}),
 			createContext,
 			conversationWriter,
 		);
@@ -275,14 +291,13 @@ export async function reconcileInterruptedSubmission(
 
 	// Check timeout.
 	if (submission.timeoutAt > 0 && Date.now() >= submission.timeoutAt) {
-		const error = new SubmissionTimeoutError();
 		await failInterruptedSubmission(
 			submissions,
 			submission,
 			attempt,
 			agent,
 			'exceeded_timeout',
-			error,
+			() => new SubmissionTimeoutError(),
 			createContext,
 			conversationWriter,
 		);
@@ -371,14 +386,17 @@ export async function reconcileInterruptedSubmission(
 
 	// The input-applied marker was written but the canonical input is absent
 	// (it could not be persisted before the crash): nothing to resume — fail.
-	const error = new SubmissionInterruptedError({ phase: 'after_input_application' });
 	await failInterruptedSubmission(
 		submissions,
 		submission,
 		attempt,
 		agent,
 		'interrupted_after_input_application',
-		error,
+		(interruptedTools) =>
+			new SubmissionInterruptedError({
+				phase: 'after_input_application',
+				...(interruptedTools ? { interruptedTools } : {}),
+			}),
 		createContext,
 		conversationWriter,
 	);
@@ -607,7 +625,7 @@ async function failInterruptedSubmission(
 	attempt: SubmissionAttemptRef,
 	agent: AgentDefinition,
 	reason: AgentSubmissionInterruption['reason'],
-	error: Error,
+	createError: (interruptedTools?: ReadonlyArray<InterruptedToolCallRef>) => Error,
 	createContext: (dispatchId: string | undefined) => FlueContextInternal,
 	conversationWriter?: ConversationRecordWriter,
 ): Promise<void> {
@@ -615,19 +633,23 @@ async function failInterruptedSubmission(
 	const dispatchId = agentSubmissionDispatchId(input);
 	const ctx = createContext(dispatchId);
 	if (submission.kind === 'direct') ctx.setSubmissionId?.(submission.submissionId);
-	// The terminal message is a best-effort diagnostic recorded in the
-	// session. If it fails (e.g., disk full, SQLite corruption), proceed
-	// to settle the submission anyway — a persistent save failure must
-	// not leave the submission in an infinite reconciliation loop.
+	// The terminal record settles the conversation to a deterministic rest
+	// state (ghost stream materialized, unresolved tool calls marker-settled)
+	// and reports which calls were interrupted; the settlement error is then
+	// built from that report so store waiters carry the same structured
+	// metadata. Best-effort: if the record fails (e.g., disk full, SQLite
+	// corruption), proceed to settle the submission anyway — a persistent save
+	// failure must not leave the submission in an infinite reconciliation loop.
+	let interruptedTools: ReadonlyArray<InterruptedToolCallRef> | undefined;
 	try {
-		await createAgentSubmissionSessionHandler(agent, input, (s) =>
+		interruptedTools = await createAgentSubmissionSessionHandler(agent, input, (s) =>
 			s.recordSubmissionTerminal({
 				submissionId: submission.submissionId,
 				kind: submission.kind,
 				reason,
-				message: error.message,
+				message: createError(undefined).message,
 			}),
-		)(ctx);
+		)(ctx) as ReadonlyArray<InterruptedToolCallRef>;
 	} catch (terminalError) {
 		console.error(
 			'[flue:submission-reconciliation] Failed to record terminal message for submission',
@@ -635,6 +657,7 @@ async function failInterruptedSubmission(
 			terminalError,
 		);
 	}
+	const error = createError(interruptedTools?.length ? interruptedTools : undefined);
 	if (submission.kind === 'direct') {
 		await settleDirectSubmission(
 			submissions,
