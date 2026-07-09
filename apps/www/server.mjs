@@ -17,6 +17,7 @@ const HOST_PREFIX = {
   'mediahub.bapx.in': '/mediahub',
   'agents.bapx.in': '/agents',
   'admin.bapx.in': '/admin',
+  'platform.bapx.in': '/platform',
 };
 
 const MIME = {

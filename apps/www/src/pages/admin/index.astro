@@ -1,0 +1,67 @@
+---
+import "../../styles/global.css";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin | bapX</title>
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
+      <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+        <div class="flex h-full items-center gap-8">
+          <a href="/" class="flex items-center gap-2">
+            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
+          </a>
+          <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
+            <a href="/admin/" class="active">Dashboard</a>
+            <a href="/admin/posts/">Posts</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="/" class="bapx-pill">Back to site</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="page-section page-header">
+      <div class="section-inner" style="max-width: 960px;">
+        <span class="mono-label">Admin</span>
+        <h1 class="display-lg" style="margin-top: 1.75rem;">Dashboard</h1>
+        <p class="body-lg" style="margin-top: 1.5rem; max-width: 560px;">Manage bapX blog posts and site content.</p>
+
+        <div class="card-grid-2" style="margin-top: 3rem;">
+          <a href="/admin/posts/" class="card" style="display: block;">
+            <h2 class="display-md">Posts</h2>
+            <p class="body-sm" style="margin-top: .75rem; color: var(--body-mid);">Create, edit, and publish blog posts.</p>
+            <span class="mono-label" style="margin-top: 1rem;" id="post-count">Loading...</span>
+          </a>
+          <div class="card">
+            <h2 class="display-md">Quick Actions</h2>
+            <div class="pill-links" style="margin-top: 1rem;">
+              <a href="/admin/editor/">New Post</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      fetch('/api/posts')
+        .then(r => r.json())
+        .then(data => {
+          const el = document.getElementById('post-count');
+          if (el) el.textContent = data.posts.length + ' post' + (data.posts.length !== 1 ? 's' : '');
+        })
+        .catch(() => {});
+    </script>
+  </body>
+</html>

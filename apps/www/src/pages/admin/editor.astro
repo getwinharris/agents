@@ -1,0 +1,153 @@
+---
+import "../../styles/global.css";
+const slugParam = Astro.url.searchParams.get('slug') || '';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Editor | bapX Admin</title>
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
+      <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+        <div class="flex h-full items-center gap-8">
+          <a href="/" class="flex items-center gap-2">
+            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
+          </a>
+          <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
+            <a href="/admin/">Dashboard</a>
+            <a href="/admin/posts/">Posts</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main class="page-section page-header">
+      <div class="section-inner" style="max-width: 800px;">
+        <span class="mono-label">Admin</span>
+        <h1 class="display-lg" style="margin-top: .5rem;" id="editor-title">New Post</h1>
+
+        <form id="post-form" style="margin-top: 2rem; display: grid; gap: 1.25rem;">
+          <div>
+            <label style="display: block; color: var(--body-mid); font-size: .875rem; margin-bottom: .375rem;">Slug</label>
+            <input name="slug" id="field-slug" required style="width: 100%; padding: .625rem .75rem; border: 1px solid var(--hairline); border-radius: 6px; background: var(--canvas-card); color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: .875rem;" placeholder="my-post-slug" />
+          </div>
+          <div>
+            <label style="display: block; color: var(--body-mid); font-size: .875rem; margin-bottom: .375rem;">Title</label>
+            <input name="title" id="field-title" style="width: 100%; padding: .625rem .75rem; border: 1px solid var(--hairline); border-radius: 6px; background: var(--canvas-card); color: var(--ink); font-size: .875rem;" placeholder="Post Title" />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <label style="display: block; color: var(--body-mid); font-size: .875rem; margin-bottom: .375rem;">Date</label>
+              <input name="date" id="field-date" type="date" style="width: 100%; padding: .625rem .75rem; border: 1px solid var(--hairline); border-radius: 6px; background: var(--canvas-card); color: var(--ink); font-size: .875rem;" />
+            </div>
+            <div>
+              <label style="display: block; color: var(--body-mid); font-size: .875rem; margin-bottom: .375rem;">Category</label>
+              <select name="category" id="field-category" style="width: 100%; padding: .625rem .75rem; border: 1px solid var(--hairline); border-radius: 6px; background: var(--canvas-card); color: var(--ink); font-size: .875rem;">
+                <option value="">None</option>
+                <option value="announcement">Announcement</option>
+                <option value="engineering">Engineering</option>
+                <option value="tutorial">Tutorial</option>
+                <option value="ecosystem">Ecosystem</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label style="display: block; color: var(--body-mid); font-size: .875rem; margin-bottom: .375rem;">Author</label>
+            <input name="author" id="field-author" style="width: 100%; padding: .625rem .75rem; border: 1px solid var(--hairline); border-radius: 6px; background: var(--canvas-card); color: var(--ink); font-size: .875rem;" placeholder="bapX Team" />
+          </div>
+          <div>
+            <label style="display: block; color: var(--body-mid); font-size: .875rem; margin-bottom: .375rem;">Description / Excerpt</label>
+            <textarea name="description" id="field-description" rows="2" style="width: 100%; padding: .625rem .75rem; border: 1px solid var(--hairline); border-radius: 6px; background: var(--canvas-card); color: var(--ink); font-size: .875rem; resize: vertical;" placeholder="Short description for the blog index and meta tags."></textarea>
+          </div>
+          <div>
+            <label style="display: block; color: var(--body-mid); font-size: .875rem; margin-bottom: .375rem;">Content (MDX)</label>
+            <textarea name="content" id="field-content" rows="20" style="width: 100%; padding: .625rem .75rem; border: 1px solid var(--hairline); border-radius: 6px; background: var(--canvas-card); color: var(--ink); font-size: .875rem; font-family: 'JetBrains Mono', monospace; resize: vertical; line-height: 1.6;" placeholder="Write your post content in MDX..."></textarea>
+          </div>
+          <div style="display: flex; gap: .75rem; align-items: center; flex-wrap: wrap;">
+            <label style="display: flex; align-items: center; gap: .5rem; color: var(--body); font-size: .875rem; cursor: pointer;">
+              <input name="published" id="field-published" type="checkbox" checked style="accent-color: var(--ink);" /> Published
+            </label>
+          </div>
+          <div style="display: flex; gap: .75rem;">
+            <button type="submit" id="save-btn" class="bapx-pill bapx-pill-primary" style="cursor: pointer; border: none; font-family: inherit;">Save</button>
+            <span id="save-status" style="color: var(--body-mid); font-size: .875rem; align-self: center;"></span>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <script>
+      const isEditing = !!'{{slugParam}}';
+      let currentSlug = '{{slugParam}}' || null;
+
+      if (currentSlug) {
+        document.getElementById('editor-title').textContent = 'Edit Post';
+        document.getElementById('save-btn').textContent = 'Update';
+        fetch('/api/posts/' + encodeURIComponent(currentSlug))
+          .then(r => r.json())
+          .then(data => {
+            const p = data.post;
+            if (!p) return;
+            document.getElementById('field-slug').value = p.slug;
+            document.getElementById('field-title').value = p.title || '';
+            document.getElementById('field-date').value = p.date || '';
+            document.getElementById('field-category').value = p.category || '';
+            document.getElementById('field-author').value = p.author || '';
+            document.getElementById('field-description').value = p.description || '';
+            document.getElementById('field-content').value = p.content || '';
+            document.getElementById('field-published').checked = p.published !== false;
+          })
+          .catch(() => {});
+      } else {
+        document.getElementById('field-date').value = new Date().toISOString().slice(0, 10);
+      }
+
+      document.getElementById('post-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const status = document.getElementById('save-status');
+        const slug = document.getElementById('field-slug').value.trim();
+        if (!slug) { status.textContent = 'Slug is required'; return; }
+        const data = {
+          slug,
+          title: document.getElementById('field-title').value.trim(),
+          date: document.getElementById('field-date').value,
+          category: document.getElementById('field-category').value,
+          author: document.getElementById('field-author').value.trim(),
+          authorUrl: '',
+          description: document.getElementById('field-description').value.trim(),
+          content: document.getElementById('field-content').value,
+          published: document.getElementById('field-published').checked,
+        };
+        status.textContent = 'Saving...';
+        try {
+          const url = currentSlug ? `/api/posts/${encodeURIComponent(currentSlug)}` : '/api/posts';
+          const method = currentSlug ? 'PUT' : 'POST';
+          const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+          if (res.ok) {
+            status.textContent = 'Saved!';
+            if (!currentSlug) {
+              currentSlug = slug;
+              window.history.replaceState({}, '', '/admin/editor/?slug=' + encodeURIComponent(slug));
+              document.getElementById('editor-title').textContent = 'Edit Post';
+              document.getElementById('save-btn').textContent = 'Update';
+            }
+          } else {
+            const err = await res.json();
+            status.textContent = 'Error: ' + (err.error || 'Save failed');
+          }
+        } catch (err) {
+          status.textContent = 'Error: ' + (err.message || 'Network error');
+        }
+      });
+    </script>
+  </body>
+</html>
