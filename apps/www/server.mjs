@@ -8,6 +8,7 @@ const root = path.resolve(dirname, 'dist');
 const port = parseInt(process.env.PORT || '3002', 10);
 const dataDir = path.resolve(dirname, 'data');
 const postsFile = path.join(dataDir, 'posts.json');
+const workspaceRoot = process.env.WORKSPACE_ROOT || path.resolve(dirname, '../../..');
 
 // Hostname -> path prefix mapping for subdomain-based serving.
 const HOST_PREFIX = {
@@ -18,6 +19,7 @@ const HOST_PREFIX = {
   'agents.bapx.in': '/agents',
   'admin.bapx.in': '/admin',
   'platform.bapx.in': '/platform',
+  'docs.bapx.in': '/docs',
 };
 
 const MIME = {
@@ -32,7 +34,39 @@ const MIME = {
   '.woff': 'font/woff',
 };
 
-// --- Admin API helpers ---
+const ALLOWED_EXTENSIONS = ['.md', '.mdx', '.mmd', '.json', '.ts', '.astro', '.css', '.mjs', '.yaml', '.yml', '.toml'];
+
+// --- Workspace file API ---
+
+function resolveSafePath(filePath) {
+  const resolved = path.resolve(workspaceRoot, filePath);
+  if (!resolved.startsWith(workspaceRoot)) return null;
+  return resolved;
+}
+
+function buildFileTree(dir, basePath = '') {
+  const items = [];
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => {
+      if (a.isDirectory() && !b.isDirectory()) return -1;
+      if (!a.isDirectory() && b.isDirectory()) return 1;
+      return a.name.localeCompare(b.name);
+    });
+    for (const entry of entries) {
+      if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
+      const relPath = basePath ? `${basePath}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) {
+        items.push({ type: 'directory', name: entry.name, path: relPath });
+      } else {
+        const ext = path.extname(entry.name);
+        if (ALLOWED_EXTENSIONS.includes(ext)) {
+          items.push({ type: 'file', name: entry.name, path: relPath, ext });
+        }
+      }
+    }
+  } catch {}
+  return items;
+}
 
 function readPosts() {
   try {
@@ -64,6 +98,66 @@ function parseBody(req) {
     });
     req.on('error', reject);
   });
+}
+
+// --- Workspace API router ---
+
+async function handleWorkspaceAPI(req, res, urlPath) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return true;
+  }
+
+  const segments = urlPath.replace(/^\/api\/ws\//, '').split('/').filter(Boolean);
+
+  // GET /admin/api/ws/tree - list directory
+  if (req.method === 'GET' && segments[0] === 'tree') {
+    const subPath = segments.slice(1).join('/') || '';
+    const targetPath = resolveSafePath(subPath);
+    if (!targetPath) { jsonResponse(res, 403, { error: 'Forbidden' }); return true; }
+    const tree = buildFileTree(targetPath, subPath);
+    jsonResponse(res, 200, { items: tree, path: subPath });
+    return true;
+  }
+
+  // GET /admin/api/ws/file?path=... - read file
+  if (req.method === 'GET' && segments[0] === 'file') {
+    const parsed = new URL(req.url, `http://${req.headers.host}`);
+    const filePath = parsed.searchParams.get('path') || '';
+    const targetPath = resolveSafePath(filePath);
+    if (!targetPath) { jsonResponse(res, 403, { error: 'Forbidden' }); return true; }
+    try {
+      const content = fs.readFileSync(targetPath, 'utf-8');
+      const ext = path.extname(targetPath);
+      jsonResponse(res, 200, { content, path: filePath, ext });
+    } catch (e) {
+      jsonResponse(res, 404, { error: 'File not found' });
+    }
+    return true;
+  }
+
+  // PUT /admin/api/ws/file - write file
+  if (req.method === 'PUT' && segments[0] === 'file') {
+    try {
+      const body = await parseBody(req);
+      const filePath = body.path || '';
+      const targetPath = resolveSafePath(filePath);
+      if (!targetPath) { jsonResponse(res, 403, { error: 'Forbidden' }); return true; }
+      fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+      fs.writeFileSync(targetPath, body.content, 'utf-8');
+      jsonResponse(res, 200, { ok: true, path: filePath });
+    } catch (e) {
+      jsonResponse(res, 500, { error: e.message });
+    }
+    return true;
+  }
+
+  return false;
 }
 
 // --- Admin API router ---
@@ -171,6 +265,10 @@ http.createServer(async (req, res) => {
 
   // Admin API routes
   if (prefix === '/admin' && urlPath.startsWith('/api/')) {
+    if (urlPath.startsWith('/admin/api/ws/')) {
+      const handled = await handleWorkspaceAPI(req, res, urlPath);
+      if (handled) return;
+    }
     const handled = await handleAdminAPI(req, res, urlPath);
     if (handled) return;
   }

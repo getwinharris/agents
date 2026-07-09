@@ -1,0 +1,339 @@
+---
+title: Build Agents for GitLab CI/CD
+description: Build and run Bapx agents in GitLab CI/CD pipelines.
+---
+
+Build and run Bapx agents in GitLab CI/CD pipelines. This guide walks you through creating your first agent, running it locally with the CLI, and wiring it into a pipeline.
+
+By the end, you will have a Bapx agent running inside GitLab CI/CD, and you will know how to use local sandbox context, external CLIs, subagents, skills, and typed results to build CI workflows.
+
+## Hello World
+
+A minimal agent that runs in CI whenever an issue is opened.
+
+### 1. Set up your project
+
+```bash
+mkdir my-bapX-project && cd my-bapX-project
+npm init -y
+npm install @bapX/runtime valibot
+npm install -D @bapX/cli
+```
+
+### 2. Create your first agent
+
+`.bapX/workflows/hello.ts`:
+
+```typescript
+import { defineAgent, defineWorkflow } from '@bapX/runtime';
+import { local } from '@bapX/runtime/node';
+import * as v from 'valibot';
+
+const agent = defineAgent(() => ({ sandbox: local(), model: 'anthropic/claude-sonnet-4-6' }));
+
+export default defineWorkflow({
+  agent,
+  input: v.object({ name: v.optional(v.string()) }),
+
+  async run({ harness, input }) {
+    const { data } = await (
+      await harness.session()
+    ).prompt(`Say hello to ${input.name ?? 'the user'} and share an interesting fact.`, {
+      result: v.object({
+        greeting: v.string(),
+        fact: v.string(),
+      }),
+    });
+    return data;
+  },
+});
+```
+
+A few things to note:
+
+- This workflow omits a public `route` handler, so it is internal-only and designed to be run from the CLI, which is perfect for CI.
+- **`model`** — The workflow's required agent provides the model and sandbox policy used to initialize each run.
+- **`local()`** — The `local()` sandbox runs the agent directly against the host filesystem and shell. In CI, that's the checked-out repo plus whatever binaries are on `$PATH` (`glab`, `git`, `npm`, etc.). Skills and `AGENTS.md` are discovered automatically from the project root. By default only shell-essential env vars (`PATH`, `HOME`, locale, etc.) are inherited from `process.env` — pass `local({ env: { GITLAB_TOKEN: process.env.GITLAB_TOKEN } })` to expose more. Use `local()` only when the runner itself provides the isolation boundary.
+- **Schemas** — The [Valibot](https://valibot.dev) schema defines the expected output shape. Bapx parses the agent's response and returns it on `response.data`, fully typed.
+
+### 3. Test it locally
+
+```bash
+npx bapX run hello --target node \
+  --input '{"name": "World"}'
+```
+
+`bapX run` starts the configured application temporarily, invokes the workflow through its existing `bapX()` mount, streams progress to stderr, and prints the final result as JSON to stdout. Normal `app.ts` and middleware execute. The workflow does not need authored HTTP exposure because this local runtime temporarily exposes route-free resources.
+
+### 4. Wire it into GitLab CI/CD
+
+`.gitlab-ci.yml`:
+
+```yaml
+hello:
+  image: node:22
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $ISSUE_ACTION == "open"
+  before_script:
+    - npm ci
+  script:
+    - |
+      npx bapX run hello --target node \
+        --input "{\"name\": \"$ISSUE_AUTHOR\"}"
+```
+
+#### Triggering pipelines from issue events
+
+GitLab doesn't pass issue data into CI variables automatically. You need a [pipeline trigger](https://docs.gitlab.com/ee/ci/triggers/) to bridge the gap:
+
+1. Create a pipeline trigger token: **Settings > CI/CD > Pipeline trigger tokens**
+2. Add a project webhook (**Settings > Webhooks**) that fires on **Issue events**, pointing at a small relay that calls the trigger API with the right variables:
+
+```typescript
+// Deploy as a serverless function or lightweight server
+async function handleGitLabWebhook(event) {
+  const { object_kind, object_attributes, issue } = event;
+  let variables: Record<string, string> = {};
+
+  if (object_kind === 'issue') {
+    variables = {
+      ISSUE_ACTION: object_attributes.action,
+      ISSUE_IID: String(object_attributes.iid),
+      ISSUE_AUTHOR: object_attributes.author?.username ?? '',
+    };
+  } else if (object_kind === 'note' && issue) {
+    variables = {
+      ISSUE_ACTION: 'note',
+      ISSUE_IID: String(issue.iid),
+    };
+  } else {
+    return;
+  }
+
+  await fetch(`${GITLAB_URL}/api/v4/projects/${PROJECT_ID}/trigger/pipeline`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: TRIGGER_TOKEN, ref: 'main', variables }),
+  });
+}
+```
+
+Once wired up, open an issue and you'll see a passing pipeline with the agent's greeting in the logs.
+
+## Building a real agent
+
+Now let's build something useful — an issue triage agent that analyzes an issue and reports back. This is where Bapx's agent features start to shine.
+
+### The agent handler
+
+The workflow Action is where orchestration lives. Its context provides the initialized `harness`, validated `input`, and structured `log`; the bound agent owns model and sandbox policy.
+
+Once you have a session, you have three core methods:
+
+- **`session.shell(cmd)`** — Run a shell command in the sandbox. Returns `{ stdout, stderr, exitCode }`.
+- **`session.prompt(text, opts)`** — Send a prompt to the agent and get back a result.
+- **`session.skill(name, opts)`** — Run a named skill — a reusable agent task defined by a markdown instruction file.
+
+Both `prompt()` and `skill()` accept a `result` option — a [Valibot](https://valibot.dev) schema that defines the expected output shape. Bapx parses the agent's response and returns it on `response.data`, fully typed:
+
+```typescript
+import * as v from 'valibot';
+
+// summary: string
+const { data: summary } = await session.prompt(`Summarize this diff:\n${diff}`, {
+  result: v.string(),
+});
+
+// diagnosis: { reproducible: boolean, skipped: boolean }
+const { data: diagnosis } = await session.skill('triage', {
+  args: { issueIid, issue },
+  result: v.object({
+    reproducible: v.boolean(),
+    skipped: v.boolean(),
+  }),
+});
+```
+
+### Connecting external CLIs
+
+Your agent often needs to interact with external tools. With `local()`, the agent's bash tool runs against the host shell directly — anything on `$PATH` is reachable. Host env vars are opt-in: only shell essentials (`PATH`, `HOME`, locale, etc.) are inherited by default, so you pass the specific vars your CLIs need via `local({ env: { ... } })`.
+
+In GitLab CI, this means you set the secrets you want the agent's CLIs to see in the job's `variables:` block (or as masked CI/CD variables), then forward them explicitly into the sandbox. The runner is your isolation boundary; bapX makes the inner boundary (host → spawned shell) explicit.
+
+`.bapX/workflows/triage.ts`:
+
+```typescript
+import { defineAgent, defineWorkflow } from '@bapX/runtime';
+import { local } from '@bapX/runtime/node';
+import * as v from 'valibot';
+
+const agent = defineAgent(() => ({
+  sandbox: local({
+    env: { GITLAB_TOKEN: process.env.GITLAB_TOKEN },
+  }),
+  model: 'anthropic/claude-opus-4-7',
+}));
+
+export default defineWorkflow({
+  agent,
+  input: v.object({ issueIid: v.number(), projectId: v.string() }),
+
+  async run({ harness, input }) {
+    const { data } = await (
+      await harness.session()
+    ).skill('triage', {
+      args: {
+        issueIid: input.issueIid,
+        projectId: input.projectId,
+      },
+      result: v.object({
+        severity: v.picklist(['low', 'medium', 'high', 'critical']),
+        reproducible: v.boolean(),
+        summary: v.string(),
+        fix_applied: v.boolean(),
+      }),
+    });
+    return data;
+  },
+});
+```
+
+If you want a tighter boundary — the agent can call a specific operation but never see the underlying token — return the custom tool from `defineAgent(...)` with `tools: [...]`. The tool implementation reads the secret from `process.env`; the agent only sees the tool's parameters and result.
+
+### Subagents
+
+Named subagents can run focused detached tasks:
+
+```typescript
+const reviewer = defineAgentProfile({
+  name: 'reviewer',
+  instructions: 'Focus on correctness, security, and project standards.',
+});
+const agent = defineAgent(() => ({ model: 'anthropic/claude-sonnet-4-6', subagents: [reviewer] }));
+async run({ harness, input }) {
+  const { data } = await (await harness.session()).task(`Review this MR:\n${input.diff}`, {
+  agent: 'reviewer',
+    result: v.object({ approved: v.boolean(), comments: v.array(v.string()) }),
+  });
+  return data;
+}
+```
+
+### Sandbox context
+
+The agent reads `AGENTS.md` and skills from its sandbox at runtime. CI agents typically use `local()`, which gives direct access to the runner's checkout — so any files in your repo are visible automatically.
+
+**Skills** are reusable agent tasks defined as markdown files in `.agents/skills/`. They give the agent a focused instruction set for a specific job:
+
+`.agents/skills/triage/SKILL.md`:
+
+```markdown
+---
+name: triage
+description: Triage a GitLab issue — reproduce, assess severity, and optionally fix.
+---
+
+Given the issue IID and project ID in the arguments:
+
+1. Use `glab issue view <iid>` to fetch the issue details
+2. Read the codebase to understand the relevant area
+3. Attempt to reproduce the issue
+4. Assess severity and write a summary
+5. If the fix is straightforward, apply it and push a branch
+```
+
+**`AGENTS.md`** at your project root is the agent's system prompt — it provides global context about the project:
+
+```markdown
+You are a helpful assistant working on the my-project codebase.
+
+## Project structure
+
+- `src/` — Application source code
+- `tests/` — Test suite
+
+## Guidelines
+
+- Always run tests before suggesting a fix is complete
+- Use the project's existing patterns and conventions
+```
+
+### Wiring it into GitLab CI/CD
+
+`.gitlab-ci.yml`:
+
+```yaml
+triage:
+  image: node:22
+  timeout: 30 minutes
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $ISSUE_ACTION == "open"
+  before_script:
+    - npm ci
+  script:
+    - |
+      npx bapX run triage --target node \
+        --input "{\"issueIid\": $ISSUE_IID, \"projectId\": \"$CI_PROJECT_ID\"}"
+```
+
+Add these as CI/CD variables (**Settings > CI/CD > Variables**, masked):
+
+| Variable            | Description                                       |
+| ------------------- | ------------------------------------------------- |
+| `ANTHROPIC_API_KEY` | API key for your LLM provider                     |
+| `GITLAB_API_TOKEN`  | Project or personal access token with `api` scope |
+
+## Typed results and orchestration
+
+Result schemas aren't just for type safety — they're how you orchestrate multi-step workflows. Because you get typed data back from `prompt()` and `skill()`, you can branch on results within a single agent:
+
+```typescript
+import { defineAgent, defineWorkflow } from '@bapX/runtime';
+import { local } from '@bapX/runtime/node';
+import * as v from 'valibot';
+
+const agent = defineAgent(() => ({ sandbox: local(), model: 'anthropic/claude-sonnet-4-6' }));
+
+export default defineWorkflow({
+  agent,
+  input: v.object({ issueIid: v.number() }),
+
+  async run({ harness, input }) {
+    const session = await harness.session();
+    const { data } = await session.skill('triage', {
+      args: { issueIid: input.issueIid },
+      result: v.object({
+        severity: v.picklist(['low', 'medium', 'high', 'critical']),
+        reproducible: v.boolean(),
+        summary: v.string(),
+      }),
+    });
+
+    if (data.severity === 'critical' && data.reproducible) {
+      await session.skill('auto-fix', {
+        args: { issueIid: input.issueIid },
+        result: v.object({ fix_applied: v.boolean(), branch: v.optional(v.string()) }),
+      });
+    }
+    return data;
+  },
+});
+```
+
+This pattern — prompt or skill call, check the result, decide what to do next — is how you build sophisticated agents that go beyond single-shot prompts.
+
+## Running workflows locally
+
+During development, `bapX run` starts the configured application temporarily and runs the workflow in one step:
+
+```bash
+# Run with input
+npx bapX run triage --target node \
+  --input '{"issueIid": 42, "projectId": "123"}'
+
+# Pipe the result to jq
+npx bapX run triage --target node \
+  --input '{"issueIid": 42}' | jq '.severity'
+```
+
+The CLI invokes the workflow over the temporary application's normal HTTP surface, so `app.ts` and middleware run. Progress goes to stderr and the final result to stdout.

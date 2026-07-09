@@ -22,7 +22,7 @@ import "../../styles/global.css";
             <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
           </a>
           <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
-            <a href="/admin/" class="active">Dashboard</a>
+            <a href="/admin/" class="active">Workspace</a>
             <a href="/admin/posts/">Posts</a>
           </div>
         </div>
@@ -32,36 +32,196 @@ import "../../styles/global.css";
       </div>
     </nav>
 
-    <main class="page-section page-header">
-      <div class="section-inner" style="max-width: 960px;">
-        <span class="mono-label">Admin</span>
-        <h1 class="display-lg" style="margin-top: 1.75rem;">Dashboard</h1>
-        <p class="body-lg" style="margin-top: 1.5rem; max-width: 560px;">Manage bapX blog posts and site content.</p>
+    <div style="display: flex; height: calc(100vh - 3.5rem);">
+      <!-- File tree sidebar -->
+      <aside id="file-tree" style="width: 280px; min-width: 280px; border-right: 1px solid var(--hairline); overflow-y: auto; background: var(--canvas-card); padding: .75rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: .75rem; padding: 0 .25rem;">
+          <span class="mono-label">bapx.in</span>
+          <span id="loading-indicator" style="font-size: .75rem; color: var(--body-mid);">loading</span>
+        </div>
+        <div id="tree-root"></div>
+      </aside>
 
-        <div class="card-grid-2" style="margin-top: 3rem;">
-          <a href="/admin/posts/" class="card" style="display: block;">
-            <h2 class="display-md">Posts</h2>
-            <p class="body-sm" style="margin-top: .75rem; color: var(--body-mid);">Create, edit, and publish blog posts.</p>
-            <span class="mono-label" style="margin-top: 1rem;" id="post-count">Loading...</span>
-          </a>
-          <div class="card">
-            <h2 class="display-md">Quick Actions</h2>
-            <div class="pill-links" style="margin-top: 1rem;">
-              <a href="/admin/editor/">New Post</a>
-            </div>
+      <!-- Main editor area -->
+      <main style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+        <!-- Tab bar -->
+        <div id="tab-bar" style="display: flex; align-items: center; gap: 0; border-bottom: 1px solid var(--hairline); background: var(--canvas); min-height: 2.25rem; overflow-x: auto; padding: 0 .5rem;">
+          <span style="color: var(--body-mid); font-size: .8125rem; padding: 0 .5rem;">No file open</span>
+        </div>
+
+        <!-- Editor / Viewer -->
+        <div id="editor-area" style="flex: 1; overflow-y: auto; padding: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: .875rem; line-height: 1.6; white-space: pre-wrap; color: var(--body); display: none;">
+        </div>
+
+        <!-- Preview (for MD/MDX) -->
+        <div id="preview-area" style="flex: 1; overflow-y: auto; padding: 2rem; display: none;" class="blog-content">
+        </div>
+
+        <!-- Empty state -->
+        <div id="empty-state" style="flex: 1; display: flex; align-items: center; justify-content: center;">
+          <div style="text-align: center;">
+            <p class="body-lg" style="color: var(--body-mid);">Select a file from the tree</p>
+            <p class="body-sm" style="color: var(--body-mid); margin-top: .5rem;">Browse or search the workspace</p>
           </div>
         </div>
-      </div>
-    </main>
+
+        <!-- Save bar -->
+        <div id="save-bar" style="display: none; border-top: 1px solid var(--hairline); padding: .5rem 1rem; background: var(--canvas-card); align-items: center; gap: .75rem;">
+          <span id="file-status" style="font-size: .8125rem; color: var(--body-mid); flex: 1;"></span>
+          <button id="save-btn" class="bapx-pill bapx-pill-primary" style="cursor: pointer; border: none; font-family: inherit; display: none;">Save</button>
+          <button id="toggle-preview-btn" class="bapx-pill" style="cursor: pointer; border: none; font-family: inherit; background: none;">Preview</button>
+        </div>
+      </main>
+    </div>
 
     <script>
-      fetch('/api/posts')
-        .then(r => r.json())
-        .then(data => {
-          const el = document.getElementById('post-count');
-          if (el) el.textContent = data.posts.length + ' post' + (data.posts.length !== 1 ? 's' : '');
+      let currentFilePath = null;
+      let currentContent = null;
+      let dirty = false;
+      let previewMode = false;
+
+      // --- File tree ---
+
+      function createDirEl(name, path) {
+        const details = document.createElement('details');
+        details.dataset.path = path;
+        const summary = document.createElement('summary');
+        summary.style.cssText = 'cursor: pointer; padding: .25rem .5rem; border-radius: 4px; font-size: .8125rem; color: var(--body); display: flex; align-items: center; gap: .375rem;';
+        summary.innerHTML = '<span style="opacity: .5;">&#x25B6;</span> ' + name;
+        summary.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (!details.open) {
+            details.open = true;
+            loadDir(path, details);
+          }
+        });
+        details.appendChild(summary);
+        return details;
+      }
+
+      function createFileEl(name, filePath, ext) {
+        const div = document.createElement('div');
+        const icon = { '.md': '#', '.mdx': 'M', '.mmd': 'G', '.json': '{', '.ts': 'T', '.astro': 'A', '.css': '*', '.mjs': 'J' }[ext] || 'F';
+        div.style.cssText = 'cursor: pointer; padding: .25rem .5rem; border-radius: 4px; font-size: .8125rem; color: var(--body); display: flex; align-items: center; gap: .375rem; transition: background .1s;';
+        div.innerHTML = '<span style="color: var(--body-mid); font-family: monospace; width: 1.2rem; text-align: center;">' + icon + '</span> ' + name;
+        div.onmouseenter = () => div.style.background = 'var(--hairline)';
+        div.onmouseleave = () => div.style.background = 'transparent';
+        div.onclick = () => openFile(filePath);
+        return div;
+      }
+
+      function loadDir(dirPath, containerEl) {
+        const existing = containerEl.querySelector('.dir-content');
+        if (existing) return;
+        const content = document.createElement('div');
+        content.className = 'dir-content';
+        content.style.cssText = 'padding-left: 1rem;';
+        containerEl.appendChild(content);
+        fetch('/api/ws/tree/' + dirPath)
+          .then(r => r.json())
+          .then(data => {
+            content.innerHTML = '';
+            for (const item of data.items || []) {
+              if (item.type === 'directory') {
+                const el = createDirEl(item.name, item.path);
+                content.appendChild(el);
+              } else {
+                content.appendChild(createFileEl(item.name, item.path, item.ext));
+              }
+            }
+          })
+          .catch(() => { content.innerHTML = '<span style="color: var(--body-mid); font-size: .75rem;">Error loading</span>'; });
+      }
+
+      function loadTree() {
+        const root = document.getElementById('tree-root');
+        fetch('/api/ws/tree/')
+          .then(r => r.json())
+          .then(data => {
+            document.getElementById('loading-indicator').textContent = '';
+            root.innerHTML = '';
+            for (const item of data.items || []) {
+              if (item.type === 'directory') {
+                const el = createDirEl(item.name, item.path);
+                root.appendChild(el);
+              } else {
+                root.appendChild(createFileEl(item.name, item.path, item.ext));
+              }
+            }
+          })
+          .catch(() => {
+            document.getElementById('loading-indicator').textContent = 'Error';
+          });
+      }
+
+      // --- File editor ---
+
+      function openFile(filePath) {
+        currentFilePath = filePath;
+        dirty = false;
+        document.getElementById('empty-state').style.display = 'none';
+        document.getElementById('editor-area').style.display = 'block';
+        document.getElementById('preview-area').style.display = 'none';
+        document.getElementById('save-bar').style.display = 'flex';
+        document.getElementById('save-btn').style.display = 'none';
+        document.getElementById('file-status').textContent = 'Loading...';
+        document.getElementById('tab-bar').innerHTML = '<span style="font-size: .8125rem; color: var(--body); padding: .25rem .5rem; background: var(--canvas-card); border-radius: 4px 4px 0 0; border: 1px solid var(--hairline); border-bottom: none;">' + filePath.split('/').pop() + '</span>';
+
+        fetch('/api/ws/file?path=' + encodeURIComponent(filePath))
+          .then(r => r.json())
+          .then(data => {
+            currentContent = data.content;
+            document.getElementById('editor-area').textContent = data.content;
+            document.getElementById('file-status').textContent = filePath + '  (' + data.content.length + ' chars)';
+            previewMode = false;
+            document.getElementById('toggle-preview-btn').textContent = 'Preview';
+          })
+          .catch(() => {
+            document.getElementById('file-status').textContent = 'Error loading file';
+          });
+      }
+
+      document.getElementById('editor-area').addEventListener('input', (e) => {
+        currentContent = e.target.textContent;
+        dirty = true;
+        document.getElementById('save-btn').style.display = 'inline-flex';
+        document.getElementById('file-status').textContent = (currentFilePath || '') + '  (unsaved)';
+      });
+
+      document.getElementById('save-btn').addEventListener('click', () => {
+        fetch('/api/ws/file', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: currentFilePath, content: currentContent }),
         })
-        .catch(() => {});
+          .then(r => r.json())
+          .then(data => {
+            if (data.ok) {
+              dirty = false;
+              document.getElementById('save-btn').style.display = 'none';
+              document.getElementById('file-status').textContent = currentFilePath + '  (saved)';
+            }
+          })
+          .catch(() => {});
+      });
+
+      document.getElementById('toggle-preview-btn').addEventListener('click', () => {
+        previewMode = !previewMode;
+        const editor = document.getElementById('editor-area');
+        const preview = document.getElementById('preview-area');
+        if (previewMode) {
+          editor.style.display = 'none';
+          preview.style.display = 'block';
+          preview.innerHTML = '<div style="color: var(--body-mid); font-family: Inter, sans-serif;">' + currentContent.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>') + '</div>';
+          document.getElementById('toggle-preview-btn').textContent = 'Edit';
+        } else {
+          editor.style.display = 'block';
+          preview.style.display = 'none';
+          document.getElementById('toggle-preview-btn').textContent = 'Preview';
+        }
+      });
+
+      loadTree();
     </script>
   </body>
 </html>

@@ -1,14 +1,17 @@
 ---
 import "../../styles/global.css";
+import { getCollection } from "astro:content";
 
-const posts = [
-  {
-    title: "bapX 1.0 Beta",
-    slug: "/blog/bapX-1-0-beta/",
-    date: "2026-06-15",
-    excerpt: "The bapX agent harness enters public beta. Build durable AI agents with TypeScript, deploy anywhere.",
-  },
-];
+const allPosts = await getCollection("blog");
+allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const categories = ["announcement", "release", "research", "tutorials"] as const;
+const categoryLabels: Record<string, string> = {
+  announcement: "Announcements",
+  release: "Releases",
+  research: "Research",
+  tutorials: "Tutorials",
+};
 ---
 
 <!doctype html>
@@ -53,14 +56,23 @@ const posts = [
         <p class="body-lg" style="margin-top: 1.5rem; max-width: 560px;">Updates, announcements, and deep dives from the bapX team.</p>
 
         <div class="blog-list">
-          {posts.map((post) => (
-            <article class="card blog-card">
-              <span class="mono-label">{new Date(post.date + "T00:00:00Z").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}</span>
-              <h2 class="display-md"><a href={post.slug} style="transition:color .15s;">{post.title}</a></h2>
-              <p class="body-sm">{post.excerpt}</p>
-              <a href={post.slug} class="bapx-pill">Read more</a>
-            </article>
-          ))}
+          {categories.map((cat) => {
+            const catPosts = allPosts.filter(p => p.data.category === cat);
+            if (catPosts.length === 0) return null;
+            return (
+              <div>
+                <span class="mono-label" style="margin-bottom: 1rem; display: block;">{categoryLabels[cat]}</span>
+                {catPosts.map((post) => (
+                  <article class="card blog-card" style="margin-bottom: .875rem;">
+                    <span class="mono-label">{post.data.pubDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}</span>
+                    <h2 class="display-md"><a href={"/blog/" + post.id} style="transition:color .15s;">{post.data.title}</a></h2>
+                    <p class="body-sm">{post.data.description}</p>
+                    <a href={"/blog/" + post.id} class="bapx-pill">Read more</a>
+                  </article>
+                ))}
+              </div>
+            );
+          })}
         </div>
       </div>
     </main>
