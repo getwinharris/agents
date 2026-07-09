@@ -6,15 +6,15 @@
 }
 ---
 
-# Add an Intercom Channel to Flue
+# Add an Intercom Channel to Bapx
 
 You are an AI coding agent adding verified Intercom webhook ingress and
-application-owned Intercom API behavior to a Flue project.
+application-owned Intercom API behavior to a Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and deployment target, and
-select the first existing source root: `<root>/.flue/`, then `<root>/src/`,
+select the first existing source root: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Inspect existing agents, environment types, secret conventions,
 Intercom installation storage, region selection, and the webhook topics the
 application needs.
@@ -24,7 +24,7 @@ project's package manager. Keep the SDK in project code; `@bapX/intercom`
 verifies ingress directly with Web Crypto and does not depend on the provider
 client.
 
-Flue owns endpoint validation, exact-body HMAC verification, body limits, and
+Bapx owns endpoint validation, exact-body HMAC verification, body limits, and
 the provider-native notification payload. The project owns app installation,
 OAuth, permissions, workspace token lookup, webhook subscriptions,
 deduplication, persistence, inbox policy, and every outbound tool.
@@ -86,7 +86,7 @@ Create `<source-dir>/channels/intercom.ts`. Adapt the imported agent,
 conversation parser, dispatched message, and tool to the application:
 
 ```ts
-// flue-blueprint: channel/intercom@1
+// bapX-blueprint: channel/intercom@1
 import {
   createIntercomChannel,
   type IntercomConversationRef,
@@ -227,7 +227,7 @@ Configure this complete HTTPS URL in Intercom's Developer Hub:
 https://example.com/channels/intercom/webhook
 ```
 
-If `flue()` has an outer mount prefix, include it. Intercom first sends an
+If `bapX()` has an outer mount prefix, include it. Intercom first sends an
 unsigned `HEAD` request and expects `200`. Signed notifications then arrive by
 `POST` with:
 
@@ -261,7 +261,7 @@ rather than blocking the callback on slow operations.
 ## Test without Intercom
 
 Run the project's typecheck, Node build, Cloudflare build, and actual workerd
-tests. Flue projects already enable `nodejs_compat`; execute both ingress and
+tests. Bapx projects already enable `nodejs_compat`; execute both ingress and
 the official client in that configuration rather than treating bundling as
 runtime proof.
 

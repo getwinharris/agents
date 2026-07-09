@@ -2,11 +2,11 @@
 { "kind": "tooling", "version": 2, "website": "https://sentry.io" }
 ---
 
-# Add Sentry to Flue
+# Add Sentry to Bapx
 
-You are an AI coding agent adding Sentry error reporting to a Flue project. Use
+You are an AI coding agent adding Sentry error reporting to a Bapx project. Use
 the SDK for the configured target, initialize it at the correct runtime
-boundary, and bridge selected Flue events into Sentry with correlation tags.
+boundary, and bridge selected Bapx events into Sentry with correlation tags.
 
 The integration reports failed workflow runs, failed top-level operations for
 persistent agents, failed durable submission settlements, and explicit
@@ -16,7 +16,7 @@ arguments, traces, or AI metrics by default.
 ## Inspect the project
 
 Read local instructions, detect the package manager, and select the first
-existing source root: `<root>/.flue/`, then `<root>/src/`, then `<root>/`. Inspect
+existing source root: `<root>/.bapX/`, then `<root>/src/`, then `<root>/`. Inspect
 `bapX.config.ts`, deployment commands, `app.ts`, every module under `agents/` and
 `workflows/`, environment types, and secret conventions.
 
@@ -45,7 +45,7 @@ event submission but does not grant read access to project data. Update an
 existing `.env.example`, environment type, or deployment documentation when the
 project maintains one, and preserve its deployment-configuration conventions.
 
-## Create the Flue event bridge
+## Create the Bapx event bridge
 
 Create `<source-dir>/sentry.ts` using the target-specific import and
 initialization below. The remaining bridge is shared by both targets.
@@ -53,8 +53,8 @@ initialization below. The remaining bridge is shared by both targets.
 ### Node initialization
 
 ```ts title="src/sentry.ts"
-// flue-blueprint: tooling/sentry@2
-import { type FlueEvent, observe } from '@bapX/runtime';
+// bapX-blueprint: tooling/sentry@2
+import { type BapxEvent, observe } from '@bapX/runtime';
 import * as Sentry from '@sentry/node';
 
 Sentry.init({
@@ -73,14 +73,14 @@ to run before application imports. If the user also wants automatic HTTP,
 database, or tracing instrumentation, configure the production Node command
 with the current Sentry-recommended preload, for example
 `NODE_OPTIONS="--import=@sentry/node/preload"`, and verify it against the built
-Flue server. Do not claim complete auto-instrumentation from the late
+Bapx server. Do not claim complete auto-instrumentation from the late
 `sentry.ts` initialization alone.
 
 ### Cloudflare import
 
 ```ts title="src/sentry.ts"
-// flue-blueprint: tooling/sentry@2
-import { type FlueEvent, observe } from '@bapX/runtime';
+// bapX-blueprint: tooling/sentry@2
+import { type BapxEvent, observe } from '@bapX/runtime';
 import * as Sentry from '@sentry/cloudflare';
 ```
 
@@ -97,7 +97,7 @@ const runTags = new Map<string, Record<string, string>>();
 
 observe((event) => {
   if (event.type === 'run_start' || event.type === 'run_resume') {
-    runTags.set(event.runId, { 'flue.workflow': event.workflowName });
+    runTags.set(event.runId, { 'bapX.workflow': event.workflowName });
     return;
   }
 
@@ -144,21 +144,21 @@ function captureException(
   Sentry.withScope((scope) => {
     scope.setTags(tags);
     scope.setLevel('error');
-    if (context) scope.setContext('flue.incident', context);
+    if (context) scope.setContext('bapX.incident', context);
     Sentry.captureException(toError(error));
   });
 }
 
-function correlationTags(event: FlueEvent): Record<string, string> {
+function correlationTags(event: BapxEvent): Record<string, string> {
   const tags: Record<string, string> = event.runId ? { ...runTags.get(event.runId) } : {};
-  if (event.runId) tags['flue.run.id'] = event.runId;
-  if (event.instanceId) tags['flue.instance.id'] = event.instanceId;
-  if (event.dispatchId) tags['flue.dispatch.id'] = event.dispatchId;
-  if (event.submissionId) tags['flue.submission.id'] = event.submissionId;
-  if (event.harness) tags['flue.harness'] = event.harness;
-  if (event.session) tags['flue.session'] = event.session;
-  if (event.operationId) tags['flue.operation.id'] = event.operationId;
-  if (event.taskId) tags['flue.task.id'] = event.taskId;
+  if (event.runId) tags['bapX.run.id'] = event.runId;
+  if (event.instanceId) tags['bapX.instance.id'] = event.instanceId;
+  if (event.dispatchId) tags['bapX.dispatch.id'] = event.dispatchId;
+  if (event.submissionId) tags['bapX.submission.id'] = event.submissionId;
+  if (event.harness) tags['bapX.harness'] = event.harness;
+  if (event.session) tags['bapX.session'] = event.session;
+  if (event.operationId) tags['bapX.operation.id'] = event.operationId;
+  if (event.taskId) tags['bapX.task.id'] = event.taskId;
   return tags;
 }
 
@@ -191,7 +191,7 @@ import './sentry.ts';
 
 Preserve the application's existing imports, middleware, routes, and default
 export. If there is no `app.ts`, create one that imports `./sentry.ts`, creates a
-Hono application, mounts `flue()` at `/`, and default-exports the app. Install a
+Hono application, mounts `bapX()` at `/`, and default-exports the app. Install a
 direct `hono` dependency when authoring that file.
 
 `observe(...)` is isolate-local. Workflow failures carry `runId` and can be
@@ -212,9 +212,9 @@ decision.
 
 Skip this section for Node.
 
-Flue agents and workflows run in separate Durable Object isolates. Every agent
+Bapx agents and workflows run in separate Durable Object isolates. Every agent
 and workflow module that should report through Sentry must export a module-local
-Cloudflare extension that wraps the final Flue-generated class. Add the
+Cloudflare extension that wraps the final Bapx-generated class. Add the
 following to each module, preserving its existing default agent definition or
 workflow definition export:
 
@@ -246,11 +246,11 @@ export const cloudflare = extend({
 
 The export must be in each discovered `agents/<name>.ts` and
 `workflows/<name>.ts` module, not only in source-root `app.ts` or
-`cloudflare.ts`. Flue applies `wrap` after constructing its final generated
+`cloudflare.ts`. Bapx applies `wrap` after constructing its final generated
 Durable Object class, and types the class it hands to `wrap` as the branded
 Durable Object constructor Sentry's TypeScript signature requires, so the
 pass-through needs no generics, casts, or runtime constructability checks. Do
-not replace Flue-owned lifecycle methods or return a subclass.
+not replace Bapx-owned lifecycle methods or return a subclass.
 
 Configure `SENTRY_DSN` through a Worker secret or environment binding according
 to the project's policy. For local Wrangler development, follow the existing
@@ -258,22 +258,22 @@ to the project's policy. For local Wrangler development, follow the existing
 can be rotated or disabled without a code change. Environment and release values
 may be Wrangler `vars`.
 
-Flue already requires Cloudflare's `nodejs_compat` compatibility flag. Preserve
+Bapx already requires Cloudflare's `nodejs_compat` compatibility flag. Preserve
 it. This wrapper covers generated agent and workflow Durable Objects. It does
-not wrap the generated outer Worker or `FlueRegistry`. If the project has an
+not wrap the generated outer Worker or `BapxRegistry`. If the project has an
 authored Hono `app.ts` and the user wants HTTP request instrumentation, research
 and add the current `@sentry/hono` Cloudflare middleware separately; do not
 claim the Durable Object wrapper covers the outer HTTP application.
 
 ## Verify
 
-1. Type-check the project and build its configured Flue target.
+1. Type-check the project and build its configured Bapx target.
 2. Start the real target runtime with a non-production Sentry project.
 3. Trigger a workflow whose operation fails and escapes the workflow; confirm
-   exactly one Sentry issue from `run_end`, with `flue.run.id` and
-   `flue.workflow` tags.
+   exactly one Sentry issue from `run_end`, with `bapX.run.id` and
+   `bapX.workflow` tags.
 4. Trigger a failed direct or dispatched agent operation and confirm one issue
-   with no `flue.run.id`; reconcile a durable submission as failed and confirm
+   with no `bapX.run.id`; reconcile a durable submission as failed and confirm
    one settlement issue.
 5. Call `ctx.log.error(...)` once with an `error` attribute and once without;
    confirm an exception and an error-level message are captured.
@@ -305,18 +305,18 @@ Remove the runtime event-type filter. The bridge continues to branch on the even
 --- a/src/sentry.ts
 +++ b/src/sentry.ts
 @@ -1,4 +1,4 @@
--// flue-blueprint: tooling/sentry@1
-+// flue-blueprint: tooling/sentry@2
+-// bapX-blueprint: tooling/sentry@1
++// bapX-blueprint: tooling/sentry@2
 @@ -39,51 +39,46 @@ const runTags = new Map<string, Record<string, string>>();
 -observe(
 -  (event) => {
 -    if (event.type === 'run_start' || event.type === 'run_resume') {
--      runTags.set(event.runId, { 'flue.workflow': event.workflowName });
+-      runTags.set(event.runId, { 'bapX.workflow': event.workflowName });
 -      return;
 -    }
 +observe((event) => {
 +  if (event.type === 'run_start' || event.type === 'run_resume') {
-+    runTags.set(event.runId, { 'flue.workflow': event.workflowName });
++    runTags.set(event.runId, { 'bapX.workflow': event.workflowName });
 +    return;
 +  }
 

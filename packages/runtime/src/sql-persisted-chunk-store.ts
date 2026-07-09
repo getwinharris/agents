@@ -8,7 +8,7 @@ import type { SqlStorage } from './sql-storage.ts';
 
 export function ensureSqlPersistedChunkTable(sql: SqlStorage): void {
 	sql.exec(
-		`CREATE TABLE IF NOT EXISTS flue_image_chunks (
+		`CREATE TABLE IF NOT EXISTS bapX_image_chunks (
 		 owner_kind TEXT NOT NULL,
 		 owner_id TEXT NOT NULL,
 		 owner_part TEXT NOT NULL,
@@ -27,7 +27,7 @@ export function createSqlPersistedChunkStore(sql: SqlStorage): PersistedChunkSto
 			return sql
 				.exec(
 					`SELECT image_id, chunk_index, chunk_count, data
-					 FROM flue_image_chunks
+					 FROM bapX_image_chunks
 					 WHERE owner_kind = ? AND owner_id = ? AND owner_part = ?
 					 ORDER BY image_id, chunk_index`,
 					owner.kind,
@@ -48,7 +48,7 @@ export function createSqlPersistedChunkStore(sql: SqlStorage): PersistedChunkSto
 			for (const owner of owners) deleteOwner(sql, owner);
 		},
 		deleteOwner(kind, id) {
-			sql.exec('DELETE FROM flue_image_chunks WHERE owner_kind = ? AND owner_id = ?', kind, id);
+			sql.exec('DELETE FROM bapX_image_chunks WHERE owner_kind = ? AND owner_id = ?', kind, id);
 		},
 	};
 }
@@ -74,7 +74,7 @@ function parseChunkRow(row: Record<string, unknown>): PersistedChunkRow {
 
 function deleteOwner(sql: SqlStorage, owner: PersistedChunkOwner): void {
 	sql.exec(
-		'DELETE FROM flue_image_chunks WHERE owner_kind = ? AND owner_id = ? AND owner_part = ?',
+		'DELETE FROM bapX_image_chunks WHERE owner_kind = ? AND owner_id = ? AND owner_part = ?',
 		owner.kind,
 		owner.id,
 		owner.part,
@@ -88,7 +88,7 @@ function insertChunks(
 ): void {
 	for (const chunk of chunks) {
 		sql.exec(
-			`INSERT INTO flue_image_chunks
+			`INSERT INTO bapX_image_chunks
 			 (owner_kind, owner_id, owner_part, image_id, chunk_index, chunk_count, data)
 			 VALUES (?, ?, ?, ?, ?, ?, ?)`,
 			owner.kind,

@@ -28,7 +28,7 @@ interface SqlAttachmentChunkRow {
 
 export function ensureSqlAttachmentTable(sql: SqlStorage): void {
 	sql.exec(
-		`CREATE TABLE IF NOT EXISTS flue_attachments (
+		`CREATE TABLE IF NOT EXISTS bapX_attachments (
 			stream_path TEXT NOT NULL,
 			attachment_id TEXT NOT NULL,
 			mime_type TEXT NOT NULL,
@@ -41,19 +41,19 @@ export function ensureSqlAttachmentTable(sql: SqlStorage): void {
 		)`,
 	);
 	sql.exec(
-		`CREATE TABLE IF NOT EXISTS flue_attachment_chunks (
+		`CREATE TABLE IF NOT EXISTS bapX_attachment_chunks (
 			stream_path TEXT NOT NULL,
 			attachment_id TEXT NOT NULL,
 			chunk_index INTEGER NOT NULL CHECK (chunk_index >= 0),
 			bytes BLOB NOT NULL,
 			PRIMARY KEY (stream_path, attachment_id, chunk_index),
 			FOREIGN KEY (stream_path, attachment_id)
-				REFERENCES flue_attachments (stream_path, attachment_id) ON DELETE CASCADE
+				REFERENCES bapX_attachments (stream_path, attachment_id) ON DELETE CASCADE
 		)`,
 	);
 	sql.exec(
-		`CREATE INDEX IF NOT EXISTS flue_attachments_conversation_idx
-		 ON flue_attachments (stream_path, conversation_id, attachment_id)`,
+		`CREATE INDEX IF NOT EXISTS bapX_attachments_conversation_idx
+		 ON bapX_attachments (stream_path, conversation_id, attachment_id)`,
 	);
 }
 
@@ -75,7 +75,7 @@ export class SqliteAttachmentStore implements AttachmentStore {
 			}
 			const chunks = splitAttachmentBytes(input.bytes);
 			this.sql.exec(
-				`INSERT INTO flue_attachments
+				`INSERT INTO bapX_attachments
 				 (stream_path, attachment_id, mime_type, byte_size, digest, conversation_id, chunk_count, created_at)
 				 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 				input.streamPath,
@@ -89,7 +89,7 @@ export class SqliteAttachmentStore implements AttachmentStore {
 			);
 			for (const [index, bytes] of chunks.entries()) {
 				this.sql.exec(
-					`INSERT INTO flue_attachment_chunks
+					`INSERT INTO bapX_attachment_chunks
 					 (stream_path, attachment_id, chunk_index, bytes) VALUES (?, ?, ?, ?)`,
 					input.streamPath,
 					input.attachment.id,
@@ -111,8 +111,8 @@ export class SqliteAttachmentStore implements AttachmentStore {
 
 	async deleteForInstance(streamPath: string): Promise<void> {
 		this.runTransaction(() => {
-			this.sql.exec('DELETE FROM flue_attachment_chunks WHERE stream_path = ?', streamPath);
-			this.sql.exec('DELETE FROM flue_attachments WHERE stream_path = ?', streamPath);
+			this.sql.exec('DELETE FROM bapX_attachment_chunks WHERE stream_path = ?', streamPath);
+			this.sql.exec('DELETE FROM bapX_attachments WHERE stream_path = ?', streamPath);
 		});
 	}
 
@@ -123,7 +123,7 @@ export class SqliteAttachmentStore implements AttachmentStore {
 		const value = this.sql
 			.exec(
 				`SELECT mime_type, byte_size, digest, conversation_id, chunk_count
-				 FROM flue_attachments WHERE stream_path = ? AND attachment_id = ?`,
+				 FROM bapX_attachments WHERE stream_path = ? AND attachment_id = ?`,
 				streamPath,
 				attachmentId,
 			)
@@ -131,7 +131,7 @@ export class SqliteAttachmentStore implements AttachmentStore {
 		if (!value) return null;
 		const chunkCount = parseChunkCount(value.chunk_count, attachmentId);
 		const chunks = this.sql.exec(
-			`SELECT chunk_index, bytes FROM flue_attachment_chunks
+			`SELECT chunk_index, bytes FROM bapX_attachment_chunks
 			 WHERE stream_path = ? AND attachment_id = ? ORDER BY chunk_index`,
 			streamPath,
 			attachmentId,

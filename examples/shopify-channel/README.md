@@ -58,7 +58,7 @@ installation, OAuth, token lookup, webhook registration, deduplication,
 ordering, or fulfillment.
 
 The Node and workerd tests execute the real Admin API client against local
-fail-closed Fetch implementations. The workerd client suite runs with Flue's
+fail-closed Fetch implementations. The workerd client suite runs with Bapx's
 required `nodejs_compat` configuration:
 
 ```sh

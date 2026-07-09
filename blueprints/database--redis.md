@@ -2,9 +2,9 @@
 { "kind": "database", "version": 1, "website": "https://redis.io" }
 ---
 
-# Add a Redis Database to Flue
+# Add a Redis Database to Bapx
 
-You are an AI coding agent configuring Redis-backed persistence for a Flue
+You are an AI coding agent configuring Redis-backed persistence for a Bapx
 project using the first-party `@bapX/redis` adapter and the official `redis`
 (node-redis) client.
 
@@ -27,7 +27,7 @@ not make acknowledged writes durable across server loss.
 ## Inspect the project
 
 Read local instructions (`AGENTS.md` and similar), detect the package manager,
-and select the first existing source root: `<root>/.flue/`, then `<root>/src/`,
+and select the first existing source root: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Check for an existing `db.ts`; if one is present, confirm with
 the user before replacing it. Inspect the project's secret conventions.
 
@@ -41,7 +41,7 @@ Write `<source-dir>/db.ts` with this complete runner. Its pipeline returns one
 normalized result per command and rejects any `Error` result.
 
 ```ts title="src/db.ts"
-// flue-blueprint: database/redis@1
+// bapX-blueprint: database/redis@1
 import { redis } from '@bapX/redis';
 import { createClient } from 'redis';
 
@@ -73,7 +73,7 @@ export default redis({
 Do not hardcode or invent a connection string. Read `REDIS_URL` or the project's
 existing equivalent from its secret system and never commit credentials.
 
-Flue discovers `db.ts` and runs the adapter's `migrate()` hook at server startup.
+Bapx discovers `db.ts` and runs the adapter's `migrate()` hook at server startup.
 Migration inspects the server, initializes the schema-version metadata key
 idempotently, and rejects data written by an unsupported newer schema. There is
 no separate migration command.
@@ -85,8 +85,8 @@ managed single-shard provider that denies both commands, after independently
 verifying both requirements.
 
 Use a dedicated Redis database or pass `{ keyPrefix: '...' }` as the adapter's
-second argument to isolate Flue keys. The default is `flue`; use a stable unique
-prefix for each application or tenant. Changing the prefix points Flue at a
+second argument to isolate Bapx keys. The default is `bapX`; use a stable unique
+prefix for each application or tenant. Changing the prefix points Bapx at a
 separate empty namespace and does not migrate existing data.
 
 ## What gets stored
@@ -106,7 +106,7 @@ side effects, credentials, or application business data.
    Redis deployment configured with `noeviction`.
 3. Start the server and confirm migration succeeds. If inspection is disabled,
    independently verify Cluster is off and the eviction policy is `noeviction`.
-4. Create state, restart the Flue server, and confirm it reloads. Test the chosen
+4. Create state, restart the Bapx server, and confirm it reloads. Test the chosen
    AOF/snapshot recovery separately; a process restart does not prove durability
    across Redis server loss.
 5. Do not use a production database for verification.

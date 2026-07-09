@@ -13,14 +13,14 @@ import {
 	observe,
 	ToolLegacyDefinitionError,
 	ToolNameConflictError,
-	type FlueExecutionContext,
-	type FlueExecutionOperation,
+	type BapxExecutionContext,
+	type BapxExecutionOperation,
 	type ToolInput,
 	type ToolOutput,
 } from '../src/index.ts';
-import { createFlueContext } from '../src/internal.ts';
+import { createBapxContext } from '../src/internal.ts';
 import { validateAndRunTool } from '../src/tool.ts';
-import type { FlueEvent, FlueObservation } from '../src/types.ts';
+import type { BapxEvent, BapxObservation } from '../src/types.ts';
 import { createNoopSessionEnv } from './fixtures/session-env.ts';
 
 const providers: FauxProviderRegistration[] = [];
@@ -36,7 +36,7 @@ function createProvider(): FauxProviderRegistration {
 }
 
 function createContext(provider: FauxProviderRegistration) {
-	return createFlueContext({
+	return createBapxContext({
 		id: 'tool-test-instance',
 		env: {},
 		agentConfig: { resolveModel: () => provider.getModel() },
@@ -227,9 +227,9 @@ describe('custom tools', () => {
 			fauxAssistantMessage(fauxToolCall('bash', { command: 'pwd' }), { stopReason: 'toolUse' }),
 			fauxAssistantMessage('Done.'),
 		]);
-		const events: FlueEvent[] = [];
-		const observations: FlueObservation[] = [];
-		const intercepted: FlueExecutionOperation[] = [];
+		const events: BapxEvent[] = [];
+		const observations: BapxObservation[] = [];
+		const intercepted: BapxExecutionOperation[] = [];
 		const context = createContext(provider);
 		context.subscribeEvent((event) => {
 			events.push(event);
@@ -275,9 +275,9 @@ describe('custom tools', () => {
 			fauxAssistantMessage(fauxToolCall('lookup', { limit: '2' }), { stopReason: 'toolUse' }),
 			fauxAssistantMessage('Done.'),
 		]);
-		const events: FlueEvent[] = [];
-		const observations: FlueObservation[] = [];
-		const intercepted: FlueExecutionOperation[] = [];
+		const events: BapxEvent[] = [];
+		const observations: BapxObservation[] = [];
+		const intercepted: BapxExecutionOperation[] = [];
 		const context = createContext(provider);
 		context.subscribeEvent((event) => {
 			events.push(event);
@@ -332,9 +332,9 @@ describe('custom tools', () => {
 			fauxAssistantMessage(fauxToolCall('lookup', { count: 'invalid' }), { stopReason: 'toolUse' }),
 			fauxAssistantMessage('Done.'),
 		]);
-		const events: FlueEvent[] = [];
-		const observations: FlueObservation[] = [];
-		const intercepted: FlueExecutionOperation[] = [];
+		const events: BapxEvent[] = [];
+		const observations: BapxObservation[] = [];
+		const intercepted: BapxExecutionOperation[] = [];
 		const context = createContext(provider);
 		context.subscribeEvent((event) => {
 			events.push(event);
@@ -403,7 +403,7 @@ describe('custom tools', () => {
 			fauxAssistantMessage(fauxToolCall('lookup', { count: 'invalid' }), { stopReason: 'toolUse' }),
 			fauxAssistantMessage('Done.'),
 		]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const context = createContext(provider);
 		context.subscribeEvent((event) => {
 			events.push(event);
@@ -520,7 +520,7 @@ describe('custom tools', () => {
 			fauxAssistantMessage(fauxToolCall('lookup', {}), { stopReason: 'toolUse' }),
 			fauxAssistantMessage('Done.'),
 		]);
-		const intercepted: Array<{ operation: FlueExecutionOperation; context: FlueExecutionContext }> = [];
+		const intercepted: Array<{ operation: BapxExecutionOperation; context: BapxExecutionContext }> = [];
 		const dispose = instrument({
 			observe() {},
 			async interceptor(operation, context, next) {
@@ -557,8 +557,8 @@ describe('custom tools', () => {
 			fauxAssistantMessage(fauxToolCall('lookup', {}), { stopReason: 'toolUse' }),
 			fauxAssistantMessage('Done.'),
 		]);
-		const events: FlueEvent[] = [];
-		const observations: FlueObservation[] = [];
+		const events: BapxEvent[] = [];
+		const observations: BapxObservation[] = [];
 		const context = createContext(provider);
 		context.subscribeEvent((event) => {
 			events.push(event);

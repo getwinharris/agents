@@ -6,19 +6,19 @@
 }
 ---
 
-# Add a WhatsApp Channel to Flue
+# Add a WhatsApp Channel to Bapx
 
 You are an AI coding agent adding verified WhatsApp Business Cloud webhook
-ingress with project-owned outbound WhatsApp access to a Flue project.
+ingress with project-owned outbound WhatsApp access to a Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.flue/`, then `<root>/src/`, then
+first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 which WhatsApp message families the application handles.
 
-Install `@bapX/whatsapp` and `@kapso/whatsapp-cloud-api@^0.2.1`. Flue owns GET
+Install `@bapX/whatsapp` and `@kapso/whatsapp-cloud-api@^0.2.1`. Bapx owns GET
 verification, exact-body POST signature verification, and forwarding Meta's
 provider-native webhook payload unmodified. The project owns interpreting that
 payload, filtering deliveries by business account or phone number, the access
@@ -26,7 +26,7 @@ token, the full outbound client, tools, dispatch policy, and durable
 deduplication.
 
 The SDK root export is Fetch-based and executes in Node and workerd with
-Flue's required `nodejs_compat` configuration. Do not import its `/server`
+Bapx's required `nodejs_compat` configuration. Do not import its `/server`
 subpath for ordinary messaging. Keep a workerd fake-transport test for every
 client operation the project relies on.
 
@@ -38,7 +38,7 @@ Create `<source-dir>/channels/whatsapp.ts`. Adapt the imported agent,
 dispatched message, handled events, and tool:
 
 ```ts
-// flue-blueprint: channel/whatsapp@1
+// bapX-blueprint: channel/whatsapp@1
 import {
   createWhatsAppChannel,
   type WebhookMessage,

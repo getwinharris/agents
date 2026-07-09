@@ -32,10 +32,10 @@ export function resolveRunResource(sourceRoot: string, selector: string): RunRes
 	if (matches.length === 1) return matches[0] as RunResource;
 	if (matches.length > 1) {
 		throw new Error(
-			`[flue] Resource "${selector}" is ambiguous. Qualify it as agent:${selector} or workflow:${selector}.\n\n${availableResources(available)}`,
+			`[bapX] Resource "${selector}" is ambiguous. Qualify it as agent:${selector} or workflow:${selector}.\n\n${availableResources(available)}`,
 		);
 	}
-	throw new Error(`[flue] Resource "${selector}" not found.\n\n${availableResources(available)}`);
+	throw new Error(`[bapX] Resource "${selector}" not found.\n\n${availableResources(available)}`);
 }
 
 function parseQualifier(selector: string): { kind: RunResource['kind']; name: string } | undefined {

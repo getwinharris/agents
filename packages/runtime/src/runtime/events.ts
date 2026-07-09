@@ -1,7 +1,7 @@
-/** Global, isolate-scoped subscription to live Flue runtime activity. */
+/** Global, isolate-scoped subscription to live Bapx runtime activity. */
 
-import { createObservation, type FlueObservationSubscriber } from '../observation.ts';
-import type { FlueEvent, FlueEventContext, FlueObservationDetail } from '../types.ts';
+import { createObservation, type BapxObservationSubscriber } from '../observation.ts';
+import type { BapxEvent, BapxEventContext, BapxObservationDetail } from '../types.ts';
 
 /**
  * Receives a decorated event and its originating context. Workflow
@@ -10,9 +10,9 @@ import type { FlueEvent, FlueEventContext, FlueObservationDetail } from '../type
  * Subscriber failures are logged and do not halt dispatch or the originating
  * execution. Returned promises are observed for rejection but are not awaited.
  */
-export type FlueEventSubscriber = FlueObservationSubscriber;
+export type BapxEventSubscriber = BapxObservationSubscriber;
 
-const subscribers = new Set<FlueObservationSubscriber>();
+const subscribers = new Set<BapxObservationSubscriber>();
 
 /**
  * Subscribe to live workflow-run or agent-interaction activity emitted in this isolate.
@@ -40,7 +40,7 @@ const subscribers = new Set<FlueObservationSubscriber>();
  * are observed for rejection but are not awaited. Queue substantial work outside
  * the callback rather than blocking emission.
  */
-export function observe(subscriber: FlueEventSubscriber): () => void {
+export function observe(subscriber: BapxEventSubscriber): () => void {
 	subscribers.add(subscriber);
 	return () => {
 		subscribers.delete(subscriber);
@@ -49,13 +49,13 @@ export function observe(subscriber: FlueEventSubscriber): () => void {
 
 /**
  * Internal: dispatch a single event to every registered subscriber.
- * Called from `createFlueContext`'s `emitEvent` after the per-context
+ * Called from `createBapxContext`'s `emitEvent` after the per-context
  * subscribers have run.
  */
 export function dispatchGlobalEvent(
-	event: FlueEvent,
-	ctx: FlueEventContext,
-	detail?: FlueObservationDetail,
+	event: BapxEvent,
+	ctx: BapxEventContext,
+	detail?: BapxObservationDetail,
 ): void {
 	const observation = createObservation(event, detail);
 	for (const subscriber of [...subscribers]) {
@@ -68,5 +68,5 @@ export function dispatchGlobalEvent(
 }
 
 function reportSubscriberFailure(error: unknown): void {
-	console.error('[flue:observe] subscriber failed:', error);
+	console.error('[bapX:observe] subscriber failed:', error);
 }

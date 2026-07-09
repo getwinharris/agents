@@ -12,6 +12,6 @@ export default defineWorkflow({
 	agent,
 	async run({ log }) {
 		log.info('hello workflow starting');
-		return { greeting: 'hello from flue' };
+		return { greeting: 'hello from bapX' };
 	},
 });

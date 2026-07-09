@@ -17,7 +17,7 @@ export interface Connection {
 }
 
 /**
- * A chat in the sidebar. Messages themselves live on the Flue server (durable
+ * A chat in the sidebar. Messages themselves live on the Bapx server (durable
  * streams); we only persist enough metadata to list and reopen conversations.
  * The conversation `id` doubles as the agent instance id.
  */

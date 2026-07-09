@@ -2,15 +2,15 @@ import * as path from 'node:path';
 
 /**
  * Config file basenames searched, in priority order. TypeScript first because
- * Flue's audience writes TS agents; the rest mirror Vite's supported set.
+ * Bapx's audience writes TS agents; the rest mirror Vite's supported set.
  */
 export const CONFIG_BASENAMES = Object.freeze([
 	'bapX.config.ts',
-	'flue.config.mts',
-	'flue.config.mjs',
-	'flue.config.js',
-	'flue.config.cjs',
-	'flue.config.cts',
+	'bapX.config.mts',
+	'bapX.config.mjs',
+	'bapX.config.js',
+	'bapX.config.cjs',
+	'bapX.config.cts',
 ]);
 
 export function resolveConfigCandidates(opts: {

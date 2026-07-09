@@ -86,7 +86,7 @@ export interface SubmissionDurability {
 }
 
 /**
- * Flue-owned durable evidence that a submission attempt was started and has
+ * Bapx-owned durable evidence that a submission attempt was started and has
  * not yet settled. The Cloudflare coordinator inserts a marker immediately
  * before starting an attempt fiber and deletes it when the attempt settles;
  * reconciliation treats a fresh marker as proof that the attempt may still
@@ -316,7 +316,7 @@ export interface PersistenceStores {
  * before reading or writing any data — when opened against a store recorded
  * with an unknown or newer version (e.g. throw
  * `PersistedSchemaVersionError`, exported from `@bapX/runtime/adapter`).
- * The built-in SQL adapters implement this with a one-row `flue_meta`
+ * The built-in SQL adapters implement this with a one-row `bapX_meta`
  * key/value table (key `'schema_version'`); non-SQL adapters implement the
  * same obligation natively (a key, a meta document, etc.).
  */

@@ -1,39 +1,39 @@
 # `@bapX/dev-console`
 
-Experimental terminal client for interacting with a running Flue application.
+Experimental terminal client for interacting with a running Bapx application.
 
-This package is intentionally separate from `@bapX/cli`. It does not discover projects, start a development server, load `.env` files, or temporarily expose route-free resources. Start the application separately and provide the absolute URL where its `flue()` routes are mounted.
+This package is intentionally separate from `@bapX/cli`. It does not discover projects, start a development server, load `.env` files, or temporarily expose route-free resources. Start the application separately and provide the absolute URL where its `bapX()` routes are mounted.
 
 ## Usage
 
 Start the application in one terminal:
 
 ```sh
-pnpm exec flue dev
+pnpm exec bapX dev
 ```
 
 Attach in another terminal:
 
 ```sh
-pnpm exec flue-dev-console agent:support --server http://127.0.0.1:3583
+pnpm exec bapX-dev-console agent:support --server http://127.0.0.1:3583
 ```
 
 Resources must be qualified as `agent:<name>` or `workflow:<name>`.
 
 ```sh
-pnpm exec flue-dev-console agent:support \
-  --server http://127.0.0.1:3583/api/flue \
+pnpm exec bapX-dev-console agent:support \
+  --server http://127.0.0.1:3583/api/bapX \
   --id support-demo
 
-pnpm exec flue-dev-console workflow:deploy \
-  --server http://127.0.0.1:3583/api/flue \
+pnpm exec bapX-dev-console workflow:deploy \
+  --server http://127.0.0.1:3583/api/bapX \
   --input '{"environment":"staging"}'
 ```
 
 ## Options
 
 ```text
---server <url>         Absolute URL of the mounted Flue application
+--server <url>         Absolute URL of the mounted Bapx application
 --id <id>              Agent instance ID; generated when omitted
 --input <json>         Initial agent input or workflow input
 --token <token>        Bearer token sent with every request

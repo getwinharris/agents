@@ -13,7 +13,7 @@ export function selectEnvFile(envFile: string | undefined, baseDir: string): str
 	if (!envFile) return path.join(baseDir, '.env');
 	const absolute = path.isAbsolute(envFile) ? envFile : path.resolve(baseDir, envFile);
 	if (!fs.existsSync(absolute)) {
-		throw new Error(`[flue] --env points at a path that doesn't exist: ${envFile}`);
+		throw new Error(`[bapX] --env points at a path that doesn't exist: ${envFile}`);
 	}
 	return absolute;
 }

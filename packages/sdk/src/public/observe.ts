@@ -1,12 +1,12 @@
 import type { BackoffOptions } from '@durable-streams/client';
-import type { FlueConversationSnapshot, FlueConversationState } from './conversation.ts';
+import type { BapxConversationSnapshot, BapxConversationState } from './conversation.ts';
 import {
 	applyConversationChunk,
 	type ConversationChunkPosition,
 	type ConversationStreamChunk,
 	createConversationStreamState,
 } from './conversation-stream.ts';
-import type { FlueEventStream } from './stream.ts';
+import type { BapxEventStream } from './stream.ts';
 
 /**
  * Live mode for conversation observation: `'long-poll'` (offset-resumed polling)
@@ -32,7 +32,7 @@ export type AgentConversationObservationPhase =
 	| 'closed';
 
 export interface AgentConversationObservationSnapshot {
-	conversation: FlueConversationState | undefined;
+	conversation: BapxConversationState | undefined;
 	offset: string | undefined;
 	phase: AgentConversationObservationPhase;
 	error: Error | undefined;
@@ -58,13 +58,13 @@ export interface AgentConversationObservation {
  * fake {@link AgentConversationObservationSource}.
  */
 export interface AgentConversationObservationSource {
-	history(options: { signal?: AbortSignal }): Promise<FlueConversationSnapshot>;
+	history(options: { signal?: AbortSignal }): Promise<BapxConversationSnapshot>;
 	updates(options: {
 		offset: string;
 		live?: ConversationLiveMode;
 		signal?: AbortSignal;
 		backoffOptions?: BackoffOptions;
-	}): FlueEventStream<ConversationStreamChunk>;
+	}): BapxEventStream<ConversationStreamChunk>;
 }
 
 export function createAgentConversationObservation(
@@ -72,7 +72,7 @@ export function createAgentConversationObservation(
 	options: AgentConversationObserveOptions = {},
 ): AgentConversationObservation {
 	const listeners = new Set<() => void>();
-	let streamState: FlueConversationState | undefined;
+	let streamState: BapxConversationState | undefined;
 	let snapshot: AgentConversationObservationSnapshot = {
 		conversation: undefined,
 		offset: undefined,
@@ -84,7 +84,7 @@ export function createAgentConversationObservation(
 	let generation = 0;
 	let controller: AbortController | undefined;
 	let removeExternalAbortListener: (() => void) | undefined;
-	let stream: FlueEventStream<ConversationStreamChunk> | undefined;
+	let stream: BapxEventStream<ConversationStreamChunk> | undefined;
 	let retryTimer: ReturnType<typeof setTimeout> | undefined;
 	let reconnectAttempt = 0;
 	// Highest chunk position applied to `streamState`. Chunks at or below it are
@@ -140,7 +140,7 @@ export function createAgentConversationObservation(
 	const follow = async (value: number, offset: string) => {
 		if (!isCurrent(value)) return;
 		publish({ ...snapshot, phase: 'live', error: undefined });
-		let nextStream: FlueEventStream<ConversationStreamChunk>;
+		let nextStream: BapxEventStream<ConversationStreamChunk>;
 		try {
 			nextStream = source.updates({
 				offset,

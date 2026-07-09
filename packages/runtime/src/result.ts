@@ -40,7 +40,7 @@ export function buildPackagedSkillPrompt(
 	schema?: v.GenericSchema,
 ): string {
 	const skillFile = directory.files['SKILL.md'];
-	if (!skillFile) throw new Error(`[flue] Packaged skill "${reference.name}" is missing SKILL.md.`);
+	if (!skillFile) throw new Error(`[bapX] Packaged skill "${reference.name}" is missing SKILL.md.`);
 	const raw = new TextDecoder().decode(
 		Uint8Array.from(atob(skillFile.content), (character) => character.charCodeAt(0)),
 	);

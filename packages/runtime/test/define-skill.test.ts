@@ -10,7 +10,7 @@ import {
 	defineSkill,
 	SkillDefinitionValidationError,
 } from '../src/index.ts';
-import { createFlueContext } from '../src/internal.ts';
+import { createBapxContext } from '../src/internal.ts';
 import type { SessionEnv } from '../src/types.ts';
 
 const providers: FauxProviderRegistration[] = [];
@@ -25,7 +25,7 @@ describe('defineSkill()', () => {
 			name: 'code-review',
 			description: 'Reviews code changes. Use when evaluating a patch.',
 			instructions: 'Inspect the patch.',
-			metadata: { version: '1', author: 'Flue' },
+			metadata: { version: '1', author: 'Bapx' },
 			files: {
 				'references/café #1?.md': 'Check errors.',
 				'assets/data.bin': new Uint8Array([0, 255, 1]),
@@ -35,7 +35,7 @@ describe('defineSkill()', () => {
 			name: 'code-review',
 			description: 'Reviews code changes. Use when evaluating a patch.',
 			instructions: 'Inspect the patch.',
-			metadata: { author: 'Flue', version: '1' },
+			metadata: { author: 'Bapx', version: '1' },
 			files: {
 				'assets/data.bin': new Uint8Array([0, 255, 1]),
 				'references/café #1?.md': 'Check errors.',
@@ -97,7 +97,7 @@ describe('defineSkill()', () => {
 			instructions: 'Inspect the patch carefully.',
 			files: { 'references/checklist.md': 'Check errors.' },
 		});
-		const resourcePath = `/.flue/packaged-skills/${encodeURIComponent(review.id)}/references/checklist.md`;
+		const resourcePath = `/.bapX/packaged-skills/${encodeURIComponent(review.id)}/references/checklist.md`;
 		provider.setResponses([
 			fauxAssistantMessage(fauxToolCall('activate_skill', { name: 'code-review' }), {
 				stopReason: 'toolUse',
@@ -113,7 +113,7 @@ describe('defineSkill()', () => {
 				return fauxAssistantMessage('Review complete.');
 			},
 		]);
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'defined-skill-instance',
 			env: {},
 			agentConfig: { resolveModel: () => provider.getModel() },
@@ -170,13 +170,13 @@ describe('defineSkill()', () => {
 		provider.setResponses([
 			fauxAssistantMessage(
 				fauxToolCall('read', {
-					path: `/.flue/packaged-skills/${encodeURIComponent(review.id)}/missing.md`,
+					path: `/.bapX/packaged-skills/${encodeURIComponent(review.id)}/missing.md`,
 				}),
 				{ stopReason: 'toolUse' },
 			),
 			fauxAssistantMessage('Missing resource rejected.'),
 		]);
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'defined-skill-reserved-path-instance',
 			env: {},
 			agentConfig: { resolveModel: () => provider.getModel() },
@@ -208,7 +208,7 @@ describe('defineSkill()', () => {
 			description: 'Reviews code changes.',
 			instructions: 'Inspect the direct invocation.',
 		});
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'direct-defined-skill-instance',
 			env: {},
 			agentConfig: { resolveModel: () => provider.getModel() },

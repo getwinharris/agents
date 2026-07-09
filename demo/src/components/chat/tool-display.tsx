@@ -1,4 +1,4 @@
-import type { FlueConversationPart } from '@bapX/react'
+import type { BapxConversationPart } from '@bapX/react'
 import {
   Bot,
   FilePen,
@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-type ToolPart = Extract<FlueConversationPart, { type: 'dynamic-tool' }>
+type ToolPart = Extract<BapxConversationPart, { type: 'dynamic-tool' }>
 
 interface ToolDisplay {
   icon: LucideIcon
@@ -53,7 +53,7 @@ function command(verb: string, arg?: string): ReactNode {
 }
 
 /**
- * Summarize a tool call as an icon + one line. Flue's built-in tools get custom
+ * Summarize a tool call as an icon + one line. Bapx's built-in tools get custom
  * renderers (e.g. `read /path/file.ts`); the framework `task` tool names the
  * subagent it delegated to; unknown tools fall back to their bare name.
  */

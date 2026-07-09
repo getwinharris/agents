@@ -1,12 +1,12 @@
 ---
 title: Deploy Agents on SST
-description: Deploy Flue agents to AWS with SST as a long-running Fargate container service.
+description: Deploy Bapx agents to AWS with SST as a long-running Fargate container service.
 lastReviewedAt: 2026-06-20
 ---
 
-[SST](https://sst.dev) is a TypeScript infrastructure-as-code framework for AWS. You describe your infrastructure as components in a single `sst.config.ts` file and deploy it with `sst deploy`. This guide deploys a Flue agent as a persistent container service, not as a Lambda function: Flue's streaming responses use a long-lived `GET /runs/:runId` connection, and its default coordinator keeps run state in memory, so it must run as an always-on process. SST's `sst.aws.Service` component runs exactly that — a container on AWS Fargate behind a load balancer.
+[SST](https://sst.dev) is a TypeScript infrastructure-as-code framework for AWS. You describe your infrastructure as components in a single `sst.config.ts` file and deploy it with `sst deploy`. This guide deploys a Bapx agent as a persistent container service, not as a Lambda function: Bapx's streaming responses use a long-lived `GET /runs/:runId` connection, and its default coordinator keeps run state in memory, so it must run as an always-on process. SST's `sst.aws.Service` component runs exactly that — a container on AWS Fargate behind a load balancer.
 
-This guide builds on the [Docker](/docs/ecosystem/deploy/docker/) guide. SST builds and pushes the image from that same `Dockerfile`; the steps below cover the SST-specific wiring — the service, secrets, and database. The `flue build --target node` output (`dist/server.mjs`, started with `node dist/server.mjs`) and its runtime contract are unchanged from the [Node.js](/docs/ecosystem/deploy/node/) guide.
+This guide builds on the [Docker](/docs/ecosystem/deploy/docker/) guide. SST builds and pushes the image from that same `Dockerfile`; the steps below cover the SST-specific wiring — the service, secrets, and database. The `bapX build --target node` output (`dist/server.mjs`, started with `node dist/server.mjs`) and its runtime contract are unchanged from the [Node.js](/docs/ecosystem/deploy/node/) guide.
 
 This guide was written against SST v3 (the Ion engine, the current major line). SST's component API moves quickly; confirm field names against the current [SST docs](https://sst.dev/docs/) for your installed version.
 
@@ -20,16 +20,16 @@ An `sst.aws.Service` runs on an `sst.aws.Cluster`, which needs an `sst.aws.Vpc`.
 export default $config({
   app(input) {
     return {
-      name: 'flue-agents',
+      name: 'bapX-agents',
       home: 'aws',
       removal: input.stage === 'production' ? 'retain' : 'remove',
     };
   },
   async run() {
-    const vpc = new sst.aws.Vpc('FlueVpc');
-    const cluster = new sst.aws.Cluster('FlueCluster', { vpc });
+    const vpc = new sst.aws.Vpc('BapxVpc');
+    const cluster = new sst.aws.Cluster('BapxCluster', { vpc });
 
-    new sst.aws.Service('Flue', {
+    new sst.aws.Service('Bapx', {
       cluster,
       image: { context: '.', dockerfile: 'Dockerfile' },
       loadBalancer: {
@@ -44,14 +44,14 @@ export default $config({
 
 ## Environment and secrets
 
-Flue's built server reads its provider key and model from the environment at start time. SST's `link` exposes resources through the `sst` SDK's `Resource` object at runtime, but the Flue server does not import that SDK — it reads plain `process.env`. So pass values the server needs through the service's `environment` field, not through `link` alone.
+Bapx's built server reads its provider key and model from the environment at start time. SST's `link` exposes resources through the `sst` SDK's `Resource` object at runtime, but the Bapx server does not import that SDK — it reads plain `process.env`. So pass values the server needs through the service's `environment` field, not through `link` alone.
 
 Define the provider key as an `sst.Secret` so its value stays out of source, then interpolate it into `environment`:
 
 ```typescript title="sst.config.ts"
 const apiKey = new sst.Secret('AnthropicApiKey');
 
-new sst.aws.Service('Flue', {
+new sst.aws.Service('Bapx', {
   cluster,
   image: { context: '.', dockerfile: 'Dockerfile' },
   loadBalancer: { rules: [{ listen: '80/http', forward: '8080/http' }] },
@@ -69,18 +69,18 @@ Use `OPENAI_API_KEY` (and an `openai/...` `MODEL_SPECIFIER`) instead for OpenAI,
 sst secret set AnthropicApiKey sk-...
 ```
 
-Linking the secret grants the service permission to read it; the `environment` entry is what surfaces it to the Flue process as `process.env.ANTHROPIC_API_KEY`. The `FLUE_MODE`, `FLUE_CLI_*`, and `FLUE_INTERNAL_CLI_IPC` variables are reserved by the Flue CLI — do not set them on the service.
+Linking the secret grants the service permission to read it; the `environment` entry is what surfaces it to the Bapx process as `process.env.ANTHROPIC_API_KEY`. The `FLUE_MODE`, `FLUE_CLI_*`, and `FLUE_INTERNAL_CLI_IPC` variables are reserved by the Bapx CLI — do not set them on the service.
 
 ## Persistence
 
-On a single Fargate task, Flue's canonical conversations, attachments, and accepted submissions live in memory, so they are lost when the task restarts or redeploys. Back them with Postgres when state must survive replacement or workflow history must be available across tasks. Shared storage does not enable active-active agent execution: route each agent instance to one live task.
+On a single Fargate task, Bapx's canonical conversations, attachments, and accepted submissions live in memory, so they are lost when the task restarts or redeploys. Back them with Postgres when state must survive replacement or workflow history must be available across tasks. Shared storage does not enable active-active agent execution: route each agent instance to one live task.
 
 The `sst.aws.Postgres` component provisions an RDS Postgres instance in the VPC and exposes its connection parts as outputs (`host`, `port`, `username`, `password`, `database`). Construct a `DATABASE_URL` from those with `$interpolate` and pass it through `environment`:
 
 ```typescript title="sst.config.ts"
-const db = new sst.aws.Postgres('FlueDb', { vpc });
+const db = new sst.aws.Postgres('BapxDb', { vpc });
 
-new sst.aws.Service('Flue', {
+new sst.aws.Service('Bapx', {
   cluster,
   image: { context: '.', dockerfile: 'Dockerfile' },
   loadBalancer: { rules: [{ listen: '80/http', forward: '8080/http' }] },
@@ -95,17 +95,17 @@ new sst.aws.Service('Flue', {
 
 Install `@bapX/postgres` and add a `db.ts` that reads `DATABASE_URL`:
 
-```typescript title=".flue/db.ts"
+```typescript title=".bapX/db.ts"
 import { postgres } from '@bapX/postgres';
 
 export default postgres(process.env.DATABASE_URL!);
 ```
 
-Flue discovers `db.ts` at build time and wires it into the generated server. The adapter handles schema creation, canonical conversation streams, immutable attachments, durable submission state, and workflow history. Because the Postgres instance and the service share the VPC, the service reaches the database over the private network. See [Database](/docs/guide/database/) for the adapter contract and other backends.
+Bapx discovers `db.ts` at build time and wires it into the generated server. The adapter handles schema creation, canonical conversation streams, immutable attachments, durable submission state, and workflow history. Because the Postgres instance and the service share the VPC, the service reaches the database over the private network. See [Database](/docs/guide/database/) for the adapter contract and other backends.
 
 ## Health and streaming
 
-The load balancer health-checks the service before it routes traffic, and the check defaults to path `/`. Flue does not generate a `/health` route — define one in `app.ts`, or the load balancer will treat the default health-check path as unhealthy if `/` doesn't return a `200`. Once that route exists, point the check at it through the service's `loadBalancer.health` field, which is keyed by the forwarded `'port/protocol'`:
+The load balancer health-checks the service before it routes traffic, and the check defaults to path `/`. Bapx does not generate a `/health` route — define one in `app.ts`, or the load balancer will treat the default health-check path as unhealthy if `/` doesn't return a `200`. Once that route exists, point the check at it through the service's `loadBalancer.health` field, which is keyed by the forwarded `'port/protocol'`:
 
 ```typescript title="sst.config.ts"
 loadBalancer: {

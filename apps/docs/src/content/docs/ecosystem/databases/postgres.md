@@ -1,6 +1,6 @@
 ---
 title: Postgres
-description: Give Flue agents and workflow runs durable, shared state with a Postgres database.
+description: Give Bapx agents and workflow runs durable, shared state with a Postgres database.
 package:
   name: '@bapX/postgres'
   href: https://www.npmjs.com/package/@bapX/postgres
@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add durable, shared Postgres persistence to an existing Flue project with the [Postgres](https://www.postgresql.org) blueprint. Run the following command in your terminal or coding agent of choice:
+Add durable, shared Postgres persistence to an existing Bapx project with the [Postgres](https://www.postgresql.org) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add database postgres
+bapX add database postgres
 ```
 
 ## Overview
@@ -46,7 +46,7 @@ export default postgres({
 });
 ```
 
-Flue discovers the adapter at build time and wires it into the generated Node server. On startup, it creates or verifies the required `flue_*` tables. Canonical agent conversations, immutable attachments, accepted submissions, and workflow history then survive process replacement. Replicas may share durable state and workflow history, but each agent instance still requires one live Node owner; Postgres does not enable active-active same-instance execution. Application business data remains application-owned. The blueprint applies only to Node targets because Cloudflare deployments use Durable Object SQLite instead.
+Bapx discovers the adapter at build time and wires it into the generated Node server. On startup, it creates or verifies the required `bapX_*` tables. Canonical agent conversations, immutable attachments, accepted submissions, and workflow history then survive process replacement. Replicas may share durable state and workflow history, but each agent instance still requires one live Node owner; Postgres does not enable active-active same-instance execution. Application business data remains application-owned. The blueprint applies only to Node targets because Cloudflare deployments use Durable Object SQLite instead.
 
 ## Configure
 
@@ -55,12 +55,12 @@ Flue discovers the adapter at build time and wires it into the generated Node se
 | `DATABASE_URL` | **Required** — Postgres connection string, e.g. `postgresql://user:pass@host:5432/db`. |
 
 Your driver reads `DATABASE_URL` at runtime — it is not baked into the build.
-For local development, `flue dev --env <file>` and `flue run --env <file>` load
+For local development, `bapX dev --env <file>` and `bapX run --env <file>` load
 any `.env`-format file. In production, supply it from your platform's secret
 store.
 
 The blueprint installs `@bapX/postgres` with `pg` by default and writes a
-source-root `db.ts` that wraps it. Flue discovers `db.ts` at build
+source-root `db.ts` that wraps it. Bapx discovers `db.ts` at build
 time and wires it into the generated Node server. After running the command,
 canonical agent conversations, immutable attachments, accepted submissions, and workflow-run records persist to Postgres instead of in-memory state.
 
@@ -105,16 +105,16 @@ implement this callback transaction contract.
 ## Migrations
 
 The adapter's `migrate()` hook runs automatically when the generated Node
-server starts. It creates Flue's `flue_*` tables idempotently and stamps a
+server starts. It creates Bapx's `bapX_*` tables idempotently and stamps a
 schema version, so a fresh database is provisioned on first boot and an existing
 one is reused on restart. There is no separate migration command to run, and a
-database written by a newer Flue refuses to start rather than corrupting state.
+database written by a newer Bapx refuses to start rather than corrupting state.
 
 ## What gets stored
 
-A Flue database stores runtime state, not your whole application.
+A Bapx database stores runtime state, not your whole application.
 
-| Stored by Flue                                                   | Not stored by Flue                                             |
+| Stored by Bapx                                                   | Not stored by Bapx                                             |
 | ---------------------------------------------------------------- | -------------------------------------------------------------- |
 | Canonical agent conversation streams and compaction records       | Sandbox files and installed dependencies                       |
 | Immutable attachment payloads                                    | External API side effects                                      |

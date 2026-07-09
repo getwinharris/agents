@@ -1,6 +1,6 @@
 ---
 title: Schedules
-description: Invoke Flue workflows or dispatch agent input on a schedule with Cloudflare or Node.js.
+description: Invoke Bapx workflows or dispatch agent input on a schedule with Cloudflare or Node.js.
 lastReviewedAt: 2026-06-19
 ---
 
@@ -8,7 +8,7 @@ Schedules often start bounded work such as daily summaries, recurring reports, d
 
 Use `dispatch(...)` instead when the schedule is an event for an intentionally continuing Agent instance. Reusing the same agent instance ID also reuses its persistent session, which is useful only when successive occurrences should share conversation state.
 
-Flue does not prescribe a scheduling library. Use the scheduler provided by your deployment environment and choose Workflow invocation or Agent dispatch based on the work's lifetime.
+Bapx does not prescribe a scheduling library. Use the scheduler provided by your deployment environment and choose Workflow invocation or Agent dispatch based on the work's lifetime.
 
 ## Scheduling a Workflow on Cloudflare
 

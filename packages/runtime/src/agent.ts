@@ -9,7 +9,7 @@ const MAX_GREP_MATCHES = 100;
 const MAX_GREP_LINE_LENGTH = 500;
 const MAX_GLOB_RESULTS = 1000;
 const BASE64_READ_LINE_LENGTH = 76;
-const PACKAGED_SKILLS_ROOT = '/.flue/packaged-skills/';
+const PACKAGED_SKILLS_ROOT = '/.bapX/packaged-skills/';
 export const READ_SKILL_RESOURCE_TOOL_NAME = 'read_skill_resource';
 
 export interface TaskToolParams {
@@ -68,7 +68,7 @@ export function createPackagedSkillReadTool(
 			throwIfAborted(signal);
 			const content = readPackagedSkillFile(packagedSkills, params.path);
 			if (content === undefined)
-				throw new Error(`[flue] Packaged skill file not found: ${params.path}`);
+				throw new Error(`[bapX] Packaged skill file not found: ${params.path}`);
 			return formatReadContent(params.path, content, params.offset, params.limit);
 		},
 	};
@@ -92,7 +92,7 @@ function createReadTool(
 				return formatReadContent(params.path, packagedFile, params.offset, params.limit);
 			}
 			if (params.path.startsWith(PACKAGED_SKILLS_ROOT)) {
-				throw new Error(`[flue] Packaged skill file not found: ${params.path}`);
+				throw new Error(`[bapX] Packaged skill file not found: ${params.path}`);
 			}
 
 			const content = await env.readFile(params.path);
@@ -116,7 +116,7 @@ function createWriteTool(env: SessionEnv): AgentTool<typeof WriteParams> {
 		async execute(_toolCallId: string, params: Static<typeof WriteParams>, signal?: AbortSignal) {
 			throwIfAborted(signal);
 			// SessionEnv.writeFile creates missing parent directories itself
-			// (the FlueFs.writeFile guarantee), so no eager mkdir here.
+			// (the BapxFs.writeFile guarantee), so no eager mkdir here.
 			await env.writeFile(params.path, params.content);
 			return {
 				content: [
@@ -230,7 +230,7 @@ function createBashTool(env: SessionEnv): AgentTool<typeof BashParams> {
 				formatBashResult(
 					{
 						stdout: '',
-						stderr: `[flue] Command timed out after ${params.timeout} seconds.`,
+						stderr: `[bapX] Command timed out after ${params.timeout} seconds.`,
 						exitCode: 124,
 					},
 					params.command,
@@ -282,7 +282,7 @@ const TaskParams = Type.Object({
 	),
 });
 
-/** Build Flue's framework-owned `task` tool. */
+/** Build Bapx's framework-owned `task` tool. */
 export function createTaskTool(
 	runTask: (
 		params: TaskToolParams,
@@ -562,7 +562,7 @@ export function formatPackagedSkillFilePath(skillId: string, filePath: string): 
 }
 
 function packagedSkillReadPath(skillId: string, filePath: string): string {
-	return `/.flue/packaged-skills/${encodeURIComponent(skillId)}/${filePath}`;
+	return `/.bapX/packaged-skills/${encodeURIComponent(skillId)}/${filePath}`;
 }
 
 function countOccurrences(str: string, substr: string): number {

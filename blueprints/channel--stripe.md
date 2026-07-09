@@ -6,15 +6,15 @@
 }
 ---
 
-# Add a Stripe Channel to Flue
+# Add a Stripe Channel to Bapx
 
 You are an AI coding agent adding verified Stripe webhook ingress and
-application-owned Stripe API behavior to a Flue project.
+application-owned Stripe API behavior to a Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.flue/`, then `<root>/src/`, then
+first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, the
 Stripe event destination's payload style, and which event types the application
 needs.
@@ -36,7 +36,7 @@ message, and customer policy to the application, but preserve the project-owned
 client and fixed route:
 
 ```ts
-// flue-blueprint: channel/stripe@1
+// bapX-blueprint: channel/stripe@1
 import Stripe from 'stripe';
 import { createStripeChannel } from '@bapX/stripe';
 import { defineTool, dispatch } from '@bapX/runtime';
@@ -159,7 +159,7 @@ authorization policy outside `@bapX/stripe`.
 Do not normalize snapshot events and thin notifications into one schema. They
 have different provider semantics and SDK APIs.
 
-Stripe's generated event unions describe the installed SDK version. Flue still
+Stripe's generated event unions describe the installed SDK version. Bapx still
 forwards a verified event type that is newer than those declarations. Until the
 project upgrades Stripe, use `switch (event.type as string)` to observe that
 future type and validate its resource fields in application code rather than
@@ -178,12 +178,12 @@ Configure the Stripe event destination as:
 https://example.com/channels/stripe/webhook
 ```
 
-If `flue()` has an outer mount prefix, include it in the configured URL.
+If `bapX()` has an outer mount prefix, include it in the configured URL.
 Subscribe only to event types the application handles.
 
 The official Stripe SDK exposes a `workerd` implementation backed by Fetch and
 Web Crypto. For Cloudflare projects, use the existing credential convention;
-Flue's required `nodejs_compat` configuration supports `process.env`, and
+Bapx's required `nodejs_compat` configuration supports `process.env`, and
 typed Worker bindings remain an option. The completed project must execute
 webhook verification and one fake-transport client request in workerd under
 that configuration and pass its actual Cloudflare build.

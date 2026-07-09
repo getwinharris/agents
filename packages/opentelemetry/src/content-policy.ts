@@ -1,4 +1,4 @@
-import type { FlueObservation } from '@bapX/runtime';
+import type { BapxObservation } from '@bapX/runtime';
 import type { Span } from '@opentelemetry/api';
 
 export type GenAIContentType =
@@ -21,7 +21,7 @@ export interface GenAIContentPolicy {
 
 export interface GenAIContentScope {
 	contentType: GenAIContentType;
-	eventType: FlueObservation['type'];
+	eventType: BapxObservation['type'];
 	runId?: string;
 	agentName?: string;
 	harness?: string;
@@ -62,7 +62,7 @@ export function validateContentPolicy(policy: false | GenAIContentPolicy | undef
 export function contentValue(
 	policy: false | GenAIContentPolicy | undefined,
 	content: unknown,
-	event: FlueObservation,
+	event: BapxObservation,
 	span: Span,
 	options: ContentValueOptions,
 	diagnostic?: ContentDiagnostic,
@@ -156,7 +156,7 @@ function applyStructuralLimit(
 	return { value };
 }
 
-function contentScope(event: FlueObservation, contentType: GenAIContentType): GenAIContentScope {
+function contentScope(event: BapxObservation, contentType: GenAIContentType): GenAIContentScope {
 	return {
 		contentType,
 		eventType: event.type,

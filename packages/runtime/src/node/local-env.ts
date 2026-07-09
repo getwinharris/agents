@@ -137,7 +137,7 @@ function execShell(
 			if (truncated) {
 				settle({
 					stdout,
-					stderr: `${stderr}\n[flue] local exec output exceeded ${MAX_OUTPUT_BYTES} bytes; process tree killed`,
+					stderr: `${stderr}\n[bapX] local exec output exceeded ${MAX_OUTPUT_BYTES} bytes; process tree killed`,
 					exitCode: 1,
 				});
 				return;
@@ -210,7 +210,7 @@ function resolveBaseEnv(userEnv: LocalSessionEnvOptions['env']): NodeJS.ProcessE
 	// `any`s.
 	if (userEnv !== undefined && (typeof userEnv !== 'object' || Array.isArray(userEnv))) {
 		throw new TypeError(
-			'[flue] local() `env` must be a Record<string, string | undefined>. ' +
+			'[bapX] local() `env` must be a Record<string, string | undefined>. ' +
 				'To inherit the full host env, pass `env: { ...process.env }`.',
 		);
 	}
@@ -272,7 +272,7 @@ export function createLocalSessionEnv(options: LocalSessionEnvOptions = {}): Ses
 
 		async writeFile(p, content) {
 			const resolved = resolvePath(p);
-			// FlueFs.writeFile guarantees parents are created as needed in
+			// BapxFs.writeFile guarantees parents are created as needed in
 			// every sandbox mode; the shared lazy implementation keeps the
 			// happy path at a single fs call.
 			await writeFileCreatingParents(

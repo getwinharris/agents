@@ -47,7 +47,7 @@ export function createTelegramWebhookHandler<E extends Env>(
 /**
  * Minimal envelope check: a verified webhook body must be a JSON object with a
  * non-negative integer `update_id`. The provider-native fields are forwarded
- * unmodified; Flue does not exhaustively validate the typed `Update` schema.
+ * unmodified; Bapx does not exhaustively validate the typed `Update` schema.
  */
 function isUpdate(value: unknown): value is Update {
 	if (!isRecord(value)) return false;

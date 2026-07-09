@@ -9,10 +9,10 @@ lastReviewedAt: 2026-06-13
 
 ## Quickstart
 
-Add verified Discord HTTP interactions and application-owned Discord REST behavior to an existing Flue project with the [Discord](https://discord.com) blueprint. Run the following command in your terminal or coding agent of choice:
+Add verified Discord HTTP interactions and application-owned Discord REST behavior to an existing Bapx project with the [Discord](https://discord.com) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel discord
+bapX add channel discord
 ```
 
 ## Overview
@@ -75,7 +75,7 @@ The abridged example omits the generated `destinationFromInteraction` helper
 and message tool. Once configured, an `ask` command continues the agent instance
 for its Discord destination, acknowledges the interaction, and lets that agent
 post messages through the bound REST tool. On Cloudflare Workers, the REST
-package selects its Fetch-based export and uses Flue's `nodejs_compat` setting.
+package selects its Fetch-based export and uses Bapx's `nodejs_compat` setting.
 
 ## Configure
 
@@ -187,7 +187,7 @@ for the response types allowed by each interaction family.
 Not every interaction represents a durable Discord channel conversation. When
 an interaction should continue an agent instance, application code can derive a
 `DiscordDestinationRef` from native `guild_id`, `channel.id`, `channel.type`, and
-`context` fields. The complete generated example from `flue add channel discord` shows
+`context` fields. The complete generated example from `bapX add channel discord` shows
 that derivation and dispatches with `channel.conversationKey(ref)`.
 
 Some valid interactions, including modal submissions, may omit a channel.
@@ -262,7 +262,7 @@ Discord does not document dependable interaction redelivery behavior. Preserve
 before dispatch when duplicate admission is unacceptable. The channel itself is
 stateless and does not deduplicate interaction ids.
 
-`@bapX/discord` runs in Node and Cloudflare Workers with Flue's required
+`@bapX/discord` runs in Node and Cloudflare Workers with Bapx's required
 `nodejs_compat` setting. The example executes `@discordjs/rest` channel-message
 request construction against a fail-closed fake Fetch transport in both
 runtimes. Validate any additional REST operations your application depends on.

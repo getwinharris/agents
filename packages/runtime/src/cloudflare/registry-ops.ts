@@ -2,13 +2,13 @@
  * Internal run-pointer index for the Cloudflare target.
  *
  * Cloudflare stores run records in per-workflow Durable Objects, so a
- * singleton `FlueRegistry` DO keeps a pointer index for cross-deployment
+ * singleton `BapxRegistry` DO keeps a pointer index for cross-deployment
  * lookup and listing. This topology is internal plumbing behind the
  * composite Cloudflare `RunStore` (see `cloudflare/run-store.ts`); it is
  * not part of the public adapter contract — single-database adapters back
  * pointers from their run records directly.
  *
- * Does not import `cloudflare:workers`; the `FlueRegistry` DO class wraps
+ * Does not import `cloudflare:workers`; the `BapxRegistry` DO class wraps
  * these synchronous ops in `cloudflare/registry-do.ts`.
  */
 
@@ -24,7 +24,7 @@ import {
 	type RunStatus,
 	type WorkflowRunPointer,
 } from '../runtime/run-store.ts';
-import { migrateFlueSqlSchema } from '../schema-version.ts';
+import { migrateBapxSqlSchema } from '../schema-version.ts';
 import type { SqlStorage } from '../sql-storage.ts';
 
 type SqlRow = Record<string, unknown>;
@@ -67,7 +67,7 @@ class SqlRegistryOps implements RegistryOps {
 
 	recordRunStart(input: RecordRunStartInput): void {
 		this.sql.exec(
-			`INSERT OR IGNORE INTO flue_registry_runs
+			`INSERT OR IGNORE INTO bapX_registry_runs
 			 (run_id, workflow_name, status, started_at, ended_at, duration_ms, is_error)
 			 VALUES (?, ?, 'active', ?, NULL, NULL, NULL)`,
 			input.runId,
@@ -80,7 +80,7 @@ class SqlRegistryOps implements RegistryOps {
 		// Upsert so a terminal write heals a start pointer lost to a transient
 		// fault; on conflict the original started_at is preserved.
 		this.sql.exec(
-			`INSERT INTO flue_registry_runs
+			`INSERT INTO bapX_registry_runs
 			 (run_id, workflow_name, status, started_at, ended_at, duration_ms, is_error)
 			 VALUES (?, ?, ?, ?, ?, ?, ?)
 			 ON CONFLICT(run_id) DO UPDATE SET
@@ -100,7 +100,7 @@ class SqlRegistryOps implements RegistryOps {
 
 	lookupRun(runId: string): WorkflowRunPointer | null {
 		const row = this.sql
-			.exec('SELECT run_id, workflow_name FROM flue_registry_runs WHERE run_id = ?', runId)
+			.exec('SELECT run_id, workflow_name FROM bapX_registry_runs WHERE run_id = ?', runId)
 			.toArray()[0];
 		return row
 			? { runId: String(row.run_id), workflowName: String(row.workflow_name) }
@@ -127,7 +127,7 @@ class SqlRegistryOps implements RegistryOps {
 		const where = wheres.length > 0 ? `WHERE ${wheres.join(' AND ')}` : '';
 		const rows = this.sql
 			.exec(
-				`SELECT * FROM flue_registry_runs ${where}
+				`SELECT * FROM bapX_registry_runs ${where}
 			 ORDER BY started_at DESC, run_id DESC LIMIT ?`,
 				...bindings,
 				limit + 1,
@@ -141,9 +141,9 @@ class SqlRegistryOps implements RegistryOps {
 }
 
 function ensureRegistryTables(sql: SqlStorage): void {
-	migrateFlueSqlSchema(sql, () => {
+	migrateBapxSqlSchema(sql, () => {
 		sql.exec(
-			`CREATE TABLE IF NOT EXISTS flue_registry_runs (
+			`CREATE TABLE IF NOT EXISTS bapX_registry_runs (
 			 run_id TEXT PRIMARY KEY,
 			 workflow_name TEXT,
 			 status TEXT NOT NULL,
@@ -154,10 +154,10 @@ function ensureRegistryTables(sql: SqlStorage): void {
 			)`,
 		);
 		sql.exec(
-			'CREATE INDEX IF NOT EXISTS flue_registry_status_started_idx ON flue_registry_runs (status, started_at DESC)',
+			'CREATE INDEX IF NOT EXISTS bapX_registry_status_started_idx ON bapX_registry_runs (status, started_at DESC)',
 		);
 		sql.exec(
-			'CREATE INDEX IF NOT EXISTS flue_registry_workflow_started_idx ON flue_registry_runs (workflow_name, started_at DESC)',
+			'CREATE INDEX IF NOT EXISTS bapX_registry_workflow_started_idx ON bapX_registry_runs (workflow_name, started_at DESC)',
 		);
 	});
 }

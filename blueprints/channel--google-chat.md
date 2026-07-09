@@ -6,16 +6,16 @@
 }
 ---
 
-# Add a Google Chat Channel to Flue
+# Add a Google Chat Channel to Bapx
 
 You are an AI coding agent adding authenticated Google Chat interactions,
 optional Google Workspace Events, and project-owned outbound messaging to a
-Flue project.
+Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.flue/`, then `<root>/src/`, then
+first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 which Google Chat event families the application needs.
 
@@ -59,7 +59,7 @@ Create `<source-dir>/channels/google-chat.ts`. Adapt the imported agent,
 dispatched message, event policy, and tool:
 
 ```ts
-// flue-blueprint: channel/google-chat@1
+// bapX-blueprint: channel/google-chat@1
 import { createGoogleChatChannel, type GoogleChatConversationRef } from '@bapX/google-chat';
 import { defineTool, dispatch } from '@bapX/runtime';
 import * as v from 'valibot';

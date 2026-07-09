@@ -1,17 +1,17 @@
 ---
 title: Mirage
-description: Connect Flue agents to Mirage workspaces and mounted resources.
+description: Connect Bapx agents to Mirage workspaces and mounted resources.
 lastReviewedAt: 2026-05-30
 ---
 
-The Mirage adapter adapts an application-owned Mirage `Workspace` into Flue's sandbox interface. Mirage offers runtime packages for Node and browser-class runtimes, allowing the adapter pattern to be used on Node or Cloudflare when you choose compatible resources.
+The Mirage adapter adapts an application-owned Mirage `Workspace` into Bapx's sandbox interface. Mirage offers runtime packages for Node and browser-class runtimes, allowing the adapter pattern to be used on Node or Cloudflare when you choose compatible resources.
 
 ## Quickstart
 
-Add mounted workspace sandbox capability to an existing Flue project with the [Mirage](https://docs.mirage.strukto.ai) blueprint. Run the following command in your terminal or coding agent of choice:
+Add mounted workspace sandbox capability to an existing Bapx project with the [Mirage](https://docs.mirage.strukto.ai) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```bash
-flue add sandbox mirage
+bapX add sandbox mirage
 ```
 
 ## Overview
@@ -19,7 +19,7 @@ flue add sandbox mirage
 The Mirage blueprint installs `@struktoai/mirage-node` for Node or `@struktoai/mirage-browser` for Cloudflare when needed, then creates `sandboxes/mirage.ts` in your source-root. The generated adapter accepts an application-created `Workspace`; resource mounts, credentials, writable boundaries, and lifetime remain application-owned.
 
 ```ts title="<source-root>/sandboxes/mirage.ts (abridged)"
-// flue-blueprint: sandbox/mirage@1
+// bapX-blueprint: sandbox/mirage@1
 import { createSandboxSessionEnv } from '@bapX/runtime';
 import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 import type { Workspace as MirageWorkspace } from '@struktoai/mirage-core';
@@ -33,7 +33,7 @@ export interface MirageAdapterOptions {
 class MirageSandboxApi implements SandboxApi {
   constructor(
     private workspace: MirageWorkspace,
-    private flueContextId: string,
+    private bapXContextId: string,
   ) {}
 
   /* ... generated workspace.fs operations; rm rejects recursive and force before mutation ... */
@@ -79,7 +79,7 @@ class MirageSandboxApi implements SandboxApi {
 
     try {
       const result = await this.workspace.execute(command, {
-        sessionId: this.flueContextId,
+        sessionId: this.bapXContextId,
         cwd: options?.cwd,
         env: options?.env,
         signal,
@@ -98,7 +98,7 @@ class MirageSandboxApi implements SandboxApi {
       if (isTimeout) {
         return {
           stdout: '',
-          stderr: `[flue:mirage] Command timed out after ${options?.timeoutMs} milliseconds.`,
+          stderr: `[bapX:mirage] Command timed out after ${options?.timeoutMs} milliseconds.`,
           exitCode: 124,
         };
       }
@@ -124,7 +124,7 @@ export function mirage(workspace: MirageWorkspace, options?: MirageAdapterOption
 }
 ```
 
-Pass `mirage(workspace)` as an agent's `sandbox` to expose mounted resources through a Mirage session keyed by the Flue context id. File stats preserve Mirage's unknown size or modification time by omitting those fields; `timeoutMs` creates a millisecond timeout signal, caller cancellation takes precedence, and only timeout cancellation becomes an exit-code-124 result. Mirage's direct filesystem API does not implement recursive or force removal, so the adapter rejects either option before mutation.
+Pass `mirage(workspace)` as an agent's `sandbox` to expose mounted resources through a Mirage session keyed by the Bapx context id. File stats preserve Mirage's unknown size or modification time by omitting those fields; `timeoutMs` creates a millisecond timeout signal, caller cancellation takes precedence, and only timeout cancellation becomes an exit-code-124 result. Mirage's direct filesystem API does not implement recursive or force removal, so the adapter rejects either option before mutation.
 
 ## Configure
 

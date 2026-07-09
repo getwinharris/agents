@@ -1,14 +1,14 @@
 ---
 title: OpenTelemetry
-description: Export Flue workflows, agents, model calls, and tools with OpenTelemetry GenAI semantics.
+description: Export Bapx workflows, agents, model calls, and tools with OpenTelemetry GenAI semantics.
 package:
   name: '@bapX/opentelemetry'
   href: https://www.npmjs.com/package/@bapX/opentelemetry
 ---
 
-`@bapX/opentelemetry` projects Flue's live runtime observations into standard OpenTelemetry GenAI spans and metrics. It does not configure an SDK, exporter, sampling, credentials, or deployment-specific flushing.
+`@bapX/opentelemetry` projects Bapx's live runtime observations into standard OpenTelemetry GenAI spans and metrics. It does not configure an SDK, exporter, sampling, credentials, or deployment-specific flushing.
 
-The package implements the Development GenAI conventions pinned at commit `4c8addb53718b544134be47e256237026fe88875`. Its Flue-to-GenAI projection revision is `5` and its Flue extension revision is `3`; the GenAI semantic-convention revision and schema remain unchanged. Updating any revision requires an explicit compatibility review.
+The package implements the Development GenAI conventions pinned at commit `4c8addb53718b544134be47e256237026fe88875`. Its Bapx-to-GenAI projection revision is `5` and its Bapx extension revision is `3`; the GenAI semantic-convention revision and schema remain unchanged. Updating any revision requires an explicit compatibility review.
 
 ## Configure
 
@@ -32,19 +32,19 @@ Pass configured tracer, meter, or structural Logger instances when the applicati
 
 ## Trace model
 
-| Flue activity | OpenTelemetry representation |
+| Bapx activity | OpenTelemetry representation |
 | --- | --- |
 | Workflow invocation | `invoke_workflow <name>` |
 | Prompt or skill | `invoke_agent <agent>` |
 | Delegated task | one task-owned `invoke_agent <agent>` |
 | Provider inference | `chat <requested-model>` client span |
 | GenAI tool execution | `execute_tool <name>` |
-| Caller shell execution | `flue.operation shell` |
-| Context compaction | `flue.compaction` with child chat spans |
+| Caller shell execution | `bapX.operation shell` |
+| Context compaction | `bapX.compaction` with child chat spans |
 
-Provider chat spans cover provider inference only. The projection reads canonical model telemetry directly: semantic `request.providerName` becomes `gen_ai.provider.name`, while `request.providerId` remains the Flue registration identity. It does not fall back to removed top-level event fields. Local tools are sibling spans under the agent invocation and correlate with model output through `gen_ai.tool.call.id`.
+Provider chat spans cover provider inference only. The projection reads canonical model telemetry directly: semantic `request.providerName` becomes `gen_ai.provider.name`, while `request.providerId` remains the Bapx registration identity. It does not fall back to removed top-level event fields. Local tools are sibling spans under the agent invocation and correlate with model output through `gen_ai.tool.call.id`.
 
-`gen_ai.conversation.id` identifies one persisted Flue session. It is not a workflow run, submission, dispatch, operation, trace, session name, or provider-affinity key. Flue correlation fields remain under documented `flue.*` attributes when no exact standard field exists.
+`gen_ai.conversation.id` identifies one persisted Bapx session. It is not a workflow run, submission, dispatch, operation, trace, session name, or provider-affinity key. Bapx correlation fields remain under documented `bapX.*` attributes when no exact standard field exists.
 
 ## Protect content
 
@@ -63,11 +63,11 @@ const instrumentation = createOpenTelemetryInstrumentation({
 });
 ```
 
-The `enabled` value is the global privacy ceiling. A detached converted value passes through `transform` once; returning `undefined` suppresses both destinations. Transforms are trusted application code; Flue does not validate their returned GenAI shape. Structural limits run afterward: `maxMessageParts` retains the first complete parts per input/output message and first top-level system instructions, and `maxToolDefinitions` retains the first definitions. Limit values must be finite nonnegative safe integers.
+The `enabled` value is the global privacy ceiling. A detached converted value passes through `transform` once; returning `undefined` suppresses both destinations. Transforms are trusted application code; Bapx does not validate their returned GenAI shape. Structural limits run afterward: `maxMessageParts` retains the first complete parts per input/output message and first top-level system instructions, and `maxToolDefinitions` retains the first definitions. Limit values must be finite nonnegative safe integers.
 
 `externalContent` is a side-effect-only sink for system instructions and input/output messages. It receives a detached, structurally limited clone with a stable `contentType` scope regardless of span sampling or `inline`. Returns and mutations cannot alter inline content, failures only diagnose, and tool content is never delivered. Set `inline: false` to skip serialization while retaining this external delivery.
 
-`maxAttributeBytes` measures the exact final UTF-8 inline string and does not limit external delivery. Object-shaped tool arguments/results use standard `gen_ai.tool.call.*` attributes; strings, arrays, primitives, and `null` use `flue.tool.call.arguments` or `flue.tool.call.result` under the same privacy and size policy. Tool descriptions and plain-text fallbacks remain raw strings. Bounded `flue.telemetry.content.*` attributes mark structural truncation and inline byte omission. The adapter does not invent flattened child keys beneath `gen_ai.*`.
+`maxAttributeBytes` measures the exact final UTF-8 inline string and does not limit external delivery. Object-shaped tool arguments/results use standard `gen_ai.tool.call.*` attributes; strings, arrays, primitives, and `null` use `bapX.tool.call.arguments` or `bapX.tool.call.result` under the same privacy and size policy. Tool descriptions and plain-text fallbacks remain raw strings. Bounded `bapX.telemetry.content.*` attributes mark structural truncation and inline byte omission. The adapter does not invent flattened child keys beneath `gen_ai.*`.
 
 ## Metrics and Logs
 
@@ -77,13 +77,13 @@ Logs require explicit Logger injection. Failed inference operations emit the sta
 
 ## Propagation and recovery
 
-Flue validates and persists `traceparent` and optional `tracestate` at workflow and direct-agent admission. Baggage is not persisted. Durable direct-agent processing activates its extracted admission context, and execution interceptors activate owning spans around workflow, agent, model-stream, tool, and task work. `dispatch(...)` does not currently propagate trace context.
+Bapx validates and persists `traceparent` and optional `tracestate` at workflow and direct-agent admission. Baggage is not persisted. Durable direct-agent processing activates its extracted admission context, and execution interceptors activate owning spans around workflow, agent, model-stream, tool, and task work. `dispatch(...)` does not currently propagate trace context.
 
 Workflow recovery restores the persisted admission carrier as the parent of a new recovery-handling span. The new span begins at `run_resume`; it does not reconstruct or backdate the interrupted span. Recovery does not replay provider or tool execution. Stored stream chunks create no chat spans or usage observations, and synthetic interrupted-tool repairs create no `execute_tool` spans.
 
 ## Streaming limitation
 
-Pi does not expose authoritative raw provider stream-item timing. Flue therefore omits time-to-first-chunk and time-per-output-chunk metrics instead of deriving inaccurate values from semantic text/reasoning deltas or recovered chunks.
+Pi does not expose authoritative raw provider stream-item timing. Bapx therefore omits time-to-first-chunk and time-per-output-chunk metrics instead of deriving inaccurate values from semantic text/reasoning deltas or recovered chunks.
 
 ## Migrate from the observer API
 
@@ -91,7 +91,7 @@ Replace `createOpenTelemetryObserver()` with `createOpenTelemetryInstrumentation
 
 ## Unsupported operations
 
-Flue does not emit invented spans for agent creation, planning, embeddings, retrieval, memory operations, remote agent clients, or evaluations. These operations remain absent until Flue exposes a genuine corresponding boundary.
+Bapx does not emit invented spans for agent creation, planning, embeddings, retrieval, memory operations, remote agent clients, or evaluations. These operations remain absent until Bapx exposes a genuine corresponding boundary.
 
 ## Verify
 

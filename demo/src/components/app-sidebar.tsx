@@ -20,7 +20,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { parseAgentUrl } from '@/lib/flue-client'
+import { parseAgentUrl } from '@/lib/bapX-client'
 import { useConversations } from '@/state/conversations'
 import { useSettings } from '@/state/settings'
 import { SettingsDialog } from './settings-dialog'
@@ -45,7 +45,7 @@ export function AppSidebar() {
           <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-semibold">
             F
           </div>
-          <span className="font-semibold">Flue Demo</span>
+          <span className="font-semibold">Bapx Demo</span>
         </div>
         <Button asChild variant="outline" className="w-full justify-start gap-2">
           <Link to="/">

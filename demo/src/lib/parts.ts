@@ -1,4 +1,4 @@
-import type { FlueConversationPart } from '@bapX/react'
+import type { BapxConversationPart } from '@bapX/react'
 
 /**
  * Whether a conversation part renders anything given the current preferences.
@@ -6,6 +6,6 @@ import type { FlueConversationPart } from '@bapX/react'
  * renders. Used to drop assistant messages that would render empty and to decide
  * when the transient "Thinking…" indicator is needed.
  */
-export function isVisiblePart(part: FlueConversationPart, showThinking: boolean): boolean {
+export function isVisiblePart(part: BapxConversationPart, showThinking: boolean): boolean {
   return part.type === 'reasoning' ? showThinking : true
 }

@@ -1,4 +1,4 @@
-import type { FlueConversationPart } from '@bapX/react'
+import type { BapxConversationPart } from '@bapX/react'
 import { Brain, ChevronRight, FileText } from 'lucide-react'
 import { useState } from 'react'
 import {
@@ -71,7 +71,7 @@ function ReasoningPart({ text, streaming }: { text: string; streaming: boolean }
   )
 }
 
-function FilePart({ part }: { part: Extract<FlueConversationPart, { type: 'file' }> }) {
+function FilePart({ part }: { part: Extract<BapxConversationPart, { type: 'file' }> }) {
   // The SDK fills `url` in (a hosted URL for recorded attachments, a `data:` URL
   // for the optimistic echo); render it directly when present.
   const title = part.filename ?? part.mediaType
@@ -106,7 +106,7 @@ function FilePart({ part }: { part: Extract<FlueConversationPart, { type: 'file'
   )
 }
 
-function ToolPart({ part }: { part: Extract<FlueConversationPart, { type: 'dynamic-tool' }> }) {
+function ToolPart({ part }: { part: Extract<BapxConversationPart, { type: 'dynamic-tool' }> }) {
   const [open, setOpen] = useState(false)
   const running = part.state === 'input-available'
   const errored = part.state === 'output-error'
@@ -154,7 +154,7 @@ function ToolPayload({ label, value }: { label: string; value: unknown }) {
   )
 }
 
-export function MessagePart({ part }: { part: FlueConversationPart }) {
+export function MessagePart({ part }: { part: BapxConversationPart }) {
   switch (part.type) {
     case 'text':
       return <TextPart text={part.text} streaming={part.state === 'streaming'} />

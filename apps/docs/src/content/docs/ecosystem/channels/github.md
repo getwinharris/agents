@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add verified webhook ingress and application-owned API behavior to an existing Flue project with the [GitHub](https://github.com) blueprint. Run the following command in your terminal or coding agent of choice:
+Add verified webhook ingress and application-owned API behavior to an existing Bapx project with the [GitHub](https://github.com) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel github
+bapX add channel github
 ```
 
 ## Overview
@@ -68,7 +68,7 @@ and issue; other verified deliveries receive an empty successful response. The
 full generated module also handles pull-request review comments and lets the
 bound agent post an issue or pull-request comment through Octokit. Cloudflare
 targets retain the project's credential convention and run Octokit's Fetch path
-under Flue's `nodejs_compat` configuration.
+under Bapx's `nodejs_compat` configuration.
 
 ## Configure
 
@@ -87,7 +87,7 @@ Configure the GitHub webhook URL as:
 https://example.com/channels/github/webhook
 ```
 
-If `flue()` is mounted beneath an outer prefix, include that prefix. Set the
+If `bapX()` is mounted beneath an outer prefix, include that prefix. Set the
 content type to `application/json` (ingress is JSON-only; form-encoded
 deliveries are not accepted), set a webhook secret, and subscribe to the
 minimum event set the application handles. The example uses **Issue comments**
@@ -235,7 +235,7 @@ admission matters. Failed deliveries can be inspected and manually redelivered
 from GitHub with the same delivery id.
 
 Octokit's REST methods use Fetch and the example's typed
-`issues.createComment()` operation is tested in workerd with Flue's required
+`issues.createComment()` operation is tested in workerd with Bapx's required
 `nodejs_compat` configuration. Cloudflare projects may initialize credentials
 through `process.env` or typed Worker bindings and should verify their complete
 target build.

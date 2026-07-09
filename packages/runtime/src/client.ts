@@ -16,17 +16,17 @@ import type {
 	AgentDefinition,
 	AgentProfile,
 	AgentRuntimeConfig,
-	FlueEvent,
-	FlueEventCallback,
-	FlueEventContext,
-	FlueEventInput,
-	FlueObservationDetail,
+	BapxEvent,
+	BapxEventCallback,
+	BapxEventContext,
+	BapxEventInput,
+	BapxObservationDetail,
 	SandboxFactory,
 	SessionEnv,
 	SessionToolFactory,
 } from './types.ts';
 
-export interface FlueContextConfig {
+export interface BapxContextConfig {
 	id: string;
 	agentName?: string;
 	runId?: string;
@@ -51,23 +51,23 @@ export interface FlueContextConfig {
 	attachmentStore?: AttachmentStore;
 }
 
-/** Extends FlueEventContext with server-only methods. */
-export interface FlueContextInternal extends FlueEventContext {
+/** Extends BapxEventContext with server-only methods. */
+export interface BapxContextInternal extends BapxEventContext {
 	readonly runId: string | undefined;
 	initializeRootHarness(agent: AgentDefinition): Promise<Harness>;
-	createEvent(event: FlueEventInput): FlueEvent;
-	publishEvent(event: FlueEvent): void;
-	emitEvent(event: FlueEventInput, observation?: FlueObservationDetail): FlueEvent;
-	subscribeEvent(callback: FlueEventCallback): () => void;
+	createEvent(event: BapxEventInput): BapxEvent;
+	publishEvent(event: BapxEvent): void;
+	emitEvent(event: BapxEventInput, observation?: BapxObservationDetail): BapxEvent;
+	subscribeEvent(callback: BapxEventCallback): () => void;
 	flushEventCallbacks(): Promise<void>;
-	setEventCallback(callback: FlueEventCallback | undefined): void;
+	setEventCallback(callback: BapxEventCallback | undefined): void;
 	setSubmissionId(submissionId: string | undefined): void;
 	setConversationWriter?(writer: ConversationRecordWriter | undefined): void;
 	setAttachmentStore?(store: AttachmentStore | undefined): void;
 }
 
-export function createFlueContext(config: FlueContextConfig): FlueContextInternal {
-	const subscribers = new Set<FlueEventCallback>();
+export function createBapxContext(config: BapxContextConfig): BapxContextInternal {
+	const subscribers = new Set<BapxEventCallback>();
 	let handlerUnsubscribe: (() => void) | undefined;
 	const pendingEventCallbacks = new Set<Promise<void>>();
 	let eventCallbackError: unknown;
@@ -80,7 +80,7 @@ export function createFlueContext(config: FlueContextConfig): FlueContextInterna
 		attachments: AttachmentStore;
 	}> | undefined;
 
-	const createEvent = (event: FlueEventInput): FlueEvent => ({
+	const createEvent = (event: BapxEventInput): BapxEvent => ({
 		...event,
 		...(config.runId === undefined ? { instanceId: config.id } : { runId: config.runId }),
 		...(config.dispatchId === undefined ? {} : { dispatchId: config.dispatchId }),
@@ -91,7 +91,7 @@ export function createFlueContext(config: FlueContextConfig): FlueContextInterna
 		timestamp: new Date().toISOString(),
 	});
 
-	const publishEvent = (decorated: FlueEvent, observation?: FlueObservationDetail): void => {
+	const publishEvent = (decorated: BapxEvent, observation?: BapxObservationDetail): void => {
 		for (const subscriber of subscribers) {
 			try {
 				const callback = subscriber(decorated);
@@ -115,13 +115,13 @@ export function createFlueContext(config: FlueContextConfig): FlueContextInterna
 		dispatchGlobalEvent(decorated, ctx, observation);
 	};
 
-	const emitEvent = (event: FlueEventInput, observation?: FlueObservationDetail): FlueEvent => {
+	const emitEvent = (event: BapxEventInput, observation?: BapxObservationDetail): BapxEvent => {
 		const decorated = createEvent(event);
 		publishEvent(decorated, observation);
 		return decorated;
 	};
 
-	const ctx: FlueContextInternal = {
+	const ctx: BapxContextInternal = {
 		get id() {
 			return config.id;
 		},
@@ -185,7 +185,7 @@ export function createFlueContext(config: FlueContextConfig): FlueContextInterna
 
 		emitEvent,
 
-		subscribeEvent(callback: FlueEventCallback): () => void {
+		subscribeEvent(callback: BapxEventCallback): () => void {
 			subscribers.add(callback);
 			return () => subscribers.delete(callback);
 		},
@@ -199,7 +199,7 @@ export function createFlueContext(config: FlueContextConfig): FlueContextInterna
 			}
 		},
 
-		setEventCallback(callback: FlueEventCallback | undefined): void {
+		setEventCallback(callback: BapxEventCallback | undefined): void {
 			handlerUnsubscribe?.();
 			handlerUnsubscribe = callback ? ctx.subscribeEvent(callback) : undefined;
 		},
@@ -220,7 +220,7 @@ export function createFlueContext(config: FlueContextConfig): FlueContextInterna
 	return ctx;
 }
 
-async function createLocalConversationRuntime(config: FlueContextConfig): Promise<{
+async function createLocalConversationRuntime(config: BapxContextConfig): Promise<{
 	writer: ConversationRecordWriter;
 	attachments: AttachmentStore;
 }> {
@@ -241,8 +241,8 @@ async function createLocalConversationRuntime(config: FlueContextConfig): Promis
 
 export async function initializeRootHarness(
 	agent: AgentDefinition,
-	config: FlueContextConfig,
-	emitEvent: (event: FlueEventInput, observation?: FlueObservationDetail) => void,
+	config: BapxContextConfig,
+	emitEvent: (event: BapxEventInput, observation?: BapxObservationDetail) => void,
 ): Promise<Harness> {
 	const resolvedOptions = await agent.initialize({ id: config.id, env: config.env });
 	const definition = assertResolvedAgentProfile(
@@ -251,12 +251,12 @@ export async function initializeRootHarness(
 	);
 	if (typeof definition.model !== 'string') {
 		throw new Error(
-			'[flue] defineAgent() requires a model. Return { model: "provider-id/model-id" } or a profile with a model.',
+			'[bapX] defineAgent() requires a model. Return { model: "provider-id/model-id" } or a profile with a model.',
 		);
 	}
 	const resolvedModel = config.agentConfig.resolveModel(definition.model);
 	if (!resolvedModel) {
-		throw new Error(`[flue] defineAgent() model "${definition.model}" could not be resolved.`);
+		throw new Error(`[bapX] defineAgent() model "${definition.model}" could not be resolved.`);
 	}
 	const { env: baseEnv, toolFactory } = await resolveSessionEnv(
 		config.id,
@@ -340,7 +340,7 @@ function isSandboxFactory(value: unknown): value is SandboxFactory {
 async function resolveSessionEnv(
 	id: string,
 	sandbox: AgentRuntimeConfig['sandbox'],
-	config: FlueContextConfig,
+	config: BapxContextConfig,
 ): Promise<{ env: SessionEnv; toolFactory?: SessionToolFactory }> {
 	if (sandbox === undefined) {
 		return { env: await config.createDefaultEnv() };

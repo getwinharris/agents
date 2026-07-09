@@ -1,6 +1,6 @@
 # `@bapX/linear`
 
-Verified Linear webhook ingress for Flue applications.
+Verified Linear webhook ingress for Bapx applications.
 
 ```ts
 import { createLinearChannel } from '@bapX/linear';
@@ -15,8 +15,8 @@ export const channel = createLinearChannel({
 });
 ```
 
-Place this export in `channels/linear.ts`. Flue discovers it and serves
-`POST /channels/linear/webhook` relative to the `flue()` mount.
+Place this export in `channels/linear.ts`. Bapx discovers it and serves
+`POST /channels/linear/webhook` relative to the `bapX()` mount.
 
 The package verifies the exact request bytes with HMAC-SHA256, rejects webhook
 timestamps outside Linear's recommended one-minute window, and optionally
@@ -28,7 +28,7 @@ union does not model. The application switches on Linear's own `type` and
 `action` discriminants and reads Linear's own field names.
 
 This package does not include an outbound Linear client, OAuth installation
-storage, or model tools. Run `flue add channel linear` to generate editable project
+storage, or model tools. Run `bapX add channel linear` to generate editable project
 code using the official `@linear/sdk` client.
 
 Conversation keys identify issues, nested issue-comment threads, and agent

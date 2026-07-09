@@ -4,7 +4,7 @@ description: Inspect workflow runs, monitor agent activity, and export telemetry
 lastReviewedAt: 2026-06-20
 ---
 
-Observability helps you understand whether Flue work completed, failed, became slow, or used more model resources than expected. Inspect workflow run history for bounded jobs, and use `observe(...)` to monitor workflows and continuing agents across your application.
+Observability helps you understand whether Bapx work completed, failed, became slow, or used more model resources than expected. Inspect workflow run history for bounded jobs, and use `observe(...)` to monitor workflows and continuing agents across your application.
 
 ## Inspect workflow runs
 
@@ -51,7 +51,7 @@ Register `observe(...)` in your application entrypoint when you need telemetry a
 
 ```ts title="src/app.ts"
 import { observe } from '@bapX/runtime';
-import { flue } from '@bapX/runtime/routing';
+import { bapX } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 observe((event) => {
@@ -69,7 +69,7 @@ observe((event) => {
 });
 
 const app = new Hono();
-app.route('/', flue());
+app.route('/', bapX());
 
 export default app;
 ```
@@ -78,7 +78,7 @@ An operation is the useful finite boundary for agent activity, such as prompting
 
 When an operation is slow or unexpectedly expensive, its nested activity can provide the explanation. One prompt operation may include multiple model turns or tool calls. Model turns expose latency, token usage, and cost; tool activity shows where the agent spent time or encountered an error.
 
-Callbacks registered with `observe(...)` are invoked while Flue emits activity and receive every emitted event object directly. Treat events as read-only, branch on `event.type`, and return immediately for activity you do not consume. Keep callbacks lightweight; returned promises are observed for rejection but are not awaited. In a distributed deployment, each running application context observes only the activity it handles; use an external backend to aggregate telemetry across processes or isolates.
+Callbacks registered with `observe(...)` are invoked while Bapx emits activity and receive every emitted event object directly. Treat events as read-only, branch on `event.type`, and return immediately for activity you do not consume. Keep callbacks lightweight; returned promises are observed for rejection but are not awaited. In a distributed deployment, each running application context observes only the activity it handles; use an external backend to aggregate telemetry across processes or isolates.
 
 Streaming deltas are best-effort live progress; use `message_end` as the authoritative completed assistant message. A subscriber attached after generation starts may miss earlier partial output until that event arrives. Internal interrupted-turn recovery uses separate durable state and is unaffected.
 
@@ -94,7 +94,7 @@ You can also consume `observe(...)` directly when these integrations do not matc
 
 ## Export telemetry safely
 
-Runtime events can contain workflow inputs, prompts, model messages, logs, tool values, errors, and application-owned metadata. Flue replaces image data in recognized content blocks with an omission sentinel before events are observed or persisted, but arbitrary inputs, log attributes, tool details, and results still require an application-owned sanitization policy.
+Runtime events can contain workflow inputs, prompts, model messages, logs, tool values, errors, and application-owned metadata. Bapx replaces image data in recognized content blocks with an omission sentinel before events are observed or persisted, but arbitrary inputs, log attributes, tool details, and results still require an application-owned sanitization policy.
 
 Start with outcome-oriented signals: failed workflows, explicit application error logs, slow operations, and completed model usage. A model turn or tool call may fail before an agent recovers, so treating every nested error as an incident can create noisy alerts. When aggregating usage, sum model-turn leaf values rather than operation or compaction roll-ups; nested duration values can overlap and should not be summed.
 

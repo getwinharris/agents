@@ -1,9 +1,9 @@
 # Cloudflare example agents
 
-This directory exercises Flue's Cloudflare-specific surfaces. The agents
+This directory exercises Bapx's Cloudflare-specific surfaces. The agents
 here are intentionally minimal — each one demonstrates a single capability
 end-to-end so it's easy to copy the pattern into a real app. The cf-shell
-workflows use the project-owned sandbox adapter at `src/sandboxes/cloudflare-shell.ts`, generated conceptually by `flue add sandbox @cloudflare/shell`.
+workflows use the project-owned sandbox adapter at `src/sandboxes/cloudflare-shell.ts`, generated conceptually by `bapX add sandbox @cloudflare/shell`.
 
 ## Agents
 
@@ -22,7 +22,7 @@ pnpm install
 ```
 
 Build the runtime + cli once (the local workspace `dist/` directories are
-what `flue dev`/`run` consume; a fresh checkout has stale ones — see L1
+what `bapX dev`/`run` consume; a fresh checkout has stale ones — see L1
 in the cf-shell adoption plan):
 
 ```bash
@@ -68,7 +68,7 @@ so the hydration step has something to copy:
 ```
 
 The script writes `.agents/skills/spam-filter/SKILL.md` into
-`flue-example-knowledge-base-dev`. Pass `BUCKET=prod` to seed the prod
+`bapX-example-knowledge-base-dev`. Pass `BUCKET=prod` to seed the prod
 bucket instead.
 
 If you want to use different bucket names, edit `wrangler.jsonc` and the
@@ -78,7 +78,7 @@ If you want to use different bucket names, edit `wrangler.jsonc` and the
 
 ```bash
 # Build + serve (one of these, depending on Loader access for the agent you want)
-pnpm exec flue dev --target cloudflare
+pnpm exec bapX dev --target cloudflare
 pnpm exec wrangler dev --remote                  # if needed for cf-shell agents
 
 # Trigger an agent

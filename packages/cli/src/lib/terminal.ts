@@ -20,7 +20,7 @@ export function devServerBanner(
 	channels: readonly string[],
 ): void {
 	console.error('');
-	console.error(`  ${pc.bold(pc.blue(`flue v${version}`))} ${pc.dim(`ready in`)} ${pc.bold(`${readyMs} ms`)}`);
+	console.error(`  ${pc.bold(pc.blue(`bapX v${version}`))} ${pc.dim(`ready in`)} ${pc.bold(`${readyMs} ms`)}`);
 	console.error(`  ${pc.blue(`└─ ${localUrl}`)}`);
 	console.error('');
 	if (agents.length > 0) console.error(`  ${pc.bold('Agents:'.padEnd(13))}${summarizeNames(agents)}`);

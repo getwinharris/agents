@@ -1,17 +1,17 @@
 ---
 title: Modal
-description: Connect a Flue agent to an application-owned Modal Sandbox.
+description: Connect a Bapx agent to an application-owned Modal Sandbox.
 lastReviewedAt: 2026-05-30
 ---
 
-The Modal adapter adapts an already-initialized Modal Sandbox from the `modal` JavaScript SDK into Flue's sandbox interface. Use it for provider-backed command execution and files when your application provisions Modal sandbox resources.
+The Modal adapter adapts an already-initialized Modal Sandbox from the `modal` JavaScript SDK into Bapx's sandbox interface. Use it for provider-backed command execution and files when your application provisions Modal sandbox resources.
 
 ## Quickstart
 
-Add provider-backed compute sandbox capability to an existing Flue project with the [Modal](https://modal.com) blueprint. Run the following command in your terminal or coding agent of choice:
+Add provider-backed compute sandbox capability to an existing Bapx project with the [Modal](https://modal.com) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```bash
-flue add sandbox modal
+bapX add sandbox modal
 ```
 
 ## Overview
@@ -19,7 +19,7 @@ flue add sandbox modal
 The Modal blueprint installs the `modal` JavaScript SDK when needed and creates `sandboxes/modal.ts` in your source-root. The generated adapter accepts an application-created Modal `Sandbox`; provisioning, image selection, credentials, and shutdown remain outside the adapter.
 
 ```ts title="<source-root>/sandboxes/modal.ts (abridged)"
-// flue-blueprint: sandbox/modal@1
+// bapX-blueprint: sandbox/modal@1
 import { createSandboxSessionEnv } from '@bapX/runtime';
 import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 import type { Sandbox as ModalSandbox } from 'modal';
@@ -53,7 +53,7 @@ export function modal(sandbox: ModalSandbox, options?: ModalAdapterOptions): San
 }
 ```
 
-Passing `modal(sandbox)` as an agent's `sandbox` exposes the created Modal Sandbox's files and command execution through Flue, with relative paths rooted at `/` unless you set `cwd`. The selected image must provide `bash` and compatible filesystem utilities for operations that Modal's SDK does not expose directly; the generated `stat` parser supports the output used by GNU and BusyBox `stat`, and `rm` receives the requested recursive and force flags.
+Passing `modal(sandbox)` as an agent's `sandbox` exposes the created Modal Sandbox's files and command execution through Bapx, with relative paths rooted at `/` unless you set `cwd`. The selected image must provide `bash` and compatible filesystem utilities for operations that Modal's SDK does not expose directly; the generated `stat` parser supports the output used by GNU and BusyBox `stat`, and `rm` receives the requested recursive and force flags.
 
 ## Configure
 
@@ -70,6 +70,6 @@ Passing `modal(sandbox)` as an agent's `sandbox` exposes the created Modal Sandb
 
 ## Choose this adapter when
 
-Use Modal when your application already manages Modal applications, images, or sandbox lifetimes and needs to expose that compute boundary to Flue operations. The adapter adapts the created sandbox; creation, shutdown, secret handling, networking, and image content remain your responsibility.
+Use Modal when your application already manages Modal applications, images, or sandbox lifetimes and needs to expose that compute boundary to Bapx operations. The adapter adapts the created sandbox; creation, shutdown, secret handling, networking, and image content remain your responsibility.
 
 See [Sandboxes](/docs/guide/sandboxes/) and [Sandbox Adapter API](/docs/api/sandbox-api/).

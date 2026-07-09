@@ -1,12 +1,12 @@
 import { dispatch, invoke } from '@bapX/runtime';
-import { flue } from '@bapX/runtime/routing';
+import { bapX } from '@bapX/runtime/routing';
 import { Cron } from 'croner';
 import { Hono } from 'hono';
 import scheduledAgent from './agents/scheduled.ts';
 import scheduledWorkflow from './workflows/scheduled.ts';
 
 const app = new Hono();
-app.route('/', flue());
+app.route('/', bapX());
 
 new Cron(
 	process.env.AGENT_SCHEDULE ?? '0 9 * * *',

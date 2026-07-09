@@ -44,7 +44,7 @@ type McpRequestOptions = {
 export interface McpServerConnection {
 	/** Server name supplied to {@link connectMcpServer}. */
 	name: string;
-	/** MCP tools adapted into ordinary Flue tool definitions. */
+	/** MCP tools adapted into ordinary Bapx tool definitions. */
 	tools: ToolDefinition[];
 	/** Close the underlying MCP client connection. */
 	close(): Promise<void>;
@@ -56,7 +56,7 @@ const mcpJsonSchemaValidator = new CfWorkerJsonSchemaValidator();
 
 /**
  * Connects to a remote MCP server and adapts its listed tools into ordinary
- * Flue tool definitions.
+ * Bapx tool definitions.
  *
  * Adapted tool names use `mcp__<server>__<tool>`. Unsupported characters are
  * replaced with underscores, and duplicate adapted names are rejected. Close
@@ -76,7 +76,7 @@ export async function connectMcpServer(
 	);
 	const client = new Client(
 		{
-			name: 'flue',
+			name: 'bapX',
 			version: runtimeVersion,
 		},
 		{
@@ -104,7 +104,7 @@ export async function connectMcpServerWithClient(
 		while (page.nextCursor !== undefined) {
 			if (seenCursors.has(page.nextCursor)) {
 				throw new Error(
-					`[flue] MCP server "${name}" repeated tools/list cursor ${JSON.stringify(page.nextCursor)} during tool discovery.`,
+					`[bapX] MCP server "${name}" repeated tools/list cursor ${JSON.stringify(page.nextCursor)} during tool discovery.`,
 				);
 			}
 			seenCursors.add(page.nextCursor);
@@ -153,7 +153,7 @@ function createMcpTools(
 	const callableTools = tools.filter((tool) => {
 		if (tool.execution?.taskSupport !== 'required') return true;
 		console.warn(
-			`[flue] Skipping MCP tool "${tool.name}" from server "${serverName}": it requires task-based execution, which is not supported.`,
+			`[bapX] Skipping MCP tool "${tool.name}" from server "${serverName}": it requires task-based execution, which is not supported.`,
 		);
 		return false;
 	});
@@ -165,7 +165,7 @@ function createMcpTools(
 			: undefined;
 		if (names.has(toolName)) {
 			throw new Error(
-				`[flue] MCP tools from server "${serverName}" produced duplicate tool name "${toolName}".`,
+				`[bapX] MCP tools from server "${serverName}" produced duplicate tool name "${toolName}".`,
 			);
 		}
 		names.add(toolName);

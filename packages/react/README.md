@@ -1,6 +1,6 @@
 # `@bapX/react`
 
-React hooks for live Flue agent conversations and workflow runs. `@bapX/react` manages UI state; `@bapX/sdk` handles HTTP and Durable Streams transport.
+React hooks for live Bapx agent conversations and workflow runs. `@bapX/react` manages UI state; `@bapX/sdk` handles HTTP and Durable Streams transport.
 
 ```sh
 pnpm add @bapX/react @bapX/sdk
@@ -11,50 +11,50 @@ Requires React 18 or later. For examples, see the [React guide](https://bapx.in/
 ## Setup
 
 ```tsx
-import { FlueProvider } from '@bapX/react';
-import { createFlueClient } from '@bapX/sdk';
+import { BapxProvider } from '@bapX/react';
+import { createBapxClient } from '@bapX/sdk';
 
-const client = createFlueClient({ baseUrl: '/api' });
+const client = createBapxClient({ baseUrl: '/api' });
 
 export function Root() {
   return (
-    <FlueProvider client={client}>
+    <BapxProvider client={client}>
       <App />
-    </FlueProvider>
+    </BapxProvider>
   );
 }
 ```
 
-### `FlueProvider`
+### `BapxProvider`
 
 ```ts
-interface FlueProviderProps {
-  client: FlueClient;
+interface BapxProviderProps {
+  client: BapxClient;
   children?: ReactNode;
 }
 ```
 
 Provides an application-created SDK client to descendant hooks. Configure authentication, headers, and custom `fetch` behavior on that client.
 
-### `useFlueClient()`
+### `useBapxClient()`
 
 ```ts
-function useFlueClient(): FlueClient;
+function useBapxClient(): BapxClient;
 ```
 
 Returns the nearest provider's client and throws if no provider exists. The hooks also accept a `client` option instead of a provider; a client is required even while a hook is dormant.
 
-## `useFlueAgent()`
+## `useBapxAgent()`
 
 ```ts
-function useFlueAgent(options: UseFlueAgentOptions): UseFlueAgentResult;
+function useBapxAgent(options: UseBapxAgentOptions): UseBapxAgentResult;
 
-interface UseFlueAgentOptions {
+interface UseBapxAgentOptions {
   name: string;
   id?: string;
   history?: number | 'all';
   live?: 'sse' | 'long-poll';
-  client?: FlueClient;
+  client?: BapxClient;
 }
 ```
 
@@ -69,7 +69,7 @@ Connects to one persistent agent instance, reconstructs its transcript, and foll
 | `client`  | SDK client override.                                                           |
 
 ```ts
-interface UseFlueAgentResult {
+interface UseBapxAgentResult {
   messages: UIMessage[];
   status: AgentStatus;
   historyReady: boolean;
@@ -156,18 +156,18 @@ Streaming deltas provide best-effort live text and reasoning progress; `message_
 
 Durable events omit image bytes, so replayed file parts contain a non-renderable redaction sentinel in `url`. Images sent by the current client retain their usable data URLs when reconciled. Message IDs remain stable across replay: assistant IDs derive from `turnId`, and direct user IDs from `submissionId`.
 
-## `useFlueWorkflow()`
+## `useBapxWorkflow()`
 
 ```ts
-function useFlueWorkflow(options: UseFlueWorkflowOptions): UseFlueWorkflowResult;
+function useBapxWorkflow(options: UseBapxWorkflowOptions): UseBapxWorkflowResult;
 
-interface UseFlueWorkflowOptions {
+interface UseBapxWorkflowOptions {
   runId?: string;
-  client?: FlueClient;
+  client?: BapxClient;
 }
 ```
 
-Replays and follows one workflow run. Invoke the workflow separately through `useFlueClient()` or another SDK client.
+Replays and follows one workflow run. Invoke the workflow separately through `useBapxClient()` or another SDK client.
 
 | Option   | Description                                     |
 | -------- | ----------------------------------------------- |
@@ -175,9 +175,9 @@ Replays and follows one workflow run. Invoke the workflow separately through `us
 | `client` | SDK client override.                            |
 
 ```ts
-interface UseFlueWorkflowResult {
-  events: FlueEvent[];
-  logs: Extract<FlueEvent, { type: 'log' }>[];
+interface UseBapxWorkflowResult {
+  events: BapxEvent[];
+  logs: Extract<BapxEvent, { type: 'log' }>[];
   status: WorkflowStatus;
   result: unknown;
   error: unknown;
@@ -211,5 +211,5 @@ Changing the client, agent name, agent ID, history, live stream mode, or workflo
 
 - `AgentPromptImage`
 - `AttachedAgentEvent`
-- `FlueEvent`
+- `BapxEvent`
 - `PromptUsage`

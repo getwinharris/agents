@@ -1,17 +1,17 @@
 /**
- * Typed Durable Streams wrapper for Flue event consumption.
+ * Typed Durable Streams wrapper for Bapx event consumption.
  *
  * Wraps `@durable-streams/client` to provide an {@link AsyncIterable} of
- * {@link FlueEvent} values with automatic reconnection, offset-based replay,
+ * {@link BapxEvent} values with automatic reconnection, offset-based replay,
  * and SSE live tailing.
  */
 
 import type { BackoffOptions, LiveMode } from '@durable-streams/client';
 import { stream } from '@durable-streams/client';
-import type { FlueEvent } from '../types.ts';
+import type { BapxEvent } from '../types.ts';
 
-/** Options for streaming Flue events from an agent instance or workflow run. */
-export interface FlueStreamOptions {
+/** Options for streaming Bapx events from an agent instance or workflow run. */
+export interface BapxStreamOptions {
 	/** Starting offset. Defaults to `'-1'` (full history). */
 	offset?: string;
 	/** Limit an `offset: '-1'` read to at most the most recent number of events. */
@@ -25,12 +25,12 @@ export interface FlueStreamOptions {
 }
 
 /**
- * Async iterable of Flue events backed by a Durable Streams connection.
+ * Async iterable of Bapx events backed by a Durable Streams connection.
  *
  * Supports `for await...of` and explicit {@link cancel}. Breaking out of a
  * `for await` loop automatically cleans up the underlying connection.
  */
-export interface FlueEventStream<T = FlueEvent> extends AsyncIterable<T> {
+export interface BapxEventStream<T = BapxEvent> extends AsyncIterable<T> {
 	/** Cancel the stream and abort the underlying connection. */
 	cancel(reason?: unknown): void;
 	/**
@@ -44,7 +44,7 @@ export interface FlueEventStream<T = FlueEvent> extends AsyncIterable<T> {
 	readonly offset: string;
 }
 
-/** Internal options passed by the FlueClient to configure the DS connection. */
+/** Internal options passed by the BapxClient to configure the DS connection. */
 export interface StreamConnectionOptions {
 	/** Full URL of the stream endpoint. */
 	url: string;
@@ -53,7 +53,7 @@ export interface StreamConnectionOptions {
 }
 
 /**
- * Creates a {@link FlueEventStream} that yields individual {@link FlueEvent}
+ * Creates a {@link BapxEventStream} that yields individual {@link BapxEvent}
  * values from a Durable Streams endpoint.
  *
  * Consumes the DS client's `subscribeJson()` batches and yields events one at
@@ -64,22 +64,22 @@ export interface StreamConnectionOptions {
  * never used as a checkpoint: response prefetch advances it past batches that
  * have not been delivered yet.
  */
-export class UnsupportedFlueEventVersionError extends Error {
+export class UnsupportedBapxEventVersionError extends Error {
 	readonly received: unknown;
 	readonly supported = 3;
 
 	constructor(received: unknown) {
-		super(`Flue event version ${String(received)} is unsupported. Clear historical event data created by an earlier Flue beta.`);
-		this.name = 'UnsupportedFlueEventVersionError';
+		super(`Bapx event version ${String(received)} is unsupported. Clear historical event data created by an earlier Bapx beta.`);
+		this.name = 'UnsupportedBapxEventVersionError';
 		this.received = received;
 	}
 }
 
-export function createFlueEventStream<T = FlueEvent>(
-	streamOpts: FlueStreamOptions,
+export function createBapxEventStream<T = BapxEvent>(
+	streamOpts: BapxStreamOptions,
 	connectionOpts: StreamConnectionOptions,
 	validate: (value: T) => T = assertSupportedEventVersion,
-): FlueEventStream<T> {
+): BapxEventStream<T> {
 	const abortController = new AbortController();
 
 	// Link external signal to our controller. Store the handler so we can
@@ -345,7 +345,7 @@ export function createFlueEventStream<T = FlueEvent>(
 
 function assertSupportedEventVersion<T>(value: T): T {
 	const version = value && typeof value === 'object' ? (value as { v?: unknown }).v : undefined;
-	if (version !== 3) throw new UnsupportedFlueEventVersionError(version);
+	if (version !== 3) throw new UnsupportedBapxEventVersionError(version);
 	return value;
 }
 

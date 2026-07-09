@@ -1,7 +1,7 @@
 # `@bapX/salesforce`
 
 Verified Salesforce Marketing Cloud Engagement Event Notification Service
-(ENS) ingress for Flue.
+(ENS) ingress for Bapx.
 
 ```ts
 import { createSalesforceMarketingCloudChannel } from '@bapX/salesforce';
@@ -19,9 +19,9 @@ export const channel = createSalesforceMarketingCloudChannel({
 });
 ```
 
-Place this export in `channels/salesforce-marketing-cloud.ts`. Flue discovers
+Place this export in `channels/salesforce-marketing-cloud.ts`. Bapx discovers
 it and serves `POST /channels/salesforce-marketing-cloud/events` relative to
-the `flue()` mount.
+the `bapX()` mount.
 
 `signatureKey` is required. Signed notifications require `x-sfmc-ens-signature`,
 a base64 HMAC-SHA256 digest over the exact request bytes. `signatureKey` is the
@@ -52,7 +52,7 @@ Returning no value or a JSON-compatible value produces `200`. A returned Hono
 or Fetch `Response` passes through unchanged. ENS acknowledges only statuses
 `200` through `204`; channel failures and non-serializable results return `500`.
 
-Flue imposes no route timeout: the handler is awaited and its result serialized.
+Bapx imposes no route timeout: the handler is awaited and its result serialized.
 The only ENS deadline is at setup — the unsigned verification POST must be
 answered `200` within 30 seconds or callback creation fails. Because ENS delivers
 at least once and retries unacknowledged batches for up to seven days, admit

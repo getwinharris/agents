@@ -1,10 +1,10 @@
 ---
 title: Streaming Protocol
-description: Reference for reading Flue agent conversations and workflow events over Durable Streams.
+description: Reference for reading Bapx agent conversations and workflow events over Durable Streams.
 lastReviewedAt: 2026-06-26
 ---
 
-Flue uses Durable Streams offsets for agent conversations and workflow-run events. SDK users should use `client.agents.observe()` for a materialized live conversation, or `client.agents.history()` for a one-shot snapshot. The HTTP `history` and `updates` views described here are the underlying wire protocol that `observe()` consumes. Use `client.runs.stream()` and `client.runs.events()` for workflows.
+Bapx uses Durable Streams offsets for agent conversations and workflow-run events. SDK users should use `client.agents.observe()` for a materialized live conversation, or `client.agents.history()` for a one-shot snapshot. The HTTP `history` and `updates` views described here are the underlying wire protocol that `observe()` consumes. Use `client.runs.stream()` and `client.runs.events()` for workflows.
 
 ## Stream routes
 
@@ -20,7 +20,7 @@ A plain agent `GET` defaults to the history view. Agent views address the instan
 
 ## Agent history and updates
 
-History returns one JSON `FlueConversationSnapshot` after reducing the complete physical stream prefix. Its `offset` is the physical agent-instance tail, including records omitted from that conversation's projection.
+History returns one JSON `BapxConversationSnapshot` after reducing the complete physical stream prefix. Its `offset` is the physical agent-instance tail, including records omitted from that conversation's projection.
 
 The `updates` view emits the strict UI projection protocol (`ConversationStreamChunk`): UI-only operations such as message/part lifecycle, tool input and structured output, settlement, and a full-snapshot reset. The private canonical record schema is never exposed on the wire.
 

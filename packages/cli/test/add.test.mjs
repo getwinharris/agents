@@ -8,7 +8,7 @@ import { after, before, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { sanitizedChildEnv } from './child-env.mjs';
 
-const cli = new URL('../dist/flue.js', import.meta.url);
+const cli = new URL('../dist/bapX.js', import.meta.url);
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 let server;
@@ -100,89 +100,89 @@ after(async () => {
 	await once(server, 'close');
 });
 
-describe('flue add', () => {
+describe('bapX add', () => {
 	it('lists named blueprints and every generic kind when no name is given', async () => {
 		const result = await runCli(['add']);
 		assert.equal(result.code, 0);
-		assert.match(result.stderr, /flue add channel github\s+channel\s+https:\/\/github\.com/);
-		assert.match(result.stderr, /flue add channel stripe\s+channel\s+https:\/\/stripe\.com/);
+		assert.match(result.stderr, /bapX add channel github\s+channel\s+https:\/\/github\.com/);
+		assert.match(result.stderr, /bapX add channel stripe\s+channel\s+https:\/\/stripe\.com/);
 		assert.match(
 			result.stderr,
-			/flue add channel notion\s+channel\s+https:\/\/developers\.notion\.com/,
+			/bapX add channel notion\s+channel\s+https:\/\/developers\.notion\.com/,
 		);
-		assert.match(result.stderr, /flue add channel resend\s+channel\s+https:\/\/resend\.com/);
-		assert.match(result.stderr, /flue add channel shopify\s+channel\s+https:\/\/shopify\.dev/);
+		assert.match(result.stderr, /bapX add channel resend\s+channel\s+https:\/\/resend\.com/);
+		assert.match(result.stderr, /bapX add channel shopify\s+channel\s+https:\/\/shopify\.dev/);
 		assert.match(
 			result.stderr,
-			/flue add channel intercom\s+channel\s+https:\/\/developers\.intercom\.com/,
-		);
-		assert.match(
-			result.stderr,
-			/flue add channel zendesk\s+channel\s+https:\/\/developer\.zendesk\.com/,
+			/bapX add channel intercom\s+channel\s+https:\/\/developers\.intercom\.com/,
 		);
 		assert.match(
 			result.stderr,
-			/flue add channel salesforce-marketing-cloud\s+channel\s+https:\/\/developer\.salesforce\.com/,
-		);
-		assert.match(result.stderr, /flue add channel slack\s+channel\s+https:\/\/slack\.com/);
-		assert.match(
-			result.stderr,
-			/flue add channel teams\s+channel\s+https:\/\/www\.microsoft\.com\/microsoft-teams/,
+			/bapX add channel zendesk\s+channel\s+https:\/\/developer\.zendesk\.com/,
 		);
 		assert.match(
 			result.stderr,
-			/flue add channel google-chat\s+channel\s+https:\/\/developers\.google\.com\/workspace\/chat/,
+			/bapX add channel salesforce-marketing-cloud\s+channel\s+https:\/\/developer\.salesforce\.com/,
+		);
+		assert.match(result.stderr, /bapX add channel slack\s+channel\s+https:\/\/slack\.com/);
+		assert.match(
+			result.stderr,
+			/bapX add channel teams\s+channel\s+https:\/\/www\.microsoft\.com\/microsoft-teams/,
 		);
 		assert.match(
 			result.stderr,
-			/flue add channel linear\s+channel\s+https:\/\/linear\.app\/developers/,
+			/bapX add channel google-chat\s+channel\s+https:\/\/developers\.google\.com\/workspace\/chat/,
 		);
 		assert.match(
 			result.stderr,
-			/flue add channel telegram\s+channel\s+https:\/\/core\.telegram\.org\/bots\/api/,
+			/bapX add channel linear\s+channel\s+https:\/\/linear\.app\/developers/,
 		);
 		assert.match(
 			result.stderr,
-			/flue add channel whatsapp\s+channel\s+https:\/\/developers\.facebook\.com\/docs\/whatsapp\/cloud-api/,
+			/bapX add channel telegram\s+channel\s+https:\/\/core\.telegram\.org\/bots\/api/,
 		);
 		assert.match(
 			result.stderr,
-			/flue add channel twilio\s+channel\s+https:\/\/www\.twilio\.com\/docs\/messaging/,
+			/bapX add channel whatsapp\s+channel\s+https:\/\/developers\.facebook\.com\/docs\/whatsapp\/cloud-api/,
 		);
 		assert.match(
 			result.stderr,
-			/flue add channel messenger\s+channel\s+https:\/\/developers\.facebook\.com\/docs\/messenger-platform/,
+			/bapX add channel twilio\s+channel\s+https:\/\/www\.twilio\.com\/docs\/messaging/,
 		);
 		assert.match(
 			result.stderr,
-			/flue add database postgres\s+database\s+https:\/\/www\.postgresql\.org/,
+			/bapX add channel messenger\s+channel\s+https:\/\/developers\.facebook\.com\/docs\/messenger-platform/,
 		);
 		assert.match(
 			result.stderr,
-			/flue add database libsql\s+database\s+https:\/\/github\.com\/tursodatabase\/libsql/,
+			/bapX add database postgres\s+database\s+https:\/\/www\.postgresql\.org/,
 		);
 		assert.match(
 			result.stderr,
-			/flue add database mongodb\s+database\s+https:\/\/www\.mongodb\.com/,
+			/bapX add database libsql\s+database\s+https:\/\/github\.com\/tursodatabase\/libsql/,
 		);
-		assert.match(result.stderr, /flue add database mysql\s+database\s+https:\/\/www\.mysql\.com/);
-		assert.match(result.stderr, /flue add database redis\s+database\s+https:\/\/redis\.io/);
-		assert.match(result.stderr, /flue add database supabase\s+database\s+https:\/\/supabase\.com/);
-		assert.match(result.stderr, /flue add database turso\s+database\s+https:\/\/turso\.tech/);
-		assert.match(result.stderr, /flue add database valkey\s+database\s+https:\/\/valkey\.io/);
 		assert.match(
 			result.stderr,
-			/flue add tooling braintrust\s+tooling\s+https:\/\/www\.braintrust\.dev/,
+			/bapX add database mongodb\s+database\s+https:\/\/www\.mongodb\.com/,
 		);
-		assert.match(result.stderr, /flue add tooling sentry\s+tooling\s+https:\/\/sentry\.io/);
+		assert.match(result.stderr, /bapX add database mysql\s+database\s+https:\/\/www\.mysql\.com/);
+		assert.match(result.stderr, /bapX add database redis\s+database\s+https:\/\/redis\.io/);
+		assert.match(result.stderr, /bapX add database supabase\s+database\s+https:\/\/supabase\.com/);
+		assert.match(result.stderr, /bapX add database turso\s+database\s+https:\/\/turso\.tech/);
+		assert.match(result.stderr, /bapX add database valkey\s+database\s+https:\/\/valkey\.io/);
 		assert.match(
 			result.stderr,
-			/flue add tooling vitest-evals\s+tooling\s+https:\/\/vitest-evals\.sentry\.dev/,
+			/bapX add tooling braintrust\s+tooling\s+https:\/\/www\.braintrust\.dev/,
 		);
-		assert.ok(result.stderr.includes('flue add sandbox <url>'));
-		assert.ok(result.stderr.includes('flue add channel <url>'));
-		assert.ok(result.stderr.includes('flue add database <url>'));
-		assert.ok(result.stderr.includes('flue add tooling <url>'));
+		assert.match(result.stderr, /bapX add tooling sentry\s+tooling\s+https:\/\/sentry\.io/);
+		assert.match(
+			result.stderr,
+			/bapX add tooling vitest-evals\s+tooling\s+https:\/\/vitest-evals\.sentry\.dev/,
+		);
+		assert.ok(result.stderr.includes('bapX add sandbox <url>'));
+		assert.ok(result.stderr.includes('bapX add channel <url>'));
+		assert.ok(result.stderr.includes('bapX add database <url>'));
+		assert.ok(result.stderr.includes('bapX add tooling <url>'));
 	});
 
 	it('prints sandbox blueprint paths under sandboxes when a provider is selected', async () => {
@@ -329,7 +329,7 @@ describe('flue add', () => {
 	it('prints the Teams channel blueprint with the Workers-compatible Fetch path', async () => {
 		const result = await runCli(['add', 'channel', 'teams', '--print']);
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.startsWith('# Add a Microsoft Teams Channel to Flue'));
+		assert.ok(result.stdout.startsWith('# Add a Microsoft Teams Channel to Bapx'));
 		assert.ok(result.stdout.includes('export const channel'));
 		assert.ok(result.stdout.includes('export const client'));
 		assert.ok(result.stdout.includes('/channels/teams/activities'));
@@ -339,7 +339,7 @@ describe('flue add', () => {
 	it('prints the Google Chat blueprint with both verified HTTP surfaces', async () => {
 		const result = await runCli(['add', 'channel', 'google-chat', '--print']);
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.startsWith('# Add a Google Chat Channel to Flue'));
+		assert.ok(result.stdout.startsWith('# Add a Google Chat Channel to Bapx'));
 		assert.ok(result.stdout.includes('export const channel'));
 		assert.ok(result.stdout.includes('export const client'));
 		assert.ok(result.stdout.includes('/channels/google-chat/interactions'));
@@ -350,7 +350,7 @@ describe('flue add', () => {
 	it('prints the Linear blueprint with verified ingress and the official SDK path', async () => {
 		const result = await runCli(['add', 'channel', 'linear', '--print']);
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.startsWith('# Add a Linear Channel to Flue'));
+		assert.ok(result.stdout.startsWith('# Add a Linear Channel to Bapx'));
 		assert.ok(result.stdout.includes('export const channel'));
 		assert.ok(result.stdout.includes('export const client'));
 		assert.ok(result.stdout.includes('/channels/linear/webhook'));
@@ -361,7 +361,7 @@ describe('flue add', () => {
 	it('prints the Telegram blueprint with verified ingress and the Workers client path', async () => {
 		const result = await runCli(['add', 'channel', 'telegram', '--print']);
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.startsWith('# Add a Telegram Channel to Flue'));
+		assert.ok(result.stdout.startsWith('# Add a Telegram Channel to Bapx'));
 		assert.ok(result.stdout.includes('export const channel'));
 		assert.ok(result.stdout.includes('export const client'));
 		assert.ok(result.stdout.includes('/channels/telegram/webhook'));
@@ -372,7 +372,7 @@ describe('flue add', () => {
 	it('prints provider-native payload guidance when the Slack blueprint is requested', async () => {
 		const result = await runCli(['add', 'channel', 'slack', '--print']);
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.startsWith('# Add a Slack Channel to Flue'));
+		assert.ok(result.stdout.startsWith('# Add a Slack Channel to Bapx'));
 		assert.ok(result.stdout.includes('export const channel'));
 		assert.ok(result.stdout.includes('export const client'));
 		assert.ok(result.stdout.includes('@slack/web-api@^8.0.0-rc.1'));
@@ -389,7 +389,7 @@ describe('flue add', () => {
 	it('prints provider-native payload guidance when the Discord blueprint is requested', async () => {
 		const result = await runCli(['add', 'channel', 'discord', '--print']);
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.startsWith('# Add a Discord Channel to Flue'));
+		assert.ok(result.stdout.startsWith('# Add a Discord Channel to Bapx'));
 		assert.ok(result.stdout.includes('export const channel'));
 		assert.ok(result.stdout.includes('export const client'));
 		assert.ok(result.stdout.includes('/channels/discord/interactions'));
@@ -420,7 +420,7 @@ describe('flue add', () => {
 		assert.equal(mongodb.code, 0);
 		assert.ok(mongodb.stdout.includes('@bapX/mongodb'));
 		assert.ok(mongodb.stdout.includes("from 'mongodb'"));
-		assert.ok(mongodb.stdout.includes('// flue-blueprint: database/mongodb@1'));
+		assert.ok(mongodb.stdout.includes('// bapX-blueprint: database/mongodb@1'));
 		assert.ok(mongodb.stdout.includes('MONGODB_URL'));
 		assert.ok(mongodb.stdout.includes('MONGODB_DATABASE'));
 		assert.ok(mongodb.stdout.includes('const queue'));
@@ -440,7 +440,7 @@ describe('flue add', () => {
 		const mysql = await runCli(['add', 'database', 'mysql', '--print']);
 		assert.equal(mysql.code, 0);
 		assert.ok(mysql.stdout.includes('@bapX/mysql'));
-		assert.ok(mysql.stdout.includes('// flue-blueprint: database/mysql@1'));
+		assert.ok(mysql.stdout.includes('// bapX-blueprint: database/mysql@1'));
 		assert.ok(mysql.stdout.includes('pool.execute(text, params)'));
 		assert.ok(mysql.stdout.includes('pool.getConnection()'));
 		assert.ok(mysql.stdout.includes('connection.beginTransaction()'));
@@ -455,7 +455,7 @@ describe('flue add', () => {
 		const supabase = await runCli(['add', 'database', 'supabase', '--print']);
 		assert.equal(supabase.code, 0);
 		assert.ok(supabase.stdout.includes('@bapX/postgres'));
-		assert.ok(supabase.stdout.includes('// flue-blueprint: database/supabase@1'));
+		assert.ok(supabase.stdout.includes('// bapX-blueprint: database/supabase@1'));
 		assert.ok(supabase.stdout.includes('SUPABASE_DATABASE_URL'));
 		assert.ok(supabase.stdout.includes("client.query('BEGIN')"));
 		assert.ok(supabase.stdout.includes("client.query('COMMIT')"));
@@ -477,7 +477,7 @@ describe('flue add', () => {
 			assert.equal(result.code, 0);
 			assert.ok(result.stdout.includes('@bapX/redis'));
 			assert.ok(result.stdout.includes("from 'redis'"));
-			assert.ok(result.stdout.includes(`// flue-blueprint: database/${name}@1`));
+			assert.ok(result.stdout.includes(`// bapX-blueprint: database/${name}@1`));
 			assert.ok(result.stdout.includes(url));
 			assert.ok(result.stdout.includes('command:'));
 			assert.ok(result.stdout.includes('eval:'));
@@ -495,11 +495,11 @@ describe('flue add', () => {
 
 		assert.equal(result.code, 0);
 		assert.ok(result.stdout.includes('braintrust@3.17.0'));
-		assert.ok(result.stdout.includes('braintrustFlueObserver'));
+		assert.ok(result.stdout.includes('braintrustBapxObserver'));
 		assert.ok(result.stdout.includes("event.type === 'tool'"));
 		assert.ok(result.stdout.includes("type: 'tool_call'"));
 		assert.ok(result.stdout.includes("event.type === 'run_resume'"));
-		assert.ok(result.stdout.includes('// flue-blueprint: tooling/braintrust@1'));
+		assert.ok(result.stdout.includes('// bapX-blueprint: tooling/braintrust@1'));
 		assert.ok(result.stdout.includes('Node.js and Cloudflare'));
 		assert.ok(result.stdout.includes('This comparison is required when the marker is missing.'));
 	});
@@ -515,23 +515,23 @@ describe('flue add', () => {
 			result.stdout,
 			/types:\s*\[[^\]]*'operation'[^\]]*'submission_settled'[^\]]*'log'[^\]]*\]/s,
 		);
-		assert.ok(result.stdout.includes('// flue-blueprint: tooling/sentry@1'));
+		assert.ok(result.stdout.includes('// bapX-blueprint: tooling/sentry@1'));
 		assert.ok(result.stdout.includes('This comparison is required when the marker is missing.'));
 	});
 
-	it('prints the vitest-evals tooling blueprint with a public Flue harness', async () => {
+	it('prints the vitest-evals tooling blueprint with a public Bapx harness', async () => {
 		const result = await runCli(['add', 'tooling', 'vitest-evals', '--print']);
 
 		assert.equal(result.code, 0);
 		assert.ok(result.stdout.includes('@bapX/sdk'));
 		assert.ok(result.stdout.includes('vitest-evals'));
 		assert.ok(result.stdout.includes('vitest.evals.config.ts'));
-		assert.ok(result.stdout.includes('createFlueClient'));
-		assert.ok(result.stdout.includes('createFlueAgentHarness'));
+		assert.ok(result.stdout.includes('createBapxClient'));
+		assert.ok(result.stdout.includes('createBapxAgentHarness'));
 		assert.ok(result.stdout.includes('client.agents.history'));
 		assert.ok(result.stdout.includes('collectToolCalls(history.messages)'));
 		assert.ok(result.stdout.includes('crypto.randomUUID()'));
-		assert.ok(result.stdout.includes('// flue-blueprint: tooling/vitest-evals@1'));
+		assert.ok(result.stdout.includes('// bapX-blueprint: tooling/vitest-evals@1'));
 		assert.ok(result.stdout.includes('Do not add an unauthenticated `route` export'));
 		assert.ok(result.stdout.includes('This comparison is required when the marker is missing.'));
 	});
@@ -548,8 +548,8 @@ describe('flue add', () => {
 		const url = 'https://docs.example.test/?a=1&b=two';
 		const result = await runCli(['add', 'channel', url]);
 		assert.equal(result.code, 0);
-		assert.ok(result.stderr.includes(`flue add channel '${url}'`));
-		assert.ok(result.stderr.includes(`flue add channel '${url}' --print | claude`));
+		assert.ok(result.stderr.includes(`bapX add channel '${url}'`));
+		assert.ok(result.stderr.includes(`bapX add channel '${url}' --print | claude`));
 	});
 
 	it('rejects an unknown kind with every known kind in the guidance', async () => {
@@ -567,7 +567,7 @@ describe('flue add', () => {
 			'--print',
 		]);
 		assert.equal(result.code, 1);
-		assert.ok(result.stderr.includes('Unknown flag for `flue add`: --category'));
+		assert.ok(result.stderr.includes('Unknown flag for `bapX add`: --category'));
 	});
 
 	it('rejects a legacy one-positional blueprint invocation', async () => {
@@ -580,8 +580,8 @@ describe('flue add', () => {
 		const result = await runCli(['add', 'database', 'slack', '--print']);
 		assert.equal(result.code, 1);
 		assert.ok(result.stderr.includes('Blueprint "slack" not found for kind "database"'));
-		assert.ok(result.stderr.includes('flue add database postgres'));
-		assert.ok(!result.stderr.includes('flue add channel slack'));
+		assert.ok(result.stderr.includes('bapX add database postgres'));
+		assert.ok(!result.stderr.includes('bapX add channel slack'));
 	});
 
 	it('treats an unknown non-URL value as a blueprint name', async () => {
@@ -593,12 +593,12 @@ describe('flue add', () => {
 	it('rejects an extra positional argument', async () => {
 		const result = await runCli(['add', 'channel', 'slack', 'extra', '--print']);
 		assert.equal(result.code, 1);
-		assert.ok(result.stderr.includes('Unexpected extra argument for `flue add`: extra'));
+		assert.ok(result.stderr.includes('Unexpected extra argument for `bapX add`: extra'));
 	});
 });
 
-describe('flue update', () => {
-	it('prints the exact same named blueprint as flue add', async () => {
+describe('bapX update', () => {
+	it('prints the exact same named blueprint as bapX add', async () => {
 		const added = await runCli(['add', 'channel', 'slack', '--print']);
 		const updated = await runCli(['update', 'channel', 'slack', '--print']);
 
@@ -606,73 +606,73 @@ describe('flue update', () => {
 		assert.equal(updated.stdout, added.stdout);
 	});
 
-	it('prints the exact same MongoDB blueprint as flue add', async () => {
+	it('prints the exact same MongoDB blueprint as bapX add', async () => {
 		const added = await runCli(['add', 'database', 'mongodb', '--print']);
 		const updated = await runCli(['update', 'database', 'mongodb', '--print']);
 
 		assert.equal(updated.code, 0);
 		assert.equal(updated.stdout, added.stdout);
-		assert.ok(updated.stdout.includes('// flue-blueprint: database/mongodb@1'));
+		assert.ok(updated.stdout.includes('// bapX-blueprint: database/mongodb@1'));
 		assert.ok(updated.stdout.includes('This comparison is required when the marker is missing.'));
 	});
 
-	it('prints the exact same MySQL blueprint as flue add', async () => {
+	it('prints the exact same MySQL blueprint as bapX add', async () => {
 		const added = await runCli(['add', 'database', 'mysql', '--print']);
 		const updated = await runCli(['update', 'database', 'mysql', '--print']);
 
 		assert.equal(updated.code, 0);
 		assert.equal(updated.stdout, added.stdout);
-		assert.ok(updated.stdout.includes('// flue-blueprint: database/mysql@1'));
+		assert.ok(updated.stdout.includes('// bapX-blueprint: database/mysql@1'));
 	});
 
-	it('prints the exact same Supabase blueprint as flue add', async () => {
+	it('prints the exact same Supabase blueprint as bapX add', async () => {
 		const added = await runCli(['add', 'database', 'supabase', '--print']);
 		const updated = await runCli(['update', 'database', 'supabase', '--print']);
 
 		assert.equal(updated.code, 0);
 		assert.equal(updated.stdout, added.stdout);
-		assert.ok(updated.stdout.includes('// flue-blueprint: database/supabase@1'));
+		assert.ok(updated.stdout.includes('// bapX-blueprint: database/supabase@1'));
 	});
 
-	it('prints the exact same Redis and Valkey blueprints as flue add', async () => {
+	it('prints the exact same Redis and Valkey blueprints as bapX add', async () => {
 		for (const name of ['redis', 'valkey']) {
 			const added = await runCli(['add', 'database', name, '--print']);
 			const updated = await runCli(['update', 'database', name, '--print']);
 
 			assert.equal(updated.code, 0);
 			assert.equal(updated.stdout, added.stdout);
-			assert.ok(updated.stdout.includes(`// flue-blueprint: database/${name}@1`));
+			assert.ok(updated.stdout.includes(`// bapX-blueprint: database/${name}@1`));
 		}
 	});
 
-	it('prints the exact same Braintrust blueprint as flue add', async () => {
+	it('prints the exact same Braintrust blueprint as bapX add', async () => {
 		const added = await runCli(['add', 'tooling', 'braintrust', '--print']);
 		const updated = await runCli(['update', 'tooling', 'braintrust', '--print']);
 
 		assert.equal(updated.code, 0);
 		assert.equal(updated.stdout, added.stdout);
-		assert.ok(updated.stdout.includes('// flue-blueprint: tooling/braintrust@1'));
+		assert.ok(updated.stdout.includes('// bapX-blueprint: tooling/braintrust@1'));
 	});
 
-	it('prints the exact same Sentry blueprint as flue add', async () => {
+	it('prints the exact same Sentry blueprint as bapX add', async () => {
 		const added = await runCli(['add', 'tooling', 'sentry', '--print']);
 		const updated = await runCli(['update', 'tooling', 'sentry', '--print']);
 
 		assert.equal(updated.code, 0);
 		assert.equal(updated.stdout, added.stdout);
-		assert.ok(updated.stdout.includes('// flue-blueprint: tooling/sentry@1'));
+		assert.ok(updated.stdout.includes('// bapX-blueprint: tooling/sentry@1'));
 	});
 
-	it('prints the exact same vitest-evals blueprint as flue add', async () => {
+	it('prints the exact same vitest-evals blueprint as bapX add', async () => {
 		const added = await runCli(['add', 'tooling', 'vitest-evals', '--print']);
 		const updated = await runCli(['update', 'tooling', 'vitest-evals', '--print']);
 
 		assert.equal(updated.code, 0);
 		assert.equal(updated.stdout, added.stdout);
-		assert.ok(updated.stdout.includes('// flue-blueprint: tooling/vitest-evals@1'));
+		assert.ok(updated.stdout.includes('// bapX-blueprint: tooling/vitest-evals@1'));
 	});
 
-	it('prints the exact same URL-substituted blueprint as flue add', async () => {
+	it('prints the exact same URL-substituted blueprint as bapX add', async () => {
 		const url = 'https://docs.example.test/?version=2&source=cli';
 		const added = await runCli(['add', 'channel', url, '--print']);
 		const updated = await runCli(['update', 'channel', url, '--print']);
@@ -686,9 +686,9 @@ describe('flue update', () => {
 		const result = await runCli(['update', 'channel', 'slack']);
 
 		assert.equal(result.code, 0);
-		assert.ok(result.stderr.includes("flue update channel 'slack'"));
-		assert.ok(result.stderr.includes("flue update channel 'slack' --print | claude"));
-		assert.ok(!result.stderr.includes('flue add channel slack'));
+		assert.ok(result.stderr.includes("bapX update channel 'slack'"));
+		assert.ok(result.stderr.includes("bapX update channel 'slack' --print | claude"));
+		assert.ok(!result.stderr.includes('bapX add channel slack'));
 	});
 
 	it('requires both positional arguments instead of listing blueprints', async () => {
@@ -696,7 +696,7 @@ describe('flue update', () => {
 		const missingName = await runCli(['update', 'channel']);
 
 		assert.equal(missingBoth.code, 1);
-		assert.ok(missingBoth.stderr.includes('flue update <kind> <name|url> [--print]'));
+		assert.ok(missingBoth.stderr.includes('bapX update <kind> <name|url> [--print]'));
 		assert.ok(!missingBoth.stderr.includes('Available blueprints:'));
 		assert.equal(missingName.code, 1);
 		assert.ok(missingName.stderr.includes('Missing blueprint name or URL'));

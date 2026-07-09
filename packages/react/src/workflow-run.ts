@@ -1,9 +1,9 @@
 import {
 	DurableStreamError,
 	FetchError,
-	type FlueClient,
-	type FlueEvent,
-	type FlueEventStream,
+	type BapxClient,
+	type BapxEvent,
+	type BapxEventStream,
 } from '@bapX/sdk';
 
 export type WorkflowStatus =
@@ -15,8 +15,8 @@ export type WorkflowStatus =
 	| 'disconnected';
 
 export interface WorkflowSnapshot {
-	events: FlueEvent[];
-	logs: Extract<FlueEvent, { type: 'log' }>[];
+	events: BapxEvent[];
+	logs: Extract<BapxEvent, { type: 'log' }>[];
 	status: WorkflowStatus;
 	result: unknown;
 	error: unknown;
@@ -33,7 +33,7 @@ export const emptyWorkflowSnapshot: WorkflowSnapshot = {
 export class WorkflowRun {
 	private snapshot: WorkflowSnapshot = { ...emptyWorkflowSnapshot };
 	private listeners = new Set<() => void>();
-	private stream: FlueEventStream | undefined;
+	private stream: BapxEventStream | undefined;
 	private disposed = false;
 	private active = false;
 	private generation = 0;
@@ -44,7 +44,7 @@ export class WorkflowRun {
 	private seenEvents = new Set<string>();
 
 	constructor(
-		private client: FlueClient,
+		private client: BapxClient,
 		private runId: string,
 	) {}
 
@@ -77,7 +77,7 @@ export class WorkflowRun {
 	private async connect(generation = this.generation): Promise<void> {
 		if (!this.isCurrent(generation) || this.terminal || this.stream) return;
 		this.update({ status: 'connecting' });
-		let stream: FlueEventStream;
+		let stream: BapxEventStream;
 		try {
 			stream = this.client.runs.stream(this.runId, {
 				live: true,
@@ -143,7 +143,7 @@ export class WorkflowRun {
 		return this.active && !this.disposed && generation === this.generation;
 	}
 
-	private consume(event: FlueEvent): void {
+	private consume(event: BapxEvent): void {
 		const eventId = `${event.runId ?? this.runId}:${event.eventIndex}`;
 		if (this.seenEvents.has(eventId)) return;
 		this.seenEvents.add(eventId);

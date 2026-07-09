@@ -1,4 +1,4 @@
-export type FlueExecutionOperation =
+export type BapxExecutionOperation =
 	| {
 			type: 'workflow';
 			runId: string;
@@ -11,13 +11,13 @@ export type FlueExecutionOperation =
 	| { type: 'tool'; toolCallId: string; toolName: string }
 	| { type: 'task'; taskId: string };
 
-export interface FlueTraceCarrier {
+export interface BapxTraceCarrier {
 	traceparent: string;
 	tracestate?: string;
 }
 
-export interface FlueExecutionContext {
-	eventContext?: import('./types.ts').FlueEventContext;
+export interface BapxExecutionContext {
+	eventContext?: import('./types.ts').BapxEventContext;
 	runId?: string;
 	instanceId?: string;
 	submissionId?: string;
@@ -29,18 +29,18 @@ export interface FlueExecutionContext {
 	operationId?: string;
 	turnId?: string;
 	taskId?: string;
-	traceCarrier?: FlueTraceCarrier;
+	traceCarrier?: BapxTraceCarrier;
 }
 
-export type FlueExecutionInterceptor = <T>(
-	operation: FlueExecutionOperation,
-	ctx: FlueExecutionContext,
+export type BapxExecutionInterceptor = <T>(
+	operation: BapxExecutionOperation,
+	ctx: BapxExecutionContext,
 	next: () => Promise<T>,
 ) => Promise<T>;
 
-const interceptors: FlueExecutionInterceptor[] = [];
+const interceptors: BapxExecutionInterceptor[] = [];
 
-export function extractTraceCarrier(headers: Headers): FlueTraceCarrier | undefined {
+export function extractTraceCarrier(headers: Headers): BapxTraceCarrier | undefined {
 	const traceparent = headers.get('traceparent');
 	if (!traceparent || !/^00-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$/.test(traceparent)) return undefined;
 	const [, traceId, spanId] = traceparent.split('-');
@@ -52,7 +52,7 @@ export function extractTraceCarrier(headers: Headers): FlueTraceCarrier | undefi
 	return { traceparent, ...(tracestate ? { tracestate } : {}) };
 }
 
-export function registerExecutionInterceptor(interceptor: FlueExecutionInterceptor): () => void {
+export function registerExecutionInterceptor(interceptor: BapxExecutionInterceptor): () => void {
 	interceptors.push(interceptor);
 	return () => {
 		const index = interceptors.indexOf(interceptor);
@@ -61,28 +61,28 @@ export function registerExecutionInterceptor(interceptor: FlueExecutionIntercept
 }
 
 export function interceptExecution<T>(
-	operation: FlueExecutionOperation,
-	ctx: FlueExecutionContext,
+	operation: BapxExecutionOperation,
+	ctx: BapxExecutionContext,
 	next: () => Promise<T>,
 ): Promise<T> {
 	return Promise.resolve().then(() => dispatchExecution(operation, ctx, next));
 }
 
 function dispatchExecution<T>(
-	operation: FlueExecutionOperation,
-	ctx: FlueExecutionContext,
+	operation: BapxExecutionOperation,
+	ctx: BapxExecutionContext,
 	next: () => Promise<T>,
 ): Promise<T> {
 	const registered = [...interceptors];
 	let index = -1;
 	const dispatch = (nextIndex: number): Promise<T> => {
-		if (nextIndex <= index) return Promise.reject(new Error('Flue execution next() called more than once.'));
+		if (nextIndex <= index) return Promise.reject(new Error('Bapx execution next() called more than once.'));
 		index = nextIndex;
 		const interceptor = registered[nextIndex];
 		if (!interceptor) return next();
 		let called = false;
 		return interceptor(operation, ctx, () => {
-			if (called) return Promise.reject(new Error('Flue execution next() called more than once.'));
+			if (called) return Promise.reject(new Error('Bapx execution next() called more than once.'));
 			called = true;
 			return dispatch(nextIndex + 1);
 		});

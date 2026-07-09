@@ -1,6 +1,6 @@
 # `@bapX/notion`
 
-Verified Notion webhook ingress for Flue.
+Verified Notion webhook ingress for Bapx.
 
 The package exposes one fixed `POST /webhook` route. It handles Notion's
 initial unsigned setup token separately, then verifies exact request bytes with
@@ -26,8 +26,8 @@ export const channel = createNotionChannel({
 });
 ```
 
-Place this export in `channels/notion.ts`. Flue discovers it and serves
-`POST /channels/notion/webhook` relative to the `flue()` mount.
+Place this export in `channels/notion.ts`. Bapx discovers it and serves
+`POST /channels/notion/webhook` relative to the `bapX()` mount.
 
 During initial endpoint setup, temporarily provide `verification(...)` to
 capture Notion's unsigned token. Store it as

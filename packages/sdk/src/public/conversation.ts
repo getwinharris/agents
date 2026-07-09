@@ -3,12 +3,12 @@ import type { PromptUsage } from '../types.ts';
 /**
  * One renderable part of a conversation message.
  *
- * Flue projects its private canonical conversation log into this small, stable
+ * Bapx projects its private canonical conversation log into this small, stable
  * shape. Streaming assembly details (delta sequencing, active blocks) are never
  * exposed here; a part only ever carries materialized content plus a lifecycle
  * `state`.
  */
-export type FlueConversationPart =
+export type BapxConversationPart =
 	| { type: 'text'; text: string; state: 'streaming' | 'done' }
 	| { type: 'reasoning'; text: string; state: 'streaming' | 'done' }
 	| {
@@ -45,9 +45,9 @@ export type FlueConversationPart =
  * Coarse render lane for a materialized message. `system` covers every
  * non-chat, non-answer message (internal control input and runtime advisories),
  * following the standard chat convention so a generic renderer can lay out a
- * transcript without understanding the finer {@link FlueConversationMessagePurpose}.
+ * transcript without understanding the finer {@link BapxConversationMessagePurpose}.
  */
-type FlueConversationMessageRole = 'user' | 'assistant' | 'system';
+type BapxConversationMessageRole = 'user' | 'assistant' | 'system';
 
 /**
  * Stable semantic classification of a message, independent of its rendered
@@ -56,33 +56,33 @@ type FlueConversationMessageRole = 'user' | 'assistant' | 'system';
  * advisories (`advisory`) without parsing content, ordering, or timestamps.
  * The union may widen as the runtime grows typed agent-activity signals.
  */
-type FlueConversationMessagePurpose = 'user' | 'assistant' | 'dispatch' | 'advisory';
+type BapxConversationMessagePurpose = 'user' | 'assistant' | 'dispatch' | 'advisory';
 
 /**
  * How a transcript UI should treat a message: `visible` for primary chat,
  * `diagnostic` for content suited to an activity/diagnostics panel, `hidden`
  * for runtime plumbing that should not normally be shown.
  */
-type FlueConversationMessageDisplay = 'visible' | 'hidden' | 'diagnostic';
+type BapxConversationMessageDisplay = 'visible' | 'hidden' | 'diagnostic';
 
 /**
  * Typed detail for a message projected from an internal runtime signal. Present
  * only on `system`-role messages. Carries across history snapshots and live
  * updates so clients can subtype or correlate signals without parsing text.
  */
-interface FlueConversationSignalDescriptor {
+interface BapxConversationSignalDescriptor {
 	tagName?: string;
 	attributes?: Record<string, string>;
 }
 
 /** One message in a materialized conversation. */
-export interface FlueConversationMessage {
+export interface BapxConversationMessage {
 	id: string;
-	role: FlueConversationMessageRole;
-	/** Stable semantic classification; see {@link FlueConversationMessagePurpose}. */
-	purpose: FlueConversationMessagePurpose;
-	/** Render/visibility hint; see {@link FlueConversationMessageDisplay}. */
-	display: FlueConversationMessageDisplay;
+	role: BapxConversationMessageRole;
+	/** Stable semantic classification; see {@link BapxConversationMessagePurpose}. */
+	purpose: BapxConversationMessagePurpose;
+	/** Render/visibility hint; see {@link BapxConversationMessageDisplay}. */
+	display: BapxConversationMessageDisplay;
 	/** Present on messages produced by a tracked submission. */
 	submissionId?: string;
 	/**
@@ -91,8 +91,8 @@ export interface FlueConversationMessage {
 	 */
 	turnId?: string;
 	/** Typed signal detail; present only on `system`-role messages. */
-	signal?: FlueConversationSignalDescriptor;
-	parts: FlueConversationPart[];
+	signal?: BapxConversationSignalDescriptor;
+	parts: BapxConversationPart[];
 	metadata?: {
 		/**
 		 * Server-authored message creation time as an ISO 8601 string. For a user
@@ -107,7 +107,7 @@ export interface FlueConversationMessage {
 }
 
 /** Terminal outcome of one tracked agent submission within a conversation. */
-export interface FlueConversationSettlement {
+export interface BapxConversationSettlement {
 	submissionId: string;
 	outcome: 'completed' | 'failed' | 'aborted';
 	error?: unknown;
@@ -118,24 +118,24 @@ export interface FlueConversationSettlement {
  *
  * Returned by `client.agents.history()` and used to seed `observe()`. The
  * `offset` is an opaque durable-stream checkpoint; pass it back only through
- * Flue's own observation machinery.
+ * Bapx's own observation machinery.
  */
-export interface FlueConversationSnapshot {
+export interface BapxConversationSnapshot {
 	v: 1;
 	conversationId: string;
 	offset: string;
-	messages: FlueConversationMessage[];
-	settlements: FlueConversationSettlement[];
+	messages: BapxConversationMessage[];
+	settlements: BapxConversationSettlement[];
 }
 
 /** Live materialized conversation maintained by `observe()`. */
-export interface FlueConversationState {
+export interface BapxConversationState {
 	conversationId: string;
-	messages: FlueConversationMessage[];
-	settlements: FlueConversationSettlement[];
+	messages: BapxConversationMessage[];
+	settlements: BapxConversationSettlement[];
 }
 
 /** Options for one `client.agents.history()` read. */
-export interface FlueConversationHistoryOptions {
+export interface BapxConversationHistoryOptions {
 	signal?: AbortSignal;
 }

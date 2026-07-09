@@ -1,6 +1,6 @@
 # `@bapX/shopify`
 
-Verified Shopify JSON webhook ingress for Flue.
+Verified Shopify JSON webhook ingress for Bapx.
 
 The package exposes one fixed `POST /webhook` route and verifies Shopify's
 base64 HMAC-SHA256 over the exact request bytes before parsing the payload or
@@ -21,8 +21,8 @@ export const channel = createShopifyChannel({
 });
 ```
 
-Place this export in `channels/shopify.ts`. Flue discovers it and serves
-`POST /channels/shopify/webhook` relative to the `flue()` mount.
+Place this export in `channels/shopify.ts`. Bapx discovers it and serves
+`POST /channels/shopify/webhook` relative to the `bapX()` mount.
 
 The callback receives `{ c, payload, rawBody }`: the Hono context, Shopify's
 parsed JSON body, and the exact verified UTF-8 body. Delivery metadata is read

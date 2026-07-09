@@ -10,7 +10,7 @@
 		"directory": "packages/dev-console"
 	},
 	"bin": {
-		"flue-dev-console": "dist/flue-dev-console.mjs"
+		"bapX-dev-console": "dist/bapX-dev-console.mjs"
 	},
 	"files": [
 		"dist",

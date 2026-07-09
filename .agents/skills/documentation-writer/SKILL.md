@@ -1,11 +1,11 @@
 ---
 name: documentation-writer
-description: 'Flue documentation editor. Use when reorganizing, rewriting, reviewing, or approving docs pages and navigation; turns rough or AI-generated documentation into scoped, accurate, human-editorialized content through a collaborative outline-and-draft workflow informed by Diátaxis.'
+description: 'Bapx documentation editor. Use when reorganizing, rewriting, reviewing, or approving docs pages and navigation; turns rough or AI-generated documentation into scoped, accurate, human-editorialized content through a collaborative outline-and-draft workflow informed by Diátaxis.'
 ---
 
-# Flue Documentation Editor
+# Bapx Documentation Editor
 
-Use this skill to turn rough, overgrown, or AI-generated Flue documentation into clear documentation that a human editor has shaped and approved.
+Use this skill to turn rough, overgrown, or AI-generated Bapx documentation into clear documentation that a human editor has shaped and approved.
 
 The human editor owns the product story: information architecture, page purpose, scope, emphasis, terminology, and final judgment. The agent owns implementation: locating relevant source material, testing factual claims against the codebase, turning approved section briefs into polished prose, updating explicitly scoped navigation and links, and iterating faithfully on editorial feedback.
 
@@ -24,7 +24,7 @@ The human editor owns the product story: information architecture, page purpose,
 
 ## Use Diátaxis pragmatically
 
-Flue uses the Diátaxis model to decide a page's primary job, not as a rigid questionnaire or a barrier to editing.
+Bapx uses the Diátaxis model to decide a page's primary job, not as a rigid questionnaire or a barrier to editing.
 
 | Document type | Primary user need                           | Writing posture                                                                                                                                  |
 | ------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |

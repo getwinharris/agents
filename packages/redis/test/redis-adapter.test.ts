@@ -41,7 +41,7 @@ interface Harness {
 	prefix: string;
 }
 
-async function createSharedHarness(prefix = `flue-test:${randomUUID()}`): Promise<Harness> {
+async function createSharedHarness(prefix = `bapX-test:${randomUUID()}`): Promise<Harness> {
 	const client = createClient({ url: redisUrl });
 	await client.connect();
 	const adapter = redis(createRunner(client), { keyPrefix: prefix, inspectServer: false });
@@ -243,11 +243,11 @@ describeRedis('redis() malformed rows', () => {
 });
 
 describeRedis('redis() migration', () => {
-	it('rejects unversioned Flue persistence without stamping it', async () => {
+	it('rejects unversioned Bapx persistence without stamping it', async () => {
 		if (!redisUrl) throw new TypeError('TEST_REDIS_URL is required.');
 		const client = createClient({ url: redisUrl });
 		await client.connect();
-		const prefix = `flue-test:${randomUUID()}`;
+		const prefix = `bapX-test:${randomUUID()}`;
 		await client.set(`${prefix}:run:legacy`, '{}');
 		const adapter = redis(createRunner(client), { keyPrefix: prefix, inspectServer: false });
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);

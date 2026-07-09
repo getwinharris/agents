@@ -16,7 +16,7 @@ import {
 	observe,
 	SessionBusyError,
 } from '../src/index.ts';
-import { createFlueContext, InMemoryAttachmentStore, InMemoryConversationStreamStore } from '../src/internal.ts';
+import { createBapxContext, InMemoryAttachmentStore, InMemoryConversationStreamStore } from '../src/internal.ts';
 import { getInternalSession } from '../src/session.ts';
 import type { SessionEnv } from '../src/types.ts';
 import { createNoopSessionEnv } from './fixtures/session-env.ts';
@@ -40,7 +40,7 @@ function createContext(
 	provider: FauxProviderRegistration,
 	options: { env?: SessionEnv } = {},
 ) {
-	return createFlueContext({
+	return createBapxContext({
 		id: 'session-operations-instance',
 		env: {},
 		agentConfig: {
@@ -193,7 +193,7 @@ describe('session.prompt()', () => {
 						'type' in event &&
 						event.type === 'log' &&
 						'message' in event &&
-						event.message === '[flue:model-retry] Retrying transient model error',
+						event.message === '[bapX:model-retry] Retrying transient model error',
 				),
 			).toHaveLength(1);
 		} finally {
@@ -234,7 +234,7 @@ describe('session.prompt()', () => {
 			const transientError = () =>
 				fauxAssistantMessage('', { stopReason: 'error', errorMessage: 'overloaded_error' });
 			const lookupTurn = () =>
-				fauxAssistantMessage(fauxToolCall('lookup', { query: 'flue' }), { stopReason: 'toolUse' });
+				fauxAssistantMessage(fauxToolCall('lookup', { query: 'bapX' }), { stopReason: 'toolUse' });
 			// Four isolated transient errors, each recovered and followed by a
 			// successful tool-use turn: only consecutive failures share a budget.
 			provider.setResponses([
@@ -559,7 +559,7 @@ describe('session.task()', () => {
 				delta: 'Partial',
 			},
 		], { submission: { submissionId: 'submission-recovery', attemptId: 'attempt-recovery' } });
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'recovery-instance',
 			env: {},
 			agentConfig: { resolveModel: () => provider.getModel('reviewer') },
@@ -634,7 +634,7 @@ describe('session.task()', () => {
 				: '';
 			return fauxAssistantMessage('Done.');
 		}]);
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'canonical-prompt-instance',
 			env: {},
 			agentConfig: { resolveModel: () => provider.getModel('reviewer') },
@@ -684,7 +684,7 @@ describe('session.task()', () => {
 			output: v.object({ temperature: v.number() }),
 			run: async () => ({ temperature: 21 }),
 		});
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'structured-tool-instance',
 			env: {},
 			agentConfig: { resolveModel: () => provider.getModel('reviewer') },
@@ -734,7 +734,7 @@ describe('session.task()', () => {
 				return fauxAssistantMessage('Second response.');
 			},
 		]);
-		const createContextForWriter = () => createFlueContext({
+		const createContextForWriter = () => createBapxContext({
 			id: 'direct-replay-instance',
 			env: {},
 			agentConfig: { resolveModel: () => provider.getModel('reviewer') },
@@ -770,7 +770,7 @@ describe('session.task()', () => {
 	it('materializes an attachment on a dispatched user message the same way as a direct one', async () => {
 		const provider = createProvider([{ id: 'reviewer' }]);
 		const attachments = new InMemoryAttachmentStore();
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'dispatch-image-instance',
 			env: {},
 			agentConfig: { resolveModel: () => provider.getModel('reviewer') },

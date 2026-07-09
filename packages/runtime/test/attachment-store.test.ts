@@ -68,7 +68,7 @@ describe('SqliteAttachmentStore', () => {
 		});
 
 		expect(db.prepare(
-			`SELECT length(bytes) AS byte_length FROM flue_attachment_chunks
+			`SELECT length(bytes) AS byte_length FROM bapX_attachment_chunks
 			 WHERE stream_path = ? AND attachment_id = ? ORDER BY chunk_index`,
 		).all('agents/assistant/agent-1', attachment.id)).toEqual([
 			{ byte_length: ATTACHMENT_CHUNK_BYTE_LENGTH },
@@ -94,7 +94,7 @@ describe('SqliteAttachmentStore', () => {
 			conversationId: 'conversation-1',
 		});
 		db.prepare(
-			`DELETE FROM flue_attachment_chunks
+			`DELETE FROM bapX_attachment_chunks
 			 WHERE stream_path = ? AND attachment_id = ? AND chunk_index = 1`,
 		).run('agents/assistant/agent-1', attachment.id);
 
@@ -118,7 +118,7 @@ describe('SqliteAttachmentStore', () => {
 			conversationId: 'conversation-1',
 		});
 		db.prepare(
-			`UPDATE flue_attachments SET chunk_count = 2
+			`UPDATE bapX_attachments SET chunk_count = 2
 			 WHERE stream_path = ? AND attachment_id = ?`,
 		).run('agents/assistant/agent-1', attachment.id);
 

@@ -17,22 +17,22 @@ import {
 } from '../src/index.ts';
 import {
 	admitDetachedWorkflow,
-	configureFlueRuntime,
-	createFlueContext,
+	configureBapxRuntime,
+	createBapxContext,
 	failRecoveredRun,
 	handleWorkflowRequest,
 	InMemoryRunStore,
 	resolveModel,
 } from '../src/internal.ts';
-import { flue } from '../src/routing.ts';
+import { bapX } from '../src/routing.ts';
 import { formatOffset } from '../src/runtime/event-stream-store.ts';
-import { resetFlueRuntimeForTests } from '../src/runtime/flue-app.ts';
+import { resetBapxRuntimeForTests } from '../src/runtime/bapX-app.ts';
 import { createNoopSessionEnv } from './fixtures/session-env.ts';
 import { nodeRuntime, workflowRecord } from './helpers/runtime-config.ts';
 import { createTestEventStreamStore } from './helpers/test-event-stream-store.ts';
 
 afterEach(() => {
-	resetFlueRuntimeForTests();
+	resetBapxRuntimeForTests();
 });
 
 function createContext({
@@ -44,7 +44,7 @@ function createContext({
 	request: Request;
 	initialEventIndex?: number;
 }) {
-	return createFlueContext({
+	return createBapxContext({
 		id: runId,
 		runId,
 		req: request,
@@ -72,9 +72,9 @@ function workflow(run: (input: unknown) => any) {
 }
 
 function createApp(runtime: Partial<import('../src/internal.ts').NodeRuntime>): Hono {
-	configureFlueRuntime(nodeRuntime({ eventStreamStore: createTestEventStreamStore(), ...runtime }));
+	configureBapxRuntime(nodeRuntime({ eventStreamStore: createTestEventStreamStore(), ...runtime }));
 	const app = new Hono();
-	app.route('/flue', flue());
+	app.route('/bapX', bapX());
 	return app;
 }
 
@@ -103,7 +103,7 @@ describe('invoke()', () => {
 			run: async () => undefined,
 		});
 		const admitWorkflow = vi.fn(async () => ({ runId: 'run_no_input' }));
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			workflows: [httpWorkflowRecord('target', target)],
 			admitWorkflow,
@@ -126,7 +126,7 @@ describe('invoke()', () => {
 	it('rejects Workflow Definitions that are not exact discovered identities', async () => {
 		const discovered = workflow(async () => undefined);
 		const undiscovered = workflow(async () => undefined);
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			workflows: [httpWorkflowRecord('discovered', discovered)],
 			admitWorkflow: async () => ({ runId: 'run_discovered' }),
@@ -141,7 +141,7 @@ describe('invoke()', () => {
 		const target = workflow(async () => undefined);
 		const admitted: unknown[] = [];
 		const input = { nested: { count: 1 } };
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			workflows: [httpWorkflowRecord('target', target)],
 			admitWorkflow: async (admission) => {
@@ -161,7 +161,7 @@ describe('invoke()', () => {
 
 	it('wraps target admission failures in a structured public error', async () => {
 		const target = workflow(async () => undefined);
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			workflows: [httpWorkflowRecord('target', target)],
 			admitWorkflow: async () => {
@@ -183,7 +183,7 @@ describe('invoke()', () => {
 		});
 		const runStore = new InMemoryRunStore();
 		const eventStreamStore = createTestEventStreamStore();
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			workflows: [httpWorkflowRecord('target', target)],
 			admitWorkflow: ({ workflowName, input }) =>
@@ -191,7 +191,7 @@ describe('invoke()', () => {
 					workflowName,
 					workflow: target,
 					input,
-					request: new Request('https://flue.invalid/_internal/workflow', { method: 'POST' }),
+					request: new Request('https://bapX.invalid/_internal/workflow', { method: 'POST' }),
 					createContext,
 					runStore,
 					eventStreamStore,
@@ -222,7 +222,7 @@ describe('invoke()', () => {
 				runId,
 				workflow: target,
 				input: {},
-				request: new Request('https://flue.invalid/_internal/workflow', { method: 'POST' }),
+				request: new Request('https://bapX.invalid/_internal/workflow', { method: 'POST' }),
 				createContext,
 				runStore,
 				eventStreamStore,
@@ -253,7 +253,7 @@ describe('invoke()', () => {
 					runId,
 					workflow: target,
 					input: {},
-					request: new Request('https://flue.invalid/_internal/workflow', { method: 'POST' }),
+					request: new Request('https://bapX.invalid/_internal/workflow', { method: 'POST' }),
 					createContext,
 					runStore,
 					eventStreamStore,
@@ -265,7 +265,7 @@ describe('invoke()', () => {
 			).resolves.toEqual({ runId });
 			await vi.waitFor(() => {
 				expect(consoleError).toHaveBeenCalledWith(
-					'[flue] Workflow run failed:',
+					'[bapX] Workflow run failed:',
 					runId,
 					expect.objectContaining({ message: 'fiber failed after admission' }),
 				);
@@ -280,7 +280,7 @@ describe('invoke()', () => {
 		const completion = new Promise<unknown>((resolve) => {
 			release = resolve;
 		});
-		const request = new Request('http://localhost/flue/workflows/daily-report?wait=result', {
+		const request = new Request('http://localhost/bapX/workflows/daily-report?wait=result', {
 			method: 'POST',
 		});
 		const responsePromise = handleWorkflowRequest({
@@ -318,7 +318,7 @@ describe('invoke()', () => {
 				runId,
 				workflow: target,
 				input: {},
-				request: new Request('https://flue.invalid/_internal/workflow', { method: 'POST' }),
+				request: new Request('https://bapX.invalid/_internal/workflow', { method: 'POST' }),
 				createContext,
 				runStore,
 				eventStreamStore,
@@ -336,7 +336,7 @@ describe('invoke()', () => {
 		});
 		const runStore = new InMemoryRunStore();
 		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			workflows: [httpWorkflowRecord('target', target)],
 			admitWorkflow: ({ workflowName, input }) =>
@@ -344,7 +344,7 @@ describe('invoke()', () => {
 					workflowName,
 					workflow: target,
 					input,
-					request: new Request('https://flue.invalid/_internal/workflow', { method: 'POST' }),
+					request: new Request('https://bapX.invalid/_internal/workflow', { method: 'POST' }),
 					createContext,
 					runStore,
 					eventStreamStore: createTestEventStreamStore(),
@@ -383,7 +383,7 @@ describe('workflow invocation', () => {
 
 		try {
 			const response = await app.fetch(
-				new Request('http://localhost/flue/workflows/daily-report', { method: 'POST' }),
+				new Request('http://localhost/bapX/workflows/daily-report', { method: 'POST' }),
 			);
 			const body = (await response.json()) as { runId: string };
 			runId = body.runId;
@@ -412,7 +412,7 @@ describe('workflow invocation', () => {
 		});
 
 		const response = await app.fetch(
-			new Request('http://localhost/flue/workflows/daily-report?wait=result', { method: 'POST' }),
+			new Request('http://localhost/bapX/workflows/daily-report?wait=result', { method: 'POST' }),
 		);
 		const body = (await response.json()) as {
 			result: unknown;
@@ -440,7 +440,7 @@ describe('workflow invocation', () => {
 		});
 
 		const response = await app.fetch(
-			new Request('http://localhost/flue/workflows/daily-report', { method: 'POST' }),
+			new Request('http://localhost/bapX/workflows/daily-report', { method: 'POST' }),
 		);
 
 		expect(response.status).toBe(501);
@@ -471,7 +471,7 @@ describe('workflow invocation', () => {
 			});
 
 			const response = await app.fetch(
-				new Request('http://localhost/flue/workflows/daily-report', { method: 'POST' }),
+				new Request('http://localhost/bapX/workflows/daily-report', { method: 'POST' }),
 			);
 
 			expect(response.status).toBe(500);
@@ -500,7 +500,7 @@ describe('workflow invocation', () => {
 		});
 
 		const response = await app.fetch(
-			new Request('http://localhost/flue/workflows/daily-report?wait=result', {
+			new Request('http://localhost/bapX/workflows/daily-report?wait=result', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify({ report: 'weekly' }),
@@ -525,7 +525,7 @@ describe('workflow invocation', () => {
 
 			workflows: [httpWorkflowRecord('validated', invalidWorkflow)],
 			createWorkflowContext({ runId, request }) {
-				return createFlueContext({
+				return createBapxContext({
 					id: runId,
 					runId,
 					req: request,
@@ -538,7 +538,7 @@ describe('workflow invocation', () => {
 		});
 
 		const response = await app.fetch(
-			new Request('http://localhost/flue/workflows/validated?wait=result', {
+			new Request('http://localhost/bapX/workflows/validated?wait=result', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify({ count: 'invalid' }),
@@ -562,7 +562,7 @@ describe('workflow invocation', () => {
 
 			workflows: [httpWorkflowRecord('no-input', noInputWorkflow)],
 			createWorkflowContext({ runId, request }) {
-				return createFlueContext({
+				return createBapxContext({
 					id: runId,
 					runId,
 					req: request,
@@ -575,7 +575,7 @@ describe('workflow invocation', () => {
 		});
 
 		const response = await app.fetch(
-			new Request('http://localhost/flue/workflows/no-input?wait=result', {
+			new Request('http://localhost/bapX/workflows/no-input?wait=result', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
 				body: '{}',
@@ -599,7 +599,7 @@ describe('workflow invocation', () => {
 		});
 
 		const response = await app.fetch(
-			new Request('http://localhost/flue/workflows/daily-report?wait=result', { method: 'POST' }),
+			new Request('http://localhost/bapX/workflows/daily-report?wait=result', { method: 'POST' }),
 		);
 		const body = (await response.json()) as { result: unknown; runId: string };
 
@@ -655,7 +655,7 @@ describe('workflow run lifecycle', () => {
 
 			workflows: [httpWorkflowRecord('cleanup', createdWorkflow)],
 			createWorkflowContext({ runId, request }) {
-				return createFlueContext({
+				return createBapxContext({
 					id: runId,
 					runId,
 					req: request,
@@ -685,7 +685,7 @@ describe('workflow run lifecycle', () => {
 		let responseSettled = false;
 		const responsePromise = Promise.resolve(
 			app.fetch(
-				new Request('http://localhost/flue/workflows/cleanup?wait=result', { method: 'POST' }),
+				new Request('http://localhost/bapX/workflows/cleanup?wait=result', { method: 'POST' }),
 			),
 		).finally(() => {
 				responseSettled = true;
@@ -732,7 +732,7 @@ describe('workflow run lifecycle', () => {
 			});
 
 			const response = await app.fetch(
-				new Request('http://localhost/flue/workflows/daily-report?wait=result', { method: 'POST' }),
+				new Request('http://localhost/bapX/workflows/daily-report?wait=result', { method: 'POST' }),
 			);
 
 			expect(response.status).toBe(500);
@@ -779,7 +779,7 @@ describe('workflow run lifecycle', () => {
 			});
 
 			const response = await app.fetch(
-				new Request('http://localhost/flue/workflows/daily-report', { method: 'POST' }),
+				new Request('http://localhost/bapX/workflows/daily-report', { method: 'POST' }),
 			);
 			const body = (await response.json()) as { runId: string };
 
@@ -791,13 +791,13 @@ describe('workflow run lifecycle', () => {
 			await vi.waitFor(async () => {
 				expect((await runStore.getRun(body.runId))?.status).toBe('errored');
 				expect(consoleError).toHaveBeenCalledWith(
-					'[flue] Workflow run failed:',
+					'[bapX] Workflow run failed:',
 					body.runId,
 					expect.objectContaining({ message: 'report generation failed' }),
 				);
 			});
 			expect(consoleError).toHaveBeenCalledWith(
-				'[flue] Workflow run failed:',
+				'[bapX] Workflow run failed:',
 				body.runId,
 				expect.objectContaining({ message: 'report generation failed' }),
 			);
@@ -919,7 +919,7 @@ describe('workflow run lifecycle', () => {
 				eventIndex,
 			});
 		}
-		db.prepare('UPDATE flue_event_streams SET next_offset = 10 WHERE path = ?').run(streamPath);
+		db.prepare('UPDATE bapX_event_streams SET next_offset = 10 WHERE path = ?').run(streamPath);
 
 		await failRecoveredRun({
 			workflowName: 'report',

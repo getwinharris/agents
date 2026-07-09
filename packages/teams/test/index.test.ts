@@ -44,7 +44,7 @@ describe('createTeamsChannel()', () => {
 		const activities = vi.fn((_input: unknown) => ({ accepted: true }));
 		const teams = testChannel({ activities });
 		const raw = messageActivity({
-			text: '<at>Flue Bot</at> review café',
+			text: '<at>Bapx Bot</at> review café',
 			from: {
 				id: '29:user-id',
 				name: 'Ada',
@@ -54,8 +54,8 @@ describe('createTeamsChannel()', () => {
 			entities: [
 				{
 					type: 'mention',
-					text: '<at>Flue Bot</at>',
-					mentioned: { id: '28:bot-id', name: 'Flue Bot' },
+					text: '<at>Bapx Bot</at>',
+					mentioned: { id: '28:bot-id', name: 'Bapx Bot' },
 				},
 				{ type: 'clientInfo', locale: 'en-US' },
 			],
@@ -427,7 +427,7 @@ function messageActivity(overrides: Record<string, unknown> = {}): Record<string
 		},
 		recipient: {
 			id: '28:bot-id',
-			name: 'Flue Bot',
+			name: 'Bapx Bot',
 			tenantId: TENANT_ID,
 		},
 		conversation: {

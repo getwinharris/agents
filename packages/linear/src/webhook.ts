@@ -30,7 +30,7 @@ export function createLinearWebhookHandler<E extends Env>(
 		const raw = parseJson(rawBody.value);
 		if (!isRecord(raw)) return response(400);
 
-		// Minimal ingress checks Flue owns: replay window and configured identity.
+		// Minimal ingress checks Bapx owns: replay window and configured identity.
 		// Everything else is the provider-native payload, forwarded unmodified.
 		const webhookTimestamp = raw.webhookTimestamp;
 		if (typeof webhookTimestamp !== 'number' || !Number.isFinite(webhookTimestamp)) {

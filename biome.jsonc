@@ -1,6 +1,12 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.4.15/schema.json",
-	"assist": { "actions": { "source": { "organizeImports": "on" } } },
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	},
 	"css": {
 		"parser": {
 			"tailwindDirectives": true
@@ -15,7 +21,7 @@
 			},
 			"correctness": {
 				"noUnusedImports": "warn",
-				// Flue source/examples intentionally use bundler-resolved TS imports,
+				// Bapx source/examples intentionally use bundler-resolved TS imports,
 				// including non-standard loader forms such as SKILL.md imports.
 				"useImportExtensions": "off"
 			},
@@ -45,11 +51,19 @@
 	"files": {
 		// `demo` is a standalone example app with its own oxlint config; exclude it
 		// from the repo-wide biome lint (apps/www is likewise excluded).
-		"includes": ["**", "!apps/www", "!apps/docs/**/*.astro", "!demo"]
+		"includes": [
+			"**",
+			"!apps/www",
+			"!apps/docs/**/*.astro",
+			"!demo"
+		]
 	},
 	"overrides": [
 		{
-			"includes": ["**/tsconfig.json", "**/tsconfig.*.json"],
+			"includes": [
+				"**/tsconfig.json",
+				"**/tsconfig.*.json"
+			],
 			"json": {
 				"parser": {
 					"allowComments": true,
@@ -58,7 +72,10 @@
 			}
 		},
 		{
-			"includes": ["packages/sdk/src/**", "examples/**"],
+			"includes": [
+				"packages/sdk/src/**",
+				"examples/**"
+			],
 			"linter": {
 				"rules": {
 					"suspicious": {

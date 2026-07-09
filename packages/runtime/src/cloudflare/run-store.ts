@@ -2,7 +2,7 @@
  * Composite `RunStore` for the Cloudflare target.
  *
  * Cloudflare keeps run records in per-workflow Durable Objects and a pointer
- * index in the singleton `FlueRegistry` DO. This module hides that topology
+ * index in the singleton `BapxRegistry` DO. This module hides that topology
  * behind the single public `RunStore` contract:
  *
  *   - `createRun`/`endRun` write the authoritative per-DO record, then
@@ -25,7 +25,7 @@ import type {
 } from '../runtime/run-store.ts';
 import type { RecordRunEndInput, RecordRunStartInput } from './registry-ops.ts';
 
-interface FlueRegistryNamespace {
+interface BapxRegistryNamespace {
 	idFromName(name: string): object;
 	get(id: object): { fetch(input: Request): Promise<Response> };
 }
@@ -34,33 +34,33 @@ interface FlueRegistryNamespace {
 export type CloudflareRunIndex = Pick<RunStore, 'lookupRun' | 'listRuns'>;
 
 /**
- * Request-scoped client for the `FlueRegistry` index DO, used by the outer
+ * Request-scoped client for the `BapxRegistry` index DO, used by the outer
  * worker for `/runs/:runId` lookups and `listRuns()`.
  */
 export function createCloudflareRunIndex(
-	namespace: FlueRegistryNamespace | undefined,
+	namespace: BapxRegistryNamespace | undefined,
 ): CloudflareRunIndex | undefined {
 	if (!namespace) return undefined;
-	return new FlueRegistryClient(namespace);
+	return new BapxRegistryClient(namespace);
 }
 
 /**
- * Compose the per-workflow-DO record store with the `FlueRegistry` index DO.
+ * Compose the per-workflow-DO record store with the `BapxRegistry` index DO.
  * Without a registry binding the record store is used as-is (no
  * cross-deployment index).
  */
 export function createCloudflareRunStore(
 	records: RunStore,
-	namespace: FlueRegistryNamespace | undefined,
+	namespace: BapxRegistryNamespace | undefined,
 ): RunStore {
 	if (!namespace) return records;
-	return new CloudflareCompositeRunStore(records, new FlueRegistryClient(namespace));
+	return new CloudflareCompositeRunStore(records, new BapxRegistryClient(namespace));
 }
 
 class CloudflareCompositeRunStore implements RunStore {
 	constructor(
 		private records: RunStore,
-		private index: FlueRegistryClient,
+		private index: BapxRegistryClient,
 	) {}
 
 	async createRun(input: CreateRunInput): Promise<void> {
@@ -114,15 +114,15 @@ async function safeIndexWrite(label: string, fn: () => Promise<void>): Promise<v
 	try {
 		await fn();
 	} catch (error) {
-		console.error(`[flue:run-index] ${label} failed:`, error);
+		console.error(`[bapX:run-index] ${label} failed:`, error);
 	}
 }
 
 const FLUE_REGISTRY_INSTANCE_NAME = 'default';
-const SYNTHETIC_BASE = 'https://flue-registry.local';
+const SYNTHETIC_BASE = 'https://bapX-registry.local';
 
-class FlueRegistryClient implements CloudflareRunIndex {
-	constructor(private namespace: FlueRegistryNamespace) {}
+class BapxRegistryClient implements CloudflareRunIndex {
+	constructor(private namespace: BapxRegistryNamespace) {}
 
 	async recordRunStart(input: RecordRunStartInput): Promise<void> {
 		const { runId, ...body } = input;
@@ -141,7 +141,7 @@ class FlueRegistryClient implements CloudflareRunIndex {
 		if (response.status === 404) return null;
 		if (!response.ok) {
 			throw new Error(
-				`[flue] FlueRegistry lookupRun(${runId}) failed: ${response.status} ${await response.text()}`,
+				`[bapX] BapxRegistry lookupRun(${runId}) failed: ${response.status} ${await response.text()}`,
 			);
 		}
 		return (await response.json()) as WorkflowRunPointer;
@@ -159,7 +159,7 @@ class FlueRegistryClient implements CloudflareRunIndex {
 		);
 		if (!response.ok) {
 			throw new Error(
-				`[flue] FlueRegistry listRuns failed: ${response.status} ${await response.text()}`,
+				`[bapX] BapxRegistry listRuns failed: ${response.status} ${await response.text()}`,
 			);
 		}
 		return (await response.json()) as ListRunsResponse;
@@ -185,7 +185,7 @@ class FlueRegistryClient implements CloudflareRunIndex {
 		);
 		if (!response.ok) {
 			throw new Error(
-				`[flue] FlueRegistry ${method} ${path} failed: ${response.status} ${await response.text()}`,
+				`[bapX] BapxRegistry ${method} ${path} failed: ${response.status} ${await response.text()}`,
 			);
 		}
 	}

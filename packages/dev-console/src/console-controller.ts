@@ -1,8 +1,8 @@
 import type {
 	DeliveredAttachment,
 	ConversationStreamChunk,
-	FlueClient,
-	FlueEvent,
+	BapxClient,
+	BapxEvent,
 	WorkflowRunResult,
 } from '@bapX/sdk';
 import {
@@ -35,7 +35,7 @@ interface ConsoleSnapshot {
 }
 
 export interface ConsoleControllerOptions {
-	readonly client: FlueClient;
+	readonly client: BapxClient;
 	readonly resource: ConsoleResource;
 	readonly server: string;
 	readonly initialInput?: unknown;
@@ -166,7 +166,7 @@ export function createConsoleController(options: ConsoleControllerOptions): Cons
 		publish({ status: 'active', active: true, composerEnabled: target.kind === 'agent' });
 		let failed = false;
 		let promptStarted = false;
-		const onEvent = (event: ConversationStreamChunk | FlueEvent): void => {
+		const onEvent = (event: ConversationStreamChunk | BapxEvent): void => {
 			if (closing) return;
 			const id = !('conversationId' in event) && event.type === 'run_start' ? event.runId : snapshot.id;
 			if (queuedPrompt && !promptStarted) {
@@ -217,7 +217,7 @@ export function createConsoleController(options: ConsoleControllerOptions): Cons
 
 	async function runAgentTarget(
 		target: Extract<ExecutionTarget, { kind: 'agent' }>,
-		onEvent: (event: ConversationStreamChunk | FlueEvent) => void,
+		onEvent: (event: ConversationStreamChunk | BapxEvent) => void,
 		signal: AbortSignal,
 	): Promise<{ kind: 'agent' }> {
 		const admission = admissionQueue.then(() => {
@@ -239,7 +239,7 @@ export function createConsoleController(options: ConsoleControllerOptions): Cons
 
 	async function runWorkflowTarget(
 		target: Extract<ExecutionTarget, { kind: 'workflow' }>,
-		onEvent: (event: ConversationStreamChunk | FlueEvent) => void,
+		onEvent: (event: ConversationStreamChunk | BapxEvent) => void,
 		signal: AbortSignal,
 	): Promise<{ kind: 'workflow'; runId: string; result: unknown }> {
 		const completed: WorkflowRunResult = await options.client.workflows.run(target.name, {

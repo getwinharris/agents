@@ -81,7 +81,7 @@ export function defineAgent<TEnv = Record<string, any>>(
 	if (typeof initialize !== 'function') {
 		throw new Error('[bapX] defineAgent() requires an initializer function.');
 	}
-	const agent = Object.freeze({ __flueAgentDefinition: true as const, initialize });
+	const agent = Object.freeze({ __bapXAgentDefinition: true as const, initialize });
 	agentDefinitions.add(agent);
 	return agent;
 }
@@ -156,7 +156,7 @@ function assertAgentRuntimeConfig(value: AgentRuntimeConfig | undefined): void {
 	for (const key of Object.keys(value)) {
 		if (!AGENT_RUNTIME_FIELDS.has(key)) {
 			throw new Error(
-				`[flue] defineAgent() initializer returned unknown runtime config field "${key}".`,
+				`[bapX] defineAgent() initializer returned unknown runtime config field "${key}".`,
 			);
 		}
 	}
@@ -173,14 +173,14 @@ function assertAgentProfile(
 	const parsed = v.safeParse(AgentProfileSchema, value);
 	if (!parsed.success) {
 		throw new Error(
-			`[flue] ${label} requires a valid agent profile: ${formatIssues(parsed.issues)}.`,
+			`[bapX] ${label} requires a valid agent profile: ${formatIssues(parsed.issues)}.`,
 		);
 	}
 
 	const definition = parsed.output as AgentProfile;
 	const source = value as object;
 	if (activeDefinitions.has(source)) {
-		throw new Error(`[flue] ${label} must not contain circular subagents.`);
+		throw new Error(`[bapX] ${label} must not contain circular subagents.`);
 	}
 	activeDefinitions.add(source);
 
@@ -205,7 +205,7 @@ function assertAgentProfile(
 function assertThinkingLevel(value: ThinkingLevel | undefined, label: string): void {
 	if (value !== undefined && !(value in VALID_THINKING_LEVELS)) {
 		throw new Error(
-			`[flue] ${label} thinkingLevel must be one of: ${Object.keys(VALID_THINKING_LEVELS).join(', ')}.`,
+			`[bapX] ${label} thinkingLevel must be one of: ${Object.keys(VALID_THINKING_LEVELS).join(', ')}.`,
 		);
 	}
 }
@@ -217,13 +217,13 @@ function assertCompaction(definition: AgentProfile['compaction'], label: string)
 
 	for (const key of Object.keys(definition)) {
 		if (key !== 'reserveTokens' && key !== 'keepRecentTokens' && key !== 'model') {
-			throw new Error(`[flue] ${label} compaction received unknown field "${key}".`);
+			throw new Error(`[bapX] ${label} compaction received unknown field "${key}".`);
 		}
 	}
 	assertTokenCount(definition.reserveTokens, `${label} compaction.reserveTokens`);
 	assertTokenCount(definition.keepRecentTokens, `${label} compaction.keepRecentTokens`);
 	if (definition.model !== undefined && typeof definition.model !== 'string') {
-		throw new Error(`[flue] ${label} compaction.model must be a string.`);
+		throw new Error(`[bapX] ${label} compaction.model must be a string.`);
 	}
 }
 
@@ -231,7 +231,7 @@ function assertDurability(definition: AgentProfile['durability'], label: string)
 	if (definition === undefined) return;
 	for (const key of Object.keys(definition)) {
 		if (key !== 'maxAttempts' && key !== 'timeoutMs') {
-			throw new Error(`[flue] ${label} durability received unknown field "${key}".`);
+			throw new Error(`[bapX] ${label} durability received unknown field "${key}".`);
 		}
 	}
 	assertPositiveInteger(definition.maxAttempts, `${label} durability.maxAttempts`);
@@ -241,7 +241,7 @@ function assertDurability(definition: AgentProfile['durability'], label: string)
 function assertPositiveInteger(value: number | undefined, label: string): void {
 	if (value === undefined) return;
 	if (!Number.isFinite(value) || !Number.isInteger(value) || value <= 0) {
-		throw new Error(`[flue] ${label} must be a positive integer.`);
+		throw new Error(`[bapX] ${label} must be a positive integer.`);
 	}
 }
 
@@ -250,7 +250,7 @@ function assertTokenCount(value: number | undefined, label: string): void {
 		return;
 	}
 	if (!Number.isFinite(value) || !Number.isInteger(value) || value < 0) {
-		throw new Error(`[flue] ${label} must be a non-negative integer.`);
+		throw new Error(`[bapX] ${label} must be a non-negative integer.`);
 	}
 }
 
@@ -267,7 +267,7 @@ function assertActions(values: unknown[] | undefined, label: string): void {
 	for (const [index, value] of values?.entries() ?? []) {
 		if (!isActionDefinition(value)) {
 			throw new Error(
-				`[flue] ${label} actions[${index}] must be created with defineAction().`,
+				`[bapX] ${label} actions[${index}] must be created with defineAction().`,
 			);
 		}
 	}
@@ -279,7 +279,7 @@ function assertSkills(
 ): asserts values is Skill[] | undefined {
 	for (const [index, value] of values?.entries() ?? []) {
 		if (!value || typeof value !== 'object') {
-			throw new Error(`[flue] ${label} skills[${index}] must be a skill definition object.`);
+			throw new Error(`[bapX] ${label} skills[${index}] must be a skill definition object.`);
 		}
 		const skill = value as Partial<Skill>;
 		assertNonEmptyString(skill.name, `${label} skills[${index}].name`);
@@ -294,13 +294,13 @@ function assertSubagents(
 ): asserts values is AgentProfile[] | undefined {
 	for (const [index, value] of values?.entries() ?? []) {
 		if (!value || typeof value !== 'object') {
-			throw new Error(`[flue] ${label} subagents[${index}] must be an agent definition object.`);
+			throw new Error(`[bapX] ${label} subagents[${index}] must be an agent definition object.`);
 		}
 		const subagent = value as Partial<AgentProfile>;
 		assertAgentName(subagent.name, `${label} subagents[${index}].name`);
 		if (subagent.durability !== undefined) {
 			throw new Error(
-				`[flue] ${label} subagents[${index}] must not declare durability. ` +
+				`[bapX] ${label} subagents[${index}] must not declare durability. ` +
 					'Delegated task sessions run inside the parent operation; configure durability on the agent definition instead.',
 			);
 		}
@@ -312,14 +312,14 @@ function assertAgentName(value: unknown, label: string): asserts value is string
 	assertNonEmptyString(value, label);
 	if (!/^[A-Za-z][A-Za-z0-9_-]*$/.test(value)) {
 		throw new Error(
-			`[flue] ${label} must start with a letter and contain only letters, numbers, "_", or "-".`,
+			`[bapX] ${label} must start with a letter and contain only letters, numbers, "_", or "-".`,
 		);
 	}
 }
 
 function assertNonEmptyString(value: unknown, label: string): asserts value is string {
 	if (typeof value !== 'string' || value.trim().length === 0) {
-		throw new Error(`[flue] ${label} must be a non-empty string.`);
+		throw new Error(`[bapX] ${label} must be a non-empty string.`);
 	}
 }
 
@@ -337,7 +337,7 @@ function assertUniqueNames(
 		const name = value.name;
 		if (!name) continue;
 		if (seen.has(name)) {
-			throw new Error(`[flue] ${label} must not contain duplicate ${kind} name "${name}".`);
+			throw new Error(`[bapX] ${label} must not contain duplicate ${kind} name "${name}".`);
 		}
 		seen.add(name);
 	}

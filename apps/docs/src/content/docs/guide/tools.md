@@ -41,8 +41,8 @@ A custom tool has these parts:
 
 - `name` is the model-facing name used to call the tool.
 - `description` helps the model decide when the capability is appropriate.
-- `input` is an optional top-level [Valibot](https://valibot.dev) object schema for model-supplied input. Flue validates and parses it before `run`; when validation fails, the model receives a tool error and can retry.
-- `output` is an optional Valibot schema for typed structured output. Flue validates the result, snapshots it as JSON-compatible data, and JSON-stringifies it for the model.
+- `input` is an optional top-level [Valibot](https://valibot.dev) object schema for model-supplied input. Bapx validates and parses it before `run`; when validation fails, the model receives a tool error and can retry.
+- `output` is an optional Valibot schema for typed structured output. Bapx validates the result, snapshots it as JSON-compatible data, and JSON-stringifies it for the model.
 - `run({ input, signal })` performs the application-controlled work. `input` is available when declared, and `signal` can cancel downstream work. Without an `output` schema, return JSON-compatible data; returning `undefined` sends `null` to the model.
 
 Use clear action-oriented names, such as `lookup_order_status` or `create_support_ticket`. Tools available during the same operation must have distinct names.
@@ -128,7 +128,7 @@ Do not put credentials, tenant identifiers, or unrestricted destinations into mo
 
 ## Use provider SDKs directly
 
-Channel integrations follow the same rule. Flue verifies inbound provider
+Channel integrations follow the same rule. Bapx verifies inbound provider
 events, while your application uses the provider SDK and defines only the
 outbound actions its agents need:
 
@@ -199,7 +199,7 @@ export default defineWorkflow({
 });
 ```
 
-Provide MCP credentials and connection settings from trusted application code and close the connection during application shutdown. Flue prefixes each MCP tool's model-facing name with its connection name; for example, `lookup_item` from this server becomes `mcp__inventory__lookup_item`.
+Provide MCP credentials and connection settings from trusted application code and close the connection during application shutdown. Bapx prefixes each MCP tool's model-facing name with its connection name; for example, `lookup_item` from this server becomes `mcp__inventory__lookup_item`.
 
 ## When to use a tool
 

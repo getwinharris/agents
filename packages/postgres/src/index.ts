@@ -1,5 +1,5 @@
 /**
- * @bapX/postgres — Postgres persistence adapter for Flue.
+ * @bapX/postgres — Postgres persistence adapter for Bapx.
  *
  * Provides a {@link PersistenceAdapter} backed by PostgreSQL. Bring your own
  * configured driver (node-postgres, porsager `postgres`, Neon WebSocket Pool, …)

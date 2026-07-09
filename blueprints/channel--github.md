@@ -6,15 +6,15 @@
 }
 ---
 
-# Add a GitHub Channel to Flue
+# Add a GitHub Channel to Bapx
 
 You are an AI coding agent adding verified GitHub webhook ingress and
-application-owned GitHub API behavior to a Flue project.
+application-owned GitHub API behavior to a Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.flue/`, then `<root>/src/`, then
+first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 whether the application responds to issue comments, pull-request conversation
 comments, inline review comments, opened issues, or another verified delivery.
@@ -30,7 +30,7 @@ Create `<source-dir>/channels/github.ts`. Adapt the imported agent and dispatche
 message to the application, but preserve this ownership and routing shape:
 
 ```ts
-// flue-blueprint: channel/github@1
+// bapX-blueprint: channel/github@1
 import { createGitHubChannel } from '@bapX/github';
 import { defineTool, dispatch } from '@bapX/runtime';
 import { Octokit } from '@octokit/rest';
@@ -133,7 +133,7 @@ export function commentOnIssue(ref: { owner: string; repo: string; issueNumber: 
 ```
 
 For Cloudflare projects, follow the project's existing credential convention.
-Flue enables `nodejs_compat`, so `process.env` is supported; typed bindings
+Bapx enables `nodejs_compat`, so `process.env` is supported; typed bindings
 from `cloudflare:workers` are also valid when the project prefers them.
 Octokit's typed REST request path must execute in workerd under that canonical
 configuration, and the completed project must pass its actual Cloudflare
@@ -172,7 +172,7 @@ JSON-only; form-encoded (`application/x-www-form-urlencoded`) deliveries are
 rejected before verification. Subscribe to the minimum event set the
 application handles.
 
-Run the project's typecheck and configured Flue build. Create a local JSON
+Run the project's typecheck and configured Bapx build. Create a local JSON
 payload and `X-Hub-Signature-256` HMAC to test success, invalid signatures,
 the issue-comment and pull-request review-comment variants,
 `/channels/github/webhook`, and the empty `200` default. GitHub expects a `2xx`

@@ -21,7 +21,7 @@ describe('NodePlugin', () => {
 			}),
 		);
 
-		// In-memory by default; a disk path is honored only under local `flue dev`,
+		// In-memory by default; a disk path is honored only under local `bapX dev`,
 		// so deployed Node stays in-memory even if the env var is present.
 		expect(entry).toContain(
 			'sqlite(isLocalMode && runtimeEnv.FLUE_DEV_SQLITE_PATH ? runtimeEnv.FLUE_DEV_SQLITE_PATH : undefined)',
@@ -54,7 +54,7 @@ describe('NodePlugin', () => {
 		);
 
 		expect(withApp).toContain('"/fixture/app.ts"');
-		expect(withApp).not.toContain('createDefaultFlueApp()');
+		expect(withApp).not.toContain('createDefaultBapxApp()');
 
 		const withoutApp = new NodePlugin().generateEntryPoint(
 			testBuildContext({
@@ -62,7 +62,7 @@ describe('NodePlugin', () => {
 			}),
 		);
 
-		expect(withoutApp).toContain('createDefaultFlueApp()');
+		expect(withoutApp).toContain('createDefaultBapxApp()');
 		expect(withoutApp).not.toContain('/fixture/app.ts');
 	});
 
@@ -99,7 +99,7 @@ describe('NodePlugin', () => {
 
 		expect(entry).toContain("if (typeof mod.route === 'function') workflow.route = mod.route;");
 		expect(entry).toContain("if (typeof mod.runs === 'function') workflow.runs = mod.runs;");
-		expect(entry).toContain('configureFlueRuntime({');
+		expect(entry).toContain('configureBapxRuntime({');
 		expect(entry).toContain('workflows,');
 	});
 
@@ -113,7 +113,7 @@ describe('NodePlugin', () => {
 		expect(entry).toContain('const { agents, workflows, channelHandlers } = normalized;');
 		expect(entry).toContain('workflows.find((record) => record.name === workflowName)?.definition');
 		expect(entry).toContain('admitDetachedWorkflow({');
-		expect(entry).not.toContain("flueApp.fetch(new Request('https://flue.invalid/_internal/workflows/");
+		expect(entry).not.toContain("bapXApp.fetch(new Request('https://bapX.invalid/_internal/workflows/");
 	});
 
 	it('passes temporary local HTTP exposure into runtime configuration', () => {

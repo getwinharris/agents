@@ -46,7 +46,7 @@ export interface LinearChannelOptions<E extends Env = Env> {
 	webhook(input: LinearWebhookHandlerInput<E>): LinearHandlerResult;
 }
 
-/** Stable Linear destination suitable for a Flue agent-instance id. */
+/** Stable Linear destination suitable for a Bapx agent-instance id. */
 export type LinearConversationRef =
 	| {
 			type: 'issue';

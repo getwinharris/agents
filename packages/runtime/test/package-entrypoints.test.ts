@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 // Node-based export-map smoke tests cannot load the Cloudflare virtual module
-// pulled in by @bapX/runtime/cloudflare/internal (the FlueRegistry Durable
+// pulled in by @bapX/runtime/cloudflare/internal (the BapxRegistry Durable
 // Object); real Cloudflare runtime behavior is covered by explicit boundary
 // and integration suites.
 vi.mock('cloudflare:workers', () => ({
@@ -43,7 +43,7 @@ describe('package entrypoints', () => {
 		expect(runtime).not.toHaveProperty('Type');
 		expect(runtime).not.toHaveProperty('interceptExecution');
 		expect(runtime).not.toHaveProperty('registerExecutionInterceptor');
-		expect(runtime).not.toHaveProperty('resetFlueRuntimeForTests');
+		expect(runtime).not.toHaveProperty('resetBapxRuntimeForTests');
 		expect(runtime).not.toHaveProperty('resetProviderRuntime');
 	});
 
@@ -58,17 +58,17 @@ describe('package entrypoints', () => {
 	it('exposes current context names without unreleased legacy names', () => {
 		const declarations = readFileSync('dist/index.d.mts', 'utf8');
 
-		expect(declarations).toContain('FlueEventContext');
+		expect(declarations).toContain('BapxEventContext');
 		expect(declarations).toContain('AgentInitializerContext');
-		expect(declarations).not.toContain('FlueContext,');
+		expect(declarations).not.toContain('BapxContext,');
 		expect(declarations).not.toContain('AgentCreateContext');
 		expect(declarations).not.toContain('inputJsonSchema');
 	});
 
-	it('exposes flue() when a consumer imports @bapX/runtime/routing', async () => {
+	it('exposes bapX() when a consumer imports @bapX/runtime/routing', async () => {
 		const routing = await import('@bapX/runtime/routing');
 
-		expect(routing.flue).toEqual(expect.any(Function));
+		expect(routing.bapX).toEqual(expect.any(Function));
 		expect(routing).not.toHaveProperty('admin');
 	});
 
@@ -95,8 +95,8 @@ describe('package entrypoints', () => {
 		const internal = await import('@bapX/runtime/internal');
 
 		expect(internal).toMatchObject({
-			configureFlueRuntime: expect.any(Function),
-			createDefaultFlueApp: expect.any(Function),
+			configureBapxRuntime: expect.any(Function),
+			createDefaultBapxApp: expect.any(Function),
 			resolveModel: expect.any(Function),
 		});
 	});
@@ -116,7 +116,7 @@ describe('package entrypoints', () => {
 			getCloudflareContext: expect.any(Function),
 			getDurableObjectIdentity: expect.any(Function),
 		});
-		expect(cloudflare).not.toHaveProperty('FlueRegistry');
+		expect(cloudflare).not.toHaveProperty('BapxRegistry');
 		expect(cloudflare).not.toHaveProperty('cfSandboxToSessionEnv');
 		expect(cloudflare).not.toHaveProperty('resolveCloudflareExtension');
 	});
@@ -128,7 +128,7 @@ describe('package entrypoints', () => {
 			cfSandboxToSessionEnv: expect.any(Function),
 			createCloudflareRunIndex: expect.any(Function),
 			createCloudflareRunStore: expect.any(Function),
-			FlueRegistry: expect.any(Function),
+			BapxRegistry: expect.any(Function),
 			getCloudflareAIBindingApiProvider: expect.any(Function),
 			resolveCloudflareExtension: expect.any(Function),
 			runWithCloudflareContext: expect.any(Function),

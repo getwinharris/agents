@@ -58,7 +58,7 @@ describe('createCloudflareRunStore()', () => {
 		expect(fake.requestedIds).toEqual([fake.id]);
 		expect(fake.requests).toHaveLength(1);
 		expect(fake.requests[0]?.url).toBe(
-			'https://flue-registry.local/pointers/run_01DAILYREPORT/start',
+			'https://bapX-registry.local/pointers/run_01DAILYREPORT/start',
 		);
 		expect(fake.requests[0]?.method).toBe('POST');
 		expect(fake.requests[0]?.headers.get('content-type')).toBe('application/json');
@@ -90,7 +90,7 @@ describe('createCloudflareRunStore()', () => {
 		expect((await records.getRun('run_01DAILYREPORT'))?.status).toBe('errored');
 		expect(fake.requests).toHaveLength(2);
 		expect(fake.requests[1]?.url).toBe(
-			'https://flue-registry.local/pointers/run_01DAILYREPORT/end',
+			'https://bapX-registry.local/pointers/run_01DAILYREPORT/end',
 		);
 		expect(fake.requests[1]?.method).toBe('POST');
 		expect(await fake.requests[1]?.json()).toEqual({
@@ -141,11 +141,11 @@ describe('createCloudflareRunStore()', () => {
 				result: { delivered: true },
 			});
 			expect(consoleError).toHaveBeenCalledWith(
-				'[flue:run-index] recordRunStart failed:',
+				'[bapX:run-index] recordRunStart failed:',
 				expect.any(Error),
 			);
 			expect(consoleError).toHaveBeenCalledWith(
-				'[flue:run-index] recordRunEnd failed:',
+				'[bapX:run-index] recordRunEnd failed:',
 				expect.any(Error),
 			);
 		} finally {
@@ -166,7 +166,7 @@ describe('createCloudflareRunStore()', () => {
 
 		expect(await store.lookupRun('run_01LOCAL')).toBeNull();
 		expect(fake.requests).toHaveLength(1);
-		expect(fake.requests[0]?.url).toBe('https://flue-registry.local/pointers/run_01LOCAL');
+		expect(fake.requests[0]?.url).toBe('https://bapX-registry.local/pointers/run_01LOCAL');
 		expect(fake.requests[0]?.method).toBe('GET');
 	});
 
@@ -207,9 +207,9 @@ describe('createCloudflareRunStore()', () => {
 		});
 
 		expect(fake.requests.map((request) => request.url)).toEqual([
-			'https://flue-registry.local/pointers/run_01%20colon%3Aslash%2Fid%3F%23fragment/start',
-			'https://flue-registry.local/pointers/run_01%20colon%3Aslash%2Fid%3F%23fragment/end',
-			'https://flue-registry.local/pointers/run_01%20colon%3Aslash%2Fid%3F%23fragment',
+			'https://bapX-registry.local/pointers/run_01%20colon%3Aslash%2Fid%3F%23fragment/start',
+			'https://bapX-registry.local/pointers/run_01%20colon%3Aslash%2Fid%3F%23fragment/end',
+			'https://bapX-registry.local/pointers/run_01%20colon%3Aslash%2Fid%3F%23fragment',
 		]);
 		expect(fake.requests.map((request) => request.method)).toEqual(['POST', 'POST', 'GET']);
 	});
@@ -262,7 +262,7 @@ describe('createCloudflareRunIndex()', () => {
 		expect(fake.requestedIds).toEqual([fake.id]);
 		expect(fake.requests).toHaveLength(1);
 		expect(fake.requests[0]?.url).toBe(
-			'https://flue-registry.local/pointers?status=errored&workflow=daily+report%2Fsummary&limit=25&cursor=next+page%2F%3F',
+			'https://bapX-registry.local/pointers?status=errored&workflow=daily+report%2Fsummary&limit=25&cursor=next+page%2F%3F',
 		);
 		expect(fake.requests[0]?.method).toBe('GET');
 	});
@@ -272,7 +272,7 @@ describe('createCloudflareRunIndex()', () => {
 		const index = createCloudflareRunIndex(fake.namespace);
 
 		await expect(index?.lookupRun('run_01DAILYREPORT')).rejects.toThrow(
-			'[flue] FlueRegistry lookupRun(run_01DAILYREPORT) failed: 503 storage unavailable',
+			'[bapX] BapxRegistry lookupRun(run_01DAILYREPORT) failed: 503 storage unavailable',
 		);
 	});
 });

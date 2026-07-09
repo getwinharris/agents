@@ -8,8 +8,8 @@ import {
 import * as v from 'valibot';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { defineAgent, observe, ResultUnavailableError } from '../src/index.ts';
-import { createFlueContext } from '../src/internal.ts';
-import type { FlueEvent, FlueObservation, FlueSession, Skill } from '../src/types.ts';
+import { createBapxContext } from '../src/internal.ts';
+import type { BapxEvent, BapxObservation, BapxSession, Skill } from '../src/types.ts';
 import { createNoopSessionEnv } from './fixtures/session-env.ts';
 
 const providers: FauxProviderRegistration[] = [];
@@ -26,9 +26,9 @@ function createProvider(): FauxProviderRegistration {
 
 async function createSession(
 	provider: FauxProviderRegistration,
-	options: { skills?: Skill[]; onEvent?: (event: FlueEvent) => void } = {},
-): Promise<FlueSession> {
-	const ctx = createFlueContext({
+	options: { skills?: Skill[]; onEvent?: (event: BapxEvent) => void } = {},
+): Promise<BapxSession> {
+	const ctx = createBapxContext({
 		id: 'structured-results-instance',
 		env: {},
 		agentConfig: {
@@ -54,8 +54,8 @@ describe('structured operation results', () => {
 				stopReason: 'toolUse',
 			}),
 		]);
-		const events: FlueEvent[] = [];
-		const observations: FlueObservation[] = [];
+		const events: BapxEvent[] = [];
+		const observations: BapxObservation[] = [];
 		const stopObserving = observe((event, ctx) => {
 			if (ctx.id === 'structured-results-instance') observations.push(event);
 		});
@@ -204,8 +204,8 @@ describe('structured operation results', () => {
 				});
 			},
 		]);
-		const events: FlueEvent[] = [];
-		const observations: FlueObservation[] = [];
+		const events: BapxEvent[] = [];
+		const observations: BapxObservation[] = [];
 		const stopObserving = observe((event, ctx) => {
 			if (ctx.id === 'structured-results-instance') observations.push(event);
 		});
@@ -297,7 +297,7 @@ describe('structured operation results', () => {
 				stopReason: 'toolUse',
 			}),
 		]);
-		const turns: Extract<FlueEvent, { type: 'turn' }>[] = [];
+		const turns: Extract<BapxEvent, { type: 'turn' }>[] = [];
 		const session = await createSession(provider, {
 			onEvent: (event) => {
 				if (event.type === 'turn') turns.push(event);

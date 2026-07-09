@@ -9,8 +9,8 @@ import type { LocalHttpRuntimeOutput } from './local-http-runtime.ts';
 import type { LoadedNodeApplication } from './node-http-listener.ts';
 import { withScopedConsoleCapture } from './scoped-console-capture.ts';
 
-const virtualEntry = 'virtual:flue/node-local-bootstrap';
-const resolvedEntry = '\0virtual:flue/node-local-bootstrap';
+const virtualEntry = 'virtual:bapX/node-local-bootstrap';
+const resolvedEntry = '\0virtual:bapX/node-local-bootstrap';
 
 export interface NodeApplicationLoader {
 	load(): Promise<LoadedNodeApplication>;
@@ -47,7 +47,7 @@ export async function createNodeApplicationLoader(options: {
 			});
 			if (ctx.agents.length === 0 && ctx.workflows.length === 0) {
 				throw new Error(
-					`[flue] No agent or workflow files found.\n\nExpected at: ${path.join(options.sourceRoot, 'agents')}/ or ${path.join(options.sourceRoot, 'workflows')}/\nAdd at least one agent or workflow file.`,
+					`[bapX] No agent or workflow files found.\n\nExpected at: ${path.join(options.sourceRoot, 'agents')}/ or ${path.join(options.sourceRoot, 'workflows')}/\nAdd at least one agent or workflow file.`,
 				);
 			}
 			const code = new NodePlugin().generateRuntimeEntryPoint(ctx);
@@ -70,7 +70,7 @@ export async function createNodeApplicationLoader(options: {
 				plugins: [
 					...(merged.plugins ?? []),
 					{
-						name: 'flue-node-local-bootstrap',
+						name: 'bapX-node-local-bootstrap',
 						resolveId(id: string) {
 							if (id === virtualEntry) return resolvedEntry;
 						},
@@ -88,9 +88,9 @@ export async function createNodeApplicationLoader(options: {
 				const loaded = (await withScopedConsoleCapture(options.onOutput, () =>
 					viteServer.ssrLoadModule(virtualEntry),
 				)) as {
-					loadFlueNodeApplication(options: object): Promise<LoadedNodeApplication>;
+					loadBapxNodeApplication(options: object): Promise<LoadedNodeApplication>;
 				};
-				const application = await loaded.loadFlueNodeApplication({
+				const application = await loaded.loadBapxNodeApplication({
 					local: true,
 					env: { ...process.env, ...options.env },
 					onOutput: options.onOutput,

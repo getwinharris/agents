@@ -1,9 +1,9 @@
 import type {
-	FlueEventContext,
-	FlueExecutionContext,
-	FlueExecutionInterceptor,
-	FlueObservation,
-	FlueObservationSubscriber,
+	BapxEventContext,
+	BapxExecutionContext,
+	BapxExecutionInterceptor,
+	BapxObservation,
+	BapxObservationSubscriber,
 	PromptUsage,
 } from '@bapX/runtime';
 import {
@@ -50,7 +50,7 @@ export interface OpenTelemetryInstrumentationOptions {
 	meter?: Meter;
 	logger?: GenAILogger;
 	content?: false | GenAIContentPolicy;
-	resolveRootContext?: (event: FlueObservation, ctx: FlueEventContext) => Context | undefined;
+	resolveRootContext?: (event: BapxObservation, ctx: BapxEventContext) => Context | undefined;
 	diagnostic?: (diagnostic: { type: string; message: string; error?: unknown }) => void;
 }
 
@@ -58,8 +58,8 @@ const OPEN_TELEMETRY_INSTRUMENTATION_KEY = Symbol.for('@bapX/opentelemetry');
 
 export interface OpenTelemetryInstrumentation {
 	key: symbol;
-	observe: FlueObservationSubscriber;
-	interceptor: FlueExecutionInterceptor;
+	observe: BapxObservationSubscriber;
+	interceptor: BapxExecutionInterceptor;
 	dispose(): void;
 }
 
@@ -83,7 +83,7 @@ export function createOpenTelemetryInstrumentation(
 	const compactions = new Map<string, TrackedSpan>();
 	let disposed = false;
 
-	const observe: FlueObservationSubscriber = (event, ctx) => {
+	const observe: BapxObservationSubscriber = (event, ctx) => {
 		if (disposed) return;
 		const time = new Date(event.timestamp);
 		if (event.type === 'run_start' || event.type === 'run_resume') {
@@ -133,7 +133,7 @@ export function createOpenTelemetryInstrumentation(
 				? event.agentName
 					? `invoke_agent ${event.agentName}`
 					: 'invoke_agent'
-				: `flue.operation ${event.operationKind}`;
+				: `bapX.operation ${event.operationKind}`;
 			const span = startSpan(tracer, name, parent, event, ctx, options, SpanKind.INTERNAL, {
 				...identifiers(event),
 				...(isAgent ? { [ATTR.operationName]: 'invoke_agent' } : {}),
@@ -141,7 +141,7 @@ export function createOpenTelemetryInstrumentation(
 				...(isAgent && event.conversationId
 					? { [ATTR.conversationId]: event.conversationId }
 					: {}),
-				'flue.operation.kind': event.operationKind,
+				'bapX.operation.kind': event.operationKind,
 			});
 			operations.set(operationKey(event), trackedSpan(span, event));
 			return;
@@ -172,9 +172,9 @@ export function createOpenTelemetryInstrumentation(
 			compactions.set(
 				compactionKey(event),
 				trackedSpan(
-					startSpan(tracer, 'flue.compaction', parentSpan(event, operations, tasks, runs), event, ctx, options, SpanKind.INTERNAL, {
+					startSpan(tracer, 'bapX.compaction', parentSpan(event, operations, tasks, runs), event, ctx, options, SpanKind.INTERNAL, {
 						...identifiers(event),
-						'flue.compaction.reason': event.reason,
+						'bapX.compaction.reason': event.reason,
 					}),
 					event,
 				),
@@ -207,7 +207,7 @@ export function createOpenTelemetryInstrumentation(
 					...(request.serverPort !== undefined ? { [ATTR.serverPort]: request.serverPort } : {}),
 					...(request.contextCompacted ? { [ATTR.compacted]: true } : {}),
 					...openaiAttributes(request.providerName, request.api),
-					'flue.turn.purpose': event.purpose,
+					'bapX.turn.purpose': event.purpose,
 				},
 			);
 			setContent(span, ATTR.inputMessages, inputMessages(request.input.messages), event, options.content, 'input_messages', options.diagnostic);
@@ -231,7 +231,7 @@ export function createOpenTelemetryInstrumentation(
 			const shell = event.origin === 'caller' && event.toolName === 'bash';
 			const span = startSpan(
 				tracer,
-				shell ? 'flue.operation shell' : `execute_tool ${event.toolName}`,
+				shell ? 'bapX.operation shell' : `execute_tool ${event.toolName}`,
 				parentSpan(event, operations, tasks, runs),
 				event,
 				ctx,
@@ -244,7 +244,7 @@ export function createOpenTelemetryInstrumentation(
 					...(shell ? {} : { [ATTR.toolCallId]: event.toolCallId }),
 					...(!shell && event.toolType ? { [ATTR.toolType]: event.toolType } : {}),
 					...(!shell && event.conversationId ? { [ATTR.conversationId]: event.conversationId } : {}),
-					...(event.origin ? { 'flue.tool.origin': event.origin } : {}),
+					...(event.origin ? { 'bapX.tool.origin': event.origin } : {}),
 				},
 			);
 			if (!shell) {
@@ -367,7 +367,7 @@ export function createOpenTelemetryInstrumentation(
 		}
 	};
 
-	const interceptor: FlueExecutionInterceptor = (operation, executionContext, next) => {
+	const interceptor: BapxExecutionInterceptor = (operation, executionContext, next) => {
 		let span =
 			(operation.type === 'workflow'
 				? operation.phase === 'resume'
@@ -381,7 +381,7 @@ export function createOpenTelemetryInstrumentation(
 							? tools.get(toolKey({ ...executionContext, toolCallId: operation.toolCallId }))
 							: tasks.get(taskKey({ ...executionContext, taskId: operation.taskId })))?.span;
 		if (!span && operation.type === 'workflow') {
-			const event: FlueObservation = operation.phase === 'start'
+			const event: BapxObservation = operation.phase === 'start'
 				? {
 						v: 3,
 						type: 'run_start',
@@ -423,7 +423,7 @@ export function createOpenTelemetryInstrumentation(
 		return next();
 	};
 
-	function extractCarrier(carrier: NonNullable<FlueExecutionContext['traceCarrier']>) {
+	function extractCarrier(carrier: NonNullable<BapxExecutionContext['traceCarrier']>) {
 		return propagation.extract(context.active(), carrier, {
 			keys: () => (carrier.tracestate ? ['traceparent', 'tracestate'] : ['traceparent']),
 			get: (value, key) => value[key as keyof typeof value],
@@ -449,8 +449,8 @@ function startSpan(
 	tracer: Tracer,
 	name: string,
 	parent: Span | undefined,
-	event: FlueObservation,
-	ctx: FlueEventContext,
+	event: BapxObservation,
+	ctx: BapxEventContext,
 	options: OpenTelemetryInstrumentationOptions,
 	kind: SpanKind,
 	attributes: Attributes,
@@ -487,7 +487,7 @@ interface TrackedSpan {
 	clientAttributes?: Attributes;
 }
 
-function trackedSpan(span: Span, event: FlueObservation): TrackedSpan {
+function trackedSpan(span: Span, event: BapxObservation): TrackedSpan {
 	return {
 		span,
 		startedAtMs: new Date(event.timestamp).getTime(),
@@ -498,7 +498,7 @@ function trackedSpan(span: Span, event: FlueObservation): TrackedSpan {
 }
 
 function parentSpan(
-	event: FlueObservation,
+	event: BapxObservation,
 	operations: Map<string, TrackedSpan>,
 	tasks: Map<string, TrackedSpan>,
 	runs: Map<string, TrackedSpan>,
@@ -510,21 +510,21 @@ function parentSpan(
 	);
 }
 
-function identifiers(event: FlueObservation): Attributes {
+function identifiers(event: BapxObservation): Attributes {
 	return Object.fromEntries(
 		Object.entries({
-			'flue.run.id': event.runId,
-			'flue.instance.id': event.instanceId,
-			'flue.submission.id': event.submissionId,
-			'flue.dispatch.id': event.dispatchId,
-			'flue.agent.name': event.agentName,
-			'flue.harness.name': event.harness,
-			'flue.session.name': event.session,
-			'flue.parent_session.name': event.parentSession,
-			'flue.operation.id': event.operationId,
-			'flue.turn.id': event.turnId,
-			'flue.task.id': event.taskId,
-			'flue.event.index': event.eventIndex,
+			'bapX.run.id': event.runId,
+			'bapX.instance.id': event.instanceId,
+			'bapX.submission.id': event.submissionId,
+			'bapX.dispatch.id': event.dispatchId,
+			'bapX.agent.name': event.agentName,
+			'bapX.harness.name': event.harness,
+			'bapX.session.name': event.session,
+			'bapX.parent_session.name': event.parentSession,
+			'bapX.operation.id': event.operationId,
+			'bapX.turn.id': event.turnId,
+			'bapX.task.id': event.taskId,
+			'bapX.event.index': event.eventIndex,
 		}).filter((entry): entry is [string, string | number] => entry[1] !== undefined),
 	);
 }
@@ -557,7 +557,7 @@ function openaiAttributes(providerName: string, api: string): Attributes {
 	return {};
 }
 
-function clientMetricAttributes(event: Extract<FlueObservation, { type: 'turn' }>): Attributes {
+function clientMetricAttributes(event: Extract<BapxObservation, { type: 'turn' }>): Attributes {
 	return Object.fromEntries(
 		Object.entries({
 			[ATTR.operationName]: 'chat',
@@ -575,7 +575,7 @@ function usageAttributes(usage: PromptUsage | undefined): Attributes {
 		[ATTR.outputTokens]: usage.output,
 		[ATTR.cacheReadTokens]: usage.cacheRead,
 		[ATTR.cacheCreationTokens]: usage.cacheWrite,
-		'flue.usage.total_tokens': usage.totalTokens,
+		'bapX.usage.total_tokens': usage.totalTokens,
 	};
 }
 
@@ -583,7 +583,7 @@ function setContent(
 	span: Span,
 	name: string,
 	value: unknown,
-	event: FlueObservation,
+	event: BapxObservation,
 	policy: false | GenAIContentPolicy | undefined,
 	contentType: GenAIContentType,
 	diagnostic?: OpenTelemetryInstrumentationOptions['diagnostic'],
@@ -592,31 +592,31 @@ function setContent(
 	const result = contentValue(policy, value, event, span, { contentType, rawString }, diagnostic);
 	if (result.value !== undefined) span.setAttribute(name, result.value);
 	if (result.truncated !== undefined) {
-		span.setAttribute(`flue.telemetry.content.${contentType}.truncated`, true);
+		span.setAttribute(`bapX.telemetry.content.${contentType}.truncated`, true);
 	}
-	if (result.omitted) span.setAttribute(`flue.telemetry.content.${contentType}.omitted`, true);
+	if (result.omitted) span.setAttribute(`bapX.telemetry.content.${contentType}.omitted`, true);
 }
 
 function setToolContent(
 	span: Span,
 	kind: 'arguments' | 'result',
 	value: unknown,
-	event: FlueObservation,
+	event: BapxObservation,
 	policy: false | GenAIContentPolicy | undefined,
 	diagnostic?: OpenTelemetryInstrumentationOptions['diagnostic'],
 ): void {
 	const contentType = kind === 'arguments' ? 'tool_arguments' : 'tool_result';
 	const result = contentValue(policy, value, event, span, { contentType, rawString: true }, diagnostic);
 	if (result.value !== undefined) {
-		span.setAttribute(result.objectShaped ? ATTR[kind === 'arguments' ? 'toolArguments' : 'toolResult'] : `flue.tool.call.${kind}`, result.value);
+		span.setAttribute(result.objectShaped ? ATTR[kind === 'arguments' ? 'toolArguments' : 'toolResult'] : `bapX.tool.call.${kind}`, result.value);
 	}
-	if (result.truncated !== undefined) span.setAttribute(`flue.telemetry.content.${contentType}.truncated`, true);
-	if (result.omitted) span.setAttribute(`flue.telemetry.content.${contentType}.omitted`, true);
+	if (result.truncated !== undefined) span.setAttribute(`bapX.telemetry.content.${contentType}.truncated`, true);
+	if (result.omitted) span.setAttribute(`bapX.telemetry.content.${contentType}.omitted`, true);
 }
 
 function complete(
 	span: Span,
-	error: { type: string | undefined; value?: unknown; event?: FlueObservation; options?: OpenTelemetryInstrumentationOptions; attributes?: Attributes } | undefined,
+	error: { type: string | undefined; value?: unknown; event?: BapxObservation; options?: OpenTelemetryInstrumentationOptions; attributes?: Attributes } | undefined,
 	time: Date,
 ): void {
 	if (error) {
@@ -634,7 +634,7 @@ function complete(
 }
 
 function endDescendants(
-	event: FlueObservation,
+	event: BapxObservation,
 	operations: Map<string, TrackedSpan>,
 	turns: Map<string, TrackedSpan>,
 	tools: Map<string, TrackedSpan>,
@@ -667,7 +667,7 @@ function endSpan(
 	errorType: string | undefined,
 	error: unknown,
 	time: Date,
-	event: FlueObservation,
+	event: BapxObservation,
 	options: OpenTelemetryInstrumentationOptions,
 ): void {
 	const tracked = spans.get(key);
@@ -679,7 +679,7 @@ function endSpan(
 function exceptionAttributes(
 	errorType: string | undefined,
 	error: unknown,
-	event: FlueObservation,
+	event: BapxObservation,
 	span: Span,
 	options: OpenTelemetryInstrumentationOptions,
 ): Attributes {

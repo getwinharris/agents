@@ -1,17 +1,17 @@
 import type { PromptUsage } from '../types.ts';
 import type {
-	FlueConversationMessage,
-	FlueConversationPart,
-	FlueConversationSettlement,
-	FlueConversationSnapshot,
-	FlueConversationState,
+	BapxConversationMessage,
+	BapxConversationPart,
+	BapxConversationSettlement,
+	BapxConversationSnapshot,
+	BapxConversationState,
 } from './conversation.ts';
 
 /**
  * Internal UI projection protocol carried by the agent conversation `updates`
  * view. These chunks are NOT public API: the runtime projects its private
  * canonical conversation log into this strict, UI-only union, and `observe()`
- * reduces it into {@link FlueConversationState}. Application code never sees a
+ * reduces it into {@link BapxConversationState}. Application code never sees a
  * chunk — it consumes materialized messages.
  *
  * The shape intentionally excludes canonical persistence vocabulary (record
@@ -34,8 +34,8 @@ import type {
 export type ConversationChunkPosition = { batch: number; index: number };
 
 export type ConversationStreamChunk =
-	| { type: 'conversation-reset'; conversationId: string; snapshot: FlueConversationSnapshot; position: ConversationChunkPosition }
-	| { type: 'message-appended'; conversationId: string; message: FlueConversationMessage; position: ConversationChunkPosition }
+	| { type: 'conversation-reset'; conversationId: string; snapshot: BapxConversationSnapshot; position: ConversationChunkPosition }
+	| { type: 'message-appended'; conversationId: string; message: BapxConversationMessage; position: ConversationChunkPosition }
 	| {
 			type: 'message-started';
 			conversationId: string;
@@ -134,8 +134,8 @@ export function assertConversationStreamChunk(value: ConversationStreamChunk): C
 }
 
 export function createConversationStreamState(
-	snapshot: FlueConversationSnapshot,
-): FlueConversationState {
+	snapshot: BapxConversationSnapshot,
+): BapxConversationState {
 	return {
 		conversationId: snapshot.conversationId,
 		messages: snapshot.messages,
@@ -144,9 +144,9 @@ export function createConversationStreamState(
 }
 
 export function applyConversationChunk(
-	state: FlueConversationState,
+	state: BapxConversationState,
 	chunk: ConversationStreamChunk,
-): FlueConversationState {
+): BapxConversationState {
 	switch (chunk.type) {
 		case 'conversation-reset':
 			return createConversationStreamState(chunk.snapshot);
@@ -210,18 +210,18 @@ export function applyConversationChunk(
 }
 
 function mutateMessages(
-	state: FlueConversationState,
-	update: (messages: FlueConversationMessage[]) => FlueConversationMessage[],
-): FlueConversationState {
+	state: BapxConversationState,
+	update: (messages: BapxConversationMessage[]) => BapxConversationMessage[],
+): BapxConversationState {
 	const messages = update(state.messages);
 	if (messages === state.messages) return state;
 	return { ...state, messages };
 }
 
 function upsertMessage(
-	messages: FlueConversationMessage[],
-	message: FlueConversationMessage,
-): FlueConversationMessage[] {
+	messages: BapxConversationMessage[],
+	message: BapxConversationMessage,
+): BapxConversationMessage[] {
 	const index = messages.findIndex((value) => value.id === message.id);
 	if (index < 0) return [...messages, message];
 	const next = [...messages];
@@ -238,13 +238,13 @@ function upsertMessage(
  * one part — block identity within a single kind is not represented on the wire.
  */
 function appendDelta(
-	state: FlueConversationState,
+	state: BapxConversationState,
 	chunk: Extract<ConversationStreamChunk, { type: 'message-delta' }>,
-): FlueConversationState {
+): BapxConversationState {
 	return mutateMessages(state, (messages) => {
 		const index = messages.findIndex((message) => message.id === chunk.messageId);
 		if (index < 0) return messages;
-		const message = messages[index] as FlueConversationMessage;
+		const message = messages[index] as BapxConversationMessage;
 		const last = message.parts[message.parts.length - 1];
 		const parts = [...message.parts];
 		if (last && last.type === chunk.kind && last.state === 'streaming') {
@@ -262,13 +262,13 @@ function appendDelta(
 }
 
 function appendToolInput(
-	state: FlueConversationState,
+	state: BapxConversationState,
 	chunk: Extract<ConversationStreamChunk, { type: 'tool-input' }>,
-): FlueConversationState {
+): BapxConversationState {
 	return mutateMessages(state, (messages) => {
 		const index = messages.findIndex((message) => message.id === chunk.messageId);
 		if (index < 0) return messages;
-		const message = messages[index] as FlueConversationMessage;
+		const message = messages[index] as BapxConversationMessage;
 		if (message.parts.some((part) => part.type === 'dynamic-tool' && part.toolCallId === chunk.toolCallId)) {
 			return messages;
 		}
@@ -301,18 +301,18 @@ function appendToolInput(
 }
 
 function applyToolResult(
-	state: FlueConversationState,
+	state: BapxConversationState,
 	toolCallId: string,
 	update: (
-		part: Extract<FlueConversationPart, { type: 'dynamic-tool' }>,
-	) => FlueConversationPart,
-): FlueConversationState {
+		part: Extract<BapxConversationPart, { type: 'dynamic-tool' }>,
+	) => BapxConversationPart,
+): BapxConversationState {
 	return mutateMessages(state, (messages) => {
 		const index = messages.findLastIndex((message) =>
 			message.parts.some((part) => part.type === 'dynamic-tool' && part.toolCallId === toolCallId),
 		);
 		if (index < 0) return messages;
-		const message = messages[index] as FlueConversationMessage;
+		const message = messages[index] as BapxConversationMessage;
 		const next = [...messages];
 		next[index] = {
 			...message,
@@ -325,14 +325,14 @@ function applyToolResult(
 }
 
 function completeMessage(
-	state: FlueConversationState,
+	state: BapxConversationState,
 	messageId: string,
 	usage: PromptUsage | undefined,
-): FlueConversationState {
+): BapxConversationState {
 	return mutateMessages(state, (messages) => {
 		const index = messages.findIndex((message) => message.id === messageId);
 		if (index < 0) return messages;
-		const message = messages[index] as FlueConversationMessage;
+		const message = messages[index] as BapxConversationMessage;
 		const next = [...messages];
 		next[index] = {
 			...message,
@@ -346,10 +346,10 @@ function completeMessage(
 }
 
 function applySettlement(
-	state: FlueConversationState,
+	state: BapxConversationState,
 	chunk: Extract<ConversationStreamChunk, { type: 'submission-settled' }>,
-): FlueConversationState {
-	const settlement: FlueConversationSettlement = {
+): BapxConversationState {
+	const settlement: BapxConversationSettlement = {
 		submissionId: chunk.submissionId,
 		outcome: chunk.outcome,
 		...(chunk.error === undefined ? {} : { error: chunk.error }),

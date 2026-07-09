@@ -2,13 +2,13 @@
 // @ts-nocheck
 
 /**
- * `flue` bin entrypoint.
+ * `bapX` bin entrypoint.
  *
  * This file runs on the user's Node — including UNSUPPORTED versions — so it
  * must use only universally-available JavaScript. It is NOT compiled (no TS,
  * no bundler), and ships as-is via the `files` array in package.json. Its
  * single job is to validate the runtime before handing off to the real CLI in
- * `../dist/flue.js`, which is allowed to assume modern Node.
+ * `../dist/bapX.js`, which is allowed to assume modern Node.
  *
  * Modeled on Astro's `bin/astro.mjs`. We deliberately avoid the `semver`
  * dependency by hand-rolling a simple major.minor comparison — the supported
@@ -41,7 +41,7 @@ function checkNodeVersion() {
 		console.error(
 			'\nBun v' +
 				process.versions.bun +
-				' is not supported by Flue.\n' +
+				' is not supported by Bapx.\n' +
 				'Please upgrade Bun to a version compatible with Node.js ' +
 				ENGINES_LABEL +
 				'.\n',
@@ -50,8 +50,8 @@ function checkNodeVersion() {
 		console.error(
 			'\nNode.js v' +
 				v +
-				' is not supported by Flue.\n' +
-				'Flue requires Node.js ' +
+				' is not supported by Bapx.\n' +
+				'Bapx requires Node.js ' +
 				ENGINES_LABEL +
 				' for native TypeScript config support.\n' +
 				'Please upgrade: https://nodejs.org/\n',
@@ -64,7 +64,7 @@ checkNodeVersion();
 
 // Hand off to the real CLI. Dynamic import keeps this file syntactically
 // reachable on older Node — the failure path above always wins on those.
-import('../dist/flue.js').catch((err) => {
+import('../dist/bapX.js').catch((err) => {
 	console.error(err);
 	process.exit(1);
 });

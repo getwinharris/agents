@@ -13,13 +13,13 @@ const DEPLOY_GUIDES = [
 
 const DEPLOY_GUIDE_LIST = DEPLOY_GUIDES.map(([title, url]) => `   - ${title}: ${url}`).join('\n');
 
-const START_INSTRUCTIONS = `# Skill: Create a New Flue Agent
+const START_INSTRUCTIONS = `# Skill: Create a New Bapx Agent
 
-You are helping the user create their first Flue agent. Start with one agent module, and add a workflow only when the user's goal needs a finite, result-oriented operation around that agent.
+You are helping the user create their first Bapx agent. Start with one agent module, and add a workflow only when the user's goal needs a finite, result-oriented operation around that agent.
 
 ## Step 1: Gather Context
 
-First, fetch and read the Flue homepage and quickstart:
+First, fetch and read the Bapx homepage and quickstart:
 
 https://bapx.in/
 https://bapx.in/docs/getting-started/quickstart/index.md
@@ -33,16 +33,16 @@ Determine the following. Ask the user only for information you do not already kn
    - If they do not answer, or are not sure yet, create a minimal \`hello-world\` agent module only. Do not create a workflow by default.
    - Choose **agent only** for a continuing assistant or event-driven agent with an identity and sessions that can accept interactions over time. Examples: a chat assistant, support agent, coding agent, or message-driven triage agent.
    - Choose **agent + workflow** when they also need a bounded job that runs once and returns a result. Examples: summarize a ticket, generate a report, handle a CI task, or execute scheduled/batch orchestration.
-   - Do not create a workflow merely to test an agent. Use \`flue run <agent-name> --input '{"message":"..."}'\` for one local prompt.
+   - Do not create a workflow merely to test an agent. Use \`bapX run <agent-name> --input '{"message":"..."}'\` for one local prompt.
 2. Where should the project live on disk?
    - Use filesystem tools to inspect the current working directory first, then confirm the target directory with the user.
-   - Flue supports three authored source layouts:
-     - \`.flue\` layout: \`./.flue/agents/\` and \`./.flue/workflows/\`.
+   - Bapx supports three authored source layouts:
+     - \`.bapX\` layout: \`./.bapX/agents/\` and \`./.bapX/workflows/\`.
      - \`src\` layout: \`./src/agents/\` and \`./src/workflows/\`.
      - Root layout: \`./agents/\` and \`./workflows/\`.
-   - Flue selects the first existing source directory in this order: \`.flue/\`, \`src/\`, then the project root.
-   - Prefer the \`src\` layout for new projects. Use \`.flue\` when adding a self-contained Flue source area to a larger application. Preserve the root layout for an existing compact project.
-   - Never mix layouts. Flue discovers entrypoints from only the selected source directory.
+   - Bapx selects the first existing source directory in this order: \`.bapX/\`, \`src/\`, then the project root.
+   - Prefer the \`src\` layout for new projects. Use \`.bapX\` when adding a self-contained Bapx source area to a larger application. Preserve the root layout for an existing compact project.
+   - Never mix layouts. Bapx discovers entrypoints from only the selected source directory.
 3. Where should it deploy? For example: Cloudflare Workers, Node.js, GitHub Actions, GitLab CI/CD, Vercel, Fly.io.
    - Available deploy guides:
 ${DEPLOY_GUIDE_LIST}
@@ -62,8 +62,8 @@ Before implementing, restate the chosen requirements to yourself as an implement
 - Agent purpose: \`<purpose>\`
 - Starter shape: \`agent only\` or \`agent + workflow\`
 - Project directory: \`<absolute or relative path>\`
-- Source layout: \`.flue\`, \`src\`, or \`root\`
-- Agent module path: \`./.flue/agents/<name>.ts\`, \`./src/agents/<name>.ts\`, or \`./agents/<name>.ts\`
+- Source layout: \`.bapX\`, \`src\`, or \`root\`
+- Agent module path: \`./.bapX/agents/<name>.ts\`, \`./src/agents/<name>.ts\`, or \`./agents/<name>.ts\`
 - Workflow module path, if needed: \`none\` or the selected layout's \`workflows/<name>.ts\`
 - Deploy target: \`<target>\`
 - Model specifier: \`<exact model specifier>\`
@@ -76,7 +76,7 @@ Before implementing, restate the chosen requirements to yourself as an implement
 3. Always create one minimal **agent module** matching the user's idea, keeping it closer to "hello world" than a production app.
    - Put it in the selected layout's immediate \`agents/\` directory, using a lower-kebab-case filename such as \`src/agents/hello-world.ts\`.
    - It must default-export \`defineAgent(() => ({ model: '<exact model specifier>', instructions: '<short purpose-specific instruction>' }))\`.
-   - Do not export \`route\` unless the user needs direct HTTP access. For a basic local starter, use \`flue run <agent-name> --input '{"message":"..."}'\`; the temporary runtime exposes route-free resources through the application's existing authored \`flue()\` mount.
+   - Do not export \`route\` unless the user needs direct HTTP access. For a basic local starter, use \`bapX run <agent-name> --input '{"message":"..."}'\`; the temporary runtime exposes route-free resources through the application's existing authored \`bapX()\` mount.
 4. If the selected shape is **agent + workflow**, create one minimal **workflow module** for the finite job.
    - Put it in the selected layout's immediate \`workflows/\` directory, using a lower-kebab-case filename.
     - Import \`defineWorkflow\` and the agent definition, then default-export \`defineWorkflow({ agent, async run({ harness }) { ... } })\`. Open a session from the supplied harness, perform one purpose-specific operation, and return its result.
@@ -92,14 +92,14 @@ Before implementing, restate the chosen requirements to yourself as an implement
          "strict": true,
          "skipLibCheck": true
        },
-       "include": ["src/**/*.ts", "agents/**/*.ts", "workflows/**/*.ts", ".flue/**/*.ts"],
+       "include": ["src/**/*.ts", "agents/**/*.ts", "workflows/**/*.ts", ".bapX/**/*.ts"],
        "exclude": ["dist"]
      }
      \`\`\`
    - If \`tsconfig.json\` already exists, do not replace it. Make the smallest safe change needed to include the generated authored-source files.
-   - TypeScript may ignore hidden directories by default, so projects using the \`.flue\` layout usually need \`.flue/**/*.ts\` included explicitly.
+   - TypeScript may ignore hidden directories by default, so projects using the \`.bapX\` layout usually need \`.bapX/**/*.ts\` included explicitly.
 6. Add only the dependencies and config required by the selected deploy guide and chosen starter shape.
-7. Run the most relevant validation command you can, such as build, typecheck, or \`flue run\` when a finite agent prompt or workflow was created. If you cannot run it, explain why.
+7. Run the most relevant validation command you can, such as build, typecheck, or \`bapX run\` when a finite agent prompt or workflow was created. If you cannot run it, explain why.
 8. Finish with the exact next commands the user should run, including how to set any required secrets and how to interact with the agent definition or invoke the workflow.
 
 ## Step 4: Verify Implementation
@@ -107,7 +107,7 @@ Before implementing, restate the chosen requirements to yourself as an implement
 Before finishing, verify that the implementation matches the user's explicit choices:
 
 - **Project location**: Files were created in the requested directory.
-- **Source layout**: Files use only the selected \`.flue\`, \`src\`, or root layout; entrypoints were placed only in the selected source directory.
+- **Source layout**: Files use only the selected \`.bapX\`, \`src\`, or root layout; entrypoints were placed only in the selected source directory.
 - **Agent module**: One agent module exists in the selected layout's \`agents/<name>.ts\` and default-exports \`defineAgent(...)\`.
 - **Workflow choice**: No workflow was added for an agent-only starter; for an agent + workflow starter, one workflow module default-exports \`defineWorkflow(...)\` with the agent definition bound through its \`agent\` field.
 - **Deploy target**: Config and commands match the user's selected deploy target.
@@ -124,14 +124,14 @@ In your final response, include a short checklist with the project directory, so
 - Important: Never invent API keys or secrets.
   - Instead: You can scaffold out obvious placeholders, but always ask the user to provide the API secrets/keys/tokens themselves. You can still help the user by showing them the command to run to set the secret, based on their local dev setup and chosen host.
 - Important: A direct prompt to an agent or a dispatched agent input is not a workflow run. Use workflow terminology only for an invocation of a workflow module.
-- Important: Once \`@bapX/cli\` is installed in the project, the full Flue documentation is available offline through the CLI and always matches the installed version. Prefer it over fetching website URLs for follow-up questions:
-  - \`npx flue docs search <query>\` — search the documentation (JSON results)
-  - \`npx flue docs read <path>\` — print one documentation page as Markdown
-  - \`npx flue docs\` — list all documentation pages
-- Important: For local development, prefer \`flue dev --target node\` or \`flue dev --target cloudflare\`. The dev server defaults to port 3583, watches for file changes, and rebuilds + reloads on edits.
-  - Instead of: combining \`flue build\` with \`wrangler dev\` (the previous workflow). \`flue dev --target cloudflare\` covers that case directly and stays in sync with what \`wrangler deploy\` will bundle.
-- Important: \`flue run\` supports both Node.js and Cloudflare targets. Without an absolute \`--server\`, it starts the normal target-specific application temporarily, executes \`app.ts\` and middleware, and exposes route-free resources through an existing authored \`flue()\` mount.
-- Important: use \`--server /api/flue\` for a non-root authored local mount. Use an absolute URL such as \`--server https://example.com/api/flue\` to attach to an existing server; qualify the resource as \`agent:<name>\` or \`workflow:<name>\`. \`--server\` never creates or moves routes.
+- Important: Once \`@bapX/cli\` is installed in the project, the full Bapx documentation is available offline through the CLI and always matches the installed version. Prefer it over fetching website URLs for follow-up questions:
+  - \`npx bapX docs search <query>\` — search the documentation (JSON results)
+  - \`npx bapX docs read <path>\` — print one documentation page as Markdown
+  - \`npx bapX docs\` — list all documentation pages
+- Important: For local development, prefer \`bapX dev --target node\` or \`bapX dev --target cloudflare\`. The dev server defaults to port 3583, watches for file changes, and rebuilds + reloads on edits.
+  - Instead of: combining \`bapX build\` with \`wrangler dev\` (the previous workflow). \`bapX dev --target cloudflare\` covers that case directly and stays in sync with what \`wrangler deploy\` will bundle.
+- Important: \`bapX run\` supports both Node.js and Cloudflare targets. Without an absolute \`--server\`, it starts the normal target-specific application temporarily, executes \`app.ts\` and middleware, and exposes route-free resources through an existing authored \`bapX()\` mount.
+- Important: use \`--server /api/bapX\` for a non-root authored local mount. Use an absolute URL such as \`--server https://example.com/api/bapX\` to attach to an existing server; qualify the resource as \`agent:<name>\` or \`workflow:<name>\`. \`--server\` never creates or moves routes.
 `;
 
 export const GET: APIRoute = () => {

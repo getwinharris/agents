@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { PersistenceAdapter } from '@bapX/runtime/adapter';
 import {
-	assertSupportedFlueSchemaVersion,
+	assertSupportedBapxSchemaVersion,
 	FLUE_SCHEMA_VERSION,
 	PersistedSchemaVersionError,
 } from '@bapX/runtime/adapter';
@@ -17,7 +17,7 @@ import { ValueStore } from './value-store.ts';
 const MIGRATION_LEASE_MS = 30_000;
 
 export function mongodb(runner: MongoRunner, options: MongoOptions = {}): PersistenceAdapter {
-	const prefix = options.collectionPrefix ?? 'flue_';
+	const prefix = options.collectionPrefix ?? 'bapX_';
 	let closed = false;
 	let migrated = false;
 	return {
@@ -110,7 +110,7 @@ export function mongodb(runner: MongoRunner, options: MongoOptions = {}): Persis
 }
 
 function assertMigratableSchemaVersion(storedVersion: string): void {
-	assertSupportedFlueSchemaVersion(storedVersion);
+	assertSupportedBapxSchemaVersion(storedVersion);
 }
 
 async function hasUnversionedData(runner: MongoRunner, prefix: string): Promise<boolean> {

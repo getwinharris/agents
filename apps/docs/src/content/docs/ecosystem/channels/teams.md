@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add authenticated Microsoft Teams Bot Connector activities and project-owned outbound messaging to an existing Flue project with the [Microsoft Teams](https://www.microsoft.com/microsoft-teams) blueprint. Run the following command in your terminal or coding agent of choice:
+Add authenticated Microsoft Teams Bot Connector activities and project-owned outbound messaging to an existing Bapx project with the [Microsoft Teams](https://www.microsoft.com/microsoft-teams) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel teams
+bapX add channel teams
 ```
 
 ## Overview

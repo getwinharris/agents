@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add verified WhatsApp Business Cloud webhook ingress with project-owned outbound WhatsApp access to an existing Flue project with the [WhatsApp](https://developers.facebook.com/docs/whatsapp/cloud-api) blueprint. Run the following command in your terminal or coding agent of choice:
+Add verified WhatsApp Business Cloud webhook ingress with project-owned outbound WhatsApp access to an existing Bapx project with the [WhatsApp](https://developers.facebook.com/docs/whatsapp/cloud-api) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel whatsapp
+bapX add channel whatsapp
 ```
 
 ## Overview
@@ -70,7 +70,7 @@ The abridged example omits the generated `conversationRef` helper and outbound
 message tool. Once configured, supported messages continue the agent instance
 for the verified business-scoped user or group, and the bound client tool replies
 to that same destination. The Fetch-based client runs on Node and Cloudflare
-Workers with Flue's `nodejs_compat` setting.
+Workers with Bapx's `nodejs_compat` setting.
 
 ## Configure
 
@@ -85,7 +85,7 @@ Workers with Flue's `nodejs_compat` setting.
 It installs `@bapX/whatsapp` for verified ingress and
 `@kapso/whatsapp-cloud-api` for project-owned Graph API access. `@bapX/whatsapp`
 requires Node 24 because its selected webhook type package declares that engine
-floor. The client is Fetch-based and runs in Node and workerd with Flue's
+floor. The client is Fetch-based and runs in Node and workerd with Bapx's
 required `nodejs_compat` configuration.
 
 Set the callback URL to:

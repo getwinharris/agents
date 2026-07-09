@@ -1,17 +1,17 @@
 ---
 title: islo
-description: Connect a Node-target Flue application to a named islo sandbox through its CLI.
+description: Connect a Node-target Bapx application to a named islo sandbox through its CLI.
 lastReviewedAt: 2026-05-30
 ---
 
-The islo adapter adapts a named islo sandbox into Flue's sandbox interface by invoking the local `islo` CLI. It is designed for a Node.js server, container, or CI runner where the binary is installed and can launch remote commands.
+The islo adapter adapts a named islo sandbox into Bapx's sandbox interface by invoking the local `islo` CLI. It is designed for a Node.js server, container, or CI runner where the binary is installed and can launch remote commands.
 
 ## Quickstart
 
-Add named remote sandbox capability to an existing Flue project with the [islo](https://islo.dev) blueprint. Run the following command in your terminal or coding agent of choice:
+Add named remote sandbox capability to an existing Bapx project with the [islo](https://islo.dev) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```bash
-flue add sandbox islo
+bapX add sandbox islo
 ```
 
 ## Overview
@@ -19,7 +19,7 @@ flue add sandbox islo
 The islo blueprint creates `sandboxes/islo.ts` in your source-root without adding an npm dependency. The generated adapter uses Node's child-process API and expects an authenticated `islo` binary plus an application-managed sandbox name.
 
 ```ts title="<source-root>/sandboxes/islo.ts (abridged)"
-// flue-blueprint: sandbox/islo@1
+// bapX-blueprint: sandbox/islo@1
 import { spawn } from 'node:child_process';
 import { createSandboxSessionEnv } from '@bapX/runtime';
 import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
@@ -75,7 +75,7 @@ export function islo(name: string, options?: IsloAdapterOptions): SandboxFactory
 }
 ```
 
-Pass a sandbox name to `islo(...)` and assign the returned factory to an agent's `sandbox` property. Flue resolves relative paths from `/workspace`; the adapter converts `timeoutMs` from milliseconds to seconds for GNU `timeout` inside the sandbox, while the CLI handles remote execution and file operations.
+Pass a sandbox name to `islo(...)` and assign the returned factory to an agent's `sandbox` property. Bapx resolves relative paths from `/workspace`; the adapter converts `timeoutMs` from milliseconds to seconds for GNU `timeout` inside the sandbox, while the CLI handles remote execution and file operations.
 
 ## Configure
 

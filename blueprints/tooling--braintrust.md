@@ -2,10 +2,10 @@
 { "kind": "tooling", "version": 2, "website": "https://www.braintrust.dev" }
 ---
 
-# Add Braintrust to Flue
+# Add Braintrust to Bapx
 
-You are an AI coding agent adding Braintrust tracing to a Flue project. Use
-Braintrust's public Flue observer with Flue's public `observe(...)` API so the
+You are an AI coding agent adding Braintrust tracing to a Bapx project. Use
+Braintrust's public Bapx observer with Bapx's public `observe(...)` API so the
 same application source works on Node.js and Cloudflare.
 
 The integration traces workflow runs, prompt and skill operations, model turns,
@@ -16,15 +16,15 @@ before enabling them in a sensitive environment.
 ## Inspect the project
 
 Read local instructions, detect the package manager, and select the first
-existing source root: `<root>/.flue/`, then `<root>/src/`, then `<root>/`. Inspect
+existing source root: `<root>/.bapX/`, then `<root>/src/`, then `<root>/`. Inspect
 `app.ts`, `bapX.config.ts`, agents, workflows, environment types, deployment
 configuration, and secret conventions.
 
 Install `braintrust@3.17.0` with the project's package manager. Do not change the
-Flue target. The package provides Node and `workerd` exports, and the manual
+Bapx target. The package provides Node and `workerd` exports, and the manual
 observer below uses the same source on both targets. Pin the audited version
 because the compatibility translations below depend on Braintrust's accepted
-Flue event names, which are not a typed public contract. Do not use Braintrust's Node
+Bapx event names, which are not a typed public contract. Do not use Braintrust's Node
 `--import braintrust/hook.mjs` setup for a project that must also run on
 Cloudflare.
 
@@ -36,18 +36,18 @@ Braintrust convention:
 | Variable                  | Purpose                                                                |
 | ------------------------- | ---------------------------------------------------------------------- |
 | `BRAINTRUST_API_KEY`      | Braintrust API key; keep it in the deployment platform's secret store. |
-| `BRAINTRUST_PROJECT_NAME` | Project receiving traces; defaults to `Flue`.                          |
+| `BRAINTRUST_PROJECT_NAME` | Project receiving traces; defaults to `Bapx`.                          |
 
 Never invent or commit an API key. Update an existing `.env.example`,
 environment type, or deployment documentation when the project maintains one,
 but preserve its secret-management conventions. For Cloudflare deployment,
 store `BRAINTRUST_API_KEY` as a Worker secret rather than a Wrangler `vars`
-value. Flue's required `nodejs_compat` mode makes environment values available
+value. Bapx's required `nodejs_compat` mode makes environment values available
 through `process.env` in both targets.
 
 ## Decide what may leave the application
 
-Braintrust's Flue observer exports workflow results, model-visible
+Braintrust's Bapx observer exports workflow results, model-visible
 messages and output, model reasoning, system prompts, tool definitions, tool
 arguments and results, task prompts and results, errors, and correlation
 metadata. Review the
@@ -66,26 +66,26 @@ identifiable information.
 Create `<source-dir>/braintrust.ts`:
 
 ```ts title="src/braintrust.ts"
-// flue-blueprint: tooling/braintrust@2
-import { type FlueEvent, observe } from '@bapX/runtime';
-import { braintrustFlueObserver, initLogger } from 'braintrust';
+// bapX-blueprint: tooling/braintrust@2
+import { type BapxEvent, observe } from '@bapX/runtime';
+import { braintrustBapxObserver, initLogger } from 'braintrust';
 
 const apiKey = process.env.BRAINTRUST_API_KEY;
 const observedRuns = new Set<string>();
 
 if (apiKey) {
   initLogger({
-    projectName: process.env.BRAINTRUST_PROJECT_NAME ?? 'Flue',
+    projectName: process.env.BRAINTRUST_PROJECT_NAME ?? 'Bapx',
     apiKey,
   });
 
   observe((event, ctx) => {
     const compatible = compatibleEvent(event);
-    if (compatible) braintrustFlueObserver(compatible, ctx);
+    if (compatible) braintrustBapxObserver(compatible, ctx);
   });
 }
 
-function compatibleEvent(event: FlueEvent): unknown {
+function compatibleEvent(event: BapxEvent): unknown {
   if (event.type === 'run_start') {
     observedRuns.add(event.runId);
     return event;
@@ -117,14 +117,14 @@ function compatibleEvent(event: FlueEvent): unknown {
 }
 ```
 
-Braintrust 3.17 expects the previous `tool_call` name for Flue's terminal tool
-event, while current Flue emits `tool`. The compatibility translation closes
-tool spans without changing Flue's event contract. Braintrust also does not yet
+Braintrust 3.17 expects the previous `tool_call` name for Bapx's terminal tool
+event, while current Bapx emits `tool`. The compatibility translation closes
+tool spans without changing Bapx's event contract. Braintrust also does not yet
 recognize `run_resume`. When this isolate did not observe the original
 `run_start`, the bridge translates recovery to a synthetic input-less `run_start` so
 later activity has a root span. When the predecessor remains locally tracked,
 it ignores `run_resume` and lets `run_end` close that span instead of replacing
-it. This is a compatibility fallback: it loses Flue's distinct recovery
+it. This is a compatibility fallback: it loses Bapx's distinct recovery
 semantics and does not durably continue the original trace. Re-check the current
 Braintrust observer when upgrading it and remove either translation after the
 SDK accepts the current event directly.
@@ -137,7 +137,7 @@ import './braintrust.ts';
 
 Preserve the application's existing imports, middleware, routes, and default
 export. If there is no `app.ts`, create one that imports `./braintrust.ts`,
-creates a Hono application, mounts `flue()` at `/`, and default-exports the app.
+creates a Hono application, mounts `bapX()` at `/`, and default-exports the app.
 Install a direct `hono` dependency when authoring that file.
 
 When `BRAINTRUST_API_KEY` is absent, the integration does not initialize or
@@ -147,10 +147,10 @@ subscribe and the application runs without trace export.
 
 The observer produces:
 
-| Flue activity                          | Braintrust trace                               |
+| Bapx activity                          | Braintrust trace                               |
 | -------------------------------------- | ---------------------------------------------- |
 | Workflow invocation                    | Root `workflow:<name>` task span               |
-| Prompt, skill, or compaction operation | Nested `flue.<kind>` task span                 |
+| Prompt, skill, or compaction operation | Nested `bapX.<kind>` task span                 |
 | Model turn                             | `llm:<model>` span with usage and cost metrics |
 | Tool call                              | Nested `tool:<name>` span                      |
 | Delegated task                         | Nested task span                               |
@@ -211,11 +211,11 @@ Remove the runtime event-type filter and ignore unsupported events inside the br
 --- a/src/braintrust.ts
 +++ b/src/braintrust.ts
 @@ -1,4 +1,4 @@
--// flue-blueprint: tooling/braintrust@1
-+// flue-blueprint: tooling/braintrust@2
+-// bapX-blueprint: tooling/braintrust@1
++// bapX-blueprint: tooling/braintrust@2
 @@ -14,31 +14,34 @@ if (apiKey) {
 -  observe(
--    (event, ctx) => braintrustFlueObserver(compatibleEvent(event), ctx),
+-    (event, ctx) => braintrustBapxObserver(compatibleEvent(event), ctx),
 -    {
 -      types: [
 -        'run_start',
@@ -236,11 +236,11 @@ Remove the runtime event-type filter and ignore unsupported events inside the br
 -  );
 +  observe((event, ctx) => {
 +    const compatible = compatibleEvent(event);
-+    if (compatible) braintrustFlueObserver(compatible, ctx);
++    if (compatible) braintrustBapxObserver(compatible, ctx);
 +  });
  }
 
- function compatibleEvent(event: FlueEvent): unknown {
+ function compatibleEvent(event: BapxEvent): unknown {
 -  if (event.type === 'run_start') observedRuns.add(event.runId);
 -  if (event.type === 'run_end') observedRuns.delete(event.runId);
 +  if (event.type === 'run_start') {

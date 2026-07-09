@@ -1,4 +1,4 @@
-import type { ConversationStreamChunk, FlueEvent } from '@bapX/sdk';
+import type { ConversationStreamChunk, BapxEvent } from '@bapX/sdk';
 
 const CONVERSATION_CHUNK_TYPES = new Set<ConversationStreamChunk['type']>([
 	'conversation-reset',
@@ -13,7 +13,7 @@ const CONVERSATION_CHUNK_TYPES = new Set<ConversationStreamChunk['type']>([
 ]);
 
 function isConversationChunk(
-	event: ConversationStreamChunk | FlueEvent,
+	event: ConversationStreamChunk | BapxEvent,
 ): event is ConversationStreamChunk {
 	return CONVERSATION_CHUNK_TYPES.has(event.type as ConversationStreamChunk['type']);
 }
@@ -26,7 +26,7 @@ export interface LineEventPresenterOptions {
 }
 
 export interface LineEventPresenter {
-	present(event: ConversationStreamChunk | FlueEvent): void;
+	present(event: ConversationStreamChunk | BapxEvent): void;
 	flush(): void;
 }
 

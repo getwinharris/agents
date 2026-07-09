@@ -1,4 +1,4 @@
-import { useFlueAgent, useFlueClient } from '@bapX/react'
+import { useBapxAgent, useBapxClient } from '@bapX/react'
 import { AlertCircle } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { DEFAULT_TITLE, useConversations } from '@/state/conversations'
@@ -14,12 +14,12 @@ function truncateTitle(message: string): string {
 
 export function ChatView({ conversationId }: { conversationId: string }) {
   const conversations = useConversations()
-  const client = useFlueClient()
+  const client = useBapxClient()
   const { connection } = useSettings()
   const conversation = conversations.get(conversationId)
   const agentName = conversation?.agentName ?? ''
 
-  const agent = useFlueAgent({ name: agentName, id: conversationId, live: connection.live })
+  const agent = useBapxAgent({ name: agentName, id: conversationId, live: connection.live })
   const busy = agent.status === 'submitted' || agent.status === 'streaming'
   const [canceling, setCanceling] = useState(false)
   const [cancelError, setCancelError] = useState<Error | undefined>()

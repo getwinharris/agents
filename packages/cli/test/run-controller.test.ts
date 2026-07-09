@@ -1,4 +1,4 @@
-import type { FlueClient } from '@bapX/sdk';
+import type { BapxClient } from '@bapX/sdk';
 import { describe, expect, it, vi } from 'vitest';
 import { assertRunIdAllowed, parseAgentInput, runTarget } from '../src/lib/run-controller.ts';
 
@@ -25,7 +25,7 @@ describe('runTarget()', () => {
 		const admission = { streamUrl: 'https://example.com/stream', offset: '0', submissionId: 'sub' };
 		const send = vi.fn().mockResolvedValue(admission);
 		const wait = vi.fn().mockResolvedValue(undefined);
-		const client = { agents: { send, wait } } as unknown as FlueClient;
+		const client = { agents: { send, wait } } as unknown as BapxClient;
 
 		await expect(
 			runTarget(client, {
@@ -44,7 +44,7 @@ describe('runTarget()', () => {
 
 	it('runs a workflow through the SDK helper', async () => {
 		const run = vi.fn().mockResolvedValue({ runId: 'run_1', result: { ok: true } });
-		const client = { workflows: { run } } as unknown as FlueClient;
+		const client = { workflows: { run } } as unknown as BapxClient;
 
 		await expect(
 			runTarget(client, { kind: 'workflow', name: 'report', input: { month: 6 } }),

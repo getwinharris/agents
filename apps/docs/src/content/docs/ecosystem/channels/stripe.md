@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add verified webhook ingress and application-owned API behavior to an existing Flue project with the [Stripe](https://stripe.com) blueprint. Run the following command in your terminal or coding agent of choice:
+Add verified webhook ingress and application-owned API behavior to an existing Bapx project with the [Stripe](https://stripe.com) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel stripe
+bapX add channel stripe
 ```
 
 ## Overview
@@ -87,7 +87,7 @@ Configure the Stripe event destination as:
 https://example.com/channels/stripe/webhook
 ```
 
-If `flue()` is mounted beneath an outer prefix, include that prefix. Subscribe
+If `bapX()` is mounted beneath an outer prefix, include that prefix. Subscribe
 only to event types the application handles. Keep both credentials in the
 project's existing secret system.
 
@@ -226,14 +226,14 @@ Snapshot event objects are tied to the API version selected for the event
 destination. Keep that version aligned with the installed SDK types, or narrow
 and validate resource fields in application code.
 
-Flue forwards a verified event type that is newer than the installed Stripe
+Bapx forwards a verified event type that is newer than the installed Stripe
 declarations. Until the project upgrades Stripe, use
 `switch (event.type as string)` to observe that future type and treat its
 resource fields as untrusted rather than weakening the native narrowing for
 every known event.
 
 The official Stripe SDK selects its Fetch and Web Crypto implementation in
-Cloudflare Workers. The example executes that path in workerd with Flue's
+Cloudflare Workers. The example executes that path in workerd with Bapx's
 required `nodejs_compat` configuration. Projects may initialize credentials
 through `process.env` or typed Worker bindings and should still verify their
 complete target build and workerd tests. Stripe's declarations reference

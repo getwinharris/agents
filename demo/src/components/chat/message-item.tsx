@@ -1,4 +1,4 @@
-import type { FlueConversationMessage } from '@bapX/react'
+import type { BapxConversationMessage } from '@bapX/react'
 import { AlertCircle, Bot, Check, Copy, Square } from 'lucide-react'
 import { useState } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -24,12 +24,12 @@ import { MessagePart } from './message-parts'
 export interface MessageGroup {
   id: string
   role: 'user' | 'assistant'
-  messages: FlueConversationMessage[]
+  messages: BapxConversationMessage[]
   event?: { type: 'response-aborted'; text: string }
 }
 
 /** Concatenated answer text (reasoning excluded) for the copy button. */
-function answerText(messages: FlueConversationMessage[]): string {
+function answerText(messages: BapxConversationMessage[]): string {
   return messages
     .flatMap((message) => message.parts)
     .map((part) => (part.type === 'text' ? part.text : ''))
@@ -40,7 +40,7 @@ function UserGroup({
   messages,
   failedById,
 }: {
-  messages: FlueConversationMessage[]
+  messages: BapxConversationMessage[]
   failedById: Map<string, Error>
 }) {
   return (
@@ -84,7 +84,7 @@ function AssistantGroup({
   event,
   settled,
 }: {
-  messages: FlueConversationMessage[]
+  messages: BapxConversationMessage[]
   event?: MessageGroup['event']
   settled: boolean
 }) {

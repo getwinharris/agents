@@ -9,10 +9,10 @@ lastReviewedAt: 2026-06-13
 
 ## Quickstart
 
-Add verified HTTP ingress and application-owned Web API behavior to an existing Flue project with the [Slack](https://slack.com) blueprint. Run the following command in your terminal or coding agent of choice:
+Add verified HTTP ingress and application-owned Web API behavior to an existing Bapx project with the [Slack](https://slack.com) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel slack
+bapX add channel slack
 ```
 
 ## Overview
@@ -292,4 +292,4 @@ OAuth installation storage, workspace authorization, Socket Mode, and token
 rotation remain application concerns.
 
 The Fetch-based Slack Web API v8 release candidate runs in Node and in
-Cloudflare Workers with Flue's required `nodejs_compat` setting.
+Cloudflare Workers with Bapx's required `nodejs_compat` setting.

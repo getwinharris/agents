@@ -1,9 +1,9 @@
 /**
- * Daytona adapter for Flue.
+ * Daytona adapter for Bapx.
  *
- * Wraps an already-initialized Daytona sandbox into Flue's SandboxFactory
+ * Wraps an already-initialized Daytona sandbox into Bapx's SandboxFactory
  * interface. The user creates and configures the sandbox using the Daytona
- * SDK directly — Flue just adapts it.
+ * SDK directly — Bapx just adapts it.
  *
  * @example
  * ```typescript
@@ -118,10 +118,10 @@ class DaytonaSandboxApi implements SandboxApi {
 // ─── Sandbox Adapter ────────────────────────────────────────────────────────
 
 /**
- * Create a Flue sandbox factory from an initialized Daytona sandbox.
+ * Create a Bapx sandbox factory from an initialized Daytona sandbox.
  *
  * The user creates the sandbox using the Daytona SDK directly, then
- * passes it here. Flue wraps it into a SessionEnv for agent use.
+ * passes it here. Bapx wraps it into a SessionEnv for agent use.
  *
  * @param sandbox - An initialized Daytona Sandbox instance.
  */

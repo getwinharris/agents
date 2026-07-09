@@ -13,7 +13,7 @@ export default defineConfig({
 });
 ```
 
-Only the options listed below are accepted. Flue recognizes `bapX.config.ts`, `.mts`, `.mjs`, `.js`, `.cjs`, and `.cts`, in that priority order. TypeScript configuration files are loaded directly by Node and must use erasable syntax.
+Only the options listed below are accepted. Bapx recognizes `bapX.config.ts`, `.mts`, `.mjs`, `.js`, `.cjs`, and `.cts`, in that priority order. TypeScript configuration files are loaded directly by Node and must use erasable syntax.
 
 For source-module placement, see [Project Layout](/docs/guide/project-layout/). For configuration-file discovery, command-line overrides, and environment files, see the [CLI reference](/docs/cli/overview/).
 
@@ -30,13 +30,13 @@ Build and development target. This option is required unless `--target` is passe
 ## `root`
 
 - **Type:** `string`
-- **Default:** directory containing the selected `flue.config.*` file, or the selected search directory when no configuration file is loaded
+- **Default:** directory containing the selected `bapX.config.*` file, or the selected search directory when no configuration file is loaded
 
 Project root. Must not be empty. Relative values loaded from a configuration file resolve from the directory containing that file.
 
-Flue uses the first matching source location:
+Bapx uses the first matching source location:
 
-1. `<root>/.flue` when it exists as a directory
+1. `<root>/.bapX` when it exists as a directory
 2. `<root>/src` when it exists as a directory
 3. `<root>`
 
@@ -68,12 +68,12 @@ export const vite = defineViteConfig({
 });
 ```
 
-Flue owns the Vite project root, server mode, host, port, and its internal plugins. Other Vite options are merged into the Node and Cloudflare development servers.
+Bapx owns the Vite project root, server mode, host, port, and its internal plugins. Other Vite options are merged into the Node and Cloudflare development servers.
 
 ## `defineConfig()`
 
 ```ts
-function defineConfig(config: UserFlueConfig): UserFlueConfig;
+function defineConfig(config: UserBapxConfig): UserBapxConfig;
 ```
 
 Provides type checking and editor completion for `bapX.config.ts`. Returns the configuration unchanged.

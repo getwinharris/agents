@@ -7,8 +7,8 @@ import {
 } from '../src/index.ts';
 
 const encoder = new TextEncoder();
-const CLIENT_SECRET = 'flue-shopify-current-secret';
-const PREVIOUS_CLIENT_SECRET = 'flue-shopify-previous-secret';
+const CLIENT_SECRET = 'bapX-shopify-current-secret';
+const PREVIOUS_CLIENT_SECRET = 'bapX-shopify-previous-secret';
 
 describe('createShopifyChannel()', () => {
 	it('delivers a verified JSON event when exact request bytes match', async () => {
@@ -46,7 +46,7 @@ describe('createShopifyChannel()', () => {
 		});
 		// Delivery metadata is read from the provider's native headers through `c`.
 		expect(input.c.req.header('x-shopify-topic')).toBe('orders/create');
-		expect(input.c.req.header('x-shopify-shop-domain')).toBe('flue-fixtures.myshopify.com');
+		expect(input.c.req.header('x-shopify-shop-domain')).toBe('bapX-fixtures.myshopify.com');
 		expect(input.c.req.header('x-shopify-api-version')).toBe('2026-04');
 		expect(input.c.req.header('x-shopify-webhook-id')).toBe('3f884e50-7f2f-48b1-a85b-1f5f1d499173');
 		expect(input.c.req.header('x-shopify-event-id')).toBe('9f66d8cb-82e2-4fd7-b70d-369ec19ddc2e');
@@ -103,7 +103,7 @@ describe('createShopifyChannel()', () => {
 				topic: 'customers/data_request',
 				body: JSON.stringify({
 					shop_id: 954889,
-					shop_domain: 'flue-fixtures.myshopify.com',
+					shop_domain: 'bapX-fixtures.myshopify.com',
 					customer: { id: 191167 },
 					orders_requested: ['gid://shopify/Order/299938'],
 				}),
@@ -446,7 +446,7 @@ async function shopifyHeaders(
 	return {
 		'x-shopify-hmac-sha256': await hmac(options.secret ?? CLIENT_SECRET, body),
 		'x-shopify-topic': options.topic,
-		'x-shopify-shop-domain': 'flue-fixtures.myshopify.com',
+		'x-shopify-shop-domain': 'bapX-fixtures.myshopify.com',
 		'x-shopify-api-version': '2026-04',
 		'x-shopify-webhook-id': options.webhookId,
 		...(options.eventId ? { 'x-shopify-event-id': options.eventId } : {}),

@@ -1,7 +1,7 @@
-import { createFlueClient, type FlueClient } from '@bapX/sdk'
+import { createBapxClient, type BapxClient } from '@bapX/sdk'
 import type { Connection } from './types'
 
-/** Out-of-the-box target: react-chat's credential-free faux assistant under `flue dev`. */
+/** Out-of-the-box target: react-chat's credential-free faux assistant under `bapX dev`. */
 export const DEFAULT_CONNECTION: Connection = {
   agentUrl: 'http://localhost:3583/api/agents/assistant',
   live: 'sse',
@@ -23,8 +23,8 @@ export function parseAgentUrl(agentUrl: string): { baseUrl: string; agentName: s
   return { baseUrl, agentName: decodeURIComponent(name) }
 }
 
-export function createClientFor(connection: Connection): FlueClient {
-  return createFlueClient({
+export function createClientFor(connection: Connection): BapxClient {
+  return createBapxClient({
     baseUrl: parseAgentUrl(connection.agentUrl).baseUrl,
     token: connection.token?.trim() || undefined,
   })

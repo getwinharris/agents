@@ -28,7 +28,7 @@ export class PgAttachmentStore implements AttachmentStore {
 				return;
 			}
 			await tx.query(
-				`INSERT INTO flue_attachments
+				`INSERT INTO bapX_attachments
 				 (stream_path, attachment_id, mime_type, byte_size, digest, conversation_id, bytes, created_at)
 				 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 				 ON CONFLICT (stream_path, attachment_id) DO NOTHING`,
@@ -48,7 +48,7 @@ export class PgAttachmentStore implements AttachmentStore {
 	}
 
 	async deleteForInstance(streamPath: string): Promise<void> {
-		await this.runner.query('DELETE FROM flue_attachments WHERE stream_path = $1', [streamPath]);
+		await this.runner.query('DELETE FROM bapX_attachments WHERE stream_path = $1', [streamPath]);
 	}
 }
 
@@ -60,7 +60,7 @@ async function readAttachment(
 ): Promise<AttachmentRecord | null> {
 	const rows = await query(
 		`SELECT mime_type, byte_size, digest, conversation_id, bytes
-		 FROM flue_attachments WHERE stream_path = $1 AND attachment_id = $2${lock ? ' FOR UPDATE' : ''}`,
+		 FROM bapX_attachments WHERE stream_path = $1 AND attachment_id = $2${lock ? ' FOR UPDATE' : ''}`,
 		[path, attachmentId],
 	);
 	const row = rows[0];

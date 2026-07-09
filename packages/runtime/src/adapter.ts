@@ -86,7 +86,7 @@ export {
 	ConversationStreamStoreError,
 	PersistedSchemaVersionError,
 } from './errors.ts';
-export { assertSupportedFlueSchemaVersion, FLUE_SCHEMA_VERSION } from './schema-version.ts';
+export { assertSupportedBapxSchemaVersion, FLUE_SCHEMA_VERSION } from './schema-version.ts';
 
 // ─── Persisted chunk placement ───────────────────────────────────────────────
 

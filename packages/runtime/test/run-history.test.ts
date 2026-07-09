@@ -2,19 +2,19 @@ import { Hono } from 'hono';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { InMemoryRunStore } from '../src/node/run-store.ts';
-import { flue } from '../src/routing.ts';
-import { configureFlueRuntime, resetFlueRuntimeForTests } from '../src/runtime/flue-app.ts';
+import { bapX } from '../src/routing.ts';
+import { configureBapxRuntime, resetBapxRuntimeForTests } from '../src/runtime/bapX-app.ts';
 import { nodeRuntime } from './helpers/runtime-config.ts';
 import type { RunStore } from '../src/runtime/run-store.ts';
 
 afterEach(() => {
-	resetFlueRuntimeForTests();
+	resetBapxRuntimeForTests();
 });
 
 function createRunApp(runStore: RunStore) {
-	configureFlueRuntime(nodeRuntime({ runStore }));
+	configureBapxRuntime(nodeRuntime({ runStore }));
 	const app = new Hono();
-	app.route('/', flue());
+	app.route('/', bapX());
 	return app;
 }
 

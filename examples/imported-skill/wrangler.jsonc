@@ -2,25 +2,39 @@
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "imported-skill-example",
 	"compatibility_date": "2026-06-01",
-	"compatibility_flags": ["nodejs_compat"],
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
 	"migrations": [
 		{
-			"tag": "bapX-class-FlueRegistry",
-			"new_sqlite_classes": ["FlueRegistry"]
+			"tag": "bapX-class-BapxRegistry",
+			"new_sqlite_classes": [
+				"BapxRegistry"
+			]
 		},
 		{
 			"tag": "bapX-class-WithCustomBashWorkflow",
-			"new_sqlite_classes": ["WithCustomBashWorkflow"]
+			"new_sqlite_classes": [
+				"WithCustomBashWorkflow"
+			]
 		},
 		{
 			"tag": "bapX-class-WithImportedSkillWorkflow",
-			"new_sqlite_classes": ["WithImportedSkillWorkflow"]
+			"new_sqlite_classes": [
+				"WithImportedSkillWorkflow"
+			]
 		},
 		{
 			"tag": "bapX-rename-generated-classes",
 			"renamed_classes": [
-				{ "from": "WithCustomBashWorkflow", "to": "FlueWithCustomBashWorkflow" },
-				{ "from": "WithImportedSkillWorkflow", "to": "FlueWithImportedSkillWorkflow" }
+				{
+					"from": "WithCustomBashWorkflow",
+					"to": "BapxWithCustomBashWorkflow"
+				},
+				{
+					"from": "WithImportedSkillWorkflow",
+					"to": "BapxWithImportedSkillWorkflow"
+				}
 			]
 		}
 	]

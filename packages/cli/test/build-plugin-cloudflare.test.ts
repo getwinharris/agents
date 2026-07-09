@@ -3,7 +3,7 @@ import { CloudflarePlugin } from '../src/lib/build-plugin-cloudflare.ts';
 import type { BuildContext } from '../src/lib/types.ts';
 
 describe('CloudflarePlugin', () => {
-	it('generates distinct Flue-owned Durable Object identities for agents and workflows', async () => {
+	it('generates distinct Bapx-owned Durable Object identities for agents and workflows', async () => {
 		const entry = await new CloudflarePlugin().generateEntryPoint(
 			testBuildContext({
 				agents: [{ name: 'draft-workflow', filePath: '/fixture/agents/draft-workflow.ts' }],
@@ -11,8 +11,8 @@ describe('CloudflarePlugin', () => {
 			}),
 		);
 
-		expect(entry).toContain('class FlueDraftWorkflowAgent');
-		expect(entry).toContain('class FlueDraftWorkflow');
+		expect(entry).toContain('class BapxDraftWorkflowAgent');
+		expect(entry).toContain('class BapxDraftWorkflow');
 		expect(entry).toContain('bindingName: "FLUE_DRAFT_WORKFLOW_AGENT"');
 		expect(entry).toContain('bindingName: "FLUE_DRAFT_WORKFLOW"');
 		expect(entry).toContain(
@@ -54,7 +54,7 @@ describe('CloudflarePlugin', () => {
 
 		expect(entry).toContain("if (typeof mod.route === 'function') workflow.route = mod.route;");
 		expect(entry).toContain("if (typeof mod.runs === 'function') workflow.runs = mod.runs;");
-		expect(entry).toContain('configureFlueRuntime({');
+		expect(entry).toContain('configureBapxRuntime({');
 		expect(entry).toContain('workflows,');
 		expect(entry).toContain('routeRunRequest: async (request, reqEnv, target) => {');
 		expect(entry).toContain('return fetchAgent(binding, target.runId, request);');
@@ -72,8 +72,8 @@ describe('CloudflarePlugin', () => {
 			'const { agents, workflows, channelHandlers } = normalizeBuiltModules(agentModules, workflowModules, channelModules);',
 		);
 		expect(entry).toContain('workflows.find((record) => record.name === workflowName)?.definition');
-		expect(entry).toContain("const INTERNAL_WORKFLOW_INVOKE_PATH = '/_flue/internal/workflow-invoke'");
-		expect(entry).toContain("doInstance.runFiber('flue:workflow:' + runId");
+		expect(entry).toContain("const INTERNAL_WORKFLOW_INVOKE_PATH = '/_bapX/internal/workflow-invoke'");
+		expect(entry).toContain("doInstance.runFiber('bapX:workflow:' + runId");
 		expect(entry).toContain('const admission = Promise.withResolvers();');
 		expect(entry).toContain('return { admitted: admission.promise, completion };');
 		expect(entry).toContain(

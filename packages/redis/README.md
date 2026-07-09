@@ -1,6 +1,6 @@
 # `@bapX/redis`
 
-Persistent Redis and Valkey storage for Flue applications on the Node.js target.
+Persistent Redis and Valkey storage for Bapx applications on the Node.js target.
 The package is driver-free at runtime and accepts a small Redis-native runner.
 
 ```ts
@@ -32,7 +32,7 @@ export default redis({
 });
 ```
 
-Default-export the adapter from a source-root `db.ts`. Flue calls `migrate()` at
+Default-export the adapter from a source-root `db.ts`. Bapx calls `migrate()` at
 startup, verifies the deployment when `CONFIG` or `INFO` inspection is allowed,
 and records the runtime schema version. Set `inspectServer: false` only when a
 managed provider denies both inspection commands and you have independently
@@ -46,12 +46,12 @@ explicit fsync policy and/or durable snapshots. Cache-only deployments can lose
 accepted work and are unsupported.
 
 The initial release supports standalone servers and managed single-shard
-endpoints. Redis Cluster is unsupported. Flue keys intentionally use base64url
+endpoints. Redis Cluster is unsupported. Bapx keys intentionally use base64url
 segments and span independent atomic operations; they are not a cluster hash-slot
 schema.
 
-Use a dedicated database or configure `keyPrefix` to isolate Flue data. The
-prefix defaults to `flue`. Tests and multi-tenant deployments should use a random
+Use a dedicated database or configure `keyPrefix` to isolate Bapx data. The
+prefix defaults to `bapX`. Tests and multi-tenant deployments should use a random
 or otherwise unique prefix. Production cleanup uses maintained sets and sorted
 sets; it never scans the keyspace.
 

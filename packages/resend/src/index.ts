@@ -32,7 +32,7 @@ export interface ResendChannelOptions<E extends Env = Env> {
 /**
  * Provider-native verified webhook event: the official Resend
  * `WebhookEventPayload` union, forwarded with its original `snake_case` field
- * names and nesting. The channel never reshapes it into a Flue-owned form, so
+ * names and nesting. The channel never reshapes it into a Bapx-owned form, so
  * `switch (event.type)` narrows each modeled variant.
  *
  * The official verifier (`client.webhooks.verify()`) returns the parsed body

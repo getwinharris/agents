@@ -28,13 +28,13 @@ function validateDispatchRequest(
 	rt: DispatchRuntime,
 ): DeliveredMessage {
 	if (typeof agent !== 'string' || agent.trim() === '') {
-		throw new Error('[flue] dispatch() requires a non-empty target agent.');
+		throw new Error('[bapX] dispatch() requires a non-empty target agent.');
 	}
 	if (typeof request.id !== 'string' || request.id.trim() === '') {
-		throw new Error('[flue] dispatch() requires a non-empty "id" target agent instance id.');
+		throw new Error('[bapX] dispatch() requires a non-empty "id" target agent instance id.');
 	}
 	if (!agentExists(rt, agent)) {
-		throw new Error(`[flue] dispatch() target agent "${agent}" is not registered.`);
+		throw new Error(`[bapX] dispatch() target agent "${agent}" is not registered.`);
 	}
 	return parseDeliveredMessage(request.message);
 }

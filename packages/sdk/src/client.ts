@@ -4,9 +4,9 @@ import { HttpClient, type HttpClientOptions, type RequestHeaders } from './http.
 export type { HttpClientOptions } from './http.ts';
 
 import type {
-	FlueConversationHistoryOptions,
-	FlueConversationMessage,
-	FlueConversationSnapshot,
+	BapxConversationHistoryOptions,
+	BapxConversationMessage,
+	BapxConversationSnapshot,
 } from './public/conversation.ts';
 import {
 	type ConversationStreamChunk,
@@ -30,12 +30,12 @@ import {
 	waitForAgentSubmission,
 } from './public/settle.ts';
 import {
-	createFlueEventStream,
-	type FlueEventStream,
-	type FlueStreamOptions,
+	createBapxEventStream,
+	type BapxEventStream,
+	type BapxStreamOptions,
 } from './public/stream.ts';
 import type {
-	FlueEvent,
+	BapxEvent,
 	RunRecord,
 } from './types.ts';
 
@@ -66,7 +66,7 @@ export interface WorkflowWaitResult extends WorkflowInvokeResult {
 }
 
 /** Options for one catch-up read of workflow-run events (no live tailing). */
-export type RunEventsOptions = Omit<FlueStreamOptions, 'live'>;
+export type RunEventsOptions = Omit<BapxStreamOptions, 'live'>;
 
 /** Result of aborting an agent instance's durable work. */
 export interface AgentAbortResult {
@@ -80,18 +80,18 @@ export interface AgentAbortResult {
 	aborted: boolean;
 }
 
-/** Options for creating a client for deployed Flue application routes. */
-export type CreateFlueClientOptions = HttpClientOptions;
+/** Options for creating a client for deployed Bapx application routes. */
+export type CreateBapxClientOptions = HttpClientOptions;
 
 /** Client for invoking deployed agents and workflows and inspecting workflow runs. */
-export interface FlueClient {
+export interface BapxClient {
 	/** Direct interactions with persistent agent instances. */
 	agents: {
 		/** Starts one message delivery without waiting for completion. */
 		send(name: string, id: string, options: AgentPromptOptions): Promise<AgentSendResult>;
 		/**
 		 * Awaits the admitted submission's completion. Resolves void when it
-		 * settles completed and throws `FlueExecutionError` when it settles
+		 * settles completed and throws `BapxExecutionError` when it settles
 		 * failed or aborted. The agent's reply is not returned here — read it
 		 * from the conversation via `onEvent` chunks, `observe()`, or `history()`.
 		 */
@@ -111,8 +111,8 @@ export interface FlueClient {
 		history(
 			name: string,
 			id: string,
-			options?: FlueConversationHistoryOptions,
-		): Promise<FlueConversationSnapshot>;
+			options?: BapxConversationHistoryOptions,
+		): Promise<BapxConversationSnapshot>;
 		/** Observes one materialized conversation across history catch-up and live updates. */
 		observe(
 			name: string,
@@ -132,9 +132,9 @@ export interface FlueClient {
 		/** Retrieves one workflow-run record via the `?meta` view of the run route. */
 		get(runId: string): Promise<RunRecord>;
 		/** Stream events from a workflow run via the Durable Streams protocol. */
-		stream(runId: string, options?: FlueStreamOptions): FlueEventStream<FlueEvent>;
+		stream(runId: string, options?: BapxStreamOptions): BapxEventStream<BapxEvent>;
 		/** Get all events from a workflow run as an array (catch-up read, no live tailing). */
-		events(runId: string, options?: RunEventsOptions): Promise<FlueEvent[]>;
+		events(runId: string, options?: RunEventsOptions): Promise<BapxEvent[]>;
 	};
 	/** Start workflow runs. */
 	workflows: {
@@ -158,11 +158,11 @@ export interface FlueClient {
 // `attachmentUrl`. Optimistic parts (no `id`) carry their own `data:` preview and
 // are left untouched.
 function withAttachmentUrls(
-	message: FlueConversationMessage,
+	message: BapxConversationMessage,
 	http: HttpClient,
 	name: string,
 	id: string,
-): FlueConversationMessage {
+): BapxConversationMessage {
 	let changed = false;
 	const parts = message.parts.map((part) => {
 		if (part.type === 'file' && part.id !== undefined && part.url === undefined) {
@@ -180,11 +180,11 @@ function withAttachmentUrls(
 }
 
 function rewriteSnapshotAttachmentUrls(
-	snapshot: FlueConversationSnapshot,
+	snapshot: BapxConversationSnapshot,
 	http: HttpClient,
 	name: string,
 	id: string,
-): FlueConversationSnapshot {
+): BapxConversationSnapshot {
 	return { ...snapshot, messages: snapshot.messages.map((message) => withAttachmentUrls(message, http, name, id)) };
 }
 
@@ -203,8 +203,8 @@ function rewriteChunkAttachmentUrls(
 	return chunk;
 }
 
-/** Creates a client for the public routes of a deployed Flue application. */
-export function createFlueClient(options: CreateFlueClientOptions): FlueClient {
+/** Creates a client for the public routes of a deployed Bapx application. */
+export function createBapxClient(options: CreateBapxClientOptions): BapxClient {
 	const http = new HttpClient(options);
 	return {
 		agents: {
@@ -218,7 +218,7 @@ export function createFlueClient(options: CreateFlueClientOptions): FlueClient {
 				}),
 			history: async (name, id, opts = {}) =>
 				rewriteSnapshotAttachmentUrls(
-					await http.json<FlueConversationSnapshot>({
+					await http.json<BapxConversationSnapshot>({
 						path: `/agents/${encodeURIComponent(name)}/${encodeURIComponent(id)}`,
 						query: { view: 'history' },
 						signal: opts.signal,
@@ -232,7 +232,7 @@ export function createFlueClient(options: CreateFlueClientOptions): FlueClient {
 					{
 						history: async (historyOptions) =>
 							rewriteSnapshotAttachmentUrls(
-								await http.json<FlueConversationSnapshot>({
+								await http.json<BapxConversationSnapshot>({
 									path: `/agents/${encodeURIComponent(name)}/${encodeURIComponent(id)}`,
 									query: { view: 'history' },
 									signal: historyOptions.signal,
@@ -242,7 +242,7 @@ export function createFlueClient(options: CreateFlueClientOptions): FlueClient {
 								id,
 							),
 						updates: (updateOptions) =>
-							createFlueEventStream<ConversationStreamChunk>(
+							createBapxEventStream<ConversationStreamChunk>(
 								updateOptions,
 								{
 									url: http.url(`/agents/${encodeURIComponent(name)}/${encodeURIComponent(id)}`, {
@@ -264,20 +264,20 @@ export function createFlueClient(options: CreateFlueClientOptions): FlueClient {
 		runs: {
 			get: (runId) => http.json<RunRecord>({ path: `/runs/${encodeURIComponent(runId)}?meta` }),
 			stream: (runId, opts = {}) =>
-				createFlueEventStream<FlueEvent>(opts, {
+				createBapxEventStream<BapxEvent>(opts, {
 					url: http.url(`/runs/${encodeURIComponent(runId)}`),
 					fetch: http.fetchWithHeaders.bind(http),
 				}),
 			events: async (runId, opts) => {
 				const url = new URL(http.url(`/runs/${encodeURIComponent(runId)}`));
 				if (opts?.tail !== undefined) url.searchParams.set('tail', String(opts.tail));
-				const events: FlueEvent[] = [];
+				const events: BapxEvent[] = [];
 				let offset = opts?.offset ?? '-1';
 				// The DS client makes exactly one request per `live: false` stream,
 				// even when the server caps the catch-up batch and reports more data
 				// remains (no Stream-Up-To-Date header). Loop until up-to-date.
 				for (;;) {
-					const res = await dsStream<FlueEvent>({
+					const res = await dsStream<BapxEvent>({
 						url: url.toString(),
 						offset,
 						live: false,
@@ -287,7 +287,7 @@ export function createFlueClient(options: CreateFlueClientOptions): FlueClient {
 						fetch: http.fetchWithHeaders.bind(http),
 						warnOnHttp: false,
 					});
-					events.push(...(await readJsonWithAbort<FlueEvent[]>(res, opts?.signal)));
+					events.push(...(await readJsonWithAbort<BapxEvent[]>(res, opts?.signal)));
 					if (res.upToDate || res.offset === offset) break;
 					offset = res.offset;
 				}

@@ -32,8 +32,8 @@ Definition rejects missing metadata, non-Valibot schemas, and input schemas whos
 
 ```ts
 type ActionContext<S> = {
-  readonly harness: FlueHarness;
-  readonly log: FlueLogger;
+  readonly harness: BapxHarness;
+  readonly log: BapxLogger;
 } & (S extends ActionInputSchema ? { readonly input: InferOutput<S> } : {});
 ```
 
@@ -45,7 +45,7 @@ type ActionContext<S> = {
 
 Action context intentionally excludes transport requests, platform bindings, and workflow identity. Pass required data through input and configure capabilities on the agent.
 
-When a model calls an Action, Flue runs it in an isolated child scope. The child shares the parent agent configuration, sandbox, and filesystem, but has independent default and named sessions and cannot reenter the active parent session. Its canonical records remain append-only in the agent-instance stream for that instance's lifetime; there is no recursive per-session deletion.
+When a model calls an Action, Bapx runs it in an isolated child scope. The child shares the parent agent configuration, sandbox, and filesystem, but has independent default and named sessions and cannot reenter the active parent session. Its canonical records remain append-only in the agent-instance stream for that instance's lifetime; there is no recursive per-session deletion.
 
 ## Input and output contracts
 

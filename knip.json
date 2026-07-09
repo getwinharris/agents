@@ -7,18 +7,18 @@
 	},
 	"workspaces": {
 		".": {
-			"entry": [".flue/{app,cloudflare,agents/*,workflows/*}.{ts,mts,js,mjs}"],
-			"project": [".flue/**/*.{ts,mts,js,mjs}"],
+			"entry": [".bapX/{app,cloudflare,agents/*,workflows/*}.{ts,mts,js,mjs}"],
+			"project": [".bapX/**/*.{ts,mts,js,mjs}"],
 			"ignoreDependencies": ["bgproc", "just-bash"]
 		},
 		"examples/*": {
 			"entry": [
-				"{src/{app,cloudflare,agents/*,workflows/*,channels/*},flue.config}.{ts,mts,js,mjs}"
+				"{src/{app,cloudflare,agents/*,workflows/*,channels/*},bapX.config}.{ts,mts,js,mjs}"
 			],
 			"project": ["src/**/*.{ts,mts,js,mjs}"]
 		},
 		"examples/vitest-evals": {
-			"entry": ["src/evals/**/*.eval.ts", "src/agents/*.ts", "flue.config.ts"],
+			"entry": ["src/evals/**/*.eval.ts", "src/agents/*.ts", "bapX.config.ts"],
 			"project": ["src/**/*.ts", "*.ts"]
 		},
 

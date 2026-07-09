@@ -107,13 +107,13 @@ function openDatabase(path: string): {
  * ```ts
  * // src/db.ts
  * import { sqlite } from '@bapX/runtime/node';
- * export default sqlite('./data/flue.db');
+ * export default sqlite('./data/bapX.db');
  * ```
  */
 export function sqlite(path?: string): PersistenceAdapter {
 	if (path !== undefined && path !== ':memory:' && path.trim() === '') {
 		throw new Error(
-			'[flue] sqlite() requires a non-empty file path, or omit the argument for an in-memory database.',
+			'[bapX] sqlite() requires a non-empty file path, or omit the argument for an in-memory database.',
 		);
 	}
 	const resolvedPath = path ?? ':memory:';

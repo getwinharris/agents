@@ -10,8 +10,8 @@ export {
 } from '@durable-streams/client';
 export type {
 	AgentAbortResult,
-	CreateFlueClientOptions,
-	FlueClient,
+	CreateBapxClientOptions,
+	BapxClient,
 	HttpClientOptions,
 	RequestHeaders,
 	RunEventsOptions,
@@ -19,15 +19,15 @@ export type {
 	WorkflowInvokeResult,
 	WorkflowWaitResult,
 } from './client.ts';
-export { createFlueClient } from './client.ts';
-export { FlueApiError } from './http.ts';
+export { createBapxClient } from './client.ts';
+export { BapxApiError } from './http.ts';
 export type {
-	FlueConversationHistoryOptions,
-	FlueConversationMessage,
-	FlueConversationPart,
-	FlueConversationSettlement,
-	FlueConversationSnapshot,
-	FlueConversationState,
+	BapxConversationHistoryOptions,
+	BapxConversationMessage,
+	BapxConversationPart,
+	BapxConversationSettlement,
+	BapxConversationSnapshot,
+	BapxConversationState,
 } from './public/conversation.ts';
 export type {
 	AgentConversationObservation,
@@ -39,7 +39,7 @@ export type {
 // The conversation `updates` wire union is not stable application API, but
 // first-party presenters (CLI, dev console) reduce it directly, so the type is
 // exported for them. Application code should consume materialized
-// `FlueConversationState` via `observe()` rather than handling chunks.
+// `BapxConversationState` via `observe()` rather than handling chunks.
 export type { ConversationStreamChunk } from './public/conversation-stream.ts';
 export type {
 	AgentPromptOptions,
@@ -49,20 +49,20 @@ export type {
 } from './public/invoke.ts';
 export {
 	type AgentWaitOptions,
-	FlueExecutionError,
-	type FlueExecutionFailure,
-	type FlueExecutionTarget,
+	BapxExecutionError,
+	type BapxExecutionFailure,
+	type BapxExecutionTarget,
 	type WorkflowRunOptions,
 	type WorkflowRunResult,
 } from './public/settle.ts';
-export type { FlueEventStream, FlueStreamOptions } from './public/stream.ts';
-export { UnsupportedFlueEventVersionError } from './public/stream.ts';
+export type { BapxEventStream, BapxStreamOptions } from './public/stream.ts';
+export { UnsupportedBapxEventVersionError } from './public/stream.ts';
 export type {
 	AgentSubmissionSettledEvent,
 	AttachedAgentEvent,
-	FlueEvent,
-	FluePublicError,
-	FlueSerializedError,
+	BapxEvent,
+	BapxPublicError,
+	BapxSerializedError,
 	LlmAssistantMessage,
 	LlmImageContent,
 	LlmMessage,

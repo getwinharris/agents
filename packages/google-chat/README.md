@@ -1,6 +1,6 @@
 # `@bapX/google-chat`
 
-Authenticated Google Chat interaction and Workspace Event ingress for Flue
+Authenticated Google Chat interaction and Workspace Event ingress for Bapx
 applications.
 
 ```ts
@@ -22,8 +22,8 @@ export const channel = createGoogleChatChannel({
 });
 ```
 
-Place this export in `channels/google-chat.ts`. Flue discovers it and serves
-`POST /channels/google-chat/interactions` relative to the `flue()` mount.
+Place this export in `channels/google-chat.ts`. Bapx discovers it and serves
+`POST /channels/google-chat/interactions` relative to the `bapX()` mount.
 
 The direct callback receives `{ c, payload }`, where `payload` preserves the
 verified Google Chat JSON field names, nesting, discriminants, and unknown
@@ -41,7 +41,7 @@ stream-limited to 1 MiB by default and can be configured with `bodyLimit`.
 
 This package does not include an outbound Chat client, credential storage,
 Workspace Events subscription management, or model tools. Run
-`flue add channel google-chat` to generate editable project code using a narrow
+`bapX add channel google-chat` to generate editable project code using a narrow
 service-account OAuth and Chat REST client.
 
 Conversation keys identify Google Chat spaces and optional threads. A thread

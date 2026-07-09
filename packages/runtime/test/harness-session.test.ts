@@ -5,10 +5,10 @@ import {
 	SessionAlreadyExistsError,
 	SessionNotFoundError,
 } from '../src/index.ts';
-import { createFlueContext, type FlueContextConfig, resolveModel } from '../src/internal.ts';
-import type { FlueEvent, FlueObservation, SessionEnv } from '../src/types.ts';
+import { createBapxContext, type BapxContextConfig, resolveModel } from '../src/internal.ts';
+import type { BapxEvent, BapxObservation, SessionEnv } from '../src/types.ts';
 
-describe('FlueHarness', () => {
+describe('BapxHarness', () => {
 	it('uses the default harness name when init() receives no name', async () => {
 		const harness = await createContext(createEnv()).initializeRootHarness(
 			defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })),
@@ -64,8 +64,8 @@ describe('FlueHarness', () => {
 
 	it('redacts environment values from tool events when shell() receives environment variables', async () => {
 		const exec = vi.fn(async () => ({ stdout: 'configured', stderr: '', exitCode: 0 }));
-		const events: FlueEvent[] = [];
-		const observations: FlueObservation[] = [];
+		const events: BapxEvent[] = [];
+		const observations: BapxObservation[] = [];
 		const ctx = createContext(createEnv({ exec }));
 		ctx.setEventCallback((event) => {
 			events.push(event);
@@ -164,9 +164,9 @@ describe('FlueHarness', () => {
 
 function createContext(
 	env: SessionEnv,
-	overrides: Partial<FlueContextConfig> = {},
+	overrides: Partial<BapxContextConfig> = {},
 ) {
-	return createFlueContext({
+	return createBapxContext({
 		id: 'agent-instance',
 		env: {},
 		agentConfig: {

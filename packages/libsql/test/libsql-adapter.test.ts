@@ -36,7 +36,7 @@ import {
 function createLibsqlRunner(
 	options: { path?: string; intMode?: 'number' | 'string' | 'bigint' } = {},
 ): LibsqlRunner {
-	const dir = options.path ? undefined : mkdtempSync(join(tmpdir(), 'flue-libsql-'));
+	const dir = options.path ? undefined : mkdtempSync(join(tmpdir(), 'bapX-libsql-'));
 	const path = options.path ?? join(dir ?? tmpdir(), 'test.db');
 	const client = createClient({ url: `file:${path}`, intMode: options.intMode });
 	const toRows = (rs: {
@@ -253,35 +253,35 @@ describe('libsql() PersistenceAdapter', () => {
 		const adapter = libsql(runner);
 		await adapter.migrate?.();
 
-		const rows = await runner.query(`SELECT value FROM flue_meta WHERE key = 'schema_version'`);
+		const rows = await runner.query(`SELECT value FROM bapX_meta WHERE key = 'schema_version'`);
 		expect(rows).toEqual([{ value: '5' }]);
 
-		await runner.query(`UPDATE flue_meta SET value = '1' WHERE key = 'schema_version'`);
+		await runner.query(`UPDATE bapX_meta SET value = '1' WHERE key = 'schema_version'`);
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);
-		await runner.query(`UPDATE flue_meta SET value = '999' WHERE key = 'schema_version'`);
+		await runner.query(`UPDATE bapX_meta SET value = '999' WHERE key = 'schema_version'`);
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);
 
 		if (!adapter.close) throw new Error('Expected adapter.close to be defined.');
 		await adapter.close();
 	});
 
-	it('rejects unversioned Flue persistence without stamping it', async () => {
+	it('rejects unversioned Bapx persistence without stamping it', async () => {
 		const runner = createLibsqlRunner();
-		await runner.query(`CREATE TABLE flue_runs (run_id TEXT PRIMARY KEY)`);
+		await runner.query(`CREATE TABLE bapX_runs (run_id TEXT PRIMARY KEY)`);
 		const adapter = libsql(runner);
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);
 		expect(
-			await runner.query(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'flue_meta'`),
+			await runner.query(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'bapX_meta'`),
 		).toEqual([]);
 		await adapter.close?.();
 	});
 
 	it('rejects schema v2 persistence without migrating it', async () => {
 		const runner = createLibsqlRunner();
-		await runner.query(`CREATE TABLE flue_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`);
-		await runner.query(`INSERT INTO flue_meta (key, value) VALUES ('schema_version', '2')`);
+		await runner.query(`CREATE TABLE bapX_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`);
+		await runner.query(`INSERT INTO bapX_meta (key, value) VALUES ('schema_version', '2')`);
 		await runner.query(`
-			CREATE TABLE flue_runs (
+			CREATE TABLE bapX_runs (
 				run_id TEXT PRIMARY KEY,
 				workflow_name TEXT NOT NULL,
 				status TEXT NOT NULL,
@@ -296,7 +296,7 @@ describe('libsql() PersistenceAdapter', () => {
 		`);
 		const adapter = libsql(runner);
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);
-		expect(await runner.query(`SELECT value FROM flue_meta WHERE key = 'schema_version'`)).toEqual([
+		expect(await runner.query(`SELECT value FROM bapX_meta WHERE key = 'schema_version'`)).toEqual([
 			{ value: '2' },
 		]);
 		await adapter.close?.();
@@ -304,10 +304,10 @@ describe('libsql() PersistenceAdapter', () => {
 
 	it('rejects schema v3 run tables without repairing them', async () => {
 		const runner = createLibsqlRunner();
-		await runner.query(`CREATE TABLE flue_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`);
-		await runner.query(`INSERT INTO flue_meta (key, value) VALUES ('schema_version', '3')`);
+		await runner.query(`CREATE TABLE bapX_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`);
+		await runner.query(`INSERT INTO bapX_meta (key, value) VALUES ('schema_version', '3')`);
 		await runner.query(`
-			CREATE TABLE flue_runs (
+			CREATE TABLE bapX_runs (
 				run_id TEXT PRIMARY KEY,
 				workflow_name TEXT NOT NULL,
 				status TEXT NOT NULL,
@@ -322,7 +322,7 @@ describe('libsql() PersistenceAdapter', () => {
 		`);
 		const adapter = libsql(runner);
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);
-		const columns = await runner.query(`PRAGMA table_info(flue_runs)`);
+		const columns = await runner.query(`PRAGMA table_info(bapX_runs)`);
 		expect(columns.map((column) => column.name)).not.toEqual(
 			expect.arrayContaining(['traceparent', 'tracestate']),
 		);

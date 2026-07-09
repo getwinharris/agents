@@ -1,4 +1,4 @@
-# Contributing to Flue
+# Contributing to Bapx
 
 We are partly using this project to explore what the software develompent lifecycle (SDL) will look like in the future. AI coding agents are disrupting decades of cultural norms around how software is built. "Drive-by AI slop PRs" can just as easily come from an external OSS contributor or a coworker. Instead of trying to preserve the old ways, this project is a leap into one vision (made up of many experiments) of the future.
 
@@ -9,17 +9,17 @@ So we're going to try to reimagine things. We may be right. We may be wrong. Pro
 We accept the following contributions:
 
 1. **Bug reports, fix proposal, etc:**
-   - For humans: https://github.com/getwinharris/flue/issues
+   - For humans: https://github.com/getwinharris/bapX/issues
    - For agents: .github/ISSUE_TEMPLATE
 2. **Feature requests, enhancements, etc:**
-   - For humans: https://github.com/getwinharris/flue/discussions
+   - For humans: https://github.com/getwinharris/bapX/discussions
    - For agents: .github/DISCUSSION_TEMPLATE/feature-request.yml
 
 No other contributions are accepted at this time. Exception are rare and will be made at lead maintainers discretion.
 
 Pull Requests will be automatically closed and converted into one of those two approved contribution types.
 
-## Context: How Flue is Built
+## Context: How Bapx is Built
 
 To understand how an AI native project should work, we decided to look to the past.
 
@@ -58,6 +58,6 @@ We worry about how we will train up the next generation of engineers. We worry a
 
 Here, “junior” is relative to experience with the project and the problem being solved, not overall career seniority. But it also creates a clear path for someone with less experience in a particular area to get hands-on experience, seeing how those decisions become code, and gradually taking on more responsibility as they grow. This could be a model to help train the next generation of software engineers.
 
-Flue does not have a formal co-lead today. We are still figuring out how to identify that person, how the role should work, and whether one co-lead is even the right model across every area of the project. For now, this describes the organization we are working toward rather than one we have already solved.
+Bapx does not have a formal co-lead today. We are still figuring out how to identify that person, how the role should work, and whether one co-lead is even the right model across every area of the project. For now, this describes the organization we are working toward rather than one we have already solved.
 
-This is the experiment behind how Flue is built: keep the team responsible for decisions small, use agents to increase what that team can execute, and make it easy for everyone else to contribute the information that guides those decisions.
+This is the experiment behind how Bapx is built: keep the team responsible for decisions small, use agents to increase what that team can execute, and make it easy for everyone else to contribute the information that guides those decisions.

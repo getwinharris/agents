@@ -19,7 +19,7 @@ function queryRows(result: unknown): Record<string, unknown>[] {
 
 async function createMysqlRunner(): Promise<{ runner: MysqlRunner; pool: Pool; database: string }> {
 	if (!mysqlUrl) throw new Error('TEST_MYSQL_URL is required.');
-	const database = `flue_test_${crypto.randomUUID().replaceAll('-', '')}`;
+	const database = `bapX_test_${crypto.randomUUID().replaceAll('-', '')}`;
 	const admin = mysql2.createPool(mysqlUrl);
 	await admin.query(`CREATE DATABASE \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_bin`);
 	await admin.end();
@@ -148,23 +148,23 @@ describeMysql('mysql()', () => {
 		const { runner } = await createMysqlRunner();
 		const adapter = mysql(runner);
 		await adapter.migrate?.();
-		await runner.query(`UPDATE flue_meta SET value = '999' WHERE \`key\` = 'schema_version'`);
-		await runner.query('DROP TABLE flue_event_stream_entries');
+		await runner.query(`UPDATE bapX_meta SET value = '999' WHERE \`key\` = 'schema_version'`);
+		await runner.query('DROP TABLE bapX_event_stream_entries');
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);
 		const rows = await runner.query(
-			`SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'flue_event_stream_entries'`,
+			`SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bapX_event_stream_entries'`,
 		);
 		expect(rows).toEqual([]);
 		await adapter.close?.();
 	});
 
-	it('rejects unversioned Flue persistence without stamping it when a backend is available', async () => {
+	it('rejects unversioned Bapx persistence without stamping it when a backend is available', async () => {
 		const { runner } = await createMysqlRunner();
 		const adapter = mysql(runner);
-		await runner.query(`CREATE TABLE flue_runs (run_id VARCHAR(255) PRIMARY KEY) ENGINE=InnoDB`);
+		await runner.query(`CREATE TABLE bapX_runs (run_id VARCHAR(255) PRIMARY KEY) ENGINE=InnoDB`);
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);
 		const meta = await runner.query(
-			`SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'flue_meta'`,
+			`SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bapX_meta'`,
 		);
 		expect(meta).toEqual([]);
 		await adapter.close?.();
@@ -174,14 +174,14 @@ describeMysql('mysql()', () => {
 		const { runner } = await createMysqlRunner();
 		const adapter = mysql(runner);
 		await adapter.migrate?.();
-		await runner.query('ALTER TABLE flue_runs DROP COLUMN traceparent, DROP COLUMN tracestate');
-		await runner.query(`UPDATE flue_meta SET value = '2' WHERE \`key\` = 'schema_version'`);
+		await runner.query('ALTER TABLE bapX_runs DROP COLUMN traceparent, DROP COLUMN tracestate');
+		await runner.query(`UPDATE bapX_meta SET value = '2' WHERE \`key\` = 'schema_version'`);
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);
 		const columns = await runner.query(
-			`SELECT COLUMN_NAME AS column_name FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'flue_runs' AND COLUMN_NAME IN ('traceparent', 'tracestate')`,
+			`SELECT COLUMN_NAME AS column_name FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bapX_runs' AND COLUMN_NAME IN ('traceparent', 'tracestate')`,
 		);
 		expect(columns).toEqual([]);
-		const versions = await runner.query(`SELECT value FROM flue_meta WHERE \`key\` = 'schema_version'`);
+		const versions = await runner.query(`SELECT value FROM bapX_meta WHERE \`key\` = 'schema_version'`);
 		expect(versions).toEqual([{ value: '2' }]);
 		await adapter.close?.();
 	});
@@ -190,11 +190,11 @@ describeMysql('mysql()', () => {
 		const { runner } = await createMysqlRunner();
 		const adapter = mysql(runner);
 		await adapter.migrate?.();
-		await runner.query('ALTER TABLE flue_runs DROP COLUMN traceparent, DROP COLUMN tracestate');
-		await runner.query(`UPDATE flue_meta SET value = '3' WHERE \`key\` = 'schema_version'`);
+		await runner.query('ALTER TABLE bapX_runs DROP COLUMN traceparent, DROP COLUMN tracestate');
+		await runner.query(`UPDATE bapX_meta SET value = '3' WHERE \`key\` = 'schema_version'`);
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);
 		const columns = await runner.query(
-			`SELECT COLUMN_NAME AS column_name FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'flue_runs' AND COLUMN_NAME IN ('traceparent', 'tracestate')`,
+			`SELECT COLUMN_NAME AS column_name FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bapX_runs' AND COLUMN_NAME IN ('traceparent', 'tracestate')`,
 		);
 		expect(columns).toEqual([]);
 		await adapter.close?.();
@@ -205,11 +205,11 @@ describeMysql('mysql()', () => {
 		const adapter = mysql(runner);
 		await adapter.migrate?.();
 		const engines = await runner.query(
-			`SELECT DISTINCT ENGINE AS engine FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME LIKE 'flue\\_%'`,
+			`SELECT DISTINCT ENGINE AS engine FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME LIKE 'bapX\\_%'`,
 		);
 		expect(engines).toEqual([{ engine: 'InnoDB' }]);
 		const columns = await runner.query(
-			`SELECT COLLATION_NAME AS collation_name FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'flue_agent_submissions' AND COLUMN_NAME IN ('submission_id', 'session_key')`,
+			`SELECT COLLATION_NAME AS collation_name FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bapX_agent_submissions' AND COLUMN_NAME IN ('submission_id', 'session_key')`,
 		);
 		expect(columns.every((row) => row.collation_name === 'utf8mb4_bin')).toBe(true);
 		await adapter.close?.();
@@ -251,11 +251,11 @@ describeMysql('mysql()', () => {
 		const { runner } = await createMysqlRunner();
 		const adapter = mysql(runner);
 		await runner.query(
-			`CREATE TABLE flue_agent_submissions (sequence BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, submission_id VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL, session_key VARCHAR(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL, kind VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL, payload LONGTEXT NOT NULL, status VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL, accepted_at BIGINT NOT NULL, attempt_id VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin, input_applied_at BIGINT, recovery_requested_at BIGINT, started_at BIGINT, settled_at BIGINT, error LONGTEXT, attempt_count INT NOT NULL DEFAULT 0, max_retry INT NOT NULL DEFAULT 10, timeout_at BIGINT NOT NULL DEFAULT 0, owner_id VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin, lease_expires_at BIGINT NOT NULL DEFAULT 0, INDEX flue_agent_submissions_status_sequence_idx (status, sequence), INDEX flue_agent_submissions_session_status_sequence_idx (session_key, status, sequence)) ENGINE=InnoDB`,
+			`CREATE TABLE bapX_agent_submissions (sequence BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, submission_id VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL, session_key VARCHAR(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL, kind VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL, payload LONGTEXT NOT NULL, status VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL, accepted_at BIGINT NOT NULL, attempt_id VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin, input_applied_at BIGINT, recovery_requested_at BIGINT, started_at BIGINT, settled_at BIGINT, error LONGTEXT, attempt_count INT NOT NULL DEFAULT 0, max_retry INT NOT NULL DEFAULT 10, timeout_at BIGINT NOT NULL DEFAULT 0, owner_id VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin, lease_expires_at BIGINT NOT NULL DEFAULT 0, INDEX bapX_agent_submissions_status_sequence_idx (status, sequence), INDEX bapX_agent_submissions_session_status_sequence_idx (session_key, status, sequence)) ENGINE=InnoDB`,
 		);
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);
 		const rows = await runner.query(
-			`SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'flue_meta'`,
+			`SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bapX_meta'`,
 		);
 		expect(rows).toEqual([]);
 		await adapter.close?.();

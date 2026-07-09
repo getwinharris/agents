@@ -1,12 +1,12 @@
 import type { BackoffOptions } from '@durable-streams/client';
 import type { HttpClient } from '../http.ts';
-import type { FlueEvent, RunRecord } from '../types.ts';
+import type { BapxEvent, RunRecord } from '../types.ts';
 import {
 	type ConversationStreamChunk,
 	assertConversationStreamChunk,
 } from './conversation-stream.ts';
 import type { AgentSendResult } from './invoke.ts';
-import { createFlueEventStream } from './stream.ts';
+import { createBapxEventStream } from './stream.ts';
 
 export interface AgentWaitOptions {
 	signal?: AbortSignal;
@@ -22,7 +22,7 @@ export interface WorkflowRunOptions {
 	input?: unknown;
 	signal?: AbortSignal;
 	backoffOptions?: BackoffOptions;
-	onEvent?: (event: FlueEvent) => void | Promise<void>;
+	onEvent?: (event: BapxEvent) => void | Promise<void>;
 }
 
 export interface WorkflowRunResult<TResult = unknown> {
@@ -30,23 +30,23 @@ export interface WorkflowRunResult<TResult = unknown> {
 	result: TResult;
 }
 
-export type FlueExecutionTarget = 'agent_submission' | 'workflow_run';
-export type FlueExecutionFailure = 'failed' | 'aborted' | 'terminal_event_missing';
+export type BapxExecutionTarget = 'agent_submission' | 'workflow_run';
+export type BapxExecutionFailure = 'failed' | 'aborted' | 'terminal_event_missing';
 
-export class FlueExecutionError extends Error {
-	readonly target: FlueExecutionTarget;
+export class BapxExecutionError extends Error {
+	readonly target: BapxExecutionTarget;
 	readonly targetId: string;
-	readonly failure: FlueExecutionFailure;
+	readonly failure: BapxExecutionFailure;
 	readonly error: unknown;
 
 	constructor(options: {
-		target: FlueExecutionTarget;
+		target: BapxExecutionTarget;
 		targetId: string;
-		failure: FlueExecutionFailure;
+		failure: BapxExecutionFailure;
 		error?: unknown;
 	}) {
 		super(executionErrorMessage(options));
-		this.name = 'FlueExecutionError';
+		this.name = 'BapxExecutionError';
 		this.target = options.target;
 		this.targetId = options.targetId;
 		this.failure = options.failure;
@@ -61,7 +61,7 @@ export async function waitForAgentSubmission(
 ): Promise<void> {
 	const url = new URL(admission.streamUrl);
 	url.searchParams.set('view', 'updates');
-	const stream = createFlueEventStream<ConversationStreamChunk>(
+	const stream = createBapxEventStream<ConversationStreamChunk>(
 		{
 			offset: admission.offset,
 			signal: options.signal,
@@ -77,7 +77,7 @@ export async function waitForAgentSubmission(
 		if (chunk.type !== 'submission-settled') continue;
 		if (chunk.submissionId !== admission.submissionId) continue;
 		if (chunk.outcome === 'completed') return;
-		throw new FlueExecutionError({
+		throw new BapxExecutionError({
 			target: 'agent_submission',
 			targetId: admission.submissionId,
 			failure: chunk.outcome === 'aborted' ? 'aborted' : 'failed',
@@ -86,7 +86,7 @@ export async function waitForAgentSubmission(
 	}
 
 	throwIfAborted(options.signal);
-	throw new FlueExecutionError({
+	throw new BapxExecutionError({
 		target: 'agent_submission',
 		targetId: admission.submissionId,
 		failure: 'terminal_event_missing',
@@ -104,7 +104,7 @@ export async function runWorkflow<TResult>(
 		body: options.input,
 		signal: options.signal,
 	});
-	const stream = createFlueEventStream<FlueEvent>(
+	const stream = createBapxEventStream<BapxEvent>(
 		{ signal: options.signal, backoffOptions: options.backoffOptions },
 		{
 			url: http.url(`/runs/${encodeURIComponent(admission.runId)}`),
@@ -117,7 +117,7 @@ export async function runWorkflow<TResult>(
 		throwIfAborted(options.signal);
 		if (event.type !== 'run_end' || event.runId !== admission.runId) continue;
 		if (!event.isError) return { runId: admission.runId, result: event.result as TResult };
-		throw new FlueExecutionError({
+		throw new BapxExecutionError({
 			target: 'workflow_run',
 			targetId: admission.runId,
 			failure: 'failed',
@@ -134,14 +134,14 @@ export async function runWorkflow<TResult>(
 		return { runId: admission.runId, result: record.result as TResult };
 	}
 	if (record.status === 'errored') {
-		throw new FlueExecutionError({
+		throw new BapxExecutionError({
 			target: 'workflow_run',
 			targetId: admission.runId,
 			failure: 'failed',
 			error: record.error,
 		});
 	}
-	throw new FlueExecutionError({
+	throw new BapxExecutionError({
 		target: 'workflow_run',
 		targetId: admission.runId,
 		failure: 'terminal_event_missing',
@@ -153,9 +153,9 @@ function throwIfAborted(signal?: AbortSignal): void {
 }
 
 function executionErrorMessage(options: {
-	target: FlueExecutionTarget;
+	target: BapxExecutionTarget;
 	targetId: string;
-	failure: FlueExecutionFailure;
+	failure: BapxExecutionFailure;
 	error?: unknown;
 }): string {
 	const target = options.target === 'agent_submission' ? 'Agent submission' : 'Workflow run';

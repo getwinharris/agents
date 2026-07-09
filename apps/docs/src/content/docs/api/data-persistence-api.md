@@ -1,6 +1,6 @@
 ---
 title: Data Persistence API
-description: Reference for Flue persistence adapters and stores.
+description: Reference for Bapx persistence adapters and stores.
 ---
 
 Adapter authors implement these contracts to back a custom database. Import them from `@bapX/runtime/adapter`:
@@ -40,11 +40,11 @@ interface PersistenceStores {
 }
 ```
 
-Flue calls `migrate()` once at startup when present, then awaits `connect()` once. An unreachable or misconfigured database therefore fails at boot. Flue calls `close()` during shutdown when present.
+Bapx calls `migrate()` once at startup when present, then awaits `connect()` once. An unreachable or misconfigured database therefore fails at boot. Bapx calls `close()` during shutdown when present.
 
 ### Schema versioning
 
-An adapter must record its schema or format version when creating storage and reject every mismatch before reading or writing data. The current pre-1.0 format is schema v7 and is reset-only: clear stores created by another version rather than attempting an in-place migration. Use `FLUE_SCHEMA_VERSION`, `assertSupportedFlueSchemaVersion()`, and `PersistedSchemaVersionError` from `@bapX/runtime/adapter`.
+An adapter must record its schema or format version when creating storage and reject every mismatch before reading or writing data. The current pre-1.0 format is schema v7 and is reset-only: clear stores created by another version rather than attempting an in-place migration. Use `FLUE_SCHEMA_VERSION`, `assertSupportedBapxSchemaVersion()`, and `PersistedSchemaVersionError` from `@bapX/runtime/adapter`.
 
 ## `AgentExecutionStore`
 
@@ -145,7 +145,7 @@ Use `formatOffset()` and `parseOffset()` for Durable Streams offsets. `nextOffse
 import { getRun, listAgents, listRuns } from '@bapX/runtime';
 ```
 
-These server-side functions read the configured stores and deployment manifest. Flue does not expose an inspection HTTP surface automatically; applications may compose authorized endpoints with them.
+These server-side functions read the configured stores and deployment manifest. Bapx does not expose an inspection HTTP surface automatically; applications may compose authorized endpoints with them.
 
 ## Validating an adapter
 

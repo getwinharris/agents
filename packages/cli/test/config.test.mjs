@@ -17,7 +17,7 @@ import { sanitizedChildEnv } from './child-env.mjs';
 // provider" regardless of what the developer's shell exports.
 const childEnv = sanitizedChildEnv();
 
-const cli = new URL('../dist/flue.js', import.meta.url);
+const cli = new URL('../dist/bapX.js', import.meta.url);
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const fixtureRoots = [];
 
@@ -27,29 +27,29 @@ process.on('exit', () => {
 
 describe('resolveConfig()', () => {
 	describe('source-layout selection', () => {
-		it('resolves sourceRoot to the project root when neither .flue/ nor src/ exists', async () => {
+		it('resolves sourceRoot to the project root when neither .bapX/ nor src/ exists', async () => {
 			const root = createFixtureRoot();
-			const { flueConfig } = await resolveConfig({ cwd: root, inline: { target: 'node' } });
-			assert.equal(flueConfig.root, root);
-			assert.equal(flueConfig.sourceRoot, root);
+			const { bapXConfig } = await resolveConfig({ cwd: root, inline: { target: 'node' } });
+			assert.equal(bapXConfig.root, root);
+			assert.equal(bapXConfig.sourceRoot, root);
 		});
 
-		it('resolves sourceRoot to src/ when src/ exists and .flue/ does not', async () => {
+		it('resolves sourceRoot to src/ when src/ exists and .bapX/ does not', async () => {
 			const root = createFixtureRoot();
 			fs.mkdirSync(path.join(root, 'src'));
 			fs.mkdirSync(path.join(root, 'workflows'));
-			const { flueConfig } = await resolveConfig({ cwd: root, inline: { target: 'node' } });
-			assert.equal(flueConfig.sourceRoot, path.join(root, 'src'));
+			const { bapXConfig } = await resolveConfig({ cwd: root, inline: { target: 'node' } });
+			assert.equal(bapXConfig.sourceRoot, path.join(root, 'src'));
 		});
 
-		it('resolves sourceRoot to .flue/ when .flue/ exists alongside src/ and bare dirs', async () => {
+		it('resolves sourceRoot to .bapX/ when .bapX/ exists alongside src/ and bare dirs', async () => {
 			const root = createFixtureRoot();
-			fs.mkdirSync(path.join(root, '.flue'));
+			fs.mkdirSync(path.join(root, '.bapX'));
 			fs.mkdirSync(path.join(root, 'src'));
 			fs.mkdirSync(path.join(root, 'agents'));
 			fs.mkdirSync(path.join(root, 'workflows'));
-			const { flueConfig } = await resolveConfig({ cwd: root, inline: { target: 'node' } });
-			assert.equal(flueConfig.sourceRoot, path.join(root, '.flue'));
+			const { bapXConfig } = await resolveConfig({ cwd: root, inline: { target: 'node' } });
+			assert.equal(bapXConfig.sourceRoot, path.join(root, '.bapX'));
 		});
 	});
 
@@ -62,7 +62,7 @@ describe('resolveConfig()', () => {
 		it('rejects a config file with an unknown field', async () => {
 			const root = createFixtureRoot();
 			fs.writeFileSync(
-				path.join(root, 'flue.config.mjs'),
+				path.join(root, 'bapX.config.mjs'),
 				`export default { target: 'node', bogus: true };\n`,
 			);
 			await assert.rejects(resolveConfig({ cwd: root }), /Invalid config/);
@@ -70,14 +70,14 @@ describe('resolveConfig()', () => {
 
 		it('rejects a config file with an invalid target value', async () => {
 			const root = createFixtureRoot();
-			fs.writeFileSync(path.join(root, 'flue.config.mjs'), `export default { target: 'deno' };\n`);
+			fs.writeFileSync(path.join(root, 'bapX.config.mjs'), `export default { target: 'deno' };\n`);
 			await assert.rejects(resolveConfig({ cwd: root }), /Invalid config/);
 		});
 
 		it('loads a named Vite config export', async () => {
 			const root = createFixtureRoot();
 			fs.writeFileSync(
-				path.join(root, 'flue.config.mjs'),
+				path.join(root, 'bapX.config.mjs'),
 				`export default { target: 'node' };\nexport const vite = { server: { watch: { ignored: ['**/evals/results/**'] } } };\n`,
 			);
 
@@ -104,7 +104,7 @@ describe('resolveConfig()', () => {
 
 		it('rejects a config file whose default export is not an object', async () => {
 			const root = createFixtureRoot();
-			fs.writeFileSync(path.join(root, 'flue.config.mjs'), `export default 'node';\n`);
+			fs.writeFileSync(path.join(root, 'bapX.config.mjs'), `export default 'node';\n`);
 			await assert.rejects(
 				resolveConfig({ cwd: root }),
 				/must export a config object as the default export/,
@@ -113,7 +113,7 @@ describe('resolveConfig()', () => {
 	});
 });
 
-describe('flue run', () => {
+describe('bapX run', () => {
 	it('accepts omitted --input for a no-input Workflow Definition', async () => {
 		const root = createNoInputWorkflowFixture();
 		const child = spawn(process.execPath, [cli.pathname, 'run', 'no-input'], {
@@ -177,7 +177,7 @@ describe('flue run', () => {
 	it('runs a route-free agent over HTTP and prints its generated instance ID', async () => {
 		const root = createFixtureRoot();
 		linkRuntime(root);
-		fs.writeFileSync(path.join(root, 'flue.config.mjs'), `export default { target: 'node' };\n`);
+		fs.writeFileSync(path.join(root, 'bapX.config.mjs'), `export default { target: 'node' };\n`);
 		fs.mkdirSync(path.join(root, 'agents'));
 		fs.writeFileSync(
 			path.join(root, 'agents', 'assistant.mjs'),
@@ -212,7 +212,7 @@ describe('flue run', () => {
 	it('runs a Node fixture with a project dependency without writing runtime artifacts', async () => {
 		const root = createWorkflowFixture();
 		const temporaryEntriesBefore = new Set(
-			fs.readdirSync(os.tmpdir()).filter((entry) => entry.startsWith('flue-run-')),
+			fs.readdirSync(os.tmpdir()).filter((entry) => entry.startsWith('bapX-run-')),
 		);
 		const child = spawn(
 			process.execPath,
@@ -233,11 +233,11 @@ describe('flue run', () => {
 		const [exitCode] = await once(child, 'exit');
 		const temporaryEntriesAfter = fs
 			.readdirSync(os.tmpdir())
-			.filter((entry) => entry.startsWith('flue-run-'));
+			.filter((entry) => entry.startsWith('bapX-run-'));
 
 		assert.equal(exitCode, 0, stderr);
 		assert.equal(fs.existsSync(path.join(root, 'dist')), false);
-		assert.equal(fs.existsSync(path.join(root, '.flue-vite')), false);
+		assert.equal(fs.existsSync(path.join(root, '.bapX-vite')), false);
 		assert.equal(fs.existsSync(path.join(root, 'node_modules', '.vite')), false);
 		assert.deepEqual(
 			temporaryEntriesAfter.filter((entry) => !temporaryEntriesBefore.has(entry)),
@@ -269,10 +269,10 @@ describe('flue run', () => {
 	});
 });
 
-describe('flue build', () => {
+describe('bapX build', () => {
 	it('rejects a project that contains channels but no agents or workflows', async () => {
 		const root = createFixtureRoot();
-		fs.writeFileSync(path.join(root, 'flue.config.mjs'), `export default { target: 'node' };\n`);
+		fs.writeFileSync(path.join(root, 'bapX.config.mjs'), `export default { target: 'node' };\n`);
 		fs.mkdirSync(path.join(root, 'channels'));
 		fs.writeFileSync(
 			path.join(root, 'channels', 'custom.mjs'),
@@ -298,27 +298,27 @@ describe('flue build', () => {
 		assert.equal(fs.existsSync(path.join(root, 'dist', 'server.mjs')), false);
 	});
 
-	it('discovers agents and workflows from .flue/ and ignores the bare layout when .flue/ exists', async () => {
+	it('discovers agents and workflows from .bapX/ and ignores the bare layout when .bapX/ exists', async () => {
 		const root = createFixtureRoot();
 		linkRuntime(root);
-		fs.writeFileSync(path.join(root, 'flue.config.mjs'), `export default { target: 'node' };\n`);
+		fs.writeFileSync(path.join(root, 'bapX.config.mjs'), `export default { target: 'node' };\n`);
 
-		fs.mkdirSync(path.join(root, '.flue', 'agents'), { recursive: true });
-		fs.mkdirSync(path.join(root, '.flue', 'workflows'), { recursive: true });
+		fs.mkdirSync(path.join(root, '.bapX', 'agents'), { recursive: true });
+		fs.mkdirSync(path.join(root, '.bapX', 'workflows'), { recursive: true });
 		fs.writeFileSync(
-			path.join(root, '.flue', 'agents', 'helper.mjs'),
+			path.join(root, '.bapX', 'agents', 'helper.mjs'),
 			`import { defineAgent, defineAgentProfile } from '@bapX/runtime';\n` +
 				`const profile = defineAgentProfile({ instructions: 'helper' });\n` +
 				`export default defineAgent(() => ({ profile }));\n`,
 		);
 		fs.writeFileSync(
-			path.join(root, '.flue', 'workflows', 'inner.mjs'),
+			path.join(root, '.bapX', 'workflows', 'inner.mjs'),
 			`import { defineAgent, defineWorkflow } from '@bapX/runtime';\n` +
 				`const agent = defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n` +
 				`export default defineWorkflow({ agent, async run() { return { ok: true }; } });\n`,
 		);
 
-		// Bare layout that must be ignored because .flue/ exists.
+		// Bare layout that must be ignored because .bapX/ exists.
 		fs.mkdirSync(path.join(root, 'agents'));
 		fs.mkdirSync(path.join(root, 'workflows'));
 		fs.writeFileSync(
@@ -348,8 +348,8 @@ describe('flue build', () => {
 		}
 		const [exitCode] = await once(child, 'exit');
 
-		assert.equal(exitCode, 0, `flue build failed:\n\n${output}`);
-		assert.match(output, /source\s+\.flue/);
+		assert.equal(exitCode, 0, `bapX build failed:\n\n${output}`);
+		assert.match(output, /source\s+\.bapX/);
 		assert.match(output, /agents\s+helper/s);
 		assert.match(output, /workflows\s+inner/s);
 		assert.doesNotMatch(output, /stray/);
@@ -359,7 +359,7 @@ describe('flue build', () => {
 });
 
 function createFixtureRoot() {
-	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'flue-cli-config-'));
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapX-cli-config-'));
 	fixtureRoots.push(root);
 	return root;
 }
@@ -367,7 +367,7 @@ function createFixtureRoot() {
 function createNoInputWorkflowFixture() {
 	const root = createFixtureRoot();
 	linkRuntime(root);
-	fs.writeFileSync(path.join(root, 'flue.config.mjs'), `export default { target: 'node' };\n`);
+	fs.writeFileSync(path.join(root, 'bapX.config.mjs'), `export default { target: 'node' };\n`);
 	fs.mkdirSync(path.join(root, 'workflows'));
 	fs.writeFileSync(
 		path.join(root, 'workflows', 'no-input.mjs'),
@@ -381,7 +381,7 @@ function createNoInputWorkflowFixture() {
 function createWorkflowFixture(optionalInput = false) {
 	const root = createFixtureRoot();
 	linkRuntime(root);
-	fs.writeFileSync(path.join(root, 'flue.config.mjs'), `export default { target: 'node' };\n`);
+	fs.writeFileSync(path.join(root, 'bapX.config.mjs'), `export default { target: 'node' };\n`);
 	fs.mkdirSync(path.join(root, 'workflows'));
 	fs.writeFileSync(
 		path.join(root, 'workflows', 'inspect-input.mjs'),
@@ -403,7 +403,7 @@ function createWorkflowFixture(optionalInput = false) {
 }
 
 function linkRuntime(root) {
-	const scope = path.join(root, 'node_modules', '@flue');
+	const scope = path.join(root, 'node_modules', '@bapX');
 	fs.mkdirSync(scope, { recursive: true });
 	fs.symlinkSync(
 		path.join(repositoryRoot, 'packages', 'runtime'),

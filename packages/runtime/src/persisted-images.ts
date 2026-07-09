@@ -5,7 +5,7 @@ import type { PromptImage } from './types.ts';
 export { MAX_IMAGE_DATA_LENGTH };
 export const IMAGE_DATA_CHUNK_LENGTH = 256 * 1024;
 
-const markerPrefix = '__flue_image_chunks__:';
+const markerPrefix = '__bapX_image_chunks__:';
 
 type ImageBlock = PromptImage | (Omit<PromptImage, 'data'> & { data: string });
 export interface PersistedImageChunk {
@@ -30,7 +30,7 @@ export interface ExtractedImages<T> {
 export function assertImagesWithinLimit(images: readonly PromptImage[] | undefined): void {
 	for (const image of images ?? []) {
 		if (image.data.length > MAX_IMAGE_DATA_LENGTH) {
-			throw new Error(`[flue] Image data exceeds the ${MAX_IMAGE_DATA_LENGTH} character limit.`);
+			throw new Error(`[bapX] Image data exceeds the ${MAX_IMAGE_DATA_LENGTH} character limit.`);
 		}
 	}
 }
@@ -91,7 +91,7 @@ function extractImageBlocks(blocks: unknown[]): ExtractedImages<unknown[]> {
 	const value = blocks.map((block) => {
 		if (!isImageBlock(block)) return block;
 		if (block.data.length > MAX_IMAGE_DATA_LENGTH) {
-			throw new Error(`[flue] Image data exceeds the ${MAX_IMAGE_DATA_LENGTH} character limit.`);
+			throw new Error(`[bapX] Image data exceeds the ${MAX_IMAGE_DATA_LENGTH} character limit.`);
 		}
 		const imageId = String(imageIndex++);
 		const count = Math.max(1, Math.ceil(block.data.length / IMAGE_DATA_CHUNK_LENGTH));

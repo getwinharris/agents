@@ -9,7 +9,7 @@ import {
 } from '../src/index.ts';
 
 const encoder = new TextEncoder();
-const SIGNING_SECRET = 'flue-zendesk-node-signing-secret';
+const SIGNING_SECRET = 'bapX-zendesk-node-signing-secret';
 const ACCOUNT_ID = '9223372036854775807';
 const WEBHOOK_ID = '01JZF1K8VZ4K69KR9S72AM1TCD';
 const TIMESTAMP = '2026-06-13T23:52:17Z';

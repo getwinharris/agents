@@ -1,6 +1,6 @@
 # `@bapX/discord`
 
-Verified Discord HTTP interactions ingress for Flue applications.
+Verified Discord HTTP interactions ingress for Bapx applications.
 
 ```ts
 import { createDiscordChannel, type APIInteractionResponse } from '@bapX/discord';
@@ -19,8 +19,8 @@ export const channel = createDiscordChannel({
 });
 ```
 
-Place this export in `channels/discord.ts`. Flue discovers it and serves
-`POST /channels/discord/interactions` relative to the `flue()` mount.
+Place this export in `channels/discord.ts`. Bapx discovers it and serves
+`POST /channels/discord/interactions` relative to the `bapX()` mount.
 
 The package verifies Ed25519 signatures over exact request bytes, handles
 PING/PONG internally, and passes authenticated interactions through with
@@ -28,7 +28,7 @@ Discord's field names, nesting, and numeric discriminants. It re-exports the
 Discord API v10 interaction and response types from `discord-api-types`.
 
 This package does not include an outbound Discord client, response builder, or
-model tools. Run `flue add channel discord` to generate editable project code using
+model tools. Run `bapX add channel discord` to generate editable project code using
 `@discordjs/rest` and application-owned `defineTool(...)` values.
 
 Conversation keys identify application-derived guild destinations, bot DMs,

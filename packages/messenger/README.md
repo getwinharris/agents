@@ -1,6 +1,6 @@
 # @bapX/messenger
 
-Verified Facebook Messenger Page ingress for Flue channels.
+Verified Facebook Messenger Page ingress for Bapx channels.
 
 ```ts
 import { createMessengerChannel } from '@bapX/messenger';

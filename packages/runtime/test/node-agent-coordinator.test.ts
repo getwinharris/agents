@@ -13,7 +13,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { defineAgent } from '../src/agent-definition.ts';
 import type { AgentExecutionStore } from '../src/agent-execution-store.ts';
 import type { ConversationRecord } from '../src/conversation-records.ts';
-import { createFlueContext, type DispatchInput, resolveModel } from '../src/internal.ts';
+import { createBapxContext, type DispatchInput, resolveModel } from '../src/internal.ts';
 import {
 	createNodeAgentCoordinator,
 	createNodeDispatchQueue,
@@ -71,7 +71,7 @@ function createFauxProvider(): FauxProviderRegistration {
 }
 
 function createTempDbPath(): string {
-	const dir = mkdtempSync(join(tmpdir(), 'flue-node-coordinator-'));
+	const dir = mkdtempSync(join(tmpdir(), 'bapX-node-coordinator-'));
 	tempDirs.push(dir);
 	return join(dir, 'agent.db');
 }
@@ -110,7 +110,7 @@ async function openExecutionStore(dbPath: string): Promise<AgentExecutionStore> 
 function makeRealCreateContext(): CreateAgentContextFn {
 	const model = resolveModel(REAL_MODEL);
 	return ({ id, request, initialEventIndex, dispatchId }) =>
-		createFlueContext({
+		createBapxContext({
 			id,
 			dispatchId,
 			env: {},
@@ -129,7 +129,7 @@ function makeFauxCreateContext(
 	provider: FauxProviderRegistration,
 ): CreateAgentContextFn {
 	return ({ id, request, initialEventIndex, dispatchId }) =>
-		createFlueContext({
+		createBapxContext({
 			id,
 			dispatchId,
 			env: {},
@@ -1659,7 +1659,7 @@ describe('NodeAgentCoordinator', () => {
 			const response = await handleAgentConversationRead({
 				store: conversationStreamStore,
 				path: agentStreamPath('assistant', 'instance-1'),
-				request: new Request('https://flue.test/agents/assistant/instance-1?view=history'),
+				request: new Request('https://bapX.test/agents/assistant/instance-1?view=history'),
 			});
 			const snapshot = (await response.json()) as {
 				messages: { role: string; submissionId?: string; parts: unknown[] }[];

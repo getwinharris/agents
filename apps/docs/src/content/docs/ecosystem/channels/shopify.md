@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add verified Shopify webhook ingress and application-owned Admin GraphQL behavior to an existing Flue project with the [Shopify](https://shopify.dev) blueprint. Run the following command in your terminal or coding agent of choice:
+Add verified Shopify webhook ingress and application-owned Admin GraphQL behavior to an existing Bapx project with the [Shopify](https://shopify.dev) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel shopify
+bapX add channel shopify
 ```
 
 ## Overview
@@ -66,7 +66,7 @@ The abridged example omits the generated payload parser, order-instance helpers,
 and Admin GraphQL tool. Once configured, an `orders/create` delivery continues
 the agent instance bound to that trusted shop and order, and the tool can
 retrieve that order without letting the model choose a shop, token, or order id.
-The same verified Fetch path runs on Node and Cloudflare Workers with Flue's
+The same verified Fetch path runs on Node and Cloudflare Workers with Bapx's
 `nodejs_compat` setting.
 
 ## Configure
@@ -389,7 +389,7 @@ depend on a live Admin API token.
 ## Cloudflare Workers
 
 The direct Web Crypto verifier and the ordinary Fetch request path from
-`@shopify/admin-api-client@1.1.2` execute in Node and workerd with Flue's
+`@shopify/admin-api-client@1.1.2` execute in Node and workerd with Bapx's
 required `nodejs_compat` configuration. This is evidence for the client
 operation shown here, not a blanket guarantee for the full
 `@shopify/shopify-api` SDK or every helper in the Admin client.

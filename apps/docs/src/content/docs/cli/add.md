@@ -1,19 +1,19 @@
 ---
-title: flue add
-description: Reference for discovering and applying Flue implementation blueprints.
+title: bapX add
+description: Reference for discovering and applying Bapx implementation blueprints.
 lastReviewedAt: 2026-06-14
 ---
 
 ## Synopsis
 
 ```bash
-flue add
-flue add <kind> <name-or-url> [--print]
+bapX add
+bapX add <kind> <name-or-url> [--print]
 ```
 
 ## Description
 
-`flue add` fetches a Markdown implementation blueprint for a coding agent. It does not install packages or write project files itself.
+`bapX add` fetches a Markdown implementation blueprint for a coding agent. It does not install packages or write project files itself.
 
 With no arguments, the command lists known blueprints. With a kind and known name, it fetches that blueprint. With a kind and absolute URL, it fetches the generic blueprint for that kind and uses the URL as the coding agent's research starting point. Paths are not accepted.
 
@@ -39,40 +39,40 @@ With no arguments, the command lists known blueprints. With a kind and known nam
 | `database` | Add a database-backed persistence adapter.                     |
 | `tooling`  | Add developer tooling such as observability or evaluation.     |
 
-Run `flue add` without arguments to list the currently known blueprints.
+Run `bapX add` without arguments to list the currently known blueprints.
 
 ## Examples
 
 ```bash
-flue add
-flue add sandbox daytona --print
-flue add sandbox daytona --print | claude
-flue add channel github --print | codex
-flue add channel stripe --print | codex
-flue add channel notion --print | codex
-flue add channel resend --print | codex
-flue add channel shopify --print | codex
-flue add channel intercom --print | codex
-flue add channel zendesk --print | codex
-flue add channel salesforce-marketing-cloud --print | codex
-flue add channel slack --print | codex
-flue add channel discord --print | codex
-flue add channel teams --print | codex
-flue add channel google-chat --print | codex
-flue add channel linear --print | codex
-flue add channel telegram --print | codex
-flue add channel whatsapp --print | codex
-flue add channel twilio --print | codex
-flue add channel messenger --print | codex
-flue add sandbox @cloudflare/shell --print | opencode
-flue add database postgres --print | codex
-flue add tooling braintrust --print | opencode
-flue add tooling sentry --print | opencode
-flue add tooling vitest-evals --print | opencode
-flue add sandbox https://e2b.dev --print | claude
-flue add channel https://provider.example/webhooks --print | codex
-flue add database https://database.example/docs --print | codex
-flue add tooling https://tool.example/docs --print | opencode
+bapX add
+bapX add sandbox daytona --print
+bapX add sandbox daytona --print | claude
+bapX add channel github --print | codex
+bapX add channel stripe --print | codex
+bapX add channel notion --print | codex
+bapX add channel resend --print | codex
+bapX add channel shopify --print | codex
+bapX add channel intercom --print | codex
+bapX add channel zendesk --print | codex
+bapX add channel salesforce-marketing-cloud --print | codex
+bapX add channel slack --print | codex
+bapX add channel discord --print | codex
+bapX add channel teams --print | codex
+bapX add channel google-chat --print | codex
+bapX add channel linear --print | codex
+bapX add channel telegram --print | codex
+bapX add channel whatsapp --print | codex
+bapX add channel twilio --print | codex
+bapX add channel messenger --print | codex
+bapX add sandbox @cloudflare/shell --print | opencode
+bapX add database postgres --print | codex
+bapX add tooling braintrust --print | opencode
+bapX add tooling sentry --print | opencode
+bapX add tooling vitest-evals --print | opencode
+bapX add sandbox https://e2b.dev --print | claude
+bapX add channel https://provider.example/webhooks --print | codex
+bapX add database https://database.example/docs --print | codex
+bapX add tooling https://tool.example/docs --print | opencode
 ```
 
 See [Sandboxes](/docs/guide/sandboxes/), [Channels](/docs/guide/channels/), and the [Ecosystem](/docs/ecosystem/) for implementation guidance.

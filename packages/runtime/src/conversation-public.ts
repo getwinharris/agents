@@ -20,7 +20,7 @@ interface AgentConversationSettlement {
 
 /**
  * A materialized conversation read at a durable-stream offset. Wire-compatible
- * with @bapX/sdk's `FlueConversationSnapshot`.
+ * with @bapX/sdk's `BapxConversationSnapshot`.
  */
 export interface AgentConversationSnapshot {
 	v: 1;

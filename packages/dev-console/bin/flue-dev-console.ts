@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
-import { createFlueClient } from '@bapX/sdk';
+import { createBapxClient } from '@bapX/sdk';
 import { ulid } from 'ulidx';
 import {
 	type ConsoleResource,
@@ -11,10 +11,10 @@ import { boundedShutdown } from '../src/console-shutdown.ts';
 import { openConsoleUi } from '../src/console-ui.tsx';
 
 const usage = `Usage:
-  flue-dev-console <agent:name|workflow:name> --server <url> [options]
+  bapX-dev-console <agent:name|workflow:name> --server <url> [options]
 
 Options:
-  --server <url>         Absolute URL of the mounted Flue application
+  --server <url>         Absolute URL of the mounted Bapx application
   --id <id>              Agent instance ID; generated when omitted
   --input <json>         Initial agent input or workflow input
   --token <token>        Bearer token sent with every request
@@ -59,9 +59,9 @@ async function main(): Promise<void> {
 		throw new Error('--token cannot be combined with an Authorization header.');
 	}
 	if (!process.stdin.isTTY || !process.stderr.isTTY) {
-		throw new Error('flue-dev-console requires an interactive TTY.');
+		throw new Error('bapX-dev-console requires an interactive TTY.');
 	}
-	const client = createFlueClient({
+	const client = createBapxClient({
 		baseUrl: server,
 		headers,
 		token: values.token,

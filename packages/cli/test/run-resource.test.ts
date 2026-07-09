@@ -11,14 +11,14 @@ afterEach(() => {
 });
 
 function project(files: string[]): string {
-	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'flue-resource-'));
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapX-resource-'));
 	roots.push(root);
 	for (const file of files) {
-		const filePath = path.join(root, '.flue', file);
+		const filePath = path.join(root, '.bapX', file);
 		fs.mkdirSync(path.dirname(filePath), { recursive: true });
 		fs.writeFileSync(filePath, 'export default {};');
 	}
-	return path.join(root, '.flue');
+	return path.join(root, '.bapX');
 }
 
 describe('resolveRunResource()', () => {

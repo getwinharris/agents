@@ -69,7 +69,7 @@ export interface WhatsAppChannelOptions<E extends Env = Env> {
 	webhook(input: WhatsAppWebhookHandlerInput<E>): WhatsAppHandlerResult;
 }
 
-/** Stable WhatsApp destination suitable for a Flue agent-instance id. */
+/** Stable WhatsApp destination suitable for a Bapx agent-instance id. */
 export type WhatsAppConversationRef =
 	| {
 			type: 'individual';

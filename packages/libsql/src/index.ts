@@ -1,5 +1,5 @@
 /**
- * @bapX/libsql — libSQL / Turso persistence adapter for Flue.
+ * @bapX/libsql — libSQL / Turso persistence adapter for Bapx.
  *
  * Provides a {@link PersistenceAdapter} backed by libSQL (Turso, embedded
  * replicas, or a local SQLite file). Bring your own configured `@libsql/client`

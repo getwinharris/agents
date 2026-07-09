@@ -1,6 +1,6 @@
 /**
- * Serves blueprint implementation guides for `flue add <kind> <name>` and
- * `flue add <kind> <url>`.
+ * Serves blueprint implementation guides for `bapX add <kind> <name>` and
+ * `bapX add <kind> <url>`.
  *
  * Source-of-truth files live in the repository's top-level `blueprints/`
  * directory. Named blueprints use `<kind>--<name>.md`; generic kind guides use

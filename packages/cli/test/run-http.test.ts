@@ -27,8 +27,8 @@ describe('resolveServerUrl()', () => {
 	});
 
 	it('uses an absolute server URL as the complete attachment URL', () => {
-		expect(resolveServerUrl('https://example.com/flue', 'http://127.0.0.1:4000')).toBe(
-			'https://example.com/flue',
+		expect(resolveServerUrl('https://example.com/bapX', 'http://127.0.0.1:4000')).toBe(
+			'https://example.com/bapX',
 		);
 	});
 });

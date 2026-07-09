@@ -7,7 +7,7 @@ import type {
 	BashFactory,
 	BashLike,
 	FileStat,
-	FlueFs,
+	BapxFs,
 	SandboxFactory,
 	SessionEnv,
 	ShellResult,
@@ -15,8 +15,8 @@ import type {
 
 export type { SessionEnv } from './types.ts';
 
-/** Adapt a SessionEnv to the public FlueFs surface. */
-export function createFlueFs(env: SessionEnv): FlueFs {
+/** Adapt a SessionEnv to the public BapxFs surface. */
+export function createBapxFs(env: SessionEnv): BapxFs {
 	return {
 		readFile: (path) => env.readFile(path),
 		readFileBuffer: (path) => env.readFileBuffer(path),
@@ -30,7 +30,7 @@ export function createFlueFs(env: SessionEnv): FlueFs {
 }
 
 /**
- * Shared implementation of the `FlueFs.writeFile` parent-creation guarantee.
+ * Shared implementation of the `BapxFs.writeFile` parent-creation guarantee.
  * Every `SessionEnv` adapter (local, bash factory, SandboxApi wrapper) routes
  * writes through here so the cross-mode contract has exactly one
  * implementation.

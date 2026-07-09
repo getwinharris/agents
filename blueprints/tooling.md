@@ -2,16 +2,16 @@
 { "kind": "tooling", "version": 2, "root": true }
 ---
 
-# Generic Flue Tooling Integration
+# Generic Bapx Tooling Integration
 
 ## Goal
 
-You are an AI coding agent adding a developer tool to a Flue project. Tooling is
+You are an AI coding agent adding a developer tool to a Bapx project. Tooling is
 a catchall for integrations such as observability, evaluation, debugging,
 security, and operational services that do not belong to the channel, database,
 or sandbox contracts.
 
-The user invoked `flue add tooling <url>` or `flue update tooling <url>` with
+The user invoked `bapX add tooling <url>` or `bapX update tooling <url>` with
 this research starting point:
 
 `{{URL}}`
@@ -21,7 +21,7 @@ current official documentation, SDK source, and type declarations.
 
 For an update, inspect the current integration before editing. Compare it with
 this refreshed guide, the provider's current primary sources, and the current
-Flue APIs. Apply only relevant changes and preserve project-specific
+Bapx APIs. Apply only relevant changes and preserve project-specific
 customizations. A URL blueprint has no provider-specific version history or
 primary-file marker; do not assume the CLI compared or modified the project.
 
@@ -30,8 +30,8 @@ primary-file marker; do not assume the CLI compared or modified the project.
 Before editing:
 
 1. Read `AGENTS.md` and relevant local instructions.
-2. Detect the package manager and configured Flue target.
-3. Select the first existing source root: `<root>/.flue/`, then `<root>/src/`,
+2. Detect the package manager and configured Bapx target.
+3. Select the first existing source root: `<root>/.bapX/`, then `<root>/src/`,
    then `<root>/`.
 4. Inspect `app.ts`, `agents/`, `workflows/`, target configuration, environment
    types, deployment configuration, and secret conventions.
@@ -59,9 +59,9 @@ Do not treat successful bundling as proof of runtime support. Use the provider's
 runtime-specific SDK rather than forcing a Node package into Cloudflare through
 compatibility shims.
 
-## Integrate with Flue
+## Integrate with Bapx
 
-Use public Flue APIs and the provider's documented extension points. Useful
+Use public Bapx APIs and the provider's documented extension points. Useful
 integration surfaces include:
 
 - a source-root `app.ts` for application initialization and HTTP middleware;
@@ -85,7 +85,7 @@ to export them.
 ## Verify
 
 1. Type-check the project.
-2. Build its configured Flue target.
+2. Build its configured Bapx target.
 3. Run the integration in the target's real runtime, not only a Node-based unit
    test or bundler.
 4. Trigger one successful operation and one controlled failure; confirm expected

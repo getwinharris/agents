@@ -7,12 +7,12 @@ const webhookSecret = 'chat-sdk-example-secret';
 const githubApiUrl = process.env.CHAT_SDK_GITHUB_API_URL ?? 'http://localhost:3585/api/github';
 
 export const bot = new Chat({
-	userName: 'flue-bot',
+	userName: 'bapX-bot',
 	adapters: {
 		github: createGitHubAdapter({
 			token: 'chat-sdk-example-token',
 			webhookSecret,
-			userName: 'flue-bot',
+			userName: 'bapX-bot',
 			botUserId: 1,
 			apiUrl: githubApiUrl,
 		}),

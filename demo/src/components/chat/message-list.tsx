@@ -1,4 +1,4 @@
-import type { AgentStatus, FailedSend, FlueConversationMessage } from '@bapX/react'
+import type { AgentStatus, FailedSend, BapxConversationMessage } from '@bapX/react'
 import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/marker'
 import {
   MessageScroller,
@@ -25,7 +25,7 @@ import { MessageItem, type MessageGroup } from './message-item'
  * were aborted before the server accepted them surface via `abortedLocalIds`.
  */
 function groupMessages(
-  messages: FlueConversationMessage[],
+  messages: BapxConversationMessage[],
   showThinking: boolean,
   abortedLocalIds: Set<string>,
 ): MessageGroup[] {
@@ -82,7 +82,7 @@ function groupMessages(
   return groups
 }
 
-function abortAdvisorySubmissionId(message: FlueConversationMessage): string | undefined {
+function abortAdvisorySubmissionId(message: BapxConversationMessage): string | undefined {
   if (message.role !== 'user' || !message.id.includes('submission_aborted')) return undefined
   const aborted = message.parts.some(
     (part) => part.type === 'text' && part.text.toLowerCase().includes('submission was aborted'),
@@ -106,7 +106,7 @@ export function MessageList({
   status,
   failedSends,
 }: {
-  messages: FlueConversationMessage[]
+  messages: BapxConversationMessage[]
   status: AgentStatus
   failedSends: FailedSend[]
 }) {

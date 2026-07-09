@@ -23,7 +23,7 @@ export class LibsqlAttachmentStore implements AttachmentStore {
 		await verifyAttachmentBytes(input.attachment, input.bytes);
 		await this.runner.transaction(async (tx) => {
 			await tx.query(
-				`INSERT INTO flue_attachments
+				`INSERT INTO bapX_attachments
 				 (stream_path, attachment_id, mime_type, byte_size, digest, conversation_id, bytes, created_at)
 				 VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (stream_path, attachment_id) DO NOTHING`,
 				[input.streamPath, input.attachment.id, input.attachment.mimeType, input.attachment.size,
@@ -42,14 +42,14 @@ export class LibsqlAttachmentStore implements AttachmentStore {
 	}
 
 	async deleteForInstance(streamPath: string): Promise<void> {
-		await this.runner.query('DELETE FROM flue_attachments WHERE stream_path = ?', [streamPath]);
+		await this.runner.query('DELETE FROM bapX_attachments WHERE stream_path = ?', [streamPath]);
 	}
 }
 
 async function readAttachment(query: LibsqlQuery, path: string, attachmentId: string): Promise<AttachmentRecord | null> {
 	const rows = await query(
 		`SELECT mime_type, byte_size, digest, conversation_id, bytes
-		 FROM flue_attachments WHERE stream_path = ? AND attachment_id = ?`,
+		 FROM bapX_attachments WHERE stream_path = ? AND attachment_id = ?`,
 		[path, attachmentId],
 	);
 	const row = rows[0];

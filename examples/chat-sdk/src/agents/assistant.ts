@@ -27,7 +27,7 @@ export default defineAgent(() => {
 			return fauxAssistantMessage(
 				fauxToolCall('reply_to_chat_thread', {
 					threadId,
-					text: 'Reply from a Flue agent through Chat SDK.',
+					text: 'Reply from a Bapx agent through Chat SDK.',
 				}),
 				{ stopReason: 'toolUse' },
 			);

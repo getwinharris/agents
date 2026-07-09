@@ -10,7 +10,7 @@ For the underlying mental model, start with [What is an agent?](/docs/concepts/a
 
 ## Creating a new agent
 
-In a Flue project, an agent is a file in `src/agents/` whose default export is created with `defineAgent(...)`:
+In a Bapx project, an agent is a file in `src/agents/` whose default export is created with `defineAgent(...)`:
 
 ```ts title="src/agents/joke-teller.ts"
 import { defineAgent, type AgentRouteHandler } from '@bapX/runtime';
@@ -60,7 +60,7 @@ Actions let the model call finite agent-backed operations, tools execute bounded
 
 ### Markdown instructions
 
-Long instructions can live in their own markdown file. Import a `.md` file with the `with { type: 'markdown' }` import attribute and Flue inlines its contents as a string at build time:
+Long instructions can live in their own markdown file. Import a `.md` file with the `with { type: 'markdown' }` import attribute and Bapx inlines its contents as a string at build time:
 
 ```ts title="src/agents/repository-reviewer.ts"
 import { defineAgent } from '@bapX/runtime';
@@ -85,7 +85,7 @@ POST /agents/support-assistant/ticket-8472
 
 It's up to the developer to decide what `id` means and whether it maps to important application data, such as a user ID, customer support ticket, or GitHub issue. A randomly generated ID can also work.
 
-Flue passes that ID to `defineAgent(...)`, where the application can configure the resources that belong to that instance. For example, a support agent can receive tools scoped to one ticket:
+Bapx passes that ID to `defineAgent(...)`, where the application can configure the resources that belong to that instance. For example, a support agent can receive tools scoped to one ticket:
 
 ```ts title="src/agents/support-assistant.ts"
 import { defineAgent, type AgentRouteHandler } from '@bapX/runtime';
@@ -200,7 +200,7 @@ Use `dispatch(...)` when your application receives an event for an agent asynchr
 
 ```ts title="src/app.ts"
 import { dispatch } from '@bapX/runtime';
-import { flue } from '@bapX/runtime/routing';
+import { bapX } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 import supportAssistant from './agents/support-assistant.ts';
 import { verifySupportWebhook } from './shared/support-webhooks.ts';
@@ -222,7 +222,7 @@ app.post('/webhooks/support-comments', async (c) => {
   return c.json(receipt, 202);
 });
 
-app.route('/', flue());
+app.route('/', bapX());
 
 export default app;
 ```

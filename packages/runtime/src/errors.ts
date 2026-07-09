@@ -1,5 +1,5 @@
 /**
- * Complete error framework for Flue.
+ * Complete error framework for Bapx.
  *
  * This file contains both the error vocabulary (concrete error classes) and
  * the framework utilities (renderers, type guards, request parsing helpers).
@@ -17,7 +17,7 @@
  *     neighbors above and copy the pattern.
  *
  * Application code throughout the codebase should reach for one of these
- * classes rather than constructing a `FlueError` ad hoc. If no existing class
+ * classes rather than constructing a `BapxError` ad hoc. If no existing class
  * fits, add one here. That's the entire convention.
  *
  * ──── Two audiences: caller vs. developer ─────────────────────────────────
@@ -25,10 +25,10 @@
  * The reader of an error message is one of two distinct audiences:
  *
  *   - The *caller*: an HTTP client. Possibly third-party, possibly hostile,
- *     possibly an end user who shouldn't even know we're built on Flue.
+ *     possibly an end user who shouldn't even know we're built on Bapx.
  *     Sees `message` and `details` always.
  *
- *   - The *developer*: the human running the service (`flue dev`, `flue run`,
+ *   - The *developer*: the human running the service (`bapX dev`, `bapX run`,
  *     local debugging). Sees `dev` in addition, but only when the generated
  *     runtime is configured for local development.
  *
@@ -79,13 +79,13 @@
  *     //            loaded from the project root's "agents/" directory at
  *     //            build time. ...`
  *
- * The wire response in production omits `dev`; in `flue dev` / `flue run`
+ * The wire response in production omits `dev`; in `bapX dev` / `bapX run`
  * it includes `dev`. That separation is what lets the dev field be richly
  * helpful without leaking namespace state to public callers.
  *
  * Counter-example to avoid:
  *
- *     class AgentNotFoundError extends FlueHttpError {
+ *     class AgentNotFoundError extends BapxHttpError {
  *       constructor(message: string) {                       // ✗ free-form
  *         super({                                            // ✗ wrong type
  *           type: 'agent_error',
@@ -117,7 +117,7 @@ function formatList<T>(items: readonly T[], fallback = '(none)'): string {
 
 // ─── Base classes ───────────────────────────────────────────────────────────
 
-interface FlueErrorOptions {
+interface BapxErrorOptions {
 	/**
 	 * Stable, machine-readable identifier (snake_case). Set once per subclass.
 	 * Callers don't pass this — the subclass constructor does.
@@ -168,25 +168,25 @@ interface FlueErrorOptions {
 }
 
 /**
- * Base class for every error Flue throws. Do not instantiate directly in
+ * Base class for every error Bapx throws. Do not instantiate directly in
  * application code — extend it via a subclass below. If a use case isn't
- * covered, add a new subclass here rather than throwing a raw `FlueError`.
+ * covered, add a new subclass here rather than throwing a raw `BapxError`.
  *
  * Exported (and re-exported from the package root) as the catchable base:
- * application code distinguishes Flue failures from arbitrary errors with
- * `err instanceof FlueError`, then narrows via the concrete subclasses or
+ * application code distinguishes Bapx failures from arbitrary errors with
+ * `err instanceof BapxError`, then narrows via the concrete subclasses or
  * the stable `type` field. Message strings are not API.
  */
-export class FlueError extends Error {
+export class BapxError extends Error {
 	readonly type: string;
 	readonly details: string;
 	readonly dev: string;
 	readonly meta: Record<string, unknown> | undefined;
 	override readonly cause: unknown;
 
-	constructor(options: FlueErrorOptions) {
+	constructor(options: BapxErrorOptions) {
 		super(options.message);
-		this.name = 'FlueError';
+		this.name = 'BapxError';
 		this.type = options.type;
 		this.details = options.details;
 		this.dev = options.dev;
@@ -195,7 +195,7 @@ export class FlueError extends Error {
 	}
 }
 
-interface FlueHttpErrorOptions extends FlueErrorOptions {
+interface BapxHttpErrorOptions extends BapxErrorOptions {
 	/** HTTP status code (4xx or 5xx). */
 	status: number;
 	/** Additional response headers (e.g. `Allow` for 405). */
@@ -207,13 +207,13 @@ interface FlueHttpErrorOptions extends FlueErrorOptions {
  * Subclasses set these in the `super({...})` call so the call site doesn't
  * have to think about HTTP semantics.
  */
-class FlueHttpError extends FlueError {
+class BapxHttpError extends BapxError {
 	readonly status: number;
 	readonly headers: Record<string, string> | undefined;
 
-	constructor(options: FlueHttpErrorOptions) {
+	constructor(options: BapxHttpErrorOptions) {
 		super(options);
-		this.name = 'FlueHttpError';
+		this.name = 'BapxHttpError';
 		this.status = options.status;
 		this.headers = options.headers;
 	}
@@ -221,7 +221,7 @@ class FlueHttpError extends FlueError {
 
 // ─── HTTP-layer error vocabulary ────────────────────────────────────────────
 
-export class RuntimeUnavailableError extends FlueHttpError {
+export class RuntimeUnavailableError extends BapxHttpError {
 	constructor({ state }: { state: 'loading' | 'draining' | 'failed' }) {
 		super({
 			type: 'runtime_unavailable',
@@ -235,7 +235,7 @@ export class RuntimeUnavailableError extends FlueHttpError {
 	}
 }
 
-export class MethodNotAllowedError extends FlueHttpError {
+export class MethodNotAllowedError extends BapxHttpError {
 	constructor({ method, allowed }: { method: string; allowed: readonly string[] }) {
 		super({
 			type: 'method_not_allowed',
@@ -248,7 +248,7 @@ export class MethodNotAllowedError extends FlueHttpError {
 	}
 }
 
-class UnsupportedMediaTypeError extends FlueHttpError {
+class UnsupportedMediaTypeError extends BapxHttpError {
 	constructor({ received }: { received: string | null }) {
 		const detailLines: string[] = [];
 		if (received) {
@@ -270,7 +270,7 @@ class UnsupportedMediaTypeError extends FlueHttpError {
 	}
 }
 
-class InvalidJsonError extends FlueHttpError {
+class InvalidJsonError extends BapxHttpError {
 	constructor({ parseError }: { parseError: string }) {
 		super({
 			type: 'invalid_json',
@@ -287,7 +287,7 @@ class InvalidJsonError extends FlueHttpError {
 	}
 }
 
-class AgentNotFoundError extends FlueHttpError {
+class AgentNotFoundError extends BapxHttpError {
 	constructor({ name, available }: { name: string; available: readonly string[] }) {
 		super({
 			type: 'agent_not_found',
@@ -306,7 +306,7 @@ class AgentNotFoundError extends FlueHttpError {
 	}
 }
 
-class WorkflowNotFoundError extends FlueHttpError {
+class WorkflowNotFoundError extends BapxHttpError {
 	constructor({
 		name,
 		available,
@@ -333,7 +333,7 @@ class WorkflowNotFoundError extends FlueHttpError {
 	}
 }
 
-export class RouteNotFoundError extends FlueHttpError {
+export class RouteNotFoundError extends BapxHttpError {
 	constructor({ method, path }: { method: string; path: string }) {
 		super({
 			type: 'route_not_found',
@@ -348,7 +348,7 @@ export class RouteNotFoundError extends FlueHttpError {
 	}
 }
 
-export class RunNotFoundError extends FlueHttpError {
+export class RunNotFoundError extends BapxHttpError {
 	constructor({ runId }: { runId: string }) {
 		super({
 			type: 'run_not_found',
@@ -360,7 +360,7 @@ export class RunNotFoundError extends FlueHttpError {
 	}
 }
 
-export class StreamNotFoundError extends FlueHttpError {
+export class StreamNotFoundError extends BapxHttpError {
 	constructor({ path }: { path: string }) {
 		super({
 			type: 'stream_not_found',
@@ -379,7 +379,7 @@ export class StreamNotFoundError extends FlueHttpError {
  * plain 404 in production (indistinguishable from any other unmatched route);
  * in dev the `dev` field explains how to opt in.
  */
-export class AttachmentsNotExposedError extends FlueHttpError {
+export class AttachmentsNotExposedError extends BapxHttpError {
 	constructor({ method, path, agentName }: { method: string; path: string; agentName: string }) {
 		super({
 			type: 'route_not_found',
@@ -391,7 +391,7 @@ export class AttachmentsNotExposedError extends FlueHttpError {
 	}
 }
 
-export class AttachmentNotFoundError extends FlueHttpError {
+export class AttachmentNotFoundError extends BapxHttpError {
 	constructor({ attachmentId }: { attachmentId: string }) {
 		super({
 			type: 'attachment_not_found',
@@ -404,7 +404,7 @@ export class AttachmentNotFoundError extends FlueHttpError {
 	}
 }
 
-export class RunStoreUnavailableError extends FlueHttpError {
+export class RunStoreUnavailableError extends BapxHttpError {
 	constructor() {
 		super({
 			type: 'run_store_unavailable',
@@ -416,7 +416,7 @@ export class RunStoreUnavailableError extends FlueHttpError {
 	}
 }
 
-export class InvalidRequestError extends FlueHttpError {
+export class InvalidRequestError extends BapxHttpError {
 	constructor({ reason }: { reason: string }) {
 		super({
 			type: 'invalid_request',
@@ -434,25 +434,25 @@ export class InvalidRequestError extends FlueHttpError {
 
 /**
  * A persisted store records a schema/format version this runtime does not
- * support. Thrown when opening a database stamped by a newer Flue version
+ * support. Thrown when opening a database stamped by a newer Bapx version
  * (e.g. after a rollback) or carrying an unrecognized version marker.
  *
  * Not an HTTP error — this fires when a store is opened (startup, adapter
  * `migrate()`, Durable Object initialization), before any request is served.
  */
-export class ProductEventVersionError extends FlueError {
+export class ProductEventVersionError extends BapxError {
 	constructor({ storedVersion }: { storedVersion: unknown }) {
 		super({
 			type: 'product_event_version_unsupported',
 			message: `Persisted product event version ${String(storedVersion)} is unsupported.`,
 			details: 'The persisted event cannot be read or replayed safely by this runtime.',
-			dev: 'Clear historical event and terminal-outbox data created by an earlier Flue beta.',
+			dev: 'Clear historical event and terminal-outbox data created by an earlier Bapx beta.',
 			meta: { storedVersion, supportedVersion: 3 },
 		});
 	}
 }
 
-export class ConversationRecordInvariantError extends FlueError {
+export class ConversationRecordInvariantError extends BapxError {
 	constructor({
 		recordId,
 		recordType,
@@ -473,7 +473,7 @@ export class ConversationRecordInvariantError extends FlueError {
 	}
 }
 
-export class ConversationStreamStoreError extends FlueError {
+export class ConversationStreamStoreError extends BapxError {
 	constructor({
 		operation,
 		path,
@@ -494,7 +494,7 @@ export class ConversationStreamStoreError extends FlueError {
 	}
 }
 
-export class AttachmentConflictError extends FlueError {
+export class AttachmentConflictError extends BapxError {
 	constructor({ path, attachmentId }: { path: string; attachmentId: string }) {
 		super({
 			type: 'attachment_conflict',
@@ -507,7 +507,7 @@ export class AttachmentConflictError extends FlueError {
 	}
 }
 
-export class AttachmentIntegrityError extends FlueError {
+export class AttachmentIntegrityError extends BapxError {
 	constructor({ attachmentId, reason }: { attachmentId: string; reason: 'size' | 'digest' | 'chunks' }) {
 		super({
 			type: 'attachment_integrity',
@@ -520,7 +520,7 @@ export class AttachmentIntegrityError extends FlueError {
 	}
 }
 
-export class PersistedSchemaVersionError extends FlueError {
+export class PersistedSchemaVersionError extends BapxError {
 	constructor({
 		storedVersion,
 		supportedVersion,
@@ -533,12 +533,12 @@ export class PersistedSchemaVersionError extends FlueError {
 		super({
 			type: 'persisted_schema_version_unsupported',
 			message: newer
-				? `This database was created by a newer Flue version (schema version ${storedVersion}; this runtime supports version ${supportedVersion}).`
+				? `This database was created by a newer Bapx version (schema version ${storedVersion}; this runtime supports version ${supportedVersion}).`
 				: `This database records an unrecognized schema version ("${storedVersion}"; this runtime supports version ${supportedVersion}).`,
 			details: 'The persisted data cannot be read safely by this runtime.',
 			dev: newer
-				? `Upgrade Flue to a version that supports schema version ${storedVersion}, or point the runtime at a different database.`
-				: `The "schema_version" row in the flue_meta table is not a version this runtime recognizes. ` +
+				? `Upgrade Bapx to a version that supports schema version ${storedVersion}, or point the runtime at a different database.`
+				: `The "schema_version" row in the bapX_meta table is not a version this runtime recognizes. ` +
 					`Restore the database, or point the runtime at a different one.`,
 			meta: { storedVersion, supportedVersion },
 		});
@@ -547,7 +547,7 @@ export class PersistedSchemaVersionError extends FlueError {
 
 // ─── Sandbox error vocabulary ───────────────────────────────────────────────
 
-export class InstrumentationAlreadyInstalledError extends FlueError {
+export class InstrumentationAlreadyInstalledError extends BapxError {
 	constructor() {
 		super({
 			type: 'instrumentation_already_installed',
@@ -559,7 +559,7 @@ export class InstrumentationAlreadyInstalledError extends FlueError {
 	}
 }
 
-export class SandboxOperationUnsupportedError extends FlueError {
+export class SandboxOperationUnsupportedError extends BapxError {
 	constructor({
 		operation,
 		provider,
@@ -593,7 +593,7 @@ export class SandboxOperationUnsupportedError extends FlueError {
 // Aborted operations are NOT part of this vocabulary — they reject with a
 // standard `AbortError` (`DOMException`); see `abort.ts`.
 
-export class SessionNotFoundError extends FlueError {
+export class SessionNotFoundError extends BapxError {
 	constructor({ session, harness }: { session: string; harness: string }) {
 		super({
 			type: 'session_not_found',
@@ -604,7 +604,7 @@ export class SessionNotFoundError extends FlueError {
 	}
 }
 
-export class SessionAlreadyExistsError extends FlueError {
+export class SessionAlreadyExistsError extends BapxError {
 	constructor({ session, harness }: { session: string; harness: string }) {
 		super({
 			type: 'session_already_exists',
@@ -615,7 +615,7 @@ export class SessionAlreadyExistsError extends FlueError {
 	}
 }
 
-export class SessionBusyError extends FlueError {
+export class SessionBusyError extends BapxError {
 	constructor({ session, activeOperation }: { session: string; activeOperation: string }) {
 		super({
 			type: 'session_busy',
@@ -626,7 +626,7 @@ export class SessionBusyError extends FlueError {
 	}
 }
 
-export class SkillDefinitionValidationError extends FlueError {
+export class SkillDefinitionValidationError extends BapxError {
 	constructor({ issues }: { issues: readonly ValidationIssue[] }) {
 		super({
 			type: 'skill_definition_validation',
@@ -639,7 +639,7 @@ export class SkillDefinitionValidationError extends FlueError {
 	}
 }
 
-export class SkillNotRegisteredError extends FlueError {
+export class SkillNotRegisteredError extends BapxError {
 	constructor({
 		skill,
 		available,
@@ -665,7 +665,7 @@ export class SkillNotRegisteredError extends FlueError {
 	}
 }
 
-export class ProviderRegistrationError extends FlueError {
+export class ProviderRegistrationError extends BapxError {
 	constructor({ providerId }: { providerId: string }) {
 		super({
 			type: 'invalid_provider_registration',
@@ -680,7 +680,7 @@ export class ProviderRegistrationError extends FlueError {
 	}
 }
 
-export class CloudflareAIBindingError extends FlueError {
+export class CloudflareAIBindingError extends BapxError {
 	constructor({
 		message,
 		status,
@@ -706,7 +706,7 @@ export class CloudflareAIBindingError extends FlueError {
 	}
 }
 
-export class DelegationDepthExceededError extends FlueError {
+export class DelegationDepthExceededError extends BapxError {
 	constructor({ maxDepth }: { maxDepth: number }) {
 		super({
 			type: 'delegation_depth_exceeded',
@@ -717,7 +717,7 @@ export class DelegationDepthExceededError extends FlueError {
 	}
 }
 
-export class SubagentNotDeclaredError extends FlueError {
+export class SubagentNotDeclaredError extends BapxError {
 	constructor({ subagent, available }: { subagent: string; available: readonly string[] }) {
 		super({
 			type: 'subagent_not_declared',
@@ -730,7 +730,7 @@ export class SubagentNotDeclaredError extends FlueError {
 	}
 }
 
-export class AttachmentNotAvailableError extends FlueError {
+export class AttachmentNotAvailableError extends BapxError {
 	constructor({ attachmentId }: { attachmentId: string }) {
 		super({
 			type: 'attachment_not_available',
@@ -742,7 +742,7 @@ export class AttachmentNotAvailableError extends FlueError {
 	}
 }
 
-export class ToolNameConflictError extends FlueError {
+export class ToolNameConflictError extends BapxError {
 	constructor({
 		name,
 		conflict,
@@ -788,7 +788,7 @@ export interface ValidationIssue {
 
 export type ToolValidationIssue = ValidationIssue;
 
-abstract class ActionValidationError extends FlueError {
+abstract class ActionValidationError extends BapxError {
 	constructor({
 		action,
 		boundary,
@@ -822,7 +822,7 @@ export class ActionOutputValidationError extends ActionValidationError {
 	}
 }
 
-export class ActionOutputSerializationError extends FlueError {
+export class ActionOutputSerializationError extends BapxError {
 	constructor({ action, cause }: { action: string; cause?: unknown }) {
 		super({
 			type: 'action_output_serialization',
@@ -836,19 +836,19 @@ export class ActionOutputSerializationError extends FlueError {
 	}
 }
 
-export class WorkflowInvocationNotConfiguredError extends FlueError {
+export class WorkflowInvocationNotConfiguredError extends BapxError {
 	constructor() {
 		super({
 			type: 'workflow_invocation_not_configured',
 			message: 'Workflow invocation is not configured in this runtime.',
 			details: '',
-			dev: 'Call invoke() from a Flue-built server entry.',
+			dev: 'Call invoke() from a Bapx-built server entry.',
 		});
 		this.name = 'WorkflowInvocationNotConfiguredError';
 	}
 }
 
-export class WorkflowNotDiscoveredError extends FlueError {
+export class WorkflowNotDiscoveredError extends BapxError {
 	constructor() {
 		super({
 			type: 'workflow_not_discovered',
@@ -860,7 +860,7 @@ export class WorkflowNotDiscoveredError extends FlueError {
 	}
 }
 
-export class WorkflowInputUnexpectedError extends FlueError {
+export class WorkflowInputUnexpectedError extends BapxError {
 	constructor() {
 		super({
 			type: 'workflow_input_unexpected',
@@ -872,7 +872,7 @@ export class WorkflowInputUnexpectedError extends FlueError {
 	}
 }
 
-export class WorkflowInputSerializationError extends FlueError {
+export class WorkflowInputSerializationError extends BapxError {
 	constructor({ cause }: { cause: unknown }) {
 		super({
 			type: 'workflow_input_serialization',
@@ -885,7 +885,7 @@ export class WorkflowInputSerializationError extends FlueError {
 	}
 }
 
-export class WorkflowAdmissionUnavailableError extends FlueError {
+export class WorkflowAdmissionUnavailableError extends BapxError {
 	constructor() {
 		super({
 			type: 'workflow_admission_unavailable',
@@ -897,7 +897,7 @@ export class WorkflowAdmissionUnavailableError extends FlueError {
 	}
 }
 
-export class WorkflowAdmissionError extends FlueError {
+export class WorkflowAdmissionError extends BapxError {
 	constructor({ workflow, cause }: { workflow: string; cause: unknown }) {
 		super({
 			type: 'workflow_admission_failed',
@@ -918,21 +918,21 @@ export class WorkflowAdmissionError extends FlueError {
  * the issues and can retry with corrected arguments. `meta.issues` carries
  * the structured issues in Standard Schema's shape.
  */
-export class ToolLegacyDefinitionError extends FlueError {
+export class ToolLegacyDefinitionError extends BapxError {
 	constructor({ fields }: { fields: readonly string[] }) {
 		super({
 			type: 'tool_legacy_definition',
 			message: 'This tool uses the unsupported legacy definition format.',
 			details: 'The tool definition contains legacy fields.',
 			dev:
-				'defineTool() no longer supports { parameters, execute }. Rename parameters to input, rename execute to run, and return structured data directly. Flue validates output and JSON-serializes it for the model.',
+				'defineTool() no longer supports { parameters, execute }. Rename parameters to input, rename execute to run, and return structured data directly. Bapx validates output and JSON-serializes it for the model.',
 			meta: { fields: [...fields] },
 		});
 		this.name = 'ToolLegacyDefinitionError';
 	}
 }
 
-export class ToolInputValidationError extends FlueError {
+export class ToolInputValidationError extends BapxError {
 	constructor({ tool, issues }: { tool: string; issues: readonly ToolValidationIssue[] }) {
 		const summary = issues
 			.map((issue) =>
@@ -954,7 +954,7 @@ export class ToolInputValidationError extends FlueError {
 	}
 }
 
-export class ToolOutputValidationError extends FlueError {
+export class ToolOutputValidationError extends BapxError {
 	constructor({ tool, issues }: { tool: string; issues: readonly ToolValidationIssue[] }) {
 		super({
 			type: 'tool_output_validation',
@@ -967,7 +967,7 @@ export class ToolOutputValidationError extends FlueError {
 	}
 }
 
-export class ToolOutputSerializationError extends FlueError {
+export class ToolOutputSerializationError extends BapxError {
 	constructor({ tool, cause }: { tool: string; cause?: unknown }) {
 		super({
 			type: 'tool_output_serialization',
@@ -987,7 +987,7 @@ export class ToolOutputSerializationError extends FlueError {
  * `reason` carries the underlying failure text; it is part of the message so
  * logs and serialized events stay informative, but it is prose, not API.
  */
-export class OperationFailedError extends FlueError {
+export class OperationFailedError extends BapxError {
 	constructor({ operation, reason }: { operation: string; reason: string }) {
 		super({
 			type: 'operation_failed',
@@ -1016,7 +1016,7 @@ export class OperationFailedError extends FlueError {
  *   unresolved tool call is never assumed to have completed and is never
  *   retried automatically.
  */
-export class SubmissionInterruptedError extends FlueError {
+export class SubmissionInterruptedError extends BapxError {
 	constructor(
 		input:
 			| { phase: 'retry_exhausted_before_input'; attemptCount: number; maxAttempts: number }
@@ -1075,7 +1075,7 @@ export class SubmissionInterruptedError extends FlueError {
  * `meta.interruptedTools` lists them; each has an explicit interrupted-error
  * outcome in the conversation and was never assumed complete or retried.
  */
-export class SubmissionRetryExhaustedError extends FlueError {
+export class SubmissionRetryExhaustedError extends BapxError {
 	constructor({
 		attemptCount,
 		maxAttempts,
@@ -1102,7 +1102,7 @@ export class SubmissionRetryExhaustedError extends FlueError {
 }
 
 /** A durable submission exceeded its configured processing timeout. */
-export class SubmissionTimeoutError extends FlueError {
+export class SubmissionTimeoutError extends BapxError {
 	constructor() {
 		super({
 			type: 'submission_timeout',
@@ -1124,7 +1124,7 @@ export class SubmissionTimeoutError extends FlueError {
  * outcome: a `submission_aborted` conversation advisory (both kinds) plus, for
  * direct submissions, a `submission_settled` record with `outcome: 'aborted'`.
  */
-export class SubmissionAbortedError extends FlueError {
+export class SubmissionAbortedError extends BapxError {
 	constructor() {
 		super({
 			type: 'submission_aborted',
@@ -1165,18 +1165,18 @@ export class SubmissionAbortedError extends FlueError {
  *   - `cause` is never included on the wire (it's logged server-side only).
  */
 
-function isFlueError(value: unknown): value is FlueError {
-	return value instanceof FlueError;
+function isBapxError(value: unknown): value is BapxError {
+	return value instanceof BapxError;
 }
 
 /**
  * Module-private for now: when an external call site appears we can promote
- * to `export` and decide the right shape for `warn`/`info` (FlueError
+ * to `export` and decide the right shape for `warn`/`info` (BapxError
  * subclasses with severity? plain strings? structured data?) — rather than
  * committing to a shape now without any usage to validate it.
  */
 function formatForLog(prefix: string, err: unknown): string {
-	if (isFlueError(err)) {
+	if (isBapxError(err)) {
 		// Server-side logs always show every audience's prose. Mode gating
 		// only applies to the wire envelope.
 		const lines: string[] = [`${prefix} [${err.type}] ${err.message}`];
@@ -1203,7 +1203,7 @@ function formatForLog(prefix: string, err: unknown): string {
 	return `${prefix} ${String(err)}`;
 }
 
-const flueLog = {
+const bapXLog = {
 	error(err: unknown): void {
 		console.error(formatForLog('[bapX]', err));
 	},
@@ -1225,7 +1225,7 @@ export function configureErrorRendering(options: { devMode: boolean }): void {
 	devMode = options.devMode;
 }
 
-function envelope(err: FlueError): WireEnvelope {
+function envelope(err: BapxError): WireEnvelope {
 	const out: WireEnvelope = {
 		error: {
 			type: err.type,
@@ -1253,8 +1253,8 @@ const GENERIC_INTERNAL: WireEnvelope = {
 };
 
 /**
- * Render any thrown value into a `Response` with the canonical Flue error
- * envelope. Unknown / non-Flue errors are logged in full and rendered as a
+ * Render any thrown value into a `Response` with the canonical Bapx error
+ * envelope. Unknown / non-Bapx errors are logged in full and rendered as a
  * generic 500 with no message leaked.
  */
 export function toHttpResponse(err: unknown): Response {
@@ -1266,23 +1266,23 @@ export function toHttpResponse(err: unknown): Response {
 		'x-content-type-options': 'nosniff',
 		'cross-origin-resource-policy': 'cross-origin',
 	};
-	if (isFlueError(err)) {
-		const isHttp = err instanceof FlueHttpError;
+	if (isBapxError(err)) {
+		const isHttp = err instanceof BapxHttpError;
 		const status = isHttp ? err.status : 500;
 		const headers = { ...baseHeaders };
 		if (isHttp && err.headers) {
 			Object.assign(headers, err.headers);
 		}
-		// Log non-HTTP FlueErrors that bubbled up to the HTTP layer — they
+		// Log non-HTTP BapxErrors that bubbled up to the HTTP layer — they
 		// weren't constructed with HTTP semantics in mind, so it's worth
 		// surfacing them in logs even though we render their message.
 		if (!isHttp) {
-			flueLog.error(err);
+			bapXLog.error(err);
 		}
 		return new Response(JSON.stringify(envelope(err)), { status, headers });
 	}
-	// Non-FlueError: log everything, leak nothing.
-	flueLog.error(err);
+	// Non-BapxError: log everything, leak nothing.
+	bapXLog.error(err);
 	return new Response(JSON.stringify(GENERIC_INTERNAL), {
 		status: 500,
 		headers: baseHeaders,
@@ -1334,7 +1334,7 @@ export async function parseJsonBody(request: Request): Promise<unknown> {
 /**
  * Validate that a request targeting `/agents/<name>/<id>` is well-formed:
  * method is POST, and agent name is registered. Throws the appropriate
- * FlueHttpError on any failure.
+ * BapxHttpError on any failure.
  *
  * Path/id validation is light: we reject empty or whitespace-only segments
  * but otherwise let the URL parser's segment splitting be the source of

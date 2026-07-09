@@ -1,6 +1,6 @@
 # `@bapX/resend`
 
-Verified Resend webhook ingress for Flue.
+Verified Resend webhook ingress for Bapx.
 
 The package exposes one fixed `POST /webhook` route and uses the official
 Resend client to verify the exact request body and signed `svix-*` headers
@@ -25,8 +25,8 @@ export const channel = createResendChannel({
 });
 ```
 
-Place this export in `channels/resend.ts`. Flue discovers it and serves
-`POST /channels/resend/webhook` relative to the `flue()` mount.
+Place this export in `channels/resend.ts`. Bapx discovers it and serves
+`POST /channels/resend/webhook` relative to the `bapX()` mount.
 
 Every verified delivery is the official `WebhookEventPayload` union, forwarded
 verbatim with its provider-native `event.type`, `created_at`, and `data`

@@ -63,7 +63,7 @@ interface AgentSendResult {
 wait(admission: AgentSendResult, options?: AgentWaitOptions): Promise<void>;
 ```
 
-Awaits completion of a prompt returned by `send()`. Resolves once the submission settles successfully, and rejects with `FlueExecutionError` when it fails or is aborted. It does not return the assistant's reply — read that from the conversation via `agents.observe()` or `agents.history()`.
+Awaits completion of a prompt returned by `send()`. Resolves once the submission settles successfully, and rejects with `BapxExecutionError` when it fails or is aborted. It does not return the assistant's reply — read that from the conversation via `agents.observe()` or `agents.history()`.
 
 `wait()` follows the durable conversation stream from the admission's `offset`, so it survives reconnects. If the process that called `wait()` disappears, the submission still settles in the background; re-observe the conversation to recover the outcome.
 
@@ -83,7 +83,7 @@ abort(name: string, id: string, options?: { signal?: AbortSignal }): Promise<Age
 
 Aborts all in-flight and queued durable work for an agent instance — the submission it is currently running and anything queued behind it. This uses `POST /agents/:name/:id/abort`.
 
-Abort records a durable intent and returns once it is recorded; settlement happens asynchronously. The aborted work settles to a distinct **aborted** terminal outcome rather than a failure: a `submission_aborted` entry is written to the conversation (visible via `observe()`/`history()`), and a pending `wait()` rejects with `FlueExecutionError` carrying `failure: 'aborted'`. Work that has already completed is not affected — an abort that loses the race to a finished response settles as completed.
+Abort records a durable intent and returns once it is recorded; settlement happens asynchronously. The aborted work settles to a distinct **aborted** terminal outcome rather than a failure: a `submission_aborted` entry is written to the conversation (visible via `observe()`/`history()`), and a pending `wait()` rejects with `BapxExecutionError` carrying `failure: 'aborted'`. Work that has already completed is not affected — an abort that loses the race to a finished response settles as completed.
 
 ### `AgentAbortResult`
 
@@ -124,14 +124,14 @@ const unsubscribe = conversation.subscribe(() => {
 });
 ```
 
-`getSnapshot()` returns the materialized `FlueConversationState`, its safe resume offset, the current phase, and any transport error. A conversation that has not been created yet reports `phase: 'absent'`; call `refresh()` to re-run history catch-up and resume live updates — the example above retries with a simple backoff — and `close()` when observation is no longer needed.
+`getSnapshot()` returns the materialized `BapxConversationState`, its safe resume offset, the current phase, and any transport error. A conversation that has not been created yet reports `phase: 'absent'`; call `refresh()` to re-run history catch-up and resume live updates — the example above retries with a simple backoff — and `close()` when observation is no longer needed.
 
-The observed conversation is a `FlueConversationState` of `FlueConversationMessage` values. Each message has clean, render-ready parts (`text`, `reasoning`, `dynamic-tool`, `file`); streaming assembly is handled internally, so a `text` part is always `{ type, text, state }`. Structured tool output appears on the `dynamic-tool` part's `output`.
+The observed conversation is a `BapxConversationState` of `BapxConversationMessage` values. Each message has clean, render-ready parts (`text`, `reasoning`, `dynamic-tool`, `file`); streaming assembly is handled internally, so a `text` part is always `{ type, text, state }`. Structured tool output appears on the `dynamic-tool` part's `output`.
 
 ## `client.agents.history(...)`
 
 ```ts
-history(name: string, id: string, options?: FlueConversationHistoryOptions): Promise<FlueConversationSnapshot>;
+history(name: string, id: string, options?: BapxConversationHistoryOptions): Promise<BapxConversationSnapshot>;
 ```
 
 Returns one materialized conversation snapshot. The snapshot includes its opaque stream `offset`; historical token deltas are already reduced into complete message parts. Use `observe()` for live state — it performs the snapshot-to-live handoff and reduction for you. The snapshot is materialized by the API on demand and is not a persisted replay cache.

@@ -6,16 +6,16 @@
 }
 ---
 
-# Add a Flue Sandbox Adapter: E2B
+# Add a Bapx Sandbox Adapter: E2B
 
-You are an AI coding agent installing the E2B sandbox adapter for a Flue
+You are an AI coding agent installing the E2B sandbox adapter for a Bapx
 project. Follow these instructions exactly. Confirm with the user only when
 something is genuinely ambiguous (e.g. an unusual project layout).
 
 ## What this adapter does
 
 Wraps an already-initialized E2B sandbox (created with the user's own `e2b`
-SDK client) into Flue's `SandboxFactory` interface. The user owns the E2B
+SDK client) into Bapx's `SandboxFactory` interface. The user owns the E2B
 sandbox lifecycle; this adapter just adapts the sandbox.
 
 E2B ships Firecracker microVMs, so each sandbox is a full Linux environment
@@ -29,7 +29,7 @@ swap in `@e2b/code-interpreter` — its `Sandbox` class has the same
 
 ## Where to write the file
 
-Select the first existing source directory: `<root>/.flue/`, then `<root>/src/`,
+Select the first existing source directory: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Write the adapter to `<source-dir>/sandboxes/e2b.ts`.
 
 If neither feels right (uncommon layout, multiple workspaces, etc.), ask the
@@ -43,13 +43,13 @@ Write this file verbatim. Do not "improve" it — it conforms to the published
 `SandboxApi` contract.
 
 ```ts
-// flue-blueprint: sandbox/e2b@1
+// bapX-blueprint: sandbox/e2b@1
 /**
- * E2B adapter for Flue.
+ * E2B adapter for Bapx.
  *
- * Wraps an already-initialized E2B sandbox into Flue's SandboxFactory
+ * Wraps an already-initialized E2B sandbox into Bapx's SandboxFactory
  * interface. The user creates and configures the sandbox using the E2B
- * SDK directly — Flue just adapts it.
+ * SDK directly — Bapx just adapts it.
  *
  * @example
  * ```typescript
@@ -78,7 +78,7 @@ import type { Sandbox as E2BSandbox } from 'e2b';
  * before calling the provider.
  *
  * `commands.run()` returns `{ stdout, stderr, exitCode }` directly. Both E2B
- * and Flue express command timeouts in milliseconds, so the adapter forwards
+ * and Bapx express command timeouts in milliseconds, so the adapter forwards
  * them unchanged.
  */
 class E2BSandboxApi implements SandboxApi {
@@ -170,8 +170,8 @@ class E2BSandboxApi implements SandboxApi {
 }
 
 /**
- * Create a Flue sandbox factory from an initialized E2B sandbox.
- * The user owns the sandbox lifecycle; Flue wraps it into a SessionEnv
+ * Create a Bapx sandbox factory from an initialized E2B sandbox.
+ * The user owns the sandbox lifecycle; Bapx wraps it into a SessionEnv
  * for agent use.
  */
 export function e2b(sandbox: E2BSandbox): SandboxFactory {
@@ -218,12 +218,12 @@ secret manager, CI vars, etc.) will usually tell you the right answer. If
 nothing in the project gives you a clear signal, ask the user instead of
 guessing.
 
-For reference: `flue dev --env <file>` and `flue run --env <file>` load
+For reference: `bapX dev --env <file>` and `bapX run --env <file>` load
 any `.env`-format file the user points them at.
 
 ## Wiring it into an agent
 
-Here's what using this adapter looks like inside a Flue agent. If the
+Here's what using this adapter looks like inside a Bapx agent. If the
 user is already working on an agent that this adapter is meant to plug
 into, you can finish that work by wiring the adapter into it. Otherwise,
 share this snippet so they can wire it up themselves.
@@ -266,7 +266,7 @@ tooling on every cold start.
    actually wrote the file.
 3. Tell the user the next steps: install `e2b` (if you didn't), make sure
    `E2B_API_KEY` is available at runtime (per the Authentication section
-   above), and run `flue dev` (or `flue run <workflow>`) to try it.
+   above), and run `bapX dev` (or `bapX run <workflow>`) to try it.
 
 When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
 

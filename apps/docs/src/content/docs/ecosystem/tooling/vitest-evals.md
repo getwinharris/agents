@@ -1,22 +1,22 @@
 ---
 title: Vitest Evals
-description: Add repeatable agent and workflow evals to a Flue project with vitest-evals.
+description: Add repeatable agent and workflow evals to a Bapx project with vitest-evals.
 lastReviewedAt: 2026-06-18
 ---
 
 ## Quickstart
 
-Add the [`vitest-evals`](https://vitest-evals.sentry.dev/docs) setup blueprint to an existing Flue project:
+Add the [`vitest-evals`](https://vitest-evals.sentry.dev/docs) setup blueprint to an existing Bapx project:
 
 ```sh
-flue add tooling vitest-evals
+bapX add tooling vitest-evals
 ```
 
-The blueprint guides your coding agent through installing the test dependencies, creating a dedicated eval configuration, adapting Flue's public SDK to a `vitest-evals` harness, and writing a starter case for behavior already defined by your application.
+The blueprint guides your coding agent through installing the test dependencies, creating a dedicated eval configuration, adapting Bapx's public SDK to a `vitest-evals` harness, and writing a starter case for behavior already defined by your application.
 
 ## Overview
 
-`vitest-evals` adds eval harnesses, judges, normalized reports, and CI reporting to Vitest. The Flue integration evaluates the same public HTTP boundary used by a deployed application rather than importing Flue runtime internals.
+`vitest-evals` adds eval harnesses, judges, normalized reports, and CI reporting to Vitest. The Bapx integration evaluates the same public HTTP boundary used by a deployed application rather than importing Bapx runtime internals.
 
 The generated harness:
 
@@ -30,10 +30,10 @@ The blueprint does not expose an existing agent automatically. Confirm that the 
 
 ## Run evals
 
-Start the Flue application in one terminal:
+Start the Bapx application in one terminal:
 
 ```sh
-pnpm exec flue dev
+pnpm exec bapX dev
 ```
 
 After the server is ready, run evals in another terminal:
@@ -60,7 +60,7 @@ pnpm exec vitest-evals serve vitest-results.json
 
 The same artifact can be published by the `getsentry/vitest-evals` GitHub Action. Reports can contain prompts, outputs, tool arguments and results, errors, and application metadata; review retention and access requirements before uploading them.
 
-`vitest-evals` does not include a Braintrust reporter. Flue's [Braintrust integration](/docs/ecosystem/tooling/braintrust/) can independently trace the application execution, but those traces do not replace eval cases, assertions, judges, or CI gates.
+`vitest-evals` does not include a Braintrust reporter. Bapx's [Braintrust integration](/docs/ecosystem/tooling/braintrust/) can independently trace the application execution, but those traces do not replace eval cases, assertions, judges, or CI gates.
 
 ## Next steps
 

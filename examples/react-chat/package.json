@@ -3,8 +3,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "pnpm run build:ui && flue dev",
-		"build": "pnpm run build:ui && flue build",
+		"dev": "pnpm run build:ui && bapX dev",
+		"build": "pnpm run build:ui && bapX build",
 		"build:ui": "vite build",
 		"check:types": "tsc --noEmit"
 	},

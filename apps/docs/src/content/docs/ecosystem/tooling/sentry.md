@@ -1,15 +1,15 @@
 ---
 title: Sentry
-description: Report Flue workflow failures and explicit error logs to Sentry on Node.js and Cloudflare.
+description: Report Bapx workflow failures and explicit error logs to Sentry on Node.js and Cloudflare.
 lastReviewedAt: 2026-06-20
 ---
 
 ## Quickstart
 
-Add error reporting to an existing Flue project with the [Sentry](https://sentry.io) blueprint. Run the following command in your terminal or coding agent of choice:
+Add error reporting to an existing Bapx project with the [Sentry](https://sentry.io) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add tooling sentry
+bapX add tooling sentry
 ```
 
 ## Overview
@@ -81,16 +81,16 @@ The generated bridge reports:
 - `ctx.log.error(...)` as an exception when the log has an `error` attribute;
 - other error logs as error-level Sentry messages.
 
-Captures include relevant `flue.*` correlation tags. Workflow failures include `flue.run.id`, which can be inspected with SDK `client.runs` or raw `/runs` APIs when the workflow exposes its run resources. Persistent-agent captures use instance, session, operation, submission, and optional dispatch correlation instead. See [Observability](/docs/guide/observability/) for Flue's identity and observer model.
+Captures include relevant `bapX.*` correlation tags. Workflow failures include `bapX.run.id`, which can be inspected with SDK `client.runs` or raw `/runs` APIs when the workflow exposes its run resources. Persistent-agent captures use instance, session, operation, submission, and optional dispatch correlation instead. See [Observability](/docs/guide/observability/) for Bapx's identity and observer model.
 
 The bridge intentionally skips failed operations and tools because those failures may be recovered and later duplicated by a fatal workflow report. It also avoids arbitrary log attributes, prompts, responses, tool arguments, and complete event payloads. Make an explicit data-handling decision before expanding that policy.
 
 ## Target behavior
 
-On Node.js, module-scoped initialization is sufficient for the bridge's explicit captures. Complete Sentry HTTP, database, or tracing auto-instrumentation requires Sentry's preload setup before application imports and should be verified against the built Flue server.
+On Node.js, module-scoped initialization is sufficient for the bridge's explicit captures. Complete Sentry HTTP, database, or tracing auto-instrumentation requires Sentry's preload setup before application imports and should be verified against the built Bapx server.
 
-On Cloudflare, Flue applies a module-local `wrap` extension to the final generated Durable Object class for every instrumented agent and workflow. This preserves Flue's routing and durability behavior while allowing Sentry to initialize from the current binding environment. The wrapper does not cover the outer Worker or an authored Hono application; add HTTP middleware separately when request instrumentation is required.
+On Cloudflare, Bapx applies a module-local `wrap` extension to the final generated Durable Object class for every instrumented agent and workflow. This preserves Bapx's routing and durability behavior while allowing Sentry to initialize from the current binding environment. The wrapper does not cover the outer Worker or an authored Hono application; add HTTP middleware separately when request instrumentation is required.
 
 ## Verify
 
-Trigger one failed workflow and one explicit error log against a non-production Sentry project. Confirm the expected `flue.*` correlation fields. On Cloudflare, exercise a wrapped agent or workflow under workerd, and verify that the application still starts without a configured DSN.
+Trigger one failed workflow and one explicit error log against a non-production Sentry project. Confirm the expected `bapX.*` correlation fields. On Cloudflare, exercise a wrapped agent or workflow under workerd, and verify that the application still starts without a configured DSN.

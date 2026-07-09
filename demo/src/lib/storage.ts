@@ -19,7 +19,7 @@ export function saveJSON(key: string, value: unknown): void {
 }
 
 export const STORAGE_KEYS = {
-  connection: 'flue-demo:connection',
-  conversations: 'flue-demo:conversations',
-  preferences: 'flue-demo:preferences',
+  connection: 'bapX-demo:connection',
+  conversations: 'bapX-demo:conversations',
+  preferences: 'bapX-demo:preferences',
 } as const

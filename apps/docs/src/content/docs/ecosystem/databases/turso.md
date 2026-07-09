@@ -1,6 +1,6 @@
 ---
 title: Turso
-description: Give Flue agents and workflow runs durable, hosted state with Turso — managed, replicated libSQL.
+description: Give Bapx agents and workflow runs durable, hosted state with Turso — managed, replicated libSQL.
 package:
   name: '@bapX/libsql'
   href: https://www.npmjs.com/package/@bapX/libsql
@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add durable, hosted database persistence to an existing Flue project with the [Turso](https://turso.tech) blueprint. Run the following command in your terminal or coding agent of choice:
+Add durable, hosted database persistence to an existing Bapx project with the [Turso](https://turso.tech) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add database turso
+bapX add database turso
 ```
 
 ## Overview
@@ -40,7 +40,7 @@ export default libsql({
 });
 ```
 
-Flue discovers the adapter at build time and wires it into the generated Node server. On startup, it creates or verifies the required `flue_*` tables. Canonical agent conversations, immutable attachments, accepted submissions, and workflow history then survive process replacement in hosted Turso. Replicas may share durable state and workflow history, but each agent instance still requires one live Node owner. Application business data remains application-owned. The blueprint applies only to Node targets because Cloudflare deployments use Durable Object SQLite instead.
+Bapx discovers the adapter at build time and wires it into the generated Node server. On startup, it creates or verifies the required `bapX_*` tables. Canonical agent conversations, immutable attachments, accepted submissions, and workflow history then survive process replacement in hosted Turso. Replicas may share durable state and workflow history, but each agent instance still requires one live Node owner. Application business data remains application-owned. The blueprint applies only to Node targets because Cloudflare deployments use Durable Object SQLite instead.
 
 ## Configure
 
@@ -50,14 +50,14 @@ Flue discovers the adapter at build time and wires it into the generated Node se
 | `TURSO_AUTH_TOKEN`   | **Required** — Auth token for the database.    |
 
 `createClient` reads these at runtime — they are not baked into the build. For
-local development, `flue dev --env <file>` and `flue run --env <file>` load any
+local development, `bapX dev --env <file>` and `bapX run --env <file>` load any
 `.env`-format file. In production, supply them from your platform's secret store.
 
 Turso is hosted, replicated libSQL. The blueprint installs `@bapX/libsql` and
 the official `@libsql/client`, and writes a source-root `db.ts` that wraps the
 client with a Turso configuration — it is the **same adapter** as
-[`flue add database libsql`](/docs/ecosystem/databases/libsql/), pointed at a Turso
-database. Flue discovers `db.ts` at build time and wires it into the generated
+[`bapX add database libsql`](/docs/ecosystem/databases/libsql/), pointed at a Turso
+database. Bapx discovers `db.ts` at build time and wires it into the generated
 Node server.
 
 `@bapX/libsql` is a **Node.js** adapter. The Cloudflare target uses Durable
@@ -71,9 +71,9 @@ Create a database and an auth token with the
 [Turso CLI](https://docs.turso.tech/cli/introduction):
 
 ```sh
-turso db create flue-agents
-turso db show --url flue-agents      # → TURSO_DATABASE_URL (libsql://…)
-turso db tokens create flue-agents   # → TURSO_AUTH_TOKEN
+turso db create bapX-agents
+turso db show --url bapX-agents      # → TURSO_DATABASE_URL (libsql://…)
+turso db tokens create bapX-agents   # → TURSO_AUTH_TOKEN
 ```
 
 ```ts title="src/db.ts"
@@ -121,7 +121,7 @@ forward to Turso. Point `url` at a local file and add `syncUrl`:
 
 ```ts title="src/db.ts"
 const client = createClient({
-  url: 'file:flue-replica.db',
+  url: 'file:bapX-replica.db',
   syncUrl: process.env.TURSO_DATABASE_URL!,
   authToken: process.env.TURSO_AUTH_TOKEN!,
 });
@@ -133,16 +133,16 @@ the plain remote client above is the default.
 ## Migrations
 
 The adapter's `migrate()` hook runs automatically when the generated Node
-server starts. It creates Flue's `flue_*` tables idempotently and stamps a
+server starts. It creates Bapx's `bapX_*` tables idempotently and stamps a
 schema version, so a fresh database is provisioned on first boot and an existing
 one is reused on restart. There is no separate migration command to run, and a
-database written by a newer Flue refuses to start rather than corrupting state.
+database written by a newer Bapx refuses to start rather than corrupting state.
 
 ## What gets stored
 
-A Flue database stores runtime state, not your whole application.
+A Bapx database stores runtime state, not your whole application.
 
-| Stored by Flue                                                   | Not stored by Flue                                             |
+| Stored by Bapx                                                   | Not stored by Bapx                                             |
 | ---------------------------------------------------------------- | -------------------------------------------------------------- |
 | Canonical agent conversation streams and compaction records       | Sandbox files and installed dependencies                       |
 | Immutable attachment payloads                                    | External API side effects                                      |

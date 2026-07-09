@@ -1,6 +1,6 @@
 /** Example `app.ts`: compose a custom Hono app and runtime providers. */
 import { registerProvider } from '@bapX/runtime';
-import { flue } from '@bapX/runtime/routing';
+import { bapX } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 // Brand-new provider IDs for local OpenAI-compatible servers.
@@ -33,11 +33,11 @@ app.use('*', async (c, next) => {
 	console.log(`[${c.res.status}] ${c.req.method} ${c.req.path} ${ms}ms`);
 });
 
-// Custom route outside Flue's agent API.
+// Custom route outside Bapx's agent API.
 app.get('/api/ping', (c) => c.json({ pong: true, at: new Date().toISOString() }));
 
-// Mount Flue's built-in agent route.
-app.route('/', flue());
+// Mount Bapx's built-in agent route.
+app.route('/', bapX());
 
 // To expose deployment-inspection endpoints, compose them from the
 // `listRuns`/`getRun`/`listAgents` primitives exported by `@bapX/runtime`,

@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { describe, it } from 'node:test';
 
-const cli = new URL('../dist/flue.js', import.meta.url);
+const cli = new URL('../dist/bapX.js', import.meta.url);
 
 async function runCli(args) {
 	const child = spawn(process.execPath, [cli.pathname, ...args], {
@@ -23,15 +23,15 @@ async function runCli(args) {
 	return { code, signal, stdout, stderr };
 }
 
-describe('flue (argument parsing)', () => {
-	it('treats the positional as the resource when flags precede it in `flue run`', async () => {
+describe('bapX (argument parsing)', () => {
+	it('treats the positional as the resource when flags precede it in `bapX run`', async () => {
 		const result = await runCli(['run', '--target', 'cloudflare', 'hello']);
 		assert.equal(result.code, 1);
 		assert.ok(result.stderr.includes('Resource "hello" not found'), result.stderr);
 		assert.ok(!result.stderr.includes('Unknown flag'), result.stderr);
 	});
 
-	it('reports the missing resource when `flue run` receives flags but no positional', async () => {
+	it('reports the missing resource when `bapX run` receives flags but no positional', async () => {
 		const result = await runCli(['run', '--target', 'node']);
 		assert.equal(result.code, 1);
 		assert.ok(result.stderr.includes('Missing agent or workflow name'), result.stderr);
@@ -63,22 +63,22 @@ describe('flue (argument parsing)', () => {
 		assert.ok(!result.stderr.includes('Missing value for --target'), result.stderr);
 	});
 
-	it('rejects --input when passed to `flue build`', async () => {
+	it('rejects --input when passed to `bapX build`', async () => {
 		const result = await runCli(['build', '--input', '{"x":1}']);
 		assert.equal(result.code, 1);
-		assert.ok(result.stderr.includes('`flue build` does not accept --input'), result.stderr);
+		assert.ok(result.stderr.includes('`bapX build` does not accept --input'), result.stderr);
 	});
 
-	it('rejects --port when passed to `flue build`', async () => {
+	it('rejects --port when passed to `bapX build`', async () => {
 		const result = await runCli(['build', '--port', '8080']);
 		assert.equal(result.code, 1);
-		assert.ok(result.stderr.includes('`flue build` does not accept --port'), result.stderr);
+		assert.ok(result.stderr.includes('`bapX build` does not accept --port'), result.stderr);
 	});
 
-	it('rejects --input when passed to `flue dev`', async () => {
+	it('rejects --input when passed to `bapX dev`', async () => {
 		const result = await runCli(['dev', '--input', '{}']);
 		assert.equal(result.code, 1);
-		assert.ok(result.stderr.includes('`flue dev` does not accept --input'), result.stderr);
+		assert.ok(result.stderr.includes('`bapX dev` does not accept --input'), result.stderr);
 	});
 
 	it('accepts the workflow --id flag for resource-aware validation', async () => {
@@ -93,7 +93,7 @@ describe('flue (argument parsing)', () => {
 			'run',
 			'workflow:report',
 			'--server',
-			'http://127.0.0.1:1/api/flue',
+			'http://127.0.0.1:1/api/bapX',
 		]);
 		assert.equal(result.code, 1);
 		assert.ok(!result.stderr.includes('Missing required `target`'), result.stderr);
@@ -106,15 +106,15 @@ describe('flue (argument parsing)', () => {
 		assert.ok(result.stderr.includes('Invalid header'), result.stderr);
 	});
 
-	it('rejects the removed --payload flag when passed to `flue run`', async () => {
+	it('rejects the removed --payload flag when passed to `bapX run`', async () => {
 		const result = await runCli(['run', 'hello', '--payload', '{}']);
 		assert.equal(result.code, 1);
-		assert.ok(result.stderr.includes('Unknown flag for `flue run`: --payload'), result.stderr);
+		assert.ok(result.stderr.includes('Unknown flag for `bapX run`: --payload'), result.stderr);
 	});
 
-	it('rejects an unknown flag when passed to `flue run`', async () => {
+	it('rejects an unknown flag when passed to `bapX run`', async () => {
 		const result = await runCli(['run', 'hello', '--bogus']);
 		assert.equal(result.code, 1);
-		assert.ok(result.stderr.includes('Unknown flag for `flue run`: --bogus'), result.stderr);
+		assert.ok(result.stderr.includes('Unknown flag for `bapX run`: --bogus'), result.stderr);
 	});
 });

@@ -1,4 +1,4 @@
-import type { ConversationStreamChunk, FlueEvent } from '@bapX/sdk';
+import type { ConversationStreamChunk, BapxEvent } from '@bapX/sdk';
 
 const CONVERSATION_CHUNK_TYPES = new Set<ConversationStreamChunk['type']>([
 	'conversation-reset',
@@ -13,7 +13,7 @@ const CONVERSATION_CHUNK_TYPES = new Set<ConversationStreamChunk['type']>([
 ]);
 
 function isConversationChunk(
-	event: ConversationStreamChunk | FlueEvent,
+	event: ConversationStreamChunk | BapxEvent,
 ): event is ConversationStreamChunk {
 	return CONVERSATION_CHUNK_TYPES.has(event.type as ConversationStreamChunk['type']);
 }
@@ -34,7 +34,7 @@ export interface ConsoleTranscript {
 }
 
 export type TranscriptAction =
-	| { type: 'event'; event: ConversationStreamChunk | FlueEvent }
+	| { type: 'event'; event: ConversationStreamChunk | BapxEvent }
 	| { type: 'prompt'; message: string }
 	| { type: 'error'; error: unknown }
 	| { type: 'clear-streaming' };
@@ -59,7 +59,7 @@ export function reduceConsoleTranscript(
 
 function reduceEvent(
 	state: ConsoleTranscript,
-	event: ConversationStreamChunk | FlueEvent,
+	event: ConversationStreamChunk | BapxEvent,
 ): ConsoleTranscript {
 	if (isConversationChunk(event)) return reduceChunk(state, event);
 	if (event.type === 'text_delta') {

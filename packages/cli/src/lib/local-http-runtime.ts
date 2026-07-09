@@ -135,7 +135,7 @@ export async function startCloudflareLocalRuntime(
 		const merged = mergeConfig(baseConfig, options.viteConfig ?? {});
 		const watchPlugin = options.onWatchChange
 			? {
-					name: 'flue-dev-watch',
+					name: 'bapX-dev-watch',
 					configureServer(server: Awaited<ReturnType<typeof createServer>>) {
 						server.watcher.on('all', (_event, filePath) => options.onWatchChange?.(filePath));
 					},

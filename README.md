@@ -69,7 +69,7 @@ Build agents that can safely take action, maintain continuity, and connect to th
 | Package                                         | Description                                            |
 | ----------------------------------------------- | ------------------------------------------------------ |
 | [`@bapX/runtime`](packages/runtime)             | Runtime: harness, sessions, tools, sandbox             |
-| [`@bapX/cli`](packages/cli)                     | CLI and build/dev tooling (`flue` binary)              |
+| [`@bapX/cli`](packages/cli)                     | CLI and build/dev tooling (`bapX` binary)              |
 | [`@bapX/sdk`](packages/sdk)                     | Client SDK for consuming deployed agents and workflows |
 | [`@bapX/opentelemetry`](packages/opentelemetry) | OpenTelemetry tracing adapter                          |
 | [`@bapX/postgres`](packages/postgres)           | Postgres persistence adapter                           |

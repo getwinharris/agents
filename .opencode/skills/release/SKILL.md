@@ -17,7 +17,7 @@ This project uses pre-1.0 semver semantics:
 - `major`: use only when explicitly requested; increment the major version normally.
 - Explicit version: use exactly the provided version after confirming it is a valid semver version.
 
-Before editing, inspect all workspace `package.json` files. Change versions only for public packages (`private` is not `true`). Keep public Flue package versions aligned to the selected release version unless the user explicitly directs otherwise. Do not version or publish private packages.
+Before editing, inspect all workspace `package.json` files. Change versions only for public packages (`private` is not `true`). Keep public Bapx package versions aligned to the selected release version unless the user explicitly directs otherwise. Do not version or publish private packages.
 
 ## Workflow
 
@@ -29,8 +29,8 @@ Before editing, inspect all workspace `package.json` files. Change versions only
 6. Run `pnpm install --lockfile-only` if necessary to update version-related lockfile metadata.
 7. Rebuild from scratch: remove generated build outputs for public packages, then run the repository build command (`pnpm run build` from the repository root).
 8. Run repository validation before publishing: `pnpm run check` from the repository root.
-9. Prepare publish artifacts: run `node scripts/prepare-publish.mjs` from the repository root. This copies the docs content into each public package's `docs/` folder (gitignored) and syncs the root `README.md` into the core packages (`@flue/cli`, `@flue/runtime`, `@flue/sdk`).
-10. Publish each public package from its package directory using `pnpm publish -r --no-git-checks`. Publish in dependency order when required (for this repository, publish `@flue/runtime` before packages that depend on it).
+9. Prepare publish artifacts: run `node scripts/prepare-publish.mjs` from the repository root. This copies the docs content into each public package's `docs/` folder (gitignored) and syncs the root `README.md` into the core packages (`@bapX/cli`, `@bapX/runtime`, `@bapX/sdk`).
+10. Publish each public package from its package directory using `pnpm publish -r --no-git-checks`. Publish in dependency order when required (for this repository, publish `@bapX/runtime` before packages that depend on it).
 11. Inspect the final diff and stage only release-generated changes, including the changelog, package versions, lockfile updates, and build or prepublish-generated tracked files.
 12. Commit after publication with `git commit -m "chore: release v<VERSION>"`.
 13. Tag that final commit with `git tag v<VERSION>`.

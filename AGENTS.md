@@ -3,7 +3,7 @@
 ## Scope
 
 This repository is the bapX agent harness for `agents.bapx.in`. It owns the primary agent
-harness and `@bapX/agent` package (forked from Flue):
+harness and `@bapX/agent` package (forked from Bapx):
 
 - **Product surface**: `agents.bapx.in`
 - **Primary package**: `@bapX/agent`
@@ -18,7 +18,7 @@ use skills (search, deploy, browser), and collaborate via built-in team features
 
 ## Framework
 
-The underlying framework (forked from Flue) compiles agent and workflow projects
+The underlying framework (forked from Bapx) compiles agent and workflow projects
 into deployable server artifacts.
 
 ## Terminology
@@ -40,7 +40,7 @@ Runs are workflow-only. Direct HTTP/WebSocket agent prompts and dispatched agent
 
 Use `harness` as the variable name for the return value of `init()`. Agents have names; agent instances have ids; harnesses and sessions have names; operations have generated ids.
 
-A blueprint is a Markdown implementation guide returned by `flue add`; its kind is `sandbox`, `database`, `channel`, or `tooling`. Use “sandbox adapter” for project-owned implementations and generated `src/sandboxes/` paths while preserving serialized/runtime API identifiers and Microsoft Bot Connector terminology.
+A blueprint is a Markdown implementation guide returned by `bapX add`; its kind is `sandbox`, `database`, `channel`, or `tooling`. Use “sandbox adapter” for project-owned implementations and generated `src/sandboxes/` paths while preserving serialized/runtime API identifiers and Microsoft Bot Connector terminology.
 
 ## Project Structure
 
@@ -50,7 +50,7 @@ A blueprint is a Markdown implementation guide returned by `flue add`; its kind 
 - `examples/cloudflare/` — Cloudflare integration fixture.
 - `examples/imported-skill/` — Packaged skill and release fixture.
 
-Agent and workflow sources use either `<root>/.flue/` or `<root>/`; when `.flue/` exists, the bare `agents/` and `workflows/` layout is ignored.
+Agent and workflow sources use either `<root>/.bapX/` or `<root>/`; when `.bapX/` exists, the bare `agents/` and `workflows/` layout is ignored.
 
 ## Development
 
@@ -77,7 +77,7 @@ When writing new plans to disk, write them to `plans/` (gitignored intentionally
 
 ## Errors
 
-Throw structured error classes from `packages/runtime/src/errors.ts` rather than ad-hoc `new Error('[flue] ...')`. If no existing class fits, add one following the structured-constructor pattern: machine-readable fields in `details`, developer-only guidance (filesystem paths, setup mechanics) in `dev` — never in the caller-visible message. Consumers distinguish failures via `instanceof` checks against exported classes and structured fields; error message strings are not API, and tests should assert on class and structured data rather than message text.
+Throw structured error classes from `packages/runtime/src/errors.ts` rather than ad-hoc `new Error('[bapX] ...')`. If no existing class fits, add one following the structured-constructor pattern: machine-readable fields in `details`, developer-only guidance (filesystem paths, setup mechanics) in `dev` — never in the caller-visible message. Consumers distinguish failures via `instanceof` checks against exported classes and structured fields; error message strings are not API, and tests should assert on class and structured data rather than message text.
 
 ## Testing
 

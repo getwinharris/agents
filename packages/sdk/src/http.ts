@@ -4,7 +4,7 @@ export type RequestHeaders =
 	| (() => Record<string, string> | Promise<Record<string, string>>);
 
 export interface HttpClientOptions {
-	/** URL where the public `flue()` sub-app is mounted, including any pathname. */
+	/** URL where the public `bapX()` sub-app is mounted, including any pathname. */
 	baseUrl: string;
 	/** Custom HTTP implementation. Defaults to the global `fetch`. */
 	fetch?: typeof fetch;
@@ -24,7 +24,7 @@ export interface JsonRequestOptions {
 }
 
 /** Failed SDK HTTP JSON request. */
-export class FlueApiError extends Error {
+export class BapxApiError extends Error {
 	/** HTTP response status. */
 	readonly status: number;
 	/** Parsed response body when available; otherwise the response text. */
@@ -32,7 +32,7 @@ export class FlueApiError extends Error {
 
 	constructor(status: number, body: unknown) {
 		super(errorMessage(status, body));
-		this.name = 'FlueApiError';
+		this.name = 'BapxApiError';
 		this.status = status;
 		this.body = body;
 	}
@@ -124,7 +124,7 @@ function resolveBaseUrl(baseUrl: string): string {
 async function parseJsonResponse<T>(response: Response): Promise<T> {
 	const text = await response.text();
 	const body = text ? safeJsonParse(text) : undefined;
-	if (!response.ok) throw new FlueApiError(response.status, text ? body : text);
+	if (!response.ok) throw new BapxApiError(response.status, text ? body : text);
 	return body as T;
 }
 
@@ -139,7 +139,7 @@ function safeJsonParse(value: string): unknown {
 function errorMessage(status: number, body: unknown): string {
 	if (typeof body === 'object' && body !== null && 'error' in body) {
 		const error = (body as { error?: { type?: string; message?: string } }).error;
-		return `Flue API error ${status}${error?.type ? ` [${error.type}]` : ''}: ${error?.message ?? 'request failed'}`;
+		return `Bapx API error ${status}${error?.type ? ` [${error.type}]` : ''}: ${error?.message ?? 'request failed'}`;
 	}
-	return `Flue API error ${status}: request failed`;
+	return `Bapx API error ${status}: request failed`;
 }

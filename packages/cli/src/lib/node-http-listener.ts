@@ -25,7 +25,7 @@ export interface StableNodeListener {
 /**
  * Permissive, credential-safe CORS for the local dev server only. Reflects the
  * request `Origin` (never `*`-with-credentials) so a separate-origin SPA — the
- * common dev setup — can call `flue dev` without extra configuration. Production
+ * common dev setup — can call `bapX dev` without extra configuration. Production
  * deployments are unaffected; CORS there is the application's responsibility.
  */
 function corsPreflightResponse(request: Request, origin: string): Response {

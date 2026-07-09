@@ -1,17 +1,17 @@
 ---
 title: boxd
-description: Connect a Flue agent to an application-owned boxd Linux VM.
+description: Connect a Bapx agent to an application-owned boxd Linux VM.
 lastReviewedAt: 2026-05-30
 ---
 
-The boxd adapter adapts an already-initialized boxd `Box` from `@boxd-sh/sdk` into Flue's sandbox interface. Use it when an agent needs a provider-backed Linux virtual machine with filesystem and shell behavior rather than the lightweight default workspace.
+The boxd adapter adapts an already-initialized boxd `Box` from `@boxd-sh/sdk` into Bapx's sandbox interface. Use it when an agent needs a provider-backed Linux virtual machine with filesystem and shell behavior rather than the lightweight default workspace.
 
 ## Quickstart
 
-Add provider-backed Linux VM sandbox capability to an existing Flue project with the [boxd](https://boxd.sh) blueprint. Run the following command in your terminal or coding agent of choice:
+Add provider-backed Linux VM sandbox capability to an existing Bapx project with the [boxd](https://boxd.sh) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```bash
-flue add sandbox boxd
+bapX add sandbox boxd
 ```
 
 ## Overview
@@ -19,7 +19,7 @@ flue add sandbox boxd
 The boxd blueprint installs `@boxd-sh/sdk` when needed and creates `sandboxes/boxd.ts` in your source-root. The generated adapter accepts an application-created boxd `Box`; it does not create, retain, or delete the VM.
 
 ```ts title="<source-root>/sandboxes/boxd.ts (abridged)"
-// flue-blueprint: sandbox/boxd@1
+// bapX-blueprint: sandbox/boxd@1
 import { createSandboxSessionEnv } from '@bapX/runtime';
 import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 import type { Box as BoxdBox } from '@boxd-sh/sdk';
@@ -61,7 +61,7 @@ export function boxd(box: BoxdBox, options?: BoxdAdapterOptions): SandboxFactory
 }
 ```
 
-Passing `boxd(box)` as an agent's `sandbox` waits for that VM's exec endpoint once, then exposes its files and Linux shell through Flue. Relative paths resolve from `/home/boxd` unless you set `cwd`; command timeouts remain in milliseconds, `stat` validates GNU metadata output, and `rm` receives the requested recursive and force flags, while VM identity, credentials, networking, persistence, and cleanup remain application-owned.
+Passing `boxd(box)` as an agent's `sandbox` waits for that VM's exec endpoint once, then exposes its files and Linux shell through Bapx. Relative paths resolve from `/home/boxd` unless you set `cwd`; command timeouts remain in milliseconds, `stat` validates GNU metadata output, and `rm` receives the requested recursive and force flags, while VM identity, credentials, networking, persistence, and cleanup remain application-owned.
 
 ## Configure
 
@@ -82,6 +82,6 @@ The generated adapter expects your application to create and own the boxd VM. It
 
 Choose boxd when a task requires real Linux command behavior in an isolated provider VM, particularly where a separate VM per workspace or agent instance is part of your application design.
 
-Before reusing a VM across sessions or tenants, define identity, authorization, egress, secrets, and cleanup policies. Conversation persistence remains controlled separately by Flue session storage.
+Before reusing a VM across sessions or tenants, define identity, authorization, egress, secrets, and cleanup policies. Conversation persistence remains controlled separately by Bapx session storage.
 
 See [Sandboxes](/docs/guide/sandboxes/) for execution-boundary design and [Sandbox Adapter API](/docs/api/sandbox-api/) for the adapter contract.

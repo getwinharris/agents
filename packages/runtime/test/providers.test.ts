@@ -1,7 +1,7 @@
 import { getModel } from '@earendil-works/pi-ai/compat';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { defineAgent, ProviderRegistrationError } from '../src/index.ts';
-import { createFlueContext, resolveModel } from '../src/internal.ts';
+import { createBapxContext, resolveModel } from '../src/internal.ts';
 import {
 	getProviderTelemetry,
 	registerProvider,
@@ -54,7 +54,7 @@ function captureFetch(assistantText: string): Request[] {
 
 /** Incidental harness plumbing; model resolution under test flows through `resolveModel`. */
 function createContext() {
-	return createFlueContext({
+	return createBapxContext({
 		id: 'providers-test-instance',
 		env: {},
 		agentConfig: {

@@ -3,4 +3,4 @@
  * authors need; config discovery and resolution are internal to the CLI.
  */
 
-export { defineConfig, type FlueConfig, type UserFlueConfig } from './lib/config.ts';
+export { defineConfig, type BapxConfig, type UserBapxConfig } from './lib/config.ts';

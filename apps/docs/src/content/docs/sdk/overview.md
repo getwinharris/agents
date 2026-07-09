@@ -1,15 +1,15 @@
 ---
 title: SDK overview
-description: Reference for consuming deployed Flue agents and workflows with @bapX/sdk.
+description: Reference for consuming deployed Bapx agents and workflows with @bapX/sdk.
 lastReviewedAt: 2026-06-20
 ---
 
-The client SDK is exported from `@bapX/sdk`. Use it from applications that consume deployed Flue agents and workflows.
+The client SDK is exported from `@bapX/sdk`. Use it from applications that consume deployed Bapx agents and workflows.
 
 ```ts
-import { createFlueClient } from '@bapX/sdk';
+import { createBapxClient } from '@bapX/sdk';
 
-const client = createFlueClient({
+const client = createBapxClient({
   baseUrl: 'https://example.com/api',
   token: process.env.FLUE_TOKEN,
 });
@@ -17,7 +17,7 @@ const client = createFlueClient({
 
 ## Client
 
-[`createFlueClient(...)`](/docs/sdk/client/) configures access to a deployed Flue application.
+[`createBapxClient(...)`](/docs/sdk/client/) configures access to a deployed Bapx application.
 
 ## API namespaces
 

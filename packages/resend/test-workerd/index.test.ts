@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createResendChannel, type ResendChannel } from '../src/index.ts';
 
 const encoder = new TextEncoder();
-const SECRET_TEXT = 'flue-resend-workerd-secret';
+const SECRET_TEXT = 'bapX-resend-workerd-secret';
 const WEBHOOK_SECRET = `whsec_${base64(encoder.encode(SECRET_TEXT))}`;
 
 describe('@bapX/resend workerd ingress', () => {

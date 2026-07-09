@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
 	type ConversationStreamChunk,
-	createFlueClient,
-	FlueApiError,
+	createBapxClient,
+	BapxApiError,
 } from '../src/index.ts';
 
-describe('createFlueClient', () => {
+describe('createBapxClient', () => {
 	describe('default global fetch', () => {
 		it('calls the global fetch with the correct receiver in a browser-like global', async () => {
 			// Regression for "Illegal invocation" in browsers: when no custom fetch
@@ -19,14 +19,14 @@ describe('createFlueClient', () => {
 				}
 				calledWithCorrectReceiver = true;
 				return Promise.resolve(
-					Response.json({ streamUrl: 'https://flue.test/stream', offset: '-1', submissionId: 's1' }),
+					Response.json({ streamUrl: 'https://bapX.test/stream', offset: '-1', submissionId: 's1' }),
 				);
 			} as typeof fetch;
 			try {
-				const client = createFlueClient({ baseUrl: 'https://flue.test' });
+				const client = createBapxClient({ baseUrl: 'https://bapX.test' });
 				await expect(
 					client.agents.send('hello', 'inst-1', { message: { kind: 'user', body: 'hi' } }),
-				).resolves.toEqual({ streamUrl: 'https://flue.test/stream', offset: '-1', submissionId: 's1' });
+				).resolves.toEqual({ streamUrl: 'https://bapX.test/stream', offset: '-1', submissionId: 's1' });
 				expect(calledWithCorrectReceiver).toBe(true);
 			} finally {
 				globalThis.fetch = original;
@@ -37,11 +37,11 @@ describe('createFlueClient', () => {
 	describe('agents.send()', () => {
 		it('sends the DeliveredMessage as the wire body', async () => {
 			const seen: Request[] = [];
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async (input, init) => {
 					seen.push(new Request(input, init));
-					return Response.json({ streamUrl: 'https://flue.test/stream', offset: '-1' });
+					return Response.json({ streamUrl: 'https://bapX.test/stream', offset: '-1' });
 				},
 			});
 			await client.agents.send('hello', 'inst-1', {
@@ -61,8 +61,8 @@ describe('createFlueClient', () => {
 
 	describe('agents.history() attachment urls', () => {
 		it('resolves a url on durably-recorded file parts and leaves preview parts untouched', async () => {
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async () =>
 					Response.json({
 						v: 1,
@@ -84,7 +84,7 @@ describe('createFlueClient', () => {
 
 			const snapshot = await client.agents.history('agent', 'inst-1');
 			const parts = snapshot.messages[0]?.parts as Array<{ url?: string }>;
-			expect(parts[0]?.url).toBe('https://flue.test/agents/agent/inst-1/attachments/att-1');
+			expect(parts[0]?.url).toBe('https://bapX.test/agents/agent/inst-1/attachments/att-1');
 			// A part that already carries a url (e.g. an optimistic data URL) is left as-is.
 			expect(parts[1]?.url).toBe('data:image/png;base64,AAAA');
 		});
@@ -97,8 +97,8 @@ describe('createFlueClient', () => {
 			const followed = new Promise<void>((resolve) => {
 				resolveFollowed = resolve;
 			});
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async (input) => {
 					const url = new URL(typeof input === 'string' ? input : new Request(input).url);
 					seen.push(`${url.searchParams.get('view')}:${url.searchParams.get('offset') ?? ''}`);
@@ -133,8 +133,8 @@ describe('createFlueClient', () => {
 
 		it('reports an absent conversation and rehydrates after refresh', async () => {
 			let historyCalls = 0;
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async (input) => {
 					const url = new URL(typeof input === 'string' ? input : new Request(input).url);
 					if (url.searchParams.get('view') === 'history') {
@@ -191,8 +191,8 @@ describe('createFlueClient', () => {
 				{ type: 'message-delta', conversationId: 'c1', messageId: 'a1', kind: 'text', delta: 'lo', position: { batch: 2, index: 1 } },
 			];
 			let updatesCalls = 0;
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async (input) => {
 					const url = new URL(typeof input === 'string' ? input : new Request(input).url);
 					if (url.searchParams.get('view') === 'history') {
@@ -231,8 +231,8 @@ describe('createFlueClient', () => {
 	describe('agents.history()', () => {
 		it('reads one materialized snapshot via the history view', async () => {
 			let seen = '';
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test/api',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test/api',
 				fetch: async (input) => {
 					seen = typeof input === 'string' ? input : new Request(input).url;
 					return Response.json({
@@ -258,8 +258,8 @@ describe('createFlueClient', () => {
 	describe('runs.stream()', () => {
 		it('constructs the correct stream URL from run ID', async () => {
 			const urls: string[] = [];
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async (input) => {
 					urls.push(typeof input === 'string' ? input : new Request(input).url);
 					return dsJsonResponse(
@@ -282,8 +282,8 @@ describe('createFlueClient', () => {
 		});
 
 		it('yields the full history with live:false when the server splits catch-up into multiple batches', async () => {
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async (input) => {
 					const url = new URL(typeof input === 'string' ? input : new Request(input).url);
 					if (url.searchParams.get('offset') === '-1') {
@@ -317,8 +317,8 @@ describe('createFlueClient', () => {
 
 	describe('runs.events()', () => {
 		it('returns all run events as an array', async () => {
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async () =>
 					dsJsonResponse(
 						[
@@ -337,8 +337,8 @@ describe('createFlueClient', () => {
 
 		it('preserves tail across catch-up reads', async () => {
 			const urls: URL[] = [];
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async (input) => {
 					const url = new URL(typeof input === 'string' ? input : new Request(input).url);
 					urls.push(url);
@@ -363,8 +363,8 @@ describe('createFlueClient', () => {
 
 		it('returns the full history when the server splits catch-up into multiple batches', async () => {
 			const offsets: Array<string | null> = [];
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async (input) => {
 					const url = new URL(typeof input === 'string' ? input : new Request(input).url);
 					const offset = url.searchParams.get('offset');
@@ -399,8 +399,8 @@ describe('createFlueClient', () => {
 	describe('workflows.invoke()', () => {
 		it('POSTs to workflow route and returns the run ID', async () => {
 			const seen: Request[] = [];
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async (input, init) => {
 					seen.push(new Request(input, init));
 					return Response.json({ runId: 'run_abc123' }, { status: 202 });
@@ -423,8 +423,8 @@ describe('createFlueClient', () => {
 
 		it('requests ?wait=result and returns the terminal result when wait is "result"', async () => {
 			const seen: Request[] = [];
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async (input, init) => {
 					seen.push(new Request(input, init));
 					return Response.json({
@@ -453,8 +453,8 @@ describe('createFlueClient', () => {
 
 		it('invokes the workflow with an omitted HTTP body when no input is provided', async () => {
 			let request: Request | undefined;
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async (input, init) => {
 					request = new Request(input, init);
 					return Response.json({ runId: 'run_xyz' }, { status: 202 });
@@ -472,8 +472,8 @@ describe('createFlueClient', () => {
 		it('follows an admission from its offset and resolves on its settlement chunk', async () => {
 			const offsets: Array<string | null> = [];
 			const seenEvents: string[] = [];
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async (input) => {
 					const url = new URL(typeof input === 'string' ? input : new Request(input).url);
 					offsets.push(url.searchParams.get('offset'));
@@ -491,7 +491,7 @@ describe('createFlueClient', () => {
 			await expect(
 				client.agents.wait(
 					{
-						streamUrl: 'https://flue.test/agents/hello/instance-1',
+						streamUrl: 'https://bapX.test/agents/hello/instance-1',
 						offset: 'admission-offset',
 						submissionId: 'submission-1',
 					},
@@ -503,8 +503,8 @@ describe('createFlueClient', () => {
 		});
 
 		it('throws a structured SDK error when the submission fails', async () => {
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async () =>
 					dsJsonResponse(
 						[
@@ -523,14 +523,14 @@ describe('createFlueClient', () => {
 
 			const error = await client.agents
 				.wait({
-					streamUrl: 'https://flue.test/agents/hello/instance-1',
+					streamUrl: 'https://bapX.test/agents/hello/instance-1',
 					offset: 'admission-offset',
 					submissionId: 'submission-1',
 				})
 				.catch((error: unknown) => error);
 
 			expect(error).toMatchObject({
-				name: 'FlueExecutionError',
+				name: 'BapxExecutionError',
 				target: 'agent_submission',
 				targetId: 'submission-1',
 				failure: 'failed',
@@ -539,8 +539,8 @@ describe('createFlueClient', () => {
 		});
 
 		it('classifies an aborted settlement distinctly from a failure', async () => {
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async () =>
 					dsJsonResponse(
 						[
@@ -559,14 +559,14 @@ describe('createFlueClient', () => {
 
 			const error = await client.agents
 				.wait({
-					streamUrl: 'https://flue.test/agents/hello/instance-1',
+					streamUrl: 'https://bapX.test/agents/hello/instance-1',
 					offset: 'admission-offset',
 					submissionId: 'submission-1',
 				})
 				.catch((error: unknown) => error);
 
 			expect(error).toMatchObject({
-				name: 'FlueExecutionError',
+				name: 'BapxExecutionError',
 				target: 'agent_submission',
 				targetId: 'submission-1',
 				failure: 'aborted',
@@ -579,8 +579,8 @@ describe('createFlueClient', () => {
 		it('invokes a workflow, delivers events, and returns the run_end result', async () => {
 			const requests: Request[] = [];
 			const seenEvents: string[] = [];
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async (input, init) => {
 					const request = new Request(input, init);
 					requests.push(request);
@@ -610,8 +610,8 @@ describe('createFlueClient', () => {
 
 		it('falls back to run metadata when the stream ends without run_end', async () => {
 			const paths: string[] = [];
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async (input, init) => {
 					const request = new Request(input, init);
 					const url = new URL(request.url);
@@ -647,7 +647,7 @@ describe('createFlueClient', () => {
 			});
 			try {
 				let url = '';
-				const client = createFlueClient({
+				const client = createBapxClient({
 					baseUrl: '/api',
 					fetch: async (input) => {
 						url = typeof input === 'string' ? input : new Request(input).url;
@@ -663,20 +663,20 @@ describe('createFlueClient', () => {
 		});
 
 		it('rejects relative base URLs outside a browser', () => {
-			expect(() => createFlueClient({ baseUrl: '/api' })).toThrow(
+			expect(() => createBapxClient({ baseUrl: '/api' })).toThrow(
 				'relative baseUrl requires a browser; pass an absolute URL',
 			);
 		});
 
 		it('resolves public HTTP routes beneath the base URL pathname', async () => {
 			const requests: Request[] = [];
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test/api/',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test/api/',
 				fetch: async (input, init) => {
 					const request = new Request(input, init);
 					requests.push(request);
 					if (request.method === 'POST')
-						return Response.json({ streamUrl: 'https://flue.test/stream', offset: '-1', submissionId: 's1' });
+						return Response.json({ streamUrl: 'https://bapX.test/stream', offset: '-1', submissionId: 's1' });
 					return Response.json({ runId: 'run-1' });
 				},
 			});
@@ -694,8 +694,8 @@ describe('createFlueClient', () => {
 	describe('runs.get()', () => {
 		it('requests the public ?meta view of the run route', async () => {
 			let url = '';
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test/api/',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test/api/',
 				fetch: async (input, init) => {
 					url = new Request(input, init).url;
 					return Response.json({
@@ -726,8 +726,8 @@ describe('createFlueClient', () => {
 					details: 'No exposed agent named hello exists.',
 				},
 			};
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async () => Response.json(body, { status: 404 }),
 			});
 
@@ -735,24 +735,24 @@ describe('createFlueClient', () => {
 				.send('hello', 'inst-1', { message: 'Hello' })
 				.catch((error: unknown) => error);
 
-			expect(error).toBeInstanceOf(FlueApiError);
-			if (!(error instanceof FlueApiError)) throw error;
-			expect(error.name).toBe('FlueApiError');
+			expect(error).toBeInstanceOf(BapxApiError);
+			if (!(error instanceof BapxApiError)) throw error;
+			expect(error.name).toBe('BapxApiError');
 			expect(error.status).toBe(404);
 			expect(error.body).toEqual(body);
-			expect(error.message).toBe('Flue API error 404 [agent_not_found]: Agent not found.');
+			expect(error.message).toBe('Bapx API error 404 [agent_not_found]: Agent not found.');
 		});
 
 		it('preserves parsed null HTTP API error bodies', async () => {
-			const client = createFlueClient({
-				baseUrl: 'https://flue.test',
+			const client = createBapxClient({
+				baseUrl: 'https://bapX.test',
 				fetch: async () => Response.json(null, { status: 500 }),
 			});
 
 			const error = await client.runs.get('run-1').catch((error: unknown) => error);
 
-			expect(error).toBeInstanceOf(FlueApiError);
-			if (!(error instanceof FlueApiError)) throw error;
+			expect(error).toBeInstanceOf(BapxApiError);
+			if (!(error instanceof BapxApiError)) throw error;
 			expect(error.body).toBeNull();
 		});
 	});

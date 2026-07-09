@@ -2,22 +2,22 @@
  * Runtime-safe application composition APIs for an optional authored `app.ts`
  * entrypoint.
  *
- * Without `app.ts`, Flue generates an application that mounts {@link flue} at
+ * Without `app.ts`, Bapx generates an application that mounts {@link bapX} at
  * `/`. When `app.ts` exists, its default {@link Fetchable} export owns the
- * request pipeline and must mount {@link flue} explicitly to publish Flue
+ * request pipeline and must mount {@link bapX} explicitly to publish Bapx
  * routes. Compose deployment-inspection endpoints from the `listRuns()`,
  * `getRun()`, and `listAgents()` primitives exported by `@bapX/runtime`.
  *
  * ```ts
- * import { flue } from '@bapX/runtime/routing';
+ * import { bapX } from '@bapX/runtime/routing';
  * import { Hono } from 'hono';
  *
  * const app = new Hono();
- * app.route('/', flue());
+ * app.route('/', bapX());
  * export default app;
  * ```
  */
-export { flue } from './runtime/flue-app.ts';
+export { bapX } from './runtime/bapX-app.ts';
 
 /**
  * Structural contract for the default export of an authored `app.ts` entry.

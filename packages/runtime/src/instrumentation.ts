@@ -1,14 +1,14 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { InstrumentationAlreadyInstalledError } from './errors.ts';
-import type { FlueExecutionInterceptor } from './execution-interceptor.ts';
+import type { BapxExecutionInterceptor } from './execution-interceptor.ts';
 import { registerExecutionInterceptor } from './execution-interceptor.ts';
-import type { FlueObservationSubscriber } from './observation.ts';
+import type { BapxObservationSubscriber } from './observation.ts';
 import { observe } from './runtime/events.ts';
 
-export interface FlueInstrumentation {
+export interface BapxInstrumentation {
 	key?: symbol;
-	observe: FlueObservationSubscriber;
-	interceptor: FlueExecutionInterceptor;
+	observe: BapxObservationSubscriber;
+	interceptor: BapxExecutionInterceptor;
 	dispose(): void | Promise<void>;
 }
 
@@ -38,7 +38,7 @@ export function createInstrumentationOwner(): InstrumentationOwner {
 						.map((result) => result.reason);
 					if (errors.length === 1) throw errors[0];
 					if (errors.length > 1) {
-						throw new AggregateError(errors, '[flue] Instrumentation disposal failed.');
+						throw new AggregateError(errors, '[bapX] Instrumentation disposal failed.');
 					}
 				},
 			);
@@ -59,7 +59,7 @@ export function runWithInstrumentationOwner<T>(owner: InstrumentationOwner, fn: 
 	return ownerStorage.run(owner as InstrumentationOwnerRegistration, fn);
 }
 
-export function instrument(instrumentation: FlueInstrumentation): () => Promise<void> {
+export function instrument(instrumentation: BapxInstrumentation): () => Promise<void> {
 	const existing = installed.get(instrumentation);
 	if (existing) return existing;
 	const key = instrumentation.key;

@@ -25,9 +25,9 @@ export type {
 	SubmissionDurability,
 	SubmissionSettlementObligation,
 } from './agent-execution-store.ts';
-export type { FlueContextConfig, FlueContextInternal } from './client.ts';
-export { createFlueContext, initializeRootHarness } from './client.ts';
-// `FlueRegistry` (Durable Object class) and the composite Cloudflare run
+export type { BapxContextConfig, BapxContextInternal } from './client.ts';
+export { createBapxContext, initializeRootHarness } from './client.ts';
+// `BapxRegistry` (Durable Object class) and the composite Cloudflare run
 // store/index factories live in the `@bapX/runtime/cloudflare/internal`
 // subpath because that entry pulls in `cloudflare:workers`, a virtual module
 // Node can't resolve. The generated CF entry imports them from there
@@ -68,16 +68,16 @@ export { SqliteEventStreamStore } from './runtime/event-stream-store.ts';
 export type {
 	AgentRecord,
 	CloudflareRuntime,
-	FlueRuntime,
+	BapxRuntime,
 	HandleRunRouteOptions,
 	NodeRuntime,
 	WorkflowRecord,
-} from './runtime/flue-app.ts';
+} from './runtime/bapX-app.ts';
 export {
-	configureFlueRuntime,
-	createDefaultFlueApp,
+	configureBapxRuntime,
+	createDefaultBapxApp,
 	handleRunRouteRequest,
-} from './runtime/flue-app.ts';
+} from './runtime/bapX-app.ts';
 export type {
 	AdmitDetachedWorkflowOptions,
 	CreateAgentContextFn,
@@ -94,17 +94,17 @@ export type {
 } from './runtime/handle-agent.ts';
 // Runtime modules consumed by the generated server entries.
 //
-//   - `configureFlueRuntime` seeds the module-scoped config that
-//     `flue()` reads at request time. Called once per generated entry,
+//   - `configureBapxRuntime` seeds the module-scoped config that
+//     `bapX()` reads at request time. Called once per generated entry,
 //     before the listener (Node) or `default.fetch` (Cloudflare) takes
 //     traffic.
 //
-//   - `createDefaultFlueApp` is the no-`app.ts` fallback. Lives in
+//   - `createDefaultBapxApp` is the no-`app.ts` fallback. Lives in
 //     @bapX/runtime so the generated entry doesn't have to import `hono` (which
 //     keeps user projects from needing it as a direct dep when they
 //     don't author their own `app.ts`).
 //
-// The user-facing `flue()` itself is re-exported from `@bapX/runtime/routing`, not here.
+// The user-facing `bapX()` itself is re-exported from `@bapX/runtime/routing`, not here.
 export {
 	admitDetachedWorkflow,
 	assertWorkflowDefinition,
@@ -151,7 +151,7 @@ export function resolveModel(model: string): Model<Api> {
 	const slash = modelSpecifier.indexOf('/');
 	if (slash === -1) {
 		throw new Error(
-			`[flue] Invalid model specifier "${modelSpecifier}". ` +
+			`[bapX] Invalid model specifier "${modelSpecifier}". ` +
 				`Use the "provider-id/model-id" format (e.g. "anthropic/claude-haiku-4-5").`,
 		);
 	}
@@ -162,7 +162,7 @@ export function resolveModel(model: string): Model<Api> {
 	if (registered) {
 		if (modelId === '') {
 			throw new Error(
-				`[flue] Invalid model specifier "${modelSpecifier}". ` +
+				`[bapX] Invalid model specifier "${modelSpecifier}". ` +
 					`Provider ID "${providerId}" is registered via registerProvider(), but no model ID ` +
 					`was given. Use "${providerId}/<model-id>".`,
 			);
@@ -175,7 +175,7 @@ export function resolveModel(model: string): Model<Api> {
 	const resolved = getModel(providerId as KnownProvider, modelId as never);
 	if (!resolved) {
 		throw new Error(
-			`[flue] Unknown model specifier "${modelSpecifier}". ` +
+			`[bapX] Unknown model specifier "${modelSpecifier}". ` +
 				`Provider ID "${providerId}" / model ID "${modelId}" ` +
 				`is not registered with @earendil-works/pi-ai or via registerProvider().`,
 		);

@@ -1,17 +1,17 @@
 ---
 title: exe.dev
-description: Connect a Node-target Flue application to an exe.dev VM over SSH.
+description: Connect a Node-target Bapx application to an exe.dev VM over SSH.
 lastReviewedAt: 2026-05-30
 ---
 
-The exe.dev adapter adapts an existing exe.dev VM into Flue's sandbox interface using SSH for commands and SFTP for files. Because it depends on Node.js APIs and `ssh2`, use it with the Node target rather than a Cloudflare Worker target.
+The exe.dev adapter adapts an existing exe.dev VM into Bapx's sandbox interface using SSH for commands and SFTP for files. Because it depends on Node.js APIs and `ssh2`, use it with the Node target rather than a Cloudflare Worker target.
 
 ## Quickstart
 
-Add SSH-backed sandbox capability to an existing Flue project with the [exe.dev](https://exe.dev) blueprint. Run the following command in your terminal or coding agent of choice:
+Add SSH-backed sandbox capability to an existing Bapx project with the [exe.dev](https://exe.dev) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```bash
-flue add sandbox exedev
+bapX add sandbox exedev
 ```
 
 ## Overview
@@ -19,7 +19,7 @@ flue add sandbox exedev
 The blueprint installs `ssh2` and its TypeScript declarations, then creates `sandboxes/exedev.ts` in your source-root. The generated Node adapter uses SSH and SFTP for an existing VM and also exports optional helpers for explicit VM creation, cloning, readiness checks, and deletion.
 
 ```ts title="<source-root>/sandboxes/exedev.ts (abridged)"
-// flue-blueprint: sandbox/exedev@1
+// bapX-blueprint: sandbox/exedev@1
 import { createSandboxSessionEnv } from '@bapX/runtime';
 import type { FileStat, SandboxApi, SandboxFactory, SessionEnv } from '@bapX/runtime';
 import * as fs from 'node:fs';
@@ -71,7 +71,7 @@ export function exedev(vm: ExeDevVm | string, options?: ExeDevAdapterOptions): S
 }
 ```
 
-Pass an SSH-reachable VM hostname or `ExeDevVm` to `exedev(...)` and assign the returned factory to an agent's `sandbox` property. Flue uses the detected remote home directory when available; `timeoutMs` remains in milliseconds and closes the SSH command stream at the deadline, returning exit code 124. File removal uses SFTP directly, so recursive and force options are rejected before mutation rather than emulated with a one-off shell command.
+Pass an SSH-reachable VM hostname or `ExeDevVm` to `exedev(...)` and assign the returned factory to an agent's `sandbox` property. Bapx uses the detected remote home directory when available; `timeoutMs` remains in milliseconds and closes the SSH command stream at the deadline, returning exit code 124. File removal uses SFTP directly, so recursive and force options are rejected before mutation rather than emulated with a one-off shell command.
 
 ## Configure
 
@@ -91,7 +91,7 @@ Pass an SSH-reachable VM hostname or `ExeDevVm` to `exedev(...)` and assign the 
 
 ## Choose this adapter when
 
-Use exe.dev when a Node-hosted Flue application should operate inside a VM you reach through SSH/SFTP. The adapter blueprint includes optional lifecycle helpers, but the sandbox adapter itself is designed around a VM your application owns.
+Use exe.dev when a Node-hosted Bapx application should operate inside a VM you reach through SSH/SFTP. The adapter blueprint includes optional lifecycle helpers, but the sandbox adapter itself is designed around a VM your application owns.
 
 Treat SSH keys and provider tokens as server-side secrets. Decide whether agent instances share or allocate VMs, and clean up application-owned VMs according to your retention policy.
 

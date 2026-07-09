@@ -1,20 +1,20 @@
 import type {
-	FlueEvent,
-	FlueEventContext,
-	FlueObservation,
-	FlueObservationDetail,
+	BapxEvent,
+	BapxEventContext,
+	BapxObservation,
+	BapxObservationDetail,
 } from './types.ts';
 
-export type FlueObservationSubscriber = (
-	observation: FlueObservation,
-	ctx: FlueEventContext,
+export type BapxObservationSubscriber = (
+	observation: BapxObservation,
+	ctx: BapxEventContext,
 ) => void | Promise<void>;
 
 export function createObservation(
-	event: FlueEvent,
-	detail?: FlueObservationDetail,
-): FlueObservation {
-	return freezeValue(cloneValue({ ...event, ...detail } as FlueObservation));
+	event: BapxEvent,
+	detail?: BapxObservationDetail,
+): BapxObservation {
+	return freezeValue(cloneValue({ ...event, ...detail } as BapxObservation));
 }
 
 function cloneValue<T>(value: T, seen = new Map<object, unknown>()): T {

@@ -12,7 +12,7 @@ describe('parseSkillMarkdown()', () => {
 					"license: '  Apache-2.0  '",
 					"compatibility: '  Modern runtimes  '",
 					'metadata:',
-					'  author: flue',
+					'  author: bapX',
 					'  version: "1.0"',
 					"allowed-tools: '  Read   Bash(git:*)  '",
 					'---',
@@ -30,7 +30,7 @@ describe('parseSkillMarkdown()', () => {
 			body: 'Use the PDF process.',
 			license: 'Apache-2.0',
 			compatibility: 'Modern runtimes',
-			metadata: { author: 'flue', version: '1.0' },
+			metadata: { author: 'bapX', version: '1.0' },
 			allowedTools: ['Read', 'Bash(git:*)'],
 		});
 	});
@@ -55,7 +55,7 @@ describe('parseSkillMarkdown()', () => {
 				path: '/skills/pdf-processing/SKILL.md',
 			}),
 		).toThrow(
-			'[flue] Skill /skills/pdf-processing/SKILL.md is missing YAML frontmatter. Start SKILL.md with "---", include "name" and "description", then close the block with "---".',
+			'[bapX] Skill /skills/pdf-processing/SKILL.md is missing YAML frontmatter. Start SKILL.md with "---", include "name" and "description", then close the block with "---".',
 		);
 	});
 
@@ -65,7 +65,7 @@ describe('parseSkillMarkdown()', () => {
 				directoryName: 'pdf-processing',
 				path: '/skills/pdf-processing/SKILL.md',
 			}),
-		).toThrow('[flue] Skill /skills/pdf-processing/SKILL.md has invalid YAML frontmatter.');
+		).toThrow('[bapX] Skill /skills/pdf-processing/SKILL.md has invalid YAML frontmatter.');
 	});
 
 	it('rejects a non-mapping document when SKILL frontmatter is not an object', () => {
@@ -74,7 +74,7 @@ describe('parseSkillMarkdown()', () => {
 				directoryName: 'pdf-processing',
 				path: '/skills/pdf-processing/SKILL.md',
 			}),
-		).toThrow('[flue] Skill /skills/pdf-processing/SKILL.md frontmatter must be a YAML mapping.');
+		).toThrow('[bapX] Skill /skills/pdf-processing/SKILL.md frontmatter must be a YAML mapping.');
 	});
 
 	it('rejects a missing skill name when SKILL frontmatter is parsed', () => {
@@ -84,7 +84,7 @@ describe('parseSkillMarkdown()', () => {
 				path: '/skills/pdf-processing/SKILL.md',
 			}),
 		).toThrow(
-			'[flue] Skill /skills/pdf-processing/SKILL.md must define frontmatter name as a non-empty string.',
+			'[bapX] Skill /skills/pdf-processing/SKILL.md must define frontmatter name as a non-empty string.',
 		);
 	});
 
@@ -95,7 +95,7 @@ describe('parseSkillMarkdown()', () => {
 				path: '/skills/pdf-processing/SKILL.md',
 			}),
 		).toThrow(
-			'[flue] Skill /skills/pdf-processing/SKILL.md must define frontmatter name as a non-empty string.',
+			'[bapX] Skill /skills/pdf-processing/SKILL.md must define frontmatter name as a non-empty string.',
 		);
 	});
 
@@ -106,7 +106,7 @@ describe('parseSkillMarkdown()', () => {
 				path: '/skills/pdf-processing/SKILL.md',
 			}),
 		).toThrow(
-			'[flue] Skill /skills/pdf-processing/SKILL.md must define frontmatter description as a non-empty string.',
+			'[bapX] Skill /skills/pdf-processing/SKILL.md must define frontmatter description as a non-empty string.',
 		);
 	});
 
@@ -117,7 +117,7 @@ describe('parseSkillMarkdown()', () => {
 				path: '/skills/pdf-processing/SKILL.md',
 			}),
 		).toThrow(
-			'[flue] Skill /skills/pdf-processing/SKILL.md must define frontmatter description as a non-empty string.',
+			'[bapX] Skill /skills/pdf-processing/SKILL.md must define frontmatter description as a non-empty string.',
 		);
 	});
 
@@ -128,7 +128,7 @@ describe('parseSkillMarkdown()', () => {
 				path: '/skills/PDF-processing/SKILL.md',
 			}),
 		).toThrow(
-			'[flue] Skill /skills/PDF-processing/SKILL.md frontmatter name "PDF-processing" must contain only lowercase ASCII letters, numbers, and hyphens. Use a spec-compliant value such as "review-pr".',
+			'[bapX] Skill /skills/PDF-processing/SKILL.md frontmatter name "PDF-processing" must contain only lowercase ASCII letters, numbers, and hyphens. Use a spec-compliant value such as "review-pr".',
 		);
 	});
 
@@ -139,7 +139,7 @@ describe('parseSkillMarkdown()', () => {
 				path: '/skills/pdf--processing/SKILL.md',
 			}),
 		).toThrow(
-			'[flue] Skill /skills/pdf--processing/SKILL.md frontmatter name "pdf--processing" must not start or end with a hyphen or contain consecutive hyphens. Use a spec-compliant value such as "review-pr".',
+			'[bapX] Skill /skills/pdf--processing/SKILL.md frontmatter name "pdf--processing" must not start or end with a hyphen or contain consecutive hyphens. Use a spec-compliant value such as "review-pr".',
 		);
 	});
 
@@ -150,7 +150,7 @@ describe('parseSkillMarkdown()', () => {
 				path: '/skills/café-notes/SKILL.md',
 			}),
 		).toThrow(
-			'[flue] Skill /skills/café-notes/SKILL.md frontmatter name "café-notes" must contain only lowercase ASCII letters, numbers, and hyphens. Use a spec-compliant value such as "review-pr".',
+			'[bapX] Skill /skills/café-notes/SKILL.md frontmatter name "café-notes" must contain only lowercase ASCII letters, numbers, and hyphens. Use a spec-compliant value such as "review-pr".',
 		);
 	});
 
@@ -161,7 +161,7 @@ describe('parseSkillMarkdown()', () => {
 				path: '/skills/document-processing/SKILL.md',
 			}),
 		).toThrow(
-			'[flue] Skill /skills/document-processing/SKILL.md declares frontmatter name "pdf-processing", but Agent Skills requires it to match directory "document-processing"; names must match. Rename the directory or change "name" so they match.',
+			'[bapX] Skill /skills/document-processing/SKILL.md declares frontmatter name "pdf-processing", but Agent Skills requires it to match directory "document-processing"; names must match. Rename the directory or change "name" so they match.',
 		);
 	});
 
@@ -172,7 +172,7 @@ describe('parseSkillMarkdown()', () => {
 				path: '/skills/pdf-processing/SKILL.md',
 			}),
 		).toThrow(
-			'[flue] Skill /skills/pdf-processing/SKILL.md frontmatter description exceeds the 1024-character Agent Skills limit. Shorten "description" to a concise one-line summary.',
+			'[bapX] Skill /skills/pdf-processing/SKILL.md frontmatter description exceeds the 1024-character Agent Skills limit. Shorten "description" to a concise one-line summary.',
 		);
 	});
 

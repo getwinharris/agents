@@ -5,7 +5,7 @@ type PreparedToolAdapter = {
 	execute(args: Record<string, unknown>, signal?: AbortSignal): Promise<string>;
 };
 
-const preparedToolAdapter = Symbol('flue.preparedToolAdapter');
+const preparedToolAdapter = Symbol('bapX.preparedToolAdapter');
 
 type PreparedToolDefinition = ToolDefinition & {
 	readonly [preparedToolAdapter]?: PreparedToolAdapter;

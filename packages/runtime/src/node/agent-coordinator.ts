@@ -92,7 +92,7 @@ export function createNodeDispatchQueue(coordinator: NodeAgentCoordinator): Disp
 			}
 			if (admission.kind === 'conflict') {
 				throw new Error(
-					`[flue] dispatch() target agent "${input.agent}" rejected a conflicting dispatch replay.`,
+					`[bapX] dispatch() target agent "${input.agent}" rejected a conflicting dispatch replay.`,
 				);
 			}
 			return {
@@ -243,7 +243,7 @@ export function createNodeAgentCoordinator(options: {
 
 	function resolveAgent(name: string): AgentDefinition {
 		const agent = agents.find((record) => record.name === name)?.definition;
-		if (!agent) throw new Error(`[flue] submission target agent "${name}" has no agent definition.`);
+		if (!agent) throw new Error(`[bapX] submission target agent "${name}" has no agent definition.`);
 		return agent;
 	}
 
@@ -273,7 +273,7 @@ export function createNodeAgentCoordinator(options: {
 				// AbortErrors during shutdown are expected — don't log them.
 				if (error instanceof DOMException && error.name === 'AbortError') return;
 				console.error(
-					'[flue:submission-processing]',
+					'[bapX:submission-processing]',
 					{
 						submissionId: claimed.submissionId,
 						operation: 'process_submission',
@@ -353,7 +353,7 @@ export function createNodeAgentCoordinator(options: {
 				// back off briefly, and retry. Setting wakeRequested ensures
 				// the loop retries immediately after the backoff instead of
 				// sleeping indefinitely waiting for an external wake.
-				console.error('[flue:claim-loop] Error in claim pass, retrying:', error);
+				console.error('[bapX:claim-loop] Error in claim pass, retrying:', error);
 				await new Promise<void>((r) => setTimeout(r, 1000));
 				wakeRequested = true;
 			} finally {
@@ -384,7 +384,7 @@ export function createNodeAgentCoordinator(options: {
 		// Errors in individual submissions are caught by spawnSubmissionTask.
 		// Unexpected errors in the loop itself are fatal and logged.
 		void claimLoop().catch((error) => {
-			console.error('[flue:claim-loop] Fatal error in claim loop:', error);
+			console.error('[bapX:claim-loop] Fatal error in claim loop:', error);
 			loopRunning = false;
 		});
 		// Start lease heartbeat: periodically renew leases for all active
@@ -395,7 +395,7 @@ export function createNodeAgentCoordinator(options: {
 				const ids = [...activeSubmissions.keys()];
 				if (ids.length === 0) return;
 				submissions.renewLeases(ownerId, ids).catch((error) => {
-					console.error('[flue:lease-heartbeat] Failed to renew leases:', error);
+					console.error('[bapX:lease-heartbeat] Failed to renew leases:', error);
 				});
 			}, HEARTBEAT_INTERVAL_MS);
 			// Don't let the heartbeat prevent process exit.
@@ -461,7 +461,7 @@ export function createNodeAgentCoordinator(options: {
 		for (const submission of await submissions.listUnreadySubmissions()) {
 			const agent = agents.find((record) => record.name === submission.input.agent)?.definition;
 			if (!agent) {
-				console.error('[flue:submission-reconciliation]', {
+				console.error('[bapX:submission-reconciliation]', {
 					submissionId: submission.submissionId,
 					operation: 'materialize_submission',
 					outcome: 'agent_unavailable',
@@ -473,7 +473,7 @@ export function createNodeAgentCoordinator(options: {
 				await submissions.markSubmissionCanonicalReady(submission.submissionId);
 			} catch (error) {
 				console.error(
-					'[flue:submission-reconciliation]',
+					'[bapX:submission-reconciliation]',
 					{
 						submissionId: submission.submissionId,
 						operation: 'materialize_submission',
@@ -499,7 +499,7 @@ export function createNodeAgentCoordinator(options: {
 			const canonical = await writer.getRecord(settlement.recordId);
 			if (!canonical) await writer.append([settlement.record], { submission: attempt });
 			else if (JSON.stringify(canonical) !== JSON.stringify(settlement.record)) {
-				throw new Error('[flue] Pending settlement does not match its canonical record. Clear incompatible beta persistence.');
+				throw new Error('[bapX] Pending settlement does not match its canonical record. Clear incompatible beta persistence.');
 			}
 			await submissions.finalizeSubmissionSettlement(attempt, settlement.recordId);
 		}
@@ -513,7 +513,7 @@ export function createNodeAgentCoordinator(options: {
 			const agentName = submission.input.agent;
 			const agent = agents.find((record) => record.name === agentName)?.definition;
 			if (!agent) {
-				console.error('[flue:submission-reconciliation]', {
+				console.error('[bapX:submission-reconciliation]', {
 					submissionId: submission.submissionId,
 					operation: 'reconcile_submission',
 					outcome: 'agent_unavailable',
@@ -535,7 +535,7 @@ export function createNodeAgentCoordinator(options: {
 				}
 			} catch (error) {
 				console.error(
-					'[flue:submission-reconciliation]',
+					'[bapX:submission-reconciliation]',
 					{
 						submissionId: submission.submissionId,
 						operation: 'reconcile_submission',
@@ -564,12 +564,12 @@ export function createNodeAgentCoordinator(options: {
 		},
 
 		async admitDispatch(input) {
-			if (stopping) throw new Error('[flue] Coordinator is shutting down.');
+			if (stopping) throw new Error('[bapX] Coordinator is shutting down.');
 			const activityLease = activityGate?.enter();
 			try {
 				const agent = agents.find((record) => record.name === input.agent)?.definition;
 				if (!agent) {
-					throw new Error(`[flue] dispatch target agent "${input.agent}" has no agent definition.`);
+					throw new Error(`[bapX] dispatch target agent "${input.agent}" has no agent definition.`);
 				}
 
 				const admission = await submissions.admitDispatch(input);
@@ -619,7 +619,7 @@ export function createNodeAgentCoordinator(options: {
 			wake();
 			if (hasInactive) {
 				void reconcileRunningSubmissions().catch((error) => {
-					console.error('[flue:submission-abort] reconcile after abort failed:', error);
+					console.error('[bapX:submission-abort] reconcile after abort failed:', error);
 				});
 			}
 			return true;
@@ -628,14 +628,14 @@ export function createNodeAgentCoordinator(options: {
 		createAdmission(agentName: string, instanceId: string): AttachedAgentSubmissionAdmission {
 			return async (
 				message: DeliveredMessage,
-				traceCarrier?: import('../execution-interceptor.ts').FlueTraceCarrier,
+				traceCarrier?: import('../execution-interceptor.ts').BapxTraceCarrier,
 			) => {
-				if (stopping) throw new Error('[flue] Coordinator is shutting down.');
+				if (stopping) throw new Error('[bapX] Coordinator is shutting down.');
 				const activityLease = activityGate?.enter();
 				const agent = agents.find((record) => record.name === agentName)?.definition;
 				if (!agent) {
 					activityLease?.release();
-					throw new Error(`[flue] direct prompt target agent "${agentName}" has no agent definition.`);
+					throw new Error(`[bapX] direct prompt target agent "${agentName}" has no agent definition.`);
 				}
 
 				const input = createDirectAgentSubmissionInput({
@@ -650,7 +650,7 @@ export function createNodeAgentCoordinator(options: {
 					if (admitted.canonicalReadyAt === null) {
 						await materializeSubmissionConversation(input, agent);
 						const ready = await submissions.markSubmissionCanonicalReady(input.submissionId);
-						if (!ready) throw new Error('[flue] Direct admission disappeared before canonical readiness.');
+						if (!ready) throw new Error('[bapX] Direct admission disappeared before canonical readiness.');
 					}
 					const writer = await getConversationWriter(input);
 					const offset = writer?.offset ?? '-1';
@@ -736,7 +736,7 @@ export function createNodeAgentCoordinator(options: {
 			if (activeSubmissions.size > 0) {
 				const abandoned = [...activeSubmissions.keys()];
 				console.error(
-					`[flue:shutdown] ${abandoned.length} submission(s) did not settle within ${timeoutMs}ms and will be reclaimed on next startup:`,
+					`[bapX:shutdown] ${abandoned.length} submission(s) did not settle within ${timeoutMs}ms and will be reclaimed on next startup:`,
 					abandoned,
 				);
 			}

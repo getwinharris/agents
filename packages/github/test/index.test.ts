@@ -112,7 +112,7 @@ describe('createGitHubChannel()', () => {
 				id: 6002,
 				in_reply_to_id: 6001,
 				pull_request_review_id: 7001,
-				body: '@flue-bot can you check this branch?',
+				body: '@bapX-bot can you check this branch?',
 				path: 'src/auth.ts',
 				line: 42,
 			},
@@ -362,10 +362,10 @@ describe('createGitHubChannel()', () => {
 			webhookSecret: 'secret',
 			webhook() {},
 		});
-		const ref = { owner: 'with:astro', repo: 'flue/next?#', issueNumber: 42 };
+		const ref = { owner: 'with:astro', repo: 'bapX/next?#', issueNumber: 42 };
 		const key = github.conversationKey(ref);
 
-		expect(key).toBe('github:v1:owner:with%3Aastro:repo:flue%2Fnext%3F%23:issue:42');
+		expect(key).toBe('github:v1:owner:with%3Aastro:repo:bapX%2Fnext%3F%23:issue:42');
 		expect(github.parseConversationKey(key)).toEqual(ref);
 		expect(() => github.parseConversationKey('slack:v1:owner:acme:repo:widgets:issue:42')).toThrow(
 			InvalidGitHubConversationKeyError,

@@ -9,17 +9,17 @@ Observable runtime types and global observation APIs are exported from `@bapX/ru
 ```ts
 import {
   type AttachedAgentEvent,
-  type FlueEvent,
-  type FlueEventContext,
-  type FlueObservation,
+  type BapxEvent,
+  type BapxEventContext,
+  type BapxObservation,
   observe,
-  type FlueObservationSubscriber,
+  type BapxObservationSubscriber,
 } from '@bapX/runtime';
 ```
 
 ## Runtime events
 
-`FlueEvent` is the observable runtime activity union. Workflow invocations emit workflow-run events with `runId`. Direct prompts and asynchronously dispatched agent inputs emit agent activity with `instanceId`; dispatched activity may also carry `dispatchId`. Those interactions are not workflow runs.
+`BapxEvent` is the observable runtime activity union. Workflow invocations emit workflow-run events with `runId`. Direct prompts and asynchronously dispatched agent inputs emit agent activity with `instanceId`; dispatched activity may also carry `dispatchId`. Those interactions are not workflow runs.
 
 Every delivered event carries the durable event-format version `v: 3`, a per-context `eventIndex`, and a `timestamp`. Runtime and SDK readers reject every non-v3 event with upgrade guidance rather than applying compatibility fallbacks. Applicable events may also carry harness and session names, generated operation and turn ids, task correlation, and parent-session correlation. Events are durably stored in an event stream and can be replayed from any offset via the Durable Streams protocol — except `turn_request`, which is delivered to in-process subscribers only (see below).
 
@@ -64,7 +64,7 @@ Operations, turns, task ids, and tool-call ids are generated correlation boundar
 
 Streaming deltas are live progress signals, not authoritative message state. A reader that attaches after generation starts may miss earlier partial output until the assistant `message_end` supplies the complete message. Thinking events include `contentIndex`, the zero-based index of the thinking block in the assistant message; correlate thinking events within a turn by `contentIndex`. Historical persisted events may omit this field. Internal interrupted-turn recovery uses separate durable state and is unaffected by the public event contract.
 
-`turn_request` and `turn` use purpose `agent`, `compaction`, or `compaction_prefix`. `request.providerId` is the Flue provider-registration key; `request.providerName` is the semantic provider name used by observability projections and may differ when a gateway or custom registration is involved. Count model activity from either the normalized `turn` events or the detailed `turn_messages`/`message_*` family, not both.
+`turn_request` and `turn` use purpose `agent`, `compaction`, or `compaction_prefix`. `request.providerId` is the Bapx provider-registration key; `request.providerName` is the semantic provider name used by observability projections and may differ when a gateway or custom registration is involved. Count model activity from either the normalized `turn` events or the detailed `turn_messages`/`message_*` family, not both.
 
 ### Tool calls
 
@@ -73,7 +73,7 @@ Streaming deltas are live progress signals, not authoritative message state. A r
 | `tool_start` | Tool execution started. Includes tool name and call id.            |
 | `tool`       | Tool execution ended. Includes duration, error state, and result. |
 
-Both model-driven and programmatic (`shell()`) tool activity emit `tool_start` and `tool`. Use `toolCallId` to correlate related events. Live `FlueObservation` values additionally carry applicable origin, semantic type, description, effective arguments/result, and normalized error detail; these exporter-oriented fields are not persisted or replayed.
+Both model-driven and programmatic (`shell()`) tool activity emit `tool_start` and `tool`. Use `toolCallId` to correlate related events. Live `BapxObservation` values additionally carry applicable origin, semantic type, description, effective arguments/result, and normalized error detail; these exporter-oriented fields are not persisted or replayed.
 
 ### Compaction
 
@@ -95,12 +95,12 @@ Data events are durable and append-only. Consumers may reconcile repeated events
 
 Event type names, the envelope fields (`v`, `eventIndex`, `timestamp`, identity and correlation fields), and the normalized payloads — `turn_request`/`turn` (the `Llm*` mirror types), `tool_start`/`tool`, `task`, `operation`, `compaction`, `run_*`, `log`, `data`, `submission_settled`, `text_delta`, and `thinking_*` — are the stable event contract.
 
-The detailed message payloads are **not yet stable**: `message` on `message_start`/`message_end`, `message` and `toolResults` on `turn_messages`, and `messages` on `agent_end` mirror the message shape of the underlying agent library (pi-agent-core's `AgentMessage`) and may change shape before 1.0, when they will be replaced with a Flue-owned message type. Readers of persisted streams can branch on the envelope's `v` field when the format changes.
+The detailed message payloads are **not yet stable**: `message` on `message_start`/`message_end`, `message` and `toolResults` on `turn_messages`, and `messages` on `agent_end` mirror the message shape of the underlying agent library (pi-agent-core's `AgentMessage`) and may change shape before 1.0, when they will be replaced with a Bapx-owned message type. Readers of persisted streams can branch on the envelope's `v` field when the format changes.
 
-#### `FlueEvent`
+#### `BapxEvent`
 
 ```ts
-type FlueEvent = RuntimeEventVariant & {
+type BapxEvent = RuntimeEventVariant & {
   v: 3;
   eventIndex: number;
   timestamp: string;
@@ -124,7 +124,7 @@ Attached-agent events represent direct-agent activity. They omit workflow lifecy
 
 ```ts
 type AttachedAgentEvent = Exclude<
-  FlueEvent,
+  BapxEvent,
   { type: 'run_start' } | { type: 'run_resume' } | { type: 'run_end' }
 > & {
   runId?: never;
@@ -137,21 +137,21 @@ type AttachedAgentEvent = Exclude<
 ### `observe(...)`
 
 ```ts
-function observe(subscriber: FlueObservationSubscriber): () => void;
+function observe(subscriber: BapxObservationSubscriber): () => void;
 ```
 
-Subscribes to live workflow-run and agent-interaction activity emitted in the current isolate. The returned function unsubscribes the listener. Subscribers run synchronously from the event emission path and receive one detached, frozen `FlueObservation`: the product event plus applicable live-only detail, using the same `v` field. Branch on `observation.type` and return immediately for activity the subscriber does not consume. Keep callbacks lightweight and queue substantial asynchronous work instead of blocking emission. Returned promises are observed for rejection but are not awaited.
+Subscribes to live workflow-run and agent-interaction activity emitted in the current isolate. The returned function unsubscribes the listener. Subscribers run synchronously from the event emission path and receive one detached, frozen `BapxObservation`: the product event plus applicable live-only detail, using the same `v` field. Branch on `observation.type` and return immediately for activity the subscriber does not consume. Keep callbacks lightweight and queue substantial asynchronous work instead of blocking emission. Returned promises are observed for rejection but are not awaited.
 
 `observe()` receives every emitted event, including `turn_request` — the full model-visible request is available to in-process observability without being persisted to the primary database.
 
 See [Observability](/docs/guide/observability/) for application setup and exporter guidance.
 
-#### `FlueObservationSubscriber`
+#### `BapxObservationSubscriber`
 
 ```ts
-type FlueObservationSubscriber = (
-  observation: FlueObservation,
-  ctx: FlueEventContext,
+type BapxObservationSubscriber = (
+  observation: BapxObservation,
+  ctx: BapxEventContext,
 ) => void | Promise<void>;
 ```
 
@@ -159,4 +159,4 @@ Receives a detached immutable observation and its originating context. Subscribe
 
 ## Public errors
 
-Transport errors use the shared `FluePublicError` shape. See [Errors Reference](/docs/api/errors-reference/) for its fields, stable categories, transport envelopes, and the distinction between transport errors and open-ended workflow failure records.
+Transport errors use the shared `BapxPublicError` shape. See [Errors Reference](/docs/api/errors-reference/) for its fields, stable categories, transport envelopes, and the distinction between transport errors and open-ended workflow failure records.

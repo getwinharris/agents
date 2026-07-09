@@ -2,13 +2,13 @@
 { "kind": "tooling", "version": 1, "website": "https://vitest-evals.sentry.dev" }
 ---
 
-# Add vitest-evals to Flue
+# Add vitest-evals to Bapx
 
-You are an AI coding agent adding `vitest-evals` to a Flue project. Create a separate eval suite that exercises the application's public HTTP boundary through `@bapX/sdk`. Do not import Flue runtime internals or replace the project's unit-test setup.
+You are an AI coding agent adding `vitest-evals` to a Bapx project. Create a separate eval suite that exercises the application's public HTTP boundary through `@bapX/sdk`. Do not import Bapx runtime internals or replace the project's unit-test setup.
 
 ## Inspect the project
 
-Read local instructions and detect the package manager. Inspect `package.json`, TypeScript configuration, existing Vitest configuration, agents, workflows, route authentication, CI configuration, and ignore files. Keep eval support files under `src/evals/`, independent of whether Flue application sources use `.flue/`, `src/`, or the project root.
+Read local instructions and detect the package manager. Inspect `package.json`, TypeScript configuration, existing Vitest configuration, agents, workflows, route authentication, CI configuration, and ignore files. Keep eval support files under `src/evals/`, independent of whether Bapx application sources use `.bapX/`, `src/`, or the project root.
 
 Ask which agent or workflow and which observable behavior should form the starter eval when that is not clear from the project. Do not invent a product requirement merely to produce a passing case.
 
@@ -16,7 +16,7 @@ The primary agent used below must already expose an HTTP route. Do not add an un
 
 ## Install dependencies
 
-Install `@bapX/sdk`, `vitest`, and `vitest-evals` as development dependencies using the project's package manager. Preserve existing version and workspace conventions. Do not install a runtime-specific `@vitest-evals/harness-*` package: the custom harness below evaluates the deployed Flue application rather than Flue's underlying model runtime.
+Install `@bapX/sdk`, `vitest`, and `vitest-evals` as development dependencies using the project's package manager. Preserve existing version and workspace conventions. Do not install a runtime-specific `@vitest-evals/harness-*` package: the custom harness below evaluates the deployed Bapx application rather than Bapx's underlying model runtime.
 
 ## Create the eval configuration
 
@@ -49,16 +49,16 @@ Merge these scripts into `package.json`, preserving existing scripts:
 
 Ensure the project's TypeScript configuration includes `src/evals/**/*.ts` and `vitest.evals.config.ts` when its existing include rules require this. Add `vitest-results.json` to the project's ignore file when adding the JSON script.
 
-## Create the Flue harness
+## Create the Bapx harness
 
 Create `src/evals/harness.ts`:
 
 ```ts title="src/evals/harness.ts"
-// flue-blueprint: tooling/vitest-evals@1
-import { createFlueClient, type FlueConversationMessage } from '@bapX/sdk';
+// bapX-blueprint: tooling/vitest-evals@1
+import { createBapxClient, type BapxConversationMessage } from '@bapX/sdk';
 import { createHarness, type SimpleToolCallRecord } from 'vitest-evals';
 
-export interface FlueAgentHarnessOptions {
+export interface BapxAgentHarnessOptions {
   agentName: string;
   baseUrl?: string;
   token?: string;
@@ -66,12 +66,12 @@ export interface FlueAgentHarnessOptions {
 }
 
 function lastAssistantMessage(
-  messages: FlueConversationMessage[],
-): FlueConversationMessage | undefined {
+  messages: BapxConversationMessage[],
+): BapxConversationMessage | undefined {
   return messages.findLast((entry) => entry.role === 'assistant');
 }
 
-function messageText(message: FlueConversationMessage | undefined): string {
+function messageText(message: BapxConversationMessage | undefined): string {
   if (!message) return '';
   return message.parts
     .filter((part) => part.type === 'text')
@@ -79,7 +79,7 @@ function messageText(message: FlueConversationMessage | undefined): string {
     .join('');
 }
 
-function collectToolCalls(messages: FlueConversationMessage[]): SimpleToolCallRecord[] {
+function collectToolCalls(messages: BapxConversationMessage[]): SimpleToolCallRecord[] {
   return messages.flatMap((message) =>
     message.parts.flatMap((part) => {
       if (part.type !== 'dynamic-tool') return [];
@@ -99,15 +99,15 @@ function collectToolCalls(messages: FlueConversationMessage[]): SimpleToolCallRe
   );
 }
 
-export function createFlueAgentHarness(options: FlueAgentHarnessOptions) {
-  const client = createFlueClient({
+export function createBapxAgentHarness(options: BapxAgentHarnessOptions) {
+  const client = createBapxClient({
     baseUrl: options.baseUrl ?? process.env.FLUE_BASE_URL ?? 'http://127.0.0.1:3583',
     token: options.token,
     headers: options.headers,
   });
 
   return createHarness<string, string>({
-    name: `flue-${options.agentName}-agent`,
+    name: `bapX-${options.agentName}-agent`,
     run: async ({ input, signal }) => {
       const instanceId = `eval-${crypto.randomUUID()}`;
       const admission = await client.agents.send(options.agentName, instanceId, {
@@ -157,9 +157,9 @@ Create the first eval under `src/evals/` for a behavior the application intentio
 ```ts title="src/evals/service-health.eval.ts"
 import { expect } from 'vitest';
 import { describeEval, toolCalls } from 'vitest-evals';
-import { createFlueAgentHarness } from './harness.ts';
+import { createBapxAgentHarness } from './harness.ts';
 
-const harness = createFlueAgentHarness({ agentName: 'service-status' });
+const harness = createBapxAgentHarness({ agentName: 'service-status' });
 
 describeEval('service status agent', { harness }, (it) => {
   it('checks live service status before answering', async ({ run }) => {
@@ -178,10 +178,10 @@ For a workflow, create a project-specific harness around `client.workflows.invok
 
 ## Run and report evals
 
-The eval process does not start the Flue application. For local evaluation, start the server in one terminal and wait until it is ready:
+The eval process does not start the Bapx application. For local evaluation, start the server in one terminal and wait until it is ready:
 
 ```sh
-pnpm exec flue dev
+pnpm exec bapX dev
 ```
 
 Then run the evals from a second terminal:
@@ -196,14 +196,14 @@ To evaluate an existing deployment instead, do not start a local server. Point t
 FLUE_BASE_URL=https://preview.example.com pnpm run evals
 ```
 
-Use the project's package-manager equivalents. Provider credentials belong to the Flue server process. Authentication credentials for a protected Flue route belong to the SDK client configuration; do not commit either kind of secret.
+Use the project's package-manager equivalents. Provider credentials belong to the Bapx server process. Authentication credentials for a protected Bapx route belong to the SDK client configuration; do not commit either kind of secret.
 
-`pnpm run evals:json` writes `vitest-results.json`. Inspect it with `pnpm exec vitest-evals serve vitest-results.json`, or publish it with the `getsentry/vitest-evals` GitHub Action. `vitest-evals` has no built-in Braintrust reporter. Flue's Braintrust tooling may be enabled independently to trace the application execution, but it does not replace eval cases, assertions, judges, or CI gates.
+`pnpm run evals:json` writes `vitest-results.json`. Inspect it with `pnpm exec vitest-evals serve vitest-results.json`, or publish it with the `getsentry/vitest-evals` GitHub Action. `vitest-evals` has no built-in Braintrust reporter. Bapx's Braintrust tooling may be enabled independently to trace the application execution, but it does not replace eval cases, assertions, judges, or CI gates.
 
 ## Verify
 
 1. Type-check the project and run its existing lint checks.
-2. Build the Flue target and confirm the selected agent or workflow is discovered.
+2. Build the Bapx target and confirm the selected agent or workflow is discovered.
 3. Start the application with provider credentials and run the starter eval.
 4. Confirm the report includes output, usage, and the expected tool calls.
 5. Intentionally break one assertion and confirm the eval command exits non-zero, then restore it.

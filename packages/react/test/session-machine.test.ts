@@ -1,10 +1,10 @@
-import type { FlueClient, FlueEvent, FlueEventStream } from '@bapX/sdk';
+import type { BapxClient, BapxEvent, BapxEventStream } from '@bapX/sdk';
 import { describe, expect, it, vi } from 'vitest';
 import { AgentSession } from '../src/agent-session.ts';
 import { WorkflowRun } from '../src/workflow-run.ts';
 import { conversation, createFakeObservation } from './fixtures/observation.ts';
 
-function streamFrom<T>(events: T[], offset = 'offset-1'): FlueEventStream<T> {
+function streamFrom<T>(events: T[], offset = 'offset-1'): BapxEventStream<T> {
 	return {
 		offset,
 		cancel: vi.fn(),
@@ -14,8 +14,8 @@ function streamFrom<T>(events: T[], offset = 'offset-1'): FlueEventStream<T> {
 	};
 }
 
-function client(overrides: Partial<FlueClient>): FlueClient {
-	return overrides as FlueClient;
+function client(overrides: Partial<BapxClient>): BapxClient {
+	return overrides as BapxClient;
 }
 
 describe('AgentSession', () => {
@@ -23,7 +23,7 @@ describe('AgentSession', () => {
 		const observation = createFakeObservation();
 		const observe = vi.fn().mockReturnValue(observation);
 		const session = new AgentSession(
-			client({ agents: { observe } as unknown as FlueClient['agents'] }),
+			client({ agents: { observe } as unknown as BapxClient['agents'] }),
 			'agent',
 			'id',
 		);
@@ -81,7 +81,7 @@ describe('AgentSession', () => {
 		const observation = createFakeObservation();
 		const observe = vi.fn().mockReturnValue(observation);
 		const session = new AgentSession(
-			client({ agents: { observe } as unknown as FlueClient['agents'] }),
+			client({ agents: { observe } as unknown as BapxClient['agents'] }),
 			'agent',
 			'id',
 		);
@@ -101,12 +101,12 @@ describe('AgentSession', () => {
 		const observation = createFakeObservation();
 		const observe = vi.fn().mockReturnValue(observation);
 		const send = vi.fn().mockResolvedValue({
-			streamUrl: 'https://flue.test/agents/agent/id',
+			streamUrl: 'https://bapX.test/agents/agent/id',
 			offset: 'offset-history',
 			submissionId: 'submission-1',
 		});
 		const session = new AgentSession(
-			client({ agents: { observe, send } as unknown as FlueClient['agents'] }),
+			client({ agents: { observe, send } as unknown as BapxClient['agents'] }),
 			'agent',
 			'id',
 		);
@@ -148,7 +148,7 @@ describe('AgentSession', () => {
 describe('WorkflowRun', () => {
 	it('streams workflow events without using conversation APIs', async () => {
 		const stream = vi.fn().mockReturnValue(
-			streamFrom<FlueEvent>([
+			streamFrom<BapxEvent>([
 				{
 					v: 3,
 					type: 'run_end',
@@ -161,7 +161,7 @@ describe('WorkflowRun', () => {
 				},
 			]),
 		);
-		const run = new WorkflowRun(client({ runs: { stream } as unknown as FlueClient['runs'] }), 'run-1');
+		const run = new WorkflowRun(client({ runs: { stream } as unknown as BapxClient['runs'] }), 'run-1');
 		run.start();
 		await Promise.resolve();
 		await Promise.resolve();

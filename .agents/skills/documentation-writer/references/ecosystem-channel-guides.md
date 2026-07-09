@@ -26,9 +26,9 @@ Start with:
 2. A `package` header action linking the first-party package on npm. The shared
    docs header supplies the npm wordmark; do not add a duplicate package or API
    reference sentence to the page introduction.
-3. An `Add <Provider>` section using `flue add channel <provider>`.
+3. An `Add <Provider>` section using `bapX add channel <provider>`.
 
-Present `flue add` as a command developers can run in their terminal or through
+Present `bapX add` as a command developers can run in their terminal or through
 their coding agent. Describe the blueprint's result, including the channel
 package, outbound client, generated channel module, and named exports when
 those details help the reader understand the result.
@@ -87,7 +87,7 @@ plus an error message in the response body.
 
 Begin with the smallest useful client initialization snippet. State explicitly
 that outbound operations belong to the provider SDK or project-owned Fetch
-client, not the Flue channel package.
+client, not the Bapx channel package.
 
 Give substantial examples descriptive top-level headings such as `Slack Tools`
 or `Stream a reply`; do not group them beneath a generic `Examples` heading or
@@ -122,7 +122,7 @@ works.
 - Keep package options and type inventories in the API reference.
 - Avoid dependency version numbers in narrative prose unless a specific
   version is required to explain compatibility or runtime support.
-- Link common Flue concepts instead of repeating them in every provider guide.
+- Link common Bapx concepts instead of repeating them in every provider guide.
 - Use short topical sections rather than one oversized end-to-end example.
 - Preserve meaningful provider differences instead of forcing identical
   headings or examples across every guide.
@@ -133,7 +133,7 @@ Before considering a channel guide complete, confirm:
 
 - the subtitle describes a useful provider outcome rather than the package;
 - the npm package appears in the shared header action, not introductory prose;
-- `flue add` is presented as usable from a terminal or coding agent;
+- `bapX add` is presented as usable from a terminal or coding agent;
 - ingress and outbound credentials are clearly distinguished;
 - exact inbound routes appear once in a simple table, followed by optionality
   or handshake notes;
@@ -147,4 +147,4 @@ Before considering a channel guide complete, confirm:
   workerd evidence;
 - package options and exhaustive type details remain in reference docs;
 - no TODOs, duplicate route inventories, unsupported capability claims, or
-  generic Flue concepts remain on the page.
+  generic Bapx concepts remain on the page.

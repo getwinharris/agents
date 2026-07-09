@@ -1,34 +1,34 @@
 import { describe, expect, it } from 'vitest';
 import {
-	mergeFlueAdditions,
+	mergeBapxAdditions,
 	validateUserWranglerConfig,
 } from '../src/lib/cloudflare-wrangler-merge.ts';
 
 const additions = {
 	defaultName: 'fixture',
-	main: '.flue-vite/_entry.ts',
-	doBindings: [{ name: 'FLUE_ASSISTANT_AGENT', class_name: 'FlueAssistantAgent' }],
+	main: '.bapX-vite/_entry.ts',
+	doBindings: [{ name: 'FLUE_ASSISTANT_AGENT', class_name: 'BapxAssistantAgent' }],
 };
 
-describe('mergeFlueAdditions()', () => {
-	it('preserves a matching local Flue-generated Durable Object binding', () => {
-		const binding = { name: 'FLUE_ASSISTANT_AGENT', class_name: 'FlueAssistantAgent' };
-		const merged = mergeFlueAdditions({ durable_objects: { bindings: [binding] } }, additions) as {
+describe('mergeBapxAdditions()', () => {
+	it('preserves a matching local Bapx-generated Durable Object binding', () => {
+		const binding = { name: 'FLUE_ASSISTANT_AGENT', class_name: 'BapxAssistantAgent' };
+		const merged = mergeBapxAdditions({ durable_objects: { bindings: [binding] } }, additions) as {
 			durable_objects: { bindings: unknown[] };
 		};
 
 		expect(merged.durable_objects.bindings).toEqual([binding]);
 	});
 
-	it('rejects an externally redirected Flue-generated Durable Object binding', () => {
+	it('rejects an externally redirected Bapx-generated Durable Object binding', () => {
 		expect(() =>
-			mergeFlueAdditions(
+			mergeBapxAdditions(
 				{
 					durable_objects: {
 						bindings: [
 							{
 								name: 'FLUE_ASSISTANT_AGENT',
-								class_name: 'FlueAssistantAgent',
+								class_name: 'BapxAssistantAgent',
 								script_name: 'other-worker',
 							},
 						],
@@ -37,13 +37,13 @@ describe('mergeFlueAdditions()', () => {
 				additions,
 			),
 		).toThrow(
-			'Expected a local class_name "FlueAssistantAgent" binding without script_name or environment.',
+			'Expected a local class_name "BapxAssistantAgent" binding without script_name or environment.',
 		);
 	});
 
-	it('rejects an externally redirected Flue-generated Durable Object binding in an environment', () => {
+	it('rejects an externally redirected Bapx-generated Durable Object binding in an environment', () => {
 		expect(() =>
-			mergeFlueAdditions(
+			mergeBapxAdditions(
 				{
 					env: {
 						staging: {
@@ -51,7 +51,7 @@ describe('mergeFlueAdditions()', () => {
 								bindings: [
 									{
 										name: 'FLUE_ASSISTANT_AGENT',
-										class_name: 'FlueAssistantAgent',
+										class_name: 'BapxAssistantAgent',
 										script_name: 'other-worker',
 										environment: 'production',
 									},
@@ -63,12 +63,12 @@ describe('mergeFlueAdditions()', () => {
 				additions,
 			),
 		).toThrow(
-			'Expected a local class_name "FlueAssistantAgent" binding without script_name or environment.',
+			'Expected a local class_name "BapxAssistantAgent" binding without script_name or environment.',
 		);
 	});
 
 	it('unions nodejs_compat into a compatibility_flags override in an environment', () => {
-		const merged = mergeFlueAdditions(
+		const merged = mergeBapxAdditions(
 			{ env: { staging: { compatibility_flags: ['some_flag'] } } },
 			additions,
 		) as { env: { staging: { compatibility_flags: string[] } } };
@@ -77,7 +77,7 @@ describe('mergeFlueAdditions()', () => {
 	});
 
 	it('leaves compatibility_flags unset in an environment without its own override', () => {
-		const merged = mergeFlueAdditions({ env: { staging: {} } }, additions) as {
+		const merged = mergeBapxAdditions({ env: { staging: {} } }, additions) as {
 			compatibility_flags: string[];
 			env: { staging: Record<string, unknown> };
 		};

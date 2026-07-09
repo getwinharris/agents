@@ -2,7 +2,7 @@ import type {
 	AgentConversationObservation,
 	DeliveredAttachment,
 	ConversationLiveMode,
-	FlueClient,
+	BapxClient,
 } from '@bapX/sdk';
 import {
 	type AgentReducerEvent,
@@ -26,7 +26,7 @@ export class AgentSession {
 	private localId = 0;
 
 	constructor(
-		private client: FlueClient,
+		private client: BapxClient,
 		private name: string,
 		private id: string,
 		private live: ConversationLiveMode = 'sse',

@@ -6,15 +6,15 @@
 }
 ---
 
-# Add a Discord Channel to Flue
+# Add a Discord Channel to Bapx
 
 You are an AI coding agent adding verified Discord HTTP interactions and
-application-owned Discord REST behavior to a Flue project.
+application-owned Discord REST behavior to a Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.flue/`, then `<root>/src/`, then
+first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 the interaction commands the application supports.
 
@@ -32,7 +32,7 @@ name, dispatched message, immediate response, and application-owned destination
 derivation:
 
 ```ts
-// flue-blueprint: channel/discord@1
+// bapX-blueprint: channel/discord@1
 import { REST } from '@discordjs/rest';
 import * as v from 'valibot';
 import {
@@ -158,7 +158,7 @@ to the full public HTTPS `/channels/discord/interactions` route. Registering
 application commands is also application-owned; add only the commands this
 project handles.
 
-Run the project's typecheck and configured Flue builds. Generate a local Ed25519
+Run the project's typecheck and configured Bapx builds. Generate a local Ed25519
 key pair and signed PING and command payloads. Test changed bytes, malformed
 authentication, PING/PONG, `/channels/discord/interactions`, provider-native
 payload pass-through, and the deferred channel-agent import cycle. Exercise the

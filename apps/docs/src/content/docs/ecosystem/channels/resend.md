@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add verified webhook ingress and application-owned email behavior to an existing Flue project with the [Resend](https://resend.com) blueprint. Run the following command in your terminal or coding agent of choice:
+Add verified webhook ingress and application-owned email behavior to an existing Bapx project with the [Resend](https://resend.com) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel resend
+bapX add channel resend
 ```
 
 ## Overview
@@ -222,7 +222,7 @@ send replies.
 ## Cloudflare Workers
 
 The official `resend@6.12.4` client and webhook verifier execute in Node and
-workerd with Flue's required `nodejs_compat` configuration. Cloudflare projects
+workerd with Bapx's required `nodejs_compat` configuration. Cloudflare projects
 may initialize secrets through `process.env` or typed Worker bindings, then
 should verify their complete Worker build.
 

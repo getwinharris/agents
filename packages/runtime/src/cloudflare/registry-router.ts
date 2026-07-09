@@ -1,4 +1,4 @@
-/** Private REST router exposing {@link RegistryOps} over the `FlueRegistry` Durable Object. */
+/** Private REST router exposing {@link RegistryOps} over the `BapxRegistry` Durable Object. */
 import type { ListRunsOpts } from '../runtime/run-store.ts';
 import type { RecordRunEndInput, RecordRunStartInput, RegistryOps } from './registry-ops.ts';
 

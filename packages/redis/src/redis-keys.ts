@@ -5,7 +5,7 @@ export function encodeSegment(value: string): string {
 export class RedisKeys {
 	readonly prefix: string;
 
-	constructor(prefix = 'flue') {
+	constructor(prefix = 'bapX') {
 		const normalized = prefix.replace(/:+$/g, '');
 		if (!normalized) throw new TypeError('Redis key prefix must not be empty.');
 		this.prefix = normalized;

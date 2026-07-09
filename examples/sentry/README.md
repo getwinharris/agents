@@ -1,11 +1,11 @@
-# Sentry error reporting for Flue
+# Sentry error reporting for Bapx
 
-A working example of wiring Flue workflow runs up to [Sentry](https://sentry.io)
+A working example of wiring Bapx workflow runs up to [Sentry](https://sentry.io)
 for error reporting.
 
 This example is intended to be read top-to-bottom as documentation. The
 entire integration lives in [`src/app.ts`](src/app.ts) — every workflow
-in `src/workflows/` is a plain Flue handler that doesn't import Sentry,
+in `src/workflows/` is a plain Bapx handler that doesn't import Sentry,
 doesn't import the bridge, and doesn't know that error reporting is
 happening.
 
@@ -14,16 +14,16 @@ happening.
 After running this example with a Sentry DSN configured:
 
 - Every workflow run that ends with an unhandled exception (the handler throws
-  or rejects) becomes a Sentry issue tagged with the Flue `runId`,
+  or rejects) becomes a Sentry issue tagged with the Bapx `runId`,
   `workflow` name, harness name, and session name.
 - Every `ctx.log.error(...)` call from a handler becomes a Sentry
   capture — an exception if the log carries an `error` attribute, a
   message otherwise.
-- Sentry tags use a stable `flue.*` prefix, so pivoting on
-  `flue.run.id` in Sentry's search box finds every capture from a
-  single Flue run.
+- Sentry tags use a stable `bapX.*` prefix, so pivoting on
+  `bapX.run.id` in Sentry's search box finds every capture from a
+  single Bapx run.
 - A failing workflow run in Sentry can be inspected through SDK `client.runs`
-  or the raw `/runs` APIs using its `flue.run.id` tag.
+  or the raw `/runs` APIs using its `bapX.run.id` tag.
 
 This example contains workflows, so `runId` and `/runs` apply. Direct or dispatched agent interactions are not workflow runs; correlate them by agent instance/session, request identity, or `dispatchId` instead.
 
@@ -32,7 +32,7 @@ This example contains workflows, so `runId` and `/runs` apply. Direct or dispatc
 Deliberate scope cuts, listed up front so you can decide whether this
 example fits your needs:
 
-- **No spans, no traces.** Flue's event stream carries `durationMs`,
+- **No spans, no traces.** Bapx's event stream carries `durationMs`,
   `usage`, `operationKind`, and other span-shaped fields, but this
   integration does not emit Sentry spans. Adding spans is a layered
   follow-up rather than a redesign — the same `observe(...)` hook can
@@ -46,7 +46,7 @@ example fits your needs:
   drown out real incidents. The bridge in `app.ts` documents how to
   opt in.
 - **No AI metrics.** Token counts, costs, and model identities live on
-  Flue's `turn` and `operation` events, but this example does not
+  Bapx's `turn` and `operation` events, but this example does not
   forward them to Sentry as measurements or attributes.
 
 ## Files
@@ -72,7 +72,7 @@ and how the pieces fit together.
 
 ## How the integration works
 
-Flue emits a structured event for every meaningful boundary in a workflow run —
+Bapx emits a structured event for every meaningful boundary in a workflow run —
 `run_start`, `operation`, `turn_request`, `turn`, `tool`, `log`, `run_end`,
 and others. Events emitted in that workflow run carry its correlation tree
 (`runId`, `harness`, `session`, `operationId`, `turnId`, `taskId`) so any
@@ -86,8 +86,8 @@ stream globally:
 import { observe } from '@bapX/runtime';
 
 observe((event, ctx) => {
-  // event is a fully decorated FlueEvent
-  // ctx is the FlueEventContext of the run that emitted it
+  // event is a fully decorated BapxEvent
+  // ctx is the BapxEventContext of the run that emitted it
 });
 ```
 
@@ -97,13 +97,13 @@ event from every workflow run handled by the current isolate in this example.
 The bridge in `app.ts` is a single `observe(...)` call that filters for
 two event shapes:
 
-| Flue event                                           | Sentry call                              | Severity |
+| Bapx event                                           | Sentry call                              | Severity |
 | ---------------------------------------------------- | ---------------------------------------- | -------- |
 | `run_end` with `isError: true`                       | `captureException` (reconstructed Error) | `error`  |
 | `log` with `level: 'error'` and `attributes.error`   | `captureException` (reconstructed Error) | `error`  |
 | `log` with `level: 'error'` and no `error` attribute | `captureMessage`                         | `error`  |
 
-Every capture is enclosed in `Sentry.withScope(...)` so the Flue tags
+Every capture is enclosed in `Sentry.withScope(...)` so the Bapx tags
 do not leak into unrelated events captured by Sentry's auto-instrumentation
 elsewhere in the process.
 
@@ -162,7 +162,7 @@ runs identically, you just won't see any traffic in Sentry's UI.
 ### 3. Run the dev server
 
 ```bash
-pnpm exec flue dev --target node
+pnpm exec bapX dev --target node
 ```
 
 The server starts on port `3583`.
@@ -187,15 +187,15 @@ curl -X POST http://localhost:3583/workflows/explicit?wait=result \
 ```
 
 Each response includes a top-level `runId` field. That's the same id
-you'll see as the `flue.run.id` tag in Sentry.
+you'll see as the `bapX.run.id` tag in Sentry.
 
 ### 5. Inspect a captured run
 
-Take a `flue.run.id` from Sentry and pass it to SDK `client.runs.events()` for a catch-up read or `client.runs.stream()` for live events. The raw `/runs/<runId>` APIs expose the same run — including the `run_end` event that triggered the Sentry capture. Each example workflow intentionally exports an allow-through `runs` handler so clients can read these runs; production projects should protect run access with authentication.
+Take a `bapX.run.id` from Sentry and pass it to SDK `client.runs.events()` for a catch-up read or `client.runs.stream()` for live events. The raw `/runs/<runId>` APIs expose the same run — including the `run_end` event that triggered the Sentry capture. Each example workflow intentionally exports an allow-through `runs` handler so clients can read these runs; production projects should protect run access with authentication.
 
 ## Adapting this to your project
 
-To use this pattern in your own Flue project:
+To use this pattern in your own Bapx project:
 
 1. Add `@sentry/node` (or `@sentry/cloudflare` for the CF target) to
    your dependencies.

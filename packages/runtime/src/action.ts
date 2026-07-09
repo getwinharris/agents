@@ -7,7 +7,7 @@ import {
 } from './errors.ts';
 import { isTopLevelObjectSchema, isValibotSchema, parseValibot } from './schema.ts';
 import { cloneJsonSerializable, type JsonValue } from './json-snapshot.ts';
-import type { FlueHarness, FlueLogger } from './types.ts';
+import type { BapxHarness, BapxLogger } from './types.ts';
 
 export type { JsonValue } from './json-snapshot.ts';
 
@@ -16,8 +16,8 @@ export type ActionInputSchema = v.GenericSchema<Record<string, unknown>, unknown
 export type ActionOutputSchema = v.GenericSchema<any, NonNullable<unknown> | null>;
 
 export type ActionContext<S extends ActionInputSchema | undefined> = {
-	readonly harness: FlueHarness;
-	readonly log: FlueLogger;
+	readonly harness: BapxHarness;
+	readonly log: BapxLogger;
 } & (S extends ActionInputSchema
 	? { readonly input: v.InferOutput<S> }
 	: Record<never, never>);
@@ -30,7 +30,7 @@ export interface ActionDefinition<
 	TInput extends ActionInputSchema | undefined = ActionInputSchema | undefined,
 	TOutput extends ActionOutputSchema | undefined = ActionOutputSchema | undefined,
 > {
-	readonly __flueAction: true;
+	readonly __bapXAction: true;
 	readonly name: string;
 	readonly description: string;
 	readonly input: TInput;
@@ -91,7 +91,7 @@ export function defineAction<
 		throw new Error('[bapX] defineAction({ run }) must be a function.');
 	}
 	const action = Object.freeze({
-		__flueAction: true as const,
+		__bapXAction: true as const,
 		name: options.name,
 		description: options.description,
 		input: options.input as TInput,
@@ -125,7 +125,7 @@ export function parseActionInput(action: ActionDefinition, input?: unknown): Par
 
 export async function runActionWithParsedInput<TAction extends ActionDefinition>(
 	action: TAction,
-	context: { harness: FlueHarness; log: FlueLogger },
+	context: { harness: BapxHarness; log: BapxLogger },
 	input: ParsedActionInput,
 ): Promise<ActionOutput<TAction>> {
 	const runContext = input.declared ? { ...context, input: input.value } : context;
@@ -148,7 +148,7 @@ export async function runActionWithParsedInput<TAction extends ActionDefinition>
 
 export async function validateAndRunAction<TAction extends ActionDefinition>(
 	action: TAction,
-	context: { harness: FlueHarness; log: FlueLogger },
+	context: { harness: BapxHarness; log: BapxLogger },
 	input?: unknown,
 ): Promise<ActionOutput<TAction>> {
 	return runActionWithParsedInput(action, context, parseActionInput(action, input));
@@ -156,6 +156,6 @@ export async function validateAndRunAction<TAction extends ActionDefinition>(
 
 function assertNonEmptyString(value: unknown, label: string): asserts value is string {
 	if (typeof value !== 'string' || value.trim().length === 0) {
-		throw new Error(`[flue] ${label} must be a non-empty string.`);
+		throw new Error(`[bapX] ${label} must be a non-empty string.`);
 	}
 }

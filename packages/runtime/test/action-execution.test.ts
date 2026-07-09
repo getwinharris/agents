@@ -14,7 +14,7 @@ import {
 	defineTool,
 	ToolNameConflictError,
 } from '../src/index.ts';
-import { createFlueContext } from '../src/internal.ts';
+import { createBapxContext } from '../src/internal.ts';
 import type { SessionEnv } from '../src/types.ts';
 import { createNoopSessionEnv } from './fixtures/session-env.ts';
 
@@ -46,7 +46,7 @@ function createContext(
 	provider: FauxProviderRegistration,
 	env: SessionEnv = createNoopSessionEnv(),
 ) {
-	return createFlueContext({
+	return createBapxContext({
 		id: 'action-instance',
 		env: {},
 		agentConfig: { resolveModel: () => provider.getModel() },
@@ -101,7 +101,7 @@ describe('model-called Actions', () => {
 			input: v.object({ repository: v.string() }),
 			output: v.object({ status: v.string() }),
 			async run({ harness, input }) {
-				expect(input).toEqual({ repository: 'getwinharris/flue' });
+				expect(input).toEqual({ repository: 'getwinharris/bapX' });
 				const defaultSession = await harness.session();
 				const namedSession = await harness.session('notes');
 				expect(defaultSession.name).toBe('default');
@@ -113,7 +113,7 @@ describe('model-called Actions', () => {
 			fauxAssistantMessage(
 				fauxToolCall(
 					'review_repository',
-					{ repository: 'getwinharris/flue' },
+					{ repository: 'getwinharris/bapX' },
 					{ id: 'call-action-1' },
 				),
 				{ stopReason: 'toolUse' },

@@ -1,6 +1,6 @@
 # `@bapX/postgres`
 
-Postgres-backed durable persistence for Flue applications on the Node.js target.
+Postgres-backed durable persistence for Bapx applications on the Node.js target.
 
 ```ts
 // src/db.ts
@@ -17,12 +17,12 @@ export default postgres({
 });
 ```
 
-Default-export the adapter from a source-root `db.ts`. Flue discovers it at
+Default-export the adapter from a source-root `db.ts`. Bapx discovers it at
 build time and wires it into the generated Node server. The adapter's
 `migrate()` hook runs once at startup and creates its tables idempotently, so
 there is no separate migration step.
 
-This adapter persists Flue runtime state:
+This adapter persists Bapx runtime state:
 
 - the canonical append-only conversation stream for each agent instance;
 - immutable external attachments referenced by conversation records;
@@ -101,10 +101,10 @@ adapter does not apply there.
 ## Installation
 
 ```sh
-flue add database postgres
+bapX add database postgres
 ```
 
-`flue add database postgres` installs the package, helps you pick a driver, and writes
+`bapX add database postgres` installs the package, helps you pick a driver, and writes
 the `db.ts`. See the [Postgres guide](https://bapx.in/docs/ecosystem/databases/postgres/)
 for setup and the [Data Persistence API](https://bapx.in/docs/api/data-persistence-api/)
 for the adapter contract.

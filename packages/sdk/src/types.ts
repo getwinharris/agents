@@ -103,7 +103,7 @@ type LlmTool = {
 	parameters: unknown;
 };
 
-interface FlueErrorInfo {
+interface BapxErrorInfo {
 	type: string;
 	name?: string;
 	code?: string;
@@ -139,11 +139,11 @@ export interface ModelResponse {
 	output?: LlmAssistantMessage;
 	usage?: PromptUsage;
 	finishReason?: string;
-	error?: FlueErrorInfo;
+	error?: BapxErrorInfo;
 }
 
 /** Structured server error data. */
-export interface FluePublicError {
+export interface BapxPublicError {
 	type: string;
 	message: string;
 	details: string;
@@ -151,7 +151,7 @@ export interface FluePublicError {
 	meta?: Record<string, unknown>;
 }
 
-export interface FlueSerializedError {
+export interface BapxSerializedError {
 	name?: string;
 	message: string;
 	type?: string;
@@ -164,11 +164,11 @@ export type AgentSubmissionSettledEvent = {
 	type: 'submission_settled';
 	submissionId: string;
 	outcome: 'completed' | 'failed' | 'aborted';
-	error?: FlueSerializedError;
+	error?: BapxSerializedError;
 };
 
 /** Observable workflow-run event. */
-export type FlueEvent = (
+export type BapxEvent = (
 	| {
 			type: 'run_start';
 			runId: string;
@@ -287,7 +287,7 @@ export type FlueEvent = (
 
 /** Direct-agent event attached to an agent instance rather than a workflow run. */
 export type AttachedAgentEvent = Exclude<
-	FlueEvent,
+	BapxEvent,
 	{ type: 'run_start' } | { type: 'run_resume' } | { type: 'run_end' }
 > & {
 	runId?: never;

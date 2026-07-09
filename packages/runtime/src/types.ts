@@ -81,7 +81,7 @@ export type DeliveredMessage =
 export interface AgentDispatchRequest {
 	/** Target agent instance id. Must be a non-empty string. */
 	id: string;
-	/** The message delivered to the session. Flue snapshots the value at admission time. */
+	/** The message delivered to the session. Bapx snapshots the value at admission time. */
 	message: DeliveredMessage;
 }
 
@@ -118,7 +118,7 @@ export type PromptImage = ImageContent;
 
 /** Imported packaged skill reference accepted by `session.skill()`. */
 export interface SkillReference {
-	readonly __flueSkillReference: true;
+	readonly __bapXSkillReference: true;
 	readonly id: string;
 	readonly name: string;
 	readonly description: string;
@@ -148,7 +148,7 @@ export type Skill =
 // ─── File Stat ──────────────────────────────────────────────────────────────
 
 /**
- * File metadata returned by {@link FlueFs.stat}.
+ * File metadata returned by {@link BapxFs.stat}.
  *
  * `isSymbolicLink`, `size`, and `mtime` are omitted when the sandbox
  * sandbox adapter's provider does not expose them — sandbox adapters must never
@@ -203,7 +203,7 @@ export interface SessionEnv {
 
 	readFile(path: string): Promise<string>;
 	readFileBuffer(path: string): Promise<Uint8Array>;
-	/** Creates missing parent directories (the `FlueFs.writeFile` guarantee). */
+	/** Creates missing parent directories (the `BapxFs.writeFile` guarantee). */
 	writeFile(path: string, content: string | Uint8Array): Promise<void>;
 	stat(path: string): Promise<FileStat>;
 	readdir(path: string): Promise<string[]>;
@@ -222,8 +222,8 @@ export interface SessionEnv {
 }
 
 /**
- * Filesystem surface for the harness sandbox, exposed on `FlueHarness.fs` and
- * `FlueSession.fs`. Reads and writes happen inside whatever the sandbox
+ * Filesystem surface for the harness sandbox, exposed on `BapxHarness.fs` and
+ * `BapxSession.fs`. Reads and writes happen inside whatever the sandbox
  * sandbox adapter points at (a remote container, microVM, in-process FS, etc.).
  *
  * Operations are out-of-band — they don't appear in the conversation
@@ -238,7 +238,7 @@ export interface SessionEnv {
  * the sandbox adapter's default (varies by provider). Use absolute paths
  * for portability across sandbox adapters.
  */
-export interface FlueFs {
+export interface BapxFs {
 	/** Read a UTF-8 file. Throws if the path doesn't exist or isn't a file. */
 	readFile(path: string): Promise<string>;
 
@@ -436,14 +436,14 @@ export interface AgentRuntimeConfig {
 
 /** Opaque agent initializer created by {@link defineAgent}. */
 export interface AgentDefinition<TEnv = Record<string, any>> {
-	readonly __flueAgentDefinition: true;
+	readonly __bapXAgentDefinition: true;
 	initialize(context: AgentInitializerContext<TEnv>): AgentRuntimeConfig | Promise<AgentRuntimeConfig>;
 }
 
-// ─── Flue Event Context ────────────────────────────────────────────────────
+// ─── Bapx Event Context ────────────────────────────────────────────────────
 
 /** Event context for the agent interaction or workflow run that emitted an event. */
-export interface FlueEventContext<TEnv = Record<string, any>> {
+export interface BapxEventContext<TEnv = Record<string, any>> {
 	/** Workflow run/instance id, or stable agent instance id during agent processing. */
 	readonly id: string;
 	readonly agentName: string | undefined;
@@ -473,52 +473,52 @@ export interface FlueEventContext<TEnv = Record<string, any>> {
 	 */
 	readonly req: Request | undefined;
 	/** Emit observable structured log events, persisted in a run stream only during a workflow run. */
-	readonly log: FlueLogger;
+	readonly log: BapxLogger;
 }
 
-export interface FlueLogger {
+export interface BapxLogger {
 	info(message: string, attributes?: Record<string, unknown>): void;
 	warn(message: string, attributes?: Record<string, unknown>): void;
 	error(message: string, attributes?: Record<string, unknown>): void;
 }
 
-// ─── Flue Harness ───────────────────────────────────────────────────────────
+// ─── Bapx Harness ───────────────────────────────────────────────────────────
 
 /** Initialized agent environment owned by a runtime runner. */
-export interface FlueHarness {
+export interface BapxHarness {
 	readonly name: string;
 
 	/**
 	 * Get or create a session in this harness. Defaults to the `'default'`
 	 * session. Names beginning with `'task:'` are reserved for delegated tasks.
 	 */
-	session(name?: string): Promise<FlueSession>;
+	session(name?: string): Promise<BapxSession>;
 
 	/** Explicit session management helpers. */
-	readonly sessions: FlueSessions;
+	readonly sessions: BapxSessions;
 
 	/** Run a shell command in the harness sandbox without recording it in a conversation. */
 	shell(command: string, options?: ShellOptions): CallHandle<ShellResult>;
 
 	/**
 	 * Read and write files in the harness sandbox without recording them in a
-	 * conversation. See {@link FlueFs}.
+	 * conversation. See {@link BapxFs}.
 	 */
-	readonly fs: FlueFs;
+	readonly fs: BapxFs;
 }
 
 /**
- * Explicit session management helpers exposed by {@link FlueHarness.sessions}.
+ * Explicit session management helpers exposed by {@link BapxHarness.sessions}.
  * Names beginning with `'task:'` are reserved for delegated tasks.
  */
-export interface FlueSessions {
+export interface BapxSessions {
 	/** Load an existing session. Defaults to `'default'`. Throws if it does not exist. */
-	get(name?: string): Promise<FlueSession>;
+	get(name?: string): Promise<BapxSession>;
 	/** Create a new session. Defaults to `'default'`. Throws if it already exists. */
-	create(name?: string): Promise<FlueSession>;
+	create(name?: string): Promise<BapxSession>;
 }
 
-// ─── Flue Session ───────────────────────────────────────────────────────────
+// ─── Bapx Session ───────────────────────────────────────────────────────────
 
 /**
  * Awaitable handle returned by `prompt()`, `skill()`, `task()`, and `shell()`.
@@ -533,8 +533,8 @@ export interface CallHandle<T> extends Promise<T> {
 	abort(reason?: unknown): void;
 }
 
-/** Named conversation state inside a {@link FlueHarness}. */
-export interface FlueSession {
+/** Named conversation state inside a {@link BapxHarness}. */
+export interface BapxSession {
 	/** Session name. */
 	readonly name: string;
 	/** Persisted opaque identity for this conversation. */
@@ -554,11 +554,11 @@ export interface FlueSession {
 	shell(command: string, options?: ShellOptions): CallHandle<ShellResult>;
 
 	/**
-	 * Read and write files in the session's sandbox. See {@link FlueFs}.
-	 * Unlike {@link FlueSession.shell}, fs operations are not recorded in
+	 * Read and write files in the session's sandbox. See {@link BapxFs}.
+	 * Unlike {@link BapxSession.shell}, fs operations are not recorded in
 	 * the conversation transcript.
 	 */
-	readonly fs: FlueFs;
+	readonly fs: BapxFs;
 
 	/**
 	 * Run a registered skill. Pass `options.result` to require validated
@@ -592,7 +592,7 @@ export interface FlueSession {
 	 * operation (`prompt` / `skill` / `task` / `shell`) is in flight on
 	 * this session — start a separate session for parallel branches.
 	 *
-	 * Emits a {@link FlueEvent} `compaction_start` (with `reason: "manual"`)
+	 * Emits a {@link BapxEvent} `compaction_start` (with `reason: "manual"`)
 	 * followed by `compaction`. The summarization LLM cost is recorded the
 	 * same as automatic compaction.
 	 */
@@ -632,7 +632,7 @@ export interface PromptUsage {
 }
 
 /**
- * Identifies the model that Flue selected for the call (after applying the
+ * Identifies the model that Bapx selected for the call (after applying the
  * call > agent precedence). When more than one model runs during the
  * call (rare; e.g. cross-model flows), this reflects the model in effect for
  * the call's primary turn.
@@ -736,13 +736,13 @@ export interface SessionToolFactoryOptions {
 	subagents: Record<string, AgentProfile>;
 }
 
-/** Sandbox adapter-supplied model-facing tools. Flue appends `task` separately. */
+/** Sandbox adapter-supplied model-facing tools. Bapx appends `task` separately. */
 export type SessionToolFactory = (
 	env: SessionEnv,
 	options: SessionToolFactoryOptions,
 ) => AgentTool<any>[];
 
-/** Wraps external sandboxes (Daytona, CF Containers, etc.) into Flue's SessionEnv. */
+/** Wraps external sandboxes (Daytona, CF Containers, etc.) into Bapx's SessionEnv. */
 export interface SandboxFactory {
 	/**
 	 * Called once per initialized harness — one call per `init()` — and every
@@ -843,7 +843,7 @@ export type LlmTool = {
 
 export type LlmTurnPurpose = 'agent' | 'compaction' | 'compaction_prefix';
 
-interface FlueErrorInfo {
+interface BapxErrorInfo {
 	type: string;
 	name?: string;
 	code?: string;
@@ -859,7 +859,7 @@ type AgentInvocationOutput =
 	| { type: 'text'; text: string; finishReason: string }
 	| { type: 'data'; data: unknown };
 
-export interface FlueObservationDetail {
+export interface BapxObservationDetail {
 	agentInput?: AgentInvocationInput;
 	agentOutput?: AgentInvocationOutput;
 	origin?: ToolOrigin;
@@ -868,7 +868,7 @@ export interface FlueObservationDetail {
 	args?: unknown;
 	effectiveResult?: unknown;
 	toolCallId?: string;
-	errorInfo?: FlueErrorInfo;
+	errorInfo?: BapxErrorInfo;
 }
 
 export interface ModelRequestInput {
@@ -900,13 +900,13 @@ export interface ModelResponse {
 	output?: LlmAssistantMessage;
 	usage?: PromptUsage;
 	finishReason?: string;
-	error?: FlueErrorInfo;
+	error?: BapxErrorInfo;
 }
 
 type ToolOrigin = 'model' | 'caller' | 'framework' | 'adapter';
 type ToolSemanticType = 'function' | 'extension' | 'datastore';
 
-type FlueEventVariant =
+type BapxEventVariant =
 	| {
 			type: 'run_start';
 			runId: string;
@@ -1034,9 +1034,9 @@ type FlueEventVariant =
  * applicable, and the per-context emit path stamps the delivered envelope
  * fields (`v`, `eventIndex`, `timestamp`) before any subscriber, stream, or
  * store sees the event. Consumers always receive the decorated
- * {@link FlueEvent}.
+ * {@link BapxEvent}.
  */
-export type FlueEventInput = FlueEventVariant & {
+export type BapxEventInput = BapxEventVariant & {
 	runId?: string;
 	instanceId?: string;
 	dispatchId?: string;
@@ -1073,7 +1073,7 @@ export type FlueEventInput = FlueEventVariant & {
  * are persisted verbatim and must not include raw image bytes, secrets, or
  * unsanitized PII. Session history retains real image bytes for model context.
  */
-export type FlueEvent = FlueEventInput & {
+export type BapxEvent = BapxEventInput & {
 	/** Durable event-format version. Readers branch on this when the format changes. */
 	v: 3;
 	eventIndex: number;
@@ -1082,7 +1082,7 @@ export type FlueEvent = FlueEventInput & {
 
 export const FLUE_EVENT_SCHEMA_REVISION = 3;
 
-export type FlueObservation = FlueEvent & FlueObservationDetail;
+export type BapxObservation = BapxEvent & BapxObservationDetail;
 
 /**
  * Live activity from a direct attached-agent interaction. Attached-agent events
@@ -1090,7 +1090,7 @@ export type FlueObservation = FlueEvent & FlueObservationDetail;
  * `runId`. They are not durable workflow history.
  */
 export type AttachedAgentEvent = Exclude<
-	FlueEvent,
+	BapxEvent,
 	{ type: 'run_start' } | { type: 'run_resume' } | { type: 'run_end' }
 > & {
 	runId?: never;
@@ -1098,9 +1098,9 @@ export type AttachedAgentEvent = Exclude<
 };
 
 /** Internal pre-decoration event callback (Session → Harness → context emit chain). */
-export type FlueEventInputCallback = (
-	event: FlueEventInput,
-	observation?: FlueObservationDetail,
+export type BapxEventInputCallback = (
+	event: BapxEventInput,
+	observation?: BapxObservationDetail,
 ) => void | Promise<void>;
 
-export type FlueEventCallback = (event: FlueEvent) => void | Promise<void>;
+export type BapxEventCallback = (event: BapxEvent) => void | Promise<void>;

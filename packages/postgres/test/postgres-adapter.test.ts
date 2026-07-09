@@ -161,35 +161,35 @@ describe('postgres() PersistenceAdapter', () => {
 		const adapter = postgres(runner);
 		await adapter.migrate?.();
 
-		const rows = await runner.query(`SELECT value FROM flue_meta WHERE key = 'schema_version'`);
+		const rows = await runner.query(`SELECT value FROM bapX_meta WHERE key = 'schema_version'`);
 		expect(rows).toEqual([{ value: '5' }]);
 
-		await runner.query(`UPDATE flue_meta SET value = '1' WHERE key = 'schema_version'`);
+		await runner.query(`UPDATE bapX_meta SET value = '1' WHERE key = 'schema_version'`);
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);
-		await runner.query(`UPDATE flue_meta SET value = '999' WHERE key = 'schema_version'`);
+		await runner.query(`UPDATE bapX_meta SET value = '999' WHERE key = 'schema_version'`);
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);
 
 		if (!adapter.close) throw new Error('Expected adapter.close to be defined.');
 		await adapter.close();
 	});
 
-	it('rejects unversioned Flue persistence without stamping it', async () => {
+	it('rejects unversioned Bapx persistence without stamping it', async () => {
 		const runner = createPgliteRunner();
-		await runner.query(`CREATE TABLE flue_runs (run_id TEXT PRIMARY KEY)`);
+		await runner.query(`CREATE TABLE bapX_runs (run_id TEXT PRIMARY KEY)`);
 		const adapter = postgres(runner);
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);
 		expect(
-			await runner.query(`SELECT table_name FROM information_schema.tables WHERE table_name = 'flue_meta'`),
+			await runner.query(`SELECT table_name FROM information_schema.tables WHERE table_name = 'bapX_meta'`),
 		).toEqual([]);
 		await adapter.close?.();
 	});
 
 	it('rejects schema v2 persistence without migrating it', async () => {
 		const runner = createPgliteRunner();
-		await runner.query(`CREATE TABLE flue_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`);
-		await runner.query(`INSERT INTO flue_meta (key, value) VALUES ('schema_version', '2')`);
+		await runner.query(`CREATE TABLE bapX_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`);
+		await runner.query(`INSERT INTO bapX_meta (key, value) VALUES ('schema_version', '2')`);
 		await runner.query(`
-			CREATE TABLE flue_runs (
+			CREATE TABLE bapX_runs (
 				run_id TEXT PRIMARY KEY,
 				workflow_name TEXT NOT NULL,
 				status TEXT NOT NULL,
@@ -204,7 +204,7 @@ describe('postgres() PersistenceAdapter', () => {
 		`);
 		const adapter = postgres(runner);
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);
-		expect(await runner.query(`SELECT value FROM flue_meta WHERE key = 'schema_version'`)).toEqual([
+		expect(await runner.query(`SELECT value FROM bapX_meta WHERE key = 'schema_version'`)).toEqual([
 			{ value: '2' },
 		]);
 		await adapter.close?.();
@@ -212,10 +212,10 @@ describe('postgres() PersistenceAdapter', () => {
 
 	it('rejects schema v3 run tables without repairing them', async () => {
 		const runner = createPgliteRunner();
-		await runner.query(`CREATE TABLE flue_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`);
-		await runner.query(`INSERT INTO flue_meta (key, value) VALUES ('schema_version', '3')`);
+		await runner.query(`CREATE TABLE bapX_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`);
+		await runner.query(`INSERT INTO bapX_meta (key, value) VALUES ('schema_version', '3')`);
 		await runner.query(`
-			CREATE TABLE flue_runs (
+			CREATE TABLE bapX_runs (
 				run_id TEXT PRIMARY KEY,
 				workflow_name TEXT NOT NULL,
 				status TEXT NOT NULL,
@@ -232,7 +232,7 @@ describe('postgres() PersistenceAdapter', () => {
 		await expect(adapter.migrate?.()).rejects.toThrowError(PersistedSchemaVersionError);
 		const columns = await runner.query(
 			`SELECT column_name FROM information_schema.columns
-			 WHERE table_name = 'flue_runs' AND column_name IN ('traceparent', 'tracestate')`,
+			 WHERE table_name = 'bapX_runs' AND column_name IN ('traceparent', 'tracestate')`,
 		);
 		expect(columns).toEqual([]);
 		await adapter.close?.();

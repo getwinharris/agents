@@ -447,7 +447,7 @@ function handleSseMode(
 				(error) => {
 					// A rejected loop (e.g. a failing store read) must not escape as an
 					// unhandled rejection — that would take down the whole process.
-					console.error(`[flue] SSE stream read failed for ${path}:`, error);
+					console.error(`[bapX] SSE stream read failed for ${path}:`, error);
 					cleanup();
 					try {
 						controller.error(error);

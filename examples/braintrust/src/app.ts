@@ -1,6 +1,6 @@
-import { type FlueObservation, observe } from '@bapX/runtime';
-import { flue } from '@bapX/runtime/routing';
-import { braintrustFlueObserver, initLogger } from 'braintrust';
+import { type BapxObservation, observe } from '@bapX/runtime';
+import { bapX } from '@bapX/runtime/routing';
+import { braintrustBapxObserver, initLogger } from 'braintrust';
 import { Hono } from 'hono';
 
 const apiKey = process.env.BRAINTRUST_API_KEY;
@@ -8,17 +8,17 @@ const observedRuns = new Set<string>();
 
 if (apiKey) {
 	initLogger({
-		projectName: process.env.BRAINTRUST_PROJECT_NAME ?? 'Flue',
+		projectName: process.env.BRAINTRUST_PROJECT_NAME ?? 'Bapx',
 		apiKey,
 	});
 
 	observe((event, ctx) => {
 		const compatible = compatibleEvent(event);
-		if (compatible) braintrustFlueObserver(compatible, ctx);
+		if (compatible) braintrustBapxObserver(compatible, ctx);
 	});
 }
 
-function compatibleEvent(event: FlueObservation): unknown {
+function compatibleEvent(event: BapxObservation): unknown {
 	if (event.type === 'run_start') {
 		observedRuns.add(event.runId);
 		return event;
@@ -50,6 +50,6 @@ function compatibleEvent(event: FlueObservation): unknown {
 }
 
 const app = new Hono();
-app.route('/', flue());
+app.route('/', bapX());
 
 export default app;

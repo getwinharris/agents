@@ -1,17 +1,17 @@
 ---
 title: Vercel Sandbox
-description: Connect a Flue agent to an application-owned Vercel Sandbox environment.
+description: Connect a Bapx agent to an application-owned Vercel Sandbox environment.
 lastReviewedAt: 2026-05-30
 ---
 
-The Vercel Sandbox adapter adapts an initialized `@vercel/sandbox` `Sandbox` into Flue's sandbox interface. Use it when application code should execute agent work inside a Vercel-managed sandbox rather than on its host filesystem.
+The Vercel Sandbox adapter adapts an initialized `@vercel/sandbox` `Sandbox` into Bapx's sandbox interface. Use it when application code should execute agent work inside a Vercel-managed sandbox rather than on its host filesystem.
 
 ## Quickstart
 
-Add managed Linux sandbox capability to an existing Flue project with the [Vercel Sandbox](https://vercel.com/sandbox) blueprint. Run the following command in your terminal or coding agent of choice:
+Add managed Linux sandbox capability to an existing Bapx project with the [Vercel Sandbox](https://vercel.com/sandbox) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```bash
-flue add sandbox vercel
+bapX add sandbox vercel
 ```
 
 ## Overview
@@ -19,7 +19,7 @@ flue add sandbox vercel
 The blueprint installs `@vercel/sandbox` when needed and creates `sandboxes/vercel.ts` in your source-root. The generated adapter accepts an initialized Vercel `Sandbox`; authentication, runtime selection, retention, and cleanup remain application-owned.
 
 ```ts title="<source-root>/sandboxes/vercel.ts (abridged)"
-// flue-blueprint: sandbox/vercel@1
+// bapX-blueprint: sandbox/vercel@1
 import { createSandboxSessionEnv } from '@bapX/runtime';
 import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 import type { Sandbox as VercelSandbox } from '@vercel/sandbox';
@@ -79,7 +79,7 @@ class VercelSandboxApi implements SandboxApi {
       if (aborted) {
         return {
           stdout: '',
-          stderr: `[flue:vercel] Command timed out after ${options?.timeoutMs} milliseconds.`,
+          stderr: `[bapX:vercel] Command timed out after ${options?.timeoutMs} milliseconds.`,
           exitCode: 124,
         };
       }
@@ -110,7 +110,7 @@ Pass an initialized Vercel `Sandbox` to `vercel(...)` and assign the returned fa
 | Requirement                     | Purpose                                                                                                      |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | Vercel-supported authentication | **Required** — Uses OIDC on Vercel or an access token or other supported authentication flow outside Vercel. |
-| `@vercel/sandbox` package       | **Required** — Creates the Vercel Sandbox adapted by Flue.                                                   |
+| `@vercel/sandbox` package       | **Required** — Creates the Vercel Sandbox adapted by Bapx.                                                   |
 | Application-owned lifecycle     | **Required** — Creates the sandbox and decides its retention and cleanup.                                    |
 
 ## Typical use

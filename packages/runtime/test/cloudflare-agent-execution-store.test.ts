@@ -57,10 +57,10 @@ function dispatchInput(overrides: Partial<DispatchInput> = {}): DispatchInput {
 
 
 describe('createSqlAgentExecutionStore()', () => {
-	it('creates the initial flue_agent_submissions schema and ordering indexes when initialized', () => {
+	it('creates the initial bapX_agent_submissions schema and ordering indexes when initialized', () => {
 		const { db, sql, transactionSync } = makeFakeSql();
 
-		createSqlAgentExecutionStore({ sql, transactionSync }, 'FlueAssistantAgent');
+		createSqlAgentExecutionStore({ sql, transactionSync }, 'BapxAssistantAgent');
 
 		const columnNames = (table: string) =>
 			new Set(
@@ -70,7 +70,7 @@ describe('createSqlAgentExecutionStore()', () => {
 					}>
 				).map((row) => row.name),
 			);
-		expect(columnNames('flue_agent_submissions')).toEqual(
+		expect(columnNames('bapX_agent_submissions')).toEqual(
 			new Set([
 				'sequence',
 				'submission_id',
@@ -107,24 +107,24 @@ describe('createSqlAgentExecutionStore()', () => {
 		);
 		expect(tableNames).toEqual(
 			new Set([
-				'flue_agent_attempt_markers',
-				'flue_agent_dispatch_receipts',
-				'flue_agent_submissions',
-				'flue_image_chunks',
-				'flue_meta',
+				'bapX_agent_attempt_markers',
+				'bapX_agent_dispatch_receipts',
+				'bapX_agent_submissions',
+				'bapX_image_chunks',
+				'bapX_meta',
 			]),
 		);
 		const submissionIndexNames = (
 			db
 				.prepare(
-					"SELECT name FROM sqlite_schema WHERE type = 'index' AND tbl_name = 'flue_agent_submissions'",
+					"SELECT name FROM sqlite_schema WHERE type = 'index' AND tbl_name = 'bapX_agent_submissions'",
 				)
 				.all() as Array<{ name: string }>
 		).map((row) => row.name);
 		expect(submissionIndexNames).toEqual(
 			expect.arrayContaining([
-				'flue_agent_submissions_session_status_sequence_idx',
-				'flue_agent_submissions_status_sequence_idx',
+				'bapX_agent_submissions_session_status_sequence_idx',
+				'bapX_agent_submissions_status_sequence_idx',
 			]),
 		);
 	});
@@ -135,7 +135,7 @@ describe('createSqlAgentExecutionStore()', () => {
 
 	it('stores direct submission images outside the submission payload', async () => {
 		const { db, sql, transactionSync } = makeFakeSql();
-		const store = createSqlAgentExecutionStore({ sql, transactionSync }, 'FlueAssistantAgent');
+		const store = createSqlAgentExecutionStore({ sql, transactionSync }, 'BapxAssistantAgent');
 		const imageData = 'a'.repeat(IMAGE_DATA_CHUNK_LENGTH + 1);
 		const input = {
 			kind: 'direct' as const,
@@ -152,14 +152,14 @@ describe('createSqlAgentExecutionStore()', () => {
 		const submission = await store.submissions.admitDirect(input);
 		const replay = await store.submissions.admitDirect(input);
 		const row = db
-			.prepare('SELECT payload FROM flue_agent_submissions WHERE submission_id = ?')
+			.prepare('SELECT payload FROM bapX_agent_submissions WHERE submission_id = ?')
 			.get('direct-1') as { payload: string };
 		expect(row.payload).not.toContain(imageData);
 		expect(submission.input).toMatchObject({ message: { attachments: [{ data: imageData }] } });
 		expect(replay.input).toEqual(submission.input);
 		expect(
 			db
-				.prepare("SELECT COUNT(*) AS count FROM flue_image_chunks WHERE owner_kind = 'submission'")
+				.prepare("SELECT COUNT(*) AS count FROM bapX_image_chunks WHERE owner_kind = 'submission'")
 				.get(),
 		).toEqual({ count: 2 });
 		await expect(
@@ -175,7 +175,7 @@ describe('createSqlAgentExecutionStore()', () => {
 
 	it('replays direct submissions with more than ten images exactly', async () => {
 		const { sql, transactionSync } = makeFakeSql();
-		const store = createSqlAgentExecutionStore({ sql, transactionSync }, 'FlueAssistantAgent');
+		const store = createSqlAgentExecutionStore({ sql, transactionSync }, 'BapxAssistantAgent');
 		const input = {
 			kind: 'direct' as const,
 			submissionId: 'direct-many-images',
@@ -209,23 +209,23 @@ describe('createSqlAgentExecutionStore()', () => {
 
 	it('ensures only one SQL row per replayed dispatch admission', async () => {
 		const { db, sql, transactionSync } = makeFakeSql();
-		const store = createSqlAgentExecutionStore({ sql, transactionSync }, 'FlueAssistantAgent');
+		const store = createSqlAgentExecutionStore({ sql, transactionSync }, 'BapxAssistantAgent');
 
 		await store.submissions.admitDispatch(dispatchInput());
 		await store.submissions.admitDispatch(dispatchInput());
 
-		expect(db.prepare('SELECT COUNT(*) AS count FROM flue_agent_submissions').get()).toEqual({
+		expect(db.prepare('SELECT COUNT(*) AS count FROM bapX_agent_submissions').get()).toEqual({
 			count: 1,
 		});
 	});
 
 	it('terminalizes malformed queued payloads while returning healthy runnable rows', async () => {
 		const { db, sql, transactionSync } = makeFakeSql();
-		const store = createSqlAgentExecutionStore({ sql, transactionSync }, 'FlueAssistantAgent');
+		const store = createSqlAgentExecutionStore({ sql, transactionSync }, 'BapxAssistantAgent');
 		await store.submissions.admitDispatch(dispatchInput({ dispatchId: 'healthy' }));
 		await store.submissions.markSubmissionCanonicalReady('healthy');
 		db.prepare(
-			`INSERT INTO flue_agent_submissions
+			`INSERT INTO bapX_agent_submissions
 			 (submission_id, session_key, kind, payload, status, accepted_at, canonical_ready_at)
 			 VALUES (?, ?, 'dispatch', ?, 'queued', ?, ?)`,
 		).run('malformed', 'agent-session:["agent-1","default","other"]', '{', 1, 1);
@@ -235,18 +235,18 @@ describe('createSqlAgentExecutionStore()', () => {
 		]);
 		expect(
 			db
-				.prepare('SELECT status, error FROM flue_agent_submissions WHERE submission_id = ?')
+				.prepare('SELECT status, error FROM bapX_agent_submissions WHERE submission_id = ?')
 				.get('malformed'),
 		).toMatchObject({ status: 'settled', error: expect.any(String) });
 	});
 
 	it('terminalizes impossible queued input markers instead of replaying them', async () => {
 		const { db, sql, transactionSync } = makeFakeSql();
-		const store = createSqlAgentExecutionStore({ sql, transactionSync }, 'FlueAssistantAgent');
+		const store = createSqlAgentExecutionStore({ sql, transactionSync }, 'BapxAssistantAgent');
 		await store.submissions.admitDispatch(dispatchInput());
 		await store.submissions.markSubmissionCanonicalReady('dispatch-1');
 		db.prepare(
-			'UPDATE flue_agent_submissions SET input_applied_at = ? WHERE submission_id = ?',
+			'UPDATE bapX_agent_submissions SET input_applied_at = ? WHERE submission_id = ?',
 		).run(1, 'dispatch-1');
 
 		expect(await store.submissions.listRunnableSubmissions()).toEqual([]);
@@ -257,27 +257,27 @@ describe('createSqlAgentExecutionStore()', () => {
 	});
 
 	it('rejects missing Durable Object SQLite with migration guidance', () => {
-		expect(() => createSqlAgentExecutionStore({}, 'FlueAssistantAgent')).toThrow(
-			'Add "FlueAssistantAgent" to a Wrangler migration\'s "new_sqlite_classes" list before its first deploy; do not use legacy "new_classes". Existing KV-backed Durable Object classes cannot be converted to SQLite in place.',
+		expect(() => createSqlAgentExecutionStore({}, 'BapxAssistantAgent')).toThrow(
+			'Add "BapxAssistantAgent" to a Wrangler migration\'s "new_sqlite_classes" list before its first deploy; do not use legacy "new_classes". Existing KV-backed Durable Object classes cannot be converted to SQLite in place.',
 		);
 	});
 
 	it('rejects SQLite-compatible storage without synchronous transaction support', () => {
 		const { sql } = makeFakeSql();
 
-		expect(() => createSqlAgentExecutionStore({ sql }, 'FlueAssistantAgent')).toThrow(
-			'[flue] Cloudflare durable agent class "FlueAssistantAgent" requires Durable Object SQLite.',
+		expect(() => createSqlAgentExecutionStore({ sql }, 'BapxAssistantAgent')).toThrow(
+			'[bapX] Cloudflare durable agent class "BapxAssistantAgent" requires Durable Object SQLite.',
 		);
 	});
 
 	it('reports SQL initialization failures without misdiagnosing missing SQLite', () => {
 		const { sql, transactionSync } = makeFakeSql();
-		sql.exec('CREATE TABLE flue_agent_submissions (sequence INTEGER PRIMARY KEY AUTOINCREMENT)');
+		sql.exec('CREATE TABLE bapX_agent_submissions (sequence INTEGER PRIMARY KEY AUTOINCREMENT)');
 
 		expect(() =>
-			createSqlAgentExecutionStore({ sql, transactionSync }, 'FlueAssistantAgent'),
+			createSqlAgentExecutionStore({ sql, transactionSync }, 'BapxAssistantAgent'),
 		).toThrow(
-			'[flue] Cloudflare durable agent class "FlueAssistantAgent" could not initialize its SQLite execution store. Underlying error: This database records an unrecognized schema version ("unversioned"; this runtime supports version 5).',
+			'[bapX] Cloudflare durable agent class "BapxAssistantAgent" could not initialize its SQLite execution store. Underlying error: This database records an unrecognized schema version ("unversioned"; this runtime supports version 5).',
 		);
 	});
 });

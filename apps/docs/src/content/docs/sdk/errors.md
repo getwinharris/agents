@@ -5,21 +5,21 @@ description: SDK HTTP and stream error types.
 
 See [Errors Reference](/docs/api/errors-reference/) for shared transport envelopes and stable public error categories.
 
-## `FlueApiError`
+## `BapxApiError`
 
 ```ts
-class FlueApiError extends Error {
+class BapxApiError extends Error {
   readonly status: number;
   readonly body: unknown;
 }
 ```
 
-Failed SDK HTTP JSON request. `status` is the HTTP response status. `body` is the parsed response body when available, or the response text otherwise. Framework-owned routes normally return `{ error: FluePublicError }`; application-owned middleware may return arbitrary bodies.
+Failed SDK HTTP JSON request. `status` is the HTTP response status. `body` is the parsed response body when available, or the response text otherwise. Framework-owned routes normally return `{ error: BapxPublicError }`; application-owned middleware may return arbitrary bodies.
 
-## `FluePublicError`
+## `BapxPublicError`
 
 ```ts
-interface FluePublicError {
+interface BapxPublicError {
   type: string;
   message: string;
   details: string;

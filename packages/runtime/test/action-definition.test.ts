@@ -8,13 +8,13 @@ import {
 	defineAgent,
 	defineWorkflow,
 	defineAction,
-	type FlueHarness,
-	type FlueLogger,
+	type BapxHarness,
+	type BapxLogger,
 } from '../src/index.ts';
 import { validateAndRunAction } from '../src/action.ts';
 
-const harness = {} as FlueHarness;
-const log = {} as FlueLogger;
+const harness = {} as BapxHarness;
+const log = {} as BapxLogger;
 
 describe('defineAction()', () => {
 	it('validates and transforms action input and output when schemas are declared', async () => {
@@ -172,8 +172,8 @@ describe('defineWorkflow()', () => {
 			run: async ({ input }) => input.repository,
 		});
 
-		expect(extracted).toMatchObject({ __flueWorkflowDefinition: true, agent, action });
-		expect(inline).toMatchObject({ __flueWorkflowDefinition: true, agent });
+		expect(extracted).toMatchObject({ __bapXWorkflowDefinition: true, agent, action });
+		expect(inline).toMatchObject({ __bapXWorkflowDefinition: true, agent });
 		expect(inline).not.toHaveProperty('name');
 		expect(inline).not.toHaveProperty('description');
 	});
@@ -208,9 +208,9 @@ describe('defineWorkflow()', () => {
 			description: 'Reviews input.',
 			run: async () => undefined,
 		});
-		const forgedAgent = { __flueAgentDefinition: true, initialize: async () => ({ model: 'anthropic/claude-haiku-4-5' }) };
+		const forgedAgent = { __bapXAgentDefinition: true, initialize: async () => ({ model: 'anthropic/claude-haiku-4-5' }) };
 		const forgedAction = {
-			__flueAction: true,
+			__bapXAction: true,
 			name: 'forged',
 			description: 'Forged action.',
 			input: undefined,

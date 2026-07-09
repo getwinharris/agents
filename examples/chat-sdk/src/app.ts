@@ -1,5 +1,5 @@
 import { registerProvider } from '@bapX/runtime';
-import { flue } from '@bapX/runtime/routing';
+import { bapX } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 import assistant from './agents/assistant.ts';
 import { bot, registerChatHandlers } from './chat.ts';
@@ -33,13 +33,13 @@ app.post('/api/github/repos/:owner/:repo/issues/:issueNumber/comments', async (c
 	return c.json({
 		id: outboundComments.length,
 		body,
-		user: { id: 1, login: 'flue-bot', type: 'Bot' },
+		user: { id: 1, login: 'bapX-bot', type: 'Bot' },
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
 	});
 });
 
 app.get('/test/outbound-comments', (c) => c.json(outboundComments));
-app.route('/', flue());
+app.route('/', bapX());
 
 export default app;

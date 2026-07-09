@@ -75,7 +75,7 @@ export function parseValibot<S extends v.GenericSchema>(
 }
 
 function assertValibotSchema(value: unknown): asserts value is v.GenericSchema {
-	if (!isValibotSchema(value)) throw new TypeError('[flue] Expected a Valibot schema.');
+	if (!isValibotSchema(value)) throw new TypeError('[bapX] Expected a Valibot schema.');
 }
 
 function normalizeValibotIssue(issue: v.BaseIssue<unknown>): ValidationIssue {

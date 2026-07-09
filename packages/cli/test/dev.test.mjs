@@ -8,7 +8,7 @@ import * as path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-const cli = new URL('../dist/flue.js', import.meta.url);
+const cli = new URL('../dist/bapX.js', import.meta.url);
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const fixtureRoots = [];
 
@@ -44,7 +44,7 @@ test('restarts after discovered config changes and recovers after invalid config
 	}
 	fs.writeFileSync(path.join(root, '.config-helper.mjs'), `export default 'dist-one';\n`);
 	fs.writeFileSync(
-		path.join(root, 'flue.config.mjs'),
+		path.join(root, 'bapX.config.mjs'),
 		`import output from './.config-helper.mjs';\nexport default { target: 'node', output };\n`,
 	);
 
@@ -52,12 +52,12 @@ test('restarts after discovered config changes and recovers after invalid config
 	try {
 		await waitForServer(port, dev.logs);
 		await dev.waitForLog(`http://localhost:${port}`);
-		assert.match(dev.logs(), /flue v\S+\s+ready in \d+ ms/);
+		assert.match(dev.logs(), /bapX v\S+\s+ready in \d+ ms/);
 		assert.match(dev.logs(), /Agents:\s+planner, researcher, \+3 others/);
 		assert.match(dev.logs(), /Workflows:\s+daily\.report, smoke, \+1 other/);
 		assert.match(dev.logs(), /Channels:\s+slack, teams, \+1 other/);
 		assert.match(dev.logs(), /\d{2}:\d{2}:\d{2} watching for file changes\.\.\./);
-		assert.doesNotMatch(dev.logs(), /flue connect|➜/);
+		assert.doesNotMatch(dev.logs(), /bapX connect|➜/);
 		assert.equal(fs.existsSync(path.join(root, 'dist-one', 'server.mjs')), false);
 
 		fs.writeFileSync(
@@ -70,7 +70,7 @@ test('restarts after discovered config changes and recovers after invalid config
 		assert.match(dev.logs(), /\d{2}:\d{2}:\d{2} reloaded in \d+ms/);
 
 		fs.writeFileSync(path.join(root, '.config-helper.mjs'), `export default 'dist-two';\n`);
-		fs.appendFileSync(path.join(root, 'flue.config.mjs'), '\n');
+		fs.appendFileSync(path.join(root, 'bapX.config.mjs'), '\n');
 		await dev.waitForLog(`http://localhost:${port}`, 2);
 		await waitForServer(port);
 
@@ -99,7 +99,7 @@ test('ignores paths configured through the Vite watcher', async () => {
 	const port = await getAvailablePort();
 	writeWorkflow(root);
 	fs.writeFileSync(
-		path.join(root, 'flue.config.mjs'),
+		path.join(root, 'bapX.config.mjs'),
 		`export default { target: 'node' };\nexport const vite = { server: { watch: { ignored: ['**/evals/results/**'] } } };\n`,
 	);
 	fs.mkdirSync(path.join(root, 'evals', 'results'), { recursive: true });
@@ -145,12 +145,12 @@ test('prints namespaced diagnostics when DEBUG enables dev logging', async () =>
 	writeWorkflow(root);
 
 	const dev = startDev(root, ['--target', 'node', '--port', String(port)], {
-		DEBUG: 'flue:dev*',
+		DEBUG: 'bapX:dev*',
 	});
 	try {
 		await waitForServer(port, dev.logs);
-		await dev.waitForLog('flue:dev:server node server ready');
-		assert.match(dev.logs(), /flue:dev starting target=node/);
+		await dev.waitForLog('bapX:dev:server node server ready');
+		assert.match(dev.logs(), /bapX:dev starting target=node/);
 	} finally {
 		await dev.stop();
 	}
@@ -190,7 +190,7 @@ test('does not report ready when an explicit requested port is occupied', async 
 	const dev = startDev(root, ['--target', 'node', '--port', String(port)]);
 	try {
 		await dev.waitForLog('Dev server failed:');
-		assert.doesNotMatch(dev.logs(), /flue v\S+\s+ready in|Agents:|Workflows:/);
+		assert.doesNotMatch(dev.logs(), /bapX v\S+\s+ready in|Agents:|Workflows:/);
 	} finally {
 		await dev.stop();
 		blocker.close();
@@ -311,9 +311,9 @@ fs.watch = function watch(target, ...args) {
 });
 
 function createFixtureRoot() {
-	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'flue-cli-dev-'));
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapX-cli-dev-'));
 	fixtureRoots.push(root);
-	const scope = path.join(root, 'node_modules', '@flue');
+	const scope = path.join(root, 'node_modules', '@bapX');
 	fs.mkdirSync(scope, { recursive: true });
 	fs.symlinkSync(
 		path.join(repositoryRoot, 'packages', 'runtime'),
@@ -360,7 +360,7 @@ function startDev(cwd, args, env = {}) {
 			await Promise.race([
 				once(child, 'exit'),
 				new Promise((_, reject) =>
-					setTimeout(() => reject(new Error(`Timed out stopping flue dev\n\n${output}`)), 5_000),
+					setTimeout(() => reject(new Error(`Timed out stopping bapX dev\n\n${output}`)), 5_000),
 				),
 			]);
 		},

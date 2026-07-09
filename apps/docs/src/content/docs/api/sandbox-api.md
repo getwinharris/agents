@@ -1,15 +1,15 @@
 ---
 title: Sandbox Adapter API
-description: Adapt a provider sandbox SDK into Flue's public sandbox contract.
+description: Adapt a provider sandbox SDK into Bapx's public sandbox contract.
 ---
 
-A sandbox adapter adapts a third-party sandbox provider's SDK into Flue's `SandboxFactory` interface so that agents can run shell commands and read or write files inside that sandbox.
+A sandbox adapter adapts a third-party sandbox provider's SDK into Bapx's `SandboxFactory` interface so that agents can run shell commands and read or write files inside that sandbox.
 
 If you are a coding agent building a sandbox adapter for a user, follow this document literally and produce one TypeScript file that exports a factory function such as `daytona(...)` returning a `SandboxFactory`.
 
 ## High-level shape
 
-A sandbox adapter is one TypeScript file. It exports a factory function that takes an already-initialized provider sandbox plus options and returns a `SandboxFactory`. Flue calls `factory.createSessionEnv({ id })` once per initialized harness and uses the returned `SessionEnv` for all shell and file operations.
+A sandbox adapter is one TypeScript file. It exports a factory function that takes an already-initialized provider sandbox plus options and returns a `SandboxFactory`. Bapx calls `factory.createSessionEnv({ id })` once per initialized harness and uses the returned `SessionEnv` for all shell and file operations.
 
 ```ts
 // <source-dir>/sandboxes/<provider>.ts
@@ -33,13 +33,13 @@ export function provider(sandbox: ProviderSandbox): SandboxFactory {
 }
 ```
 
-Sandbox adapters are pure adapters. They map a provider sandbox to a `SessionEnv` rooted at the provider-owned base cwd and stop there. They must not apply an agent definition's `cwd`: Flue resolves that value once against the adapter's base cwd while initializing a root harness. A factory may be called again for later requests or workflow runs, and closing a harness does not destroy provider infrastructure. The application owns provider resource creation, reuse, and deletion.
+Sandbox adapters are pure adapters. They map a provider sandbox to a `SessionEnv` rooted at the provider-owned base cwd and stop there. They must not apply an agent definition's `cwd`: Bapx resolves that value once against the adapter's base cwd while initializing a root harness. A factory may be called again for later requests or workflow runs, and closing a harness does not destroy provider infrastructure. The application owns provider resource creation, reuse, and deletion.
 
 ## Imports
 
 Import these from `@bapX/runtime`:
 
-- `createSandboxSessionEnv(api, cwd)` wraps your `SandboxApi` into a `SessionEnv` that Flue can drive. Pass the provider-owned base cwd, not an agent definition's cwd.
+- `createSandboxSessionEnv(api, cwd)` wraps your `SandboxApi` into a `SessionEnv` that Bapx can drive. Pass the provider-owned base cwd, not an agent definition's cwd.
 - `SandboxApi` is the interface you implement.
 - `SandboxFactory` is what your factory returns.
 - `SessionToolFactory` is the optional model-facing tool factory type for a custom sandbox.
@@ -88,7 +88,7 @@ export interface SandboxFactory {
 }
 ```
 
-`createSessionEnv` is called once for each root harness initialization, and every session and nested task or Action scope of that harness shares the returned `SessionEnv`. The `id` option is the agent instance id for direct agent work or the workflow run id for a workflow. The same agent instance may initialize a new root harness for later submissions, so an adapter that keys provider resources on `id` must tolerate repeated calls and deliberately reuse or replace its provider resource. Flue closes in-memory harness state after the operation or run; it does not destroy provider infrastructure.
+`createSessionEnv` is called once for each root harness initialization, and every session and nested task or Action scope of that harness shares the returned `SessionEnv`. The `id` option is the agent instance id for direct agent work or the workflow run id for a workflow. The same agent instance may initialize a new root harness for later submissions, so an adapter that keys provider resources on `id` must tolerate repeated calls and deliberately reuse or replace its provider resource. Bapx closes in-memory harness state after the operation or run; it does not destroy provider infrastructure.
 
 `tools` replaces the framework's default model-facing tool list for this sandbox. Omit it for the standard filesystem and shell tools.
 
@@ -101,7 +101,7 @@ export type SessionToolFactory = (
 ) => AgentTool<any>[];
 ```
 
-Use this optional factory when the sandbox exposes provider-specific model-facing tools. Flue appends the `task` tool separately.
+Use this optional factory when the sandbox exposes provider-specific model-facing tools. Bapx appends the `task` tool separately.
 
 ### `FileStat`
 
@@ -135,7 +135,7 @@ Return raw bytes as a `Uint8Array`. If the SDK gives you a Node `Buffer`, wrap i
 
 Write `content` to `path`. Accept both `string` and `Uint8Array`. Convert strings to UTF-8 bytes before sending them to providers that only accept buffers.
 
-Sandbox adapters need not create parent directories; the runtime guarantees it. When a write fails, `createSandboxSessionEnv` calls your `mkdir(parent, { recursive: true })` and retries the write once, so `FlueFs.writeFile` behaves identically across every sandbox mode. Let missing-parent errors from the provider propagate — do not add your own parent creation.
+Sandbox adapters need not create parent directories; the runtime guarantees it. When a write fails, `createSandboxSessionEnv` calls your `mkdir(parent, { recursive: true })` and retries the write once, so `BapxFs.writeFile` behaves identically across every sandbox mode. Let missing-parent errors from the provider propagate — do not add your own parent creation.
 
 ### `stat(path)`
 
@@ -169,9 +169,9 @@ If the provider does not separately expose `stderr`, return `''`. Default `exitC
 
 ## Sandbox lifetime
 
-Flue does not manage sandbox lifetime. The user creates the sandbox and decides when or whether to delete it. Sandbox adapters must not call `sandbox.delete()`, `sandbox.terminate()`, `sandbox.kill()`, or any equivalent on the user's behalf.
+Bapx does not manage sandbox lifetime. The user creates the sandbox and decides when or whether to delete it. Sandbox adapters must not call `sandbox.delete()`, `sandbox.terminate()`, `sandbox.kill()`, or any equivalent on the user's behalf.
 
-Sandbox adapter factories therefore take no `cleanup` option, and `createSandboxSessionEnv` takes no cleanup callback. If the adapter opens a real socket such as SSH, it may manage that socket internally, but it must not assume Flue will trigger teardown.
+Sandbox adapter factories therefore take no `cleanup` option, and `createSandboxSessionEnv` takes no cleanup callback. If the adapter opens a real socket such as SSH, it may manage that socket internally, but it must not assume Bapx will trigger teardown.
 
 ## Reference implementation
 
@@ -179,9 +179,9 @@ See the deployed [Daytona blueprint](https://bapx.in/cli/blueprints/daytona.md) 
 
 ## Sandbox adapter file location
 
-The user's project root does not change. The selected source directory inside it may vary. Flue selects the first existing directory in this order:
+The user's project root does not change. The selected source directory inside it may vary. Bapx selects the first existing directory in this order:
 
-1. `<root>/.flue/`
+1. `<root>/.bapX/`
 2. `<root>/src/`
 3. `<root>/`
 

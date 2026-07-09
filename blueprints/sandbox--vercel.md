@@ -7,21 +7,21 @@
 }
 ---
 
-# Add a Flue Sandbox Adapter: Vercel Sandbox
+# Add a Bapx Sandbox Adapter: Vercel Sandbox
 
 You are an AI coding agent installing the Vercel Sandbox adapter for a
-Flue project. Follow these instructions exactly. Confirm with the user only
+Bapx project. Follow these instructions exactly. Confirm with the user only
 when something is genuinely ambiguous (e.g. an unusual project layout).
 
 ## What this adapter does
 
 Wraps an already-initialized Vercel Sandbox (created with the user's own
-`@vercel/sandbox` client) into Flue's `SandboxFactory` interface. The user
+`@vercel/sandbox` client) into Bapx's `SandboxFactory` interface. The user
 owns the Vercel Sandbox lifecycle; this adapter just adapts the sandbox.
 
 ## Where to write the file
 
-Select the first existing source directory: `<root>/.flue/`, then `<root>/src/`,
+Select the first existing source directory: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Write the adapter to `<source-dir>/sandboxes/vercel.ts`.
 
 If neither feels right (uncommon layout, multiple workspaces, etc.), ask the
@@ -35,13 +35,13 @@ Write this file verbatim. Do not "improve" it — it conforms to the published
 `SandboxApi` contract.
 
 ```ts
-// flue-blueprint: sandbox/vercel@1
+// bapX-blueprint: sandbox/vercel@1
 /**
- * Vercel Sandbox adapter for Flue.
+ * Vercel Sandbox adapter for Bapx.
  *
- * Wraps an already-initialized Vercel Sandbox into Flue's SandboxFactory
+ * Wraps an already-initialized Vercel Sandbox into Bapx's SandboxFactory
  * interface. The user creates and configures the sandbox using the Vercel
- * SDK directly — Flue just adapts it.
+ * SDK directly — Bapx just adapts it.
  *
  * @example
  * ```typescript
@@ -154,7 +154,7 @@ class VercelSandboxApi implements SandboxApi {
 			if (aborted) {
 				return {
 					stdout: '',
-					stderr: `[flue:vercel] Command timed out after ${options?.timeoutMs} milliseconds.`,
+					stderr: `[bapX:vercel] Command timed out after ${options?.timeoutMs} milliseconds.`,
 					exitCode: 124,
 				};
 			}
@@ -164,8 +164,8 @@ class VercelSandboxApi implements SandboxApi {
 }
 
 /**
- * Create a Flue sandbox factory from an initialized Vercel Sandbox.
- * The user owns the sandbox lifecycle; Flue wraps it into a SessionEnv
+ * Create a Bapx sandbox factory from an initialized Vercel Sandbox.
+ * The user owns the sandbox lifecycle; Bapx wraps it into a SessionEnv
  * for agent use.
  */
 export function vercel(sandbox: VercelSandbox): SandboxFactory {
@@ -211,7 +211,7 @@ There are two paths, depending on where the sandbox runs:
 
   This drops a `.vercel/.env.development.local` (or similar) file with
   `VERCEL_OIDC_TOKEN` populated. The user will need to load that file at
-  runtime — `flue dev --env <file>` and `flue run --env <file>` accept any
+  runtime — `bapX dev --env <file>` and `bapX run --env <file>` accept any
   `.env`-format file.
 
   For non-Vercel CI or other environments where OIDC isn't available, the
@@ -223,7 +223,7 @@ Tell the user which path applies to them; don't assume.
 
 ## Wiring it into an agent
 
-Here's what using this adapter looks like inside a Flue agent. If the
+Here's what using this adapter looks like inside a Bapx agent. If the
 user is already working on an agent that this adapter is meant to plug
 into, you can finish that work by wiring the adapter into it. Otherwise,
 share this snippet so they can wire it up themselves.
@@ -260,8 +260,8 @@ export default defineWorkflow({
    actually wrote the file.
 3. Tell the user the next steps: install `@vercel/sandbox` (if you didn't),
    make sure `VERCEL_OIDC_TOKEN` is available at runtime (per the
-   Authentication section above), and run `flue dev` (or
-   `flue run <workflow>`) to try it.
+   Authentication section above), and run `bapX dev` (or
+   `bapX run <workflow>`) to try it.
 
 When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
 

@@ -4,7 +4,7 @@
  * `@bapX/runtime`, and `@bapX/sdk`):
  * - Copies `apps/docs/src/content/docs` into `<package>/docs` for agent consumption.
  * - Syncs the root README.md into each package.
- * - Embeds the `flue docs` catalog into the installable Flue skill.
+ * - Embeds the `bapX docs` catalog into the installable Bapx skill.
  *
  * Run from anywhere: `node scripts/prepare-publish.mjs`
  */
@@ -18,9 +18,9 @@ const execFileAsync = promisify(execFile);
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const docsSource = join(repoRoot, 'apps/docs/src/content/docs');
 const readmeSource = join(repoRoot, 'README.md');
-const skillPath = join(repoRoot, 'skills/flue/SKILL.md');
-const catalogStart = '<!-- flue-docs-catalog:start -->';
-const catalogEnd = '<!-- flue-docs-catalog:end -->';
+const skillPath = join(repoRoot, 'skills/bapX/SKILL.md');
+const catalogStart = '<!-- bapX-docs-catalog:start -->';
+const catalogEnd = '<!-- bapX-docs-catalog:end -->';
 
 const PUBLISH_ARTIFACT_PACKAGES = new Set(['@bapX/cli', '@bapX/runtime', '@bapX/sdk']);
 
@@ -28,13 +28,13 @@ export function embedDocsCatalog(skillSource, catalog) {
 	const start = skillSource.indexOf(catalogStart);
 	const end = skillSource.indexOf(catalogEnd);
 	if (start === -1 || end === -1 || end < start) {
-		throw new Error('Flue skill is missing valid docs catalog markers.');
+		throw new Error('Bapx skill is missing valid docs catalog markers.');
 	}
 	if (
 		skillSource.indexOf(catalogStart, start + catalogStart.length) !== -1 ||
 		skillSource.indexOf(catalogEnd, end + catalogEnd.length) !== -1
 	) {
-		throw new Error('Flue skill must contain exactly one pair of docs catalog markers.');
+		throw new Error('Bapx skill must contain exactly one pair of docs catalog markers.');
 	}
 	const before = skillSource.slice(0, start + catalogStart.length);
 	const after = skillSource.slice(end);
@@ -64,17 +64,17 @@ export async function preparePublishArtifacts() {
 		await cp(docsSource, docsTarget, { recursive: true });
 		await copyFile(readmeSource, join(packageRoot, 'README.md'));
 
-		console.error(`[flue] Prepared publish artifacts for ${manifest.name}`);
+		console.error(`[bapX] Prepared publish artifacts for ${manifest.name}`);
 	}
 
-	const cliPath = join(repoRoot, 'packages/cli/dist/flue.js');
+	const cliPath = join(repoRoot, 'packages/cli/dist/bapX.js');
 	const { stdout: catalog } = await execFileAsync(process.execPath, [cliPath, 'docs'], {
 		cwd: repoRoot,
 		maxBuffer: 10 * 1024 * 1024,
 	});
 	const skillSource = await readFile(skillPath, 'utf8');
 	await writeFile(skillPath, embedDocsCatalog(skillSource, catalog));
-	console.error('[flue] Embedded the documentation catalog in skills/flue/SKILL.md');
+	console.error('[bapX] Embedded the documentation catalog in skills/bapX/SKILL.md');
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

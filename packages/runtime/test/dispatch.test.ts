@@ -8,8 +8,8 @@ import { defineAgent } from '../src/agent-definition.ts';
 import { InvalidRequestError, OperationFailedError } from '../src/errors.ts';
 import { dispatch } from '../src/index.ts';
 import {
-	configureFlueRuntime,
-	createFlueContext,
+	configureBapxRuntime,
+	createBapxContext,
 	type DispatchInput,
 	type DispatchQueue,
 } from '../src/internal.ts';
@@ -17,7 +17,7 @@ import {
 	createAgentSubmissionSessionHandler,
 	type AgentSubmissionInput,
 } from '../src/runtime/agent-submissions.ts';
-import { resetFlueRuntimeForTests } from '../src/runtime/flue-app.ts';
+import { resetBapxRuntimeForTests } from '../src/runtime/bapX-app.ts';
 import { MAX_IMAGE_DATA_LENGTH } from '../src/persisted-images.ts';
 import { createNoopSessionEnv } from './fixtures/session-env.ts';
 import { agentRecord, nodeRuntime } from './helpers/runtime-config.ts';
@@ -34,7 +34,7 @@ function noopDispatchQueue(): DispatchQueue {
 }
 
 afterEach(() => {
-	resetFlueRuntimeForTests();
+	resetBapxRuntimeForTests();
 	for (const provider of providers.splice(0)) provider.unregister();
 });
 
@@ -56,7 +56,7 @@ describe('dispatch()', () => {
 	});
 
 	it('returns an admission receipt when a named agent dispatch is accepted', async () => {
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...nodeRuntime(),
 			dispatchQueue: noopDispatchQueue(),
 			agents: [agentRecord('moderator')],
@@ -77,7 +77,7 @@ describe('dispatch()', () => {
 	it('resolves a discovered agent name when dispatch() receives an agent definition target', async () => {
 		const moderator = defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));
 		const admitted: DispatchInput[] = [];
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...nodeRuntime(),
 			dispatchQueue: {
 				async enqueue(input) {
@@ -104,7 +104,7 @@ describe('dispatch()', () => {
 
 	it('rejects an agent definition target when the built application cannot resolve its identity', async () => {
 		const localModerator = defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...nodeRuntime(),
 			dispatchQueue: noopDispatchQueue(),
 			agents: [agentRecord('moderator')],
@@ -121,7 +121,7 @@ describe('dispatch()', () => {
 	it('snapshots the delivered message when dispatch() admits a payload', async () => {
 		const admitted: DispatchInput[] = [];
 		const attributes: Record<string, string> = { reportId: 'report:snapshot' };
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...nodeRuntime(),
 			dispatchQueue: {
 				async enqueue(input) {
@@ -149,7 +149,7 @@ describe('dispatch()', () => {
 
 	it('resolves a dispatched user message with attachments through the same validated path', async () => {
 		const admitted: DispatchInput[] = [];
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...nodeRuntime(),
 			dispatchQueue: {
 				async enqueue(input) {
@@ -178,7 +178,7 @@ describe('dispatch()', () => {
 	});
 
 	it('rejects a missing message when dispatch() receives no message field', async () => {
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...nodeRuntime(),
 			dispatchQueue: noopDispatchQueue(),
 			agents: [agentRecord('moderator')],
@@ -194,7 +194,7 @@ describe('dispatch()', () => {
 	});
 
 	it('rejects a message with an unrecognized kind', async () => {
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...nodeRuntime(),
 			dispatchQueue: noopDispatchQueue(),
 			agents: [agentRecord('moderator')],
@@ -210,7 +210,7 @@ describe('dispatch()', () => {
 	});
 
 	it('rejects a signal message missing its type', async () => {
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...nodeRuntime(),
 			dispatchQueue: noopDispatchQueue(),
 			agents: [agentRecord('moderator')],
@@ -226,7 +226,7 @@ describe('dispatch()', () => {
 	});
 
 	it('rejects a signal tagName that is not a valid XML tag name', async () => {
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...nodeRuntime(),
 			dispatchQueue: noopDispatchQueue(),
 			agents: [agentRecord('moderator')],
@@ -250,7 +250,7 @@ describe('dispatch()', () => {
 
 	it('accepts a valid custom signal tagName', async () => {
 		const admitted: DispatchInput[] = [];
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...nodeRuntime(),
 			dispatchQueue: {
 				async enqueue(input) {
@@ -276,7 +276,7 @@ describe('dispatch()', () => {
 	});
 
 	it('rejects a user message attachment above the encoded length limit', async () => {
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...nodeRuntime(),
 			dispatchQueue: noopDispatchQueue(),
 			agents: [agentRecord('moderator')],
@@ -301,7 +301,7 @@ describe('dispatch()', () => {
 	});
 
 	it('rejects an unknown agent when dispatch() targets an unregistered name', async () => {
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...nodeRuntime(),
 			dispatchQueue: noopDispatchQueue(),
 			agents: [agentRecord('moderator')],
@@ -317,7 +317,7 @@ describe('dispatch()', () => {
 	});
 
 	it('rejects a blank agent instance id when dispatch() receives an id', async () => {
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...nodeRuntime(),
 			dispatchQueue: noopDispatchQueue(),
 			agents: [agentRecord('moderator')],
@@ -353,10 +353,10 @@ describe('dispatched session processing', () => {
 			message: { kind: 'user', body: 'Hello directly' },
 			acceptedAt: '2026-06-01T00:00:00.000Z',
 		};
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: input.id,
 			env: {},
-			req: new Request('http://flue.local/agents/moderator/guild:aborted-turn', {
+			req: new Request('http://bapX.local/agents/moderator/guild:aborted-turn', {
 				method: 'POST',
 			}),
 			agentConfig: {
@@ -391,10 +391,10 @@ describe('dispatched session processing', () => {
 			message: { kind: 'user', body: 'Hello directly' },
 			acceptedAt: '2026-06-01T00:00:00.000Z',
 		};
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: input.id,
 			env: {},
-			req: new Request('http://flue.local/agents/moderator/guild:error-turn', {
+			req: new Request('http://bapX.local/agents/moderator/guild:error-turn', {
 				method: 'POST',
 			}),
 			agentConfig: {

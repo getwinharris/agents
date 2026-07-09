@@ -8,7 +8,7 @@ The agent API is exported from `@bapX/runtime`.
 
 ```ts
 import {
-  FlueError,
+  BapxError,
   ResultUnavailableError,
   ToolInputValidationError,
   ToolLegacyDefinitionError,
@@ -32,11 +32,11 @@ import {
   type DeliveredMessage,
   type DispatchReceipt,
   type FileStat,
-  type FlueFs,
-  type FlueHarness,
-  type FlueLogger,
-  type FlueSession,
-  type FlueSessions,
+  type BapxFs,
+  type BapxHarness,
+  type BapxLogger,
+  type BapxSession,
+  type BapxSessions,
   type McpServerConnection,
   type McpServerOptions,
   type NamedAgentDispatchRequest,
@@ -174,7 +174,7 @@ The old `parameters` and `execute` markers now throw when a tool is defined. Ren
 function connectMcpServer(name: string, options: McpServerOptions): Promise<McpServerConnection>;
 ```
 
-Connects to a remote MCP server and returns its listed tools as Flue tool definitions ready to pass directly in `tools` arrays.
+Connects to a remote MCP server and returns its listed tools as Bapx tool definitions ready to pass directly in `tools` arrays.
 
 Adapted tool names use `mcp__<server>__<tool>`. Unsupported characters are replaced with underscores, and duplicate adapted names are rejected. Do not wrap these tools with `defineTool()`. Close the returned connection when its tools are no longer needed.
 
@@ -277,7 +277,7 @@ Delivers a message for asynchronous processing by a continuing agent instance. T
 | ------------ | ----------------------------------------------------------------------------------------- |
 | `agent`      | Discovered agent module name for the named overload.                                      |
 | `id`         | Target agent instance id.                                                                 |
-| `message`    | The message delivered to the session. Flue snapshots it when accepted.                    |
+| `message`    | The message delivered to the session. Bapx snapshots it when accepted.                    |
 | `dispatchId` | Generated delivery identifier returned in the receipt. This is not a workflow `runId`.     |
 | `acceptedAt` | ISO timestamp assigned when dispatch admission begins.                                    |
 
@@ -334,24 +334,24 @@ An agent definition is the opaque value returned by `defineAgent()`. Default-exp
 
 A harness is an initialized agent environment supplied by the active runner. Actions receive it as `context.harness`; application code does not name or initialize workflow harnesses.
 
-#### `FlueHarness`
+#### `BapxHarness`
 
 Initialized agent environment for sessions and workspace operations.
 
 ```ts
-interface FlueHarness {
+interface BapxHarness {
   readonly name: string;
-  session(name?: string): Promise<FlueSession>;
-  readonly sessions: FlueSessions;
+  session(name?: string): Promise<BapxSession>;
+  readonly sessions: BapxSessions;
   shell(command: string, options?: ShellOptions): CallHandle<ShellResult>;
-  readonly fs: FlueFs;
+  readonly fs: BapxFs;
 }
 ```
 
 ### `harness.session(...)`
 
 ```ts
-session(name?: string): Promise<FlueSession>;
+session(name?: string): Promise<BapxSession>;
 ```
 
 Gets or creates a session in this harness. Defaults to the `'default'` session. Names beginning with `task:` are reserved for framework-owned detached task sessions.
@@ -359,7 +359,7 @@ Gets or creates a session in this harness. Defaults to the `'default'` session. 
 ### `harness.sessions.get(...)`
 
 ```ts
-get(name?: string): Promise<FlueSession>;
+get(name?: string): Promise<BapxSession>;
 ```
 
 Loads an existing session. Defaults to `'default'`. Rejects with `SessionNotFoundError` if it does not exist.
@@ -367,7 +367,7 @@ Loads an existing session. Defaults to `'default'`. Rejects with `SessionNotFoun
 ### `harness.sessions.create(...)`
 
 ```ts
-create(name?: string): Promise<FlueSession>;
+create(name?: string): Promise<BapxSession>;
 ```
 
 Creates a new session. Defaults to `'default'`. Rejects with `SessionAlreadyExistsError` if it already exists.
@@ -382,7 +382,7 @@ Runs a shell command in the harness sandbox without recording it in a conversati
 
 ### `harness.fs`
 
-- **Type:** `FlueFs`
+- **Type:** `BapxFs`
 
 Reads and writes files in the harness sandbox without recording them in a conversation.
 
@@ -390,18 +390,18 @@ Reads and writes files in the harness sandbox without recording them in a conver
 
 A session is named conversation state inside a harness. A session runs one active `prompt`, `skill`, `task`, `shell`, or `compact` operation at a time. Use separate named sessions for parallel conversation branches.
 
-#### `FlueSession`
+#### `BapxSession`
 
 Named conversation state inside a harness.
 
 ```ts
-interface FlueSession {
+interface BapxSession {
   readonly name: string;
   prompt(text: string, options?: PromptOptions): CallHandle<PromptResponse>;
   skill(skill: SkillReference | string, options?: SkillOptions): CallHandle<PromptResponse>;
   task(text: string, options?: TaskOptions): CallHandle<PromptResponse>;
   shell(command: string, options?: ShellOptions): CallHandle<ShellResult>;
-  readonly fs: FlueFs;
+  readonly fs: BapxFs;
   compact(): Promise<void>;
 }
 ```
@@ -488,7 +488,7 @@ Runs a registered skill. Pass `options.result` to require validated structured d
 
 ```ts
 interface SkillReference {
-  readonly __flueSkillReference: true;
+  readonly __bapXSkillReference: true;
   readonly id: string;
   readonly name: string;
   readonly description: string;
@@ -559,7 +559,7 @@ interface ShellResult {
 
 ### `session.fs`
 
-- **Type:** `FlueFs`
+- **Type:** `BapxFs`
 
 Reads and writes files in the session sandbox without recording them in the conversation transcript.
 
@@ -582,12 +582,12 @@ interface CallHandle<T> extends Promise<T> {
 
 `prompt()`, `skill()`, `task()`, and `shell()` return awaitable call handles. Retain the handle when application code needs to cancel in-flight work. Aborting rejects the awaited operation with an `AbortError` (`DOMException`). Pass `options.signal` to merge an external abort signal with the handle's signal.
 
-Other session failures reject with typed `FlueError` subclasses such as `SessionBusyError`, `SkillNotRegisteredError`, and `SubagentNotDeclaredError`, all importable from `@bapX/runtime`. See the [Errors Reference](/docs/api/errors-reference/) for the full vocabulary.
+Other session failures reject with typed `BapxError` subclasses such as `SessionBusyError`, `SkillNotRegisteredError`, and `SubagentNotDeclaredError`, all importable from `@bapX/runtime`. See the [Errors Reference](/docs/api/errors-reference/) for the full vocabulary.
 
-#### `FlueFs`
+#### `BapxFs`
 
 ```ts
-interface FlueFs {
+interface BapxFs {
   readFile(path: string): Promise<string>;
   readFileBuffer(path: string): Promise<Uint8Array>;
   writeFile(path: string, content: string | Uint8Array): Promise<void>;

@@ -1,6 +1,6 @@
 # `@bapX/mysql`
 
-MySQL 8 and InnoDB durable persistence for Flue applications on the Node.js
+MySQL 8 and InnoDB durable persistence for Bapx applications on the Node.js
 target.
 
 ```ts
@@ -40,13 +40,13 @@ export default mysql({
 });
 ```
 
-Default-export the adapter from a source-root `db.ts`. Flue discovers it at
+Default-export the adapter from a source-root `db.ts`. Bapx discovers it at
 build time and wires it into the generated Node server. The adapter's
 `migrate()` hook runs at startup, creates and verifies its InnoDB tables
 idempotently, and then stamps the schema version. There is no separate migration
 command.
 
-This adapter persists Flue runtime state:
+This adapter persists Bapx runtime state:
 
 - the canonical append-only conversation stream for each agent instance;
 - immutable external attachments referenced by conversation records;
@@ -84,7 +84,7 @@ query outside the transaction.
 
 ## Database requirements
 
-Use MySQL 8 with InnoDB for every Flue table. InnoDB provides the transactions
+Use MySQL 8 with InnoDB for every Bapx table. InnoDB provides the transactions
 and row locking required for durable admission, claims, leases, and
 event ordering. Supply `MYSQL_URL` through the application's secret system and
 configure TLS in `mysql2` when required by the database provider. Never commit a
@@ -104,7 +104,7 @@ SQLite automatically and rejects `db.ts` at build time.
 ## Installation
 
 ```sh
-flue add database mysql
+bapX add database mysql
 ```
 
 The blueprint installs `@bapX/mysql` and `mysql2`, then writes `db.ts`. See the

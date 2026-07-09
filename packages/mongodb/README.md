@@ -1,6 +1,6 @@
 # `@bapX/mongodb`
 
-MongoDB persistence for Flue Node-target projects. It requires a replica set, Atlas deployment, or transaction-capable sharded cluster; standalone MongoDB is rejected before schema stamping.
+MongoDB persistence for Bapx Node-target projects. It requires a replica set, Atlas deployment, or transaction-capable sharded cluster; standalone MongoDB is rejected before schema stamping.
 
 ```sh
 pnpm add @bapX/mongodb mongodb
@@ -160,6 +160,6 @@ export default mongodb(runner);
 
 Keep the transaction operation wrapper session-bound and sequential; do not fall back to database-level collections inside the callback. Retry the whole callback only for `TransientTransactionError`, retry only commit for `UnknownTransactionCommitResult`, and bound both loops.
 
-Call and await `migrate()` before `connect()`. Migration verifies exact validators and required indexes before writing the Flue schema version and rejects unsupported versions. Schema v6 is a reset boundary: clear stores created with another schema version before migrating. Flue stores canonical append-only conversation streams, immutable external attachments, durable submissions, claims, and leases, workflow runs, and distinct event streams. The canonical stream is the sole transcript and is replayed from its beginning; replay acceleration and persisted-log compaction are deferred. Sessions append for the instance lifetime and have no per-session deletion. Whole-instance stream and attachment deletion methods are low-level primitives, not public orchestration. Arbitrary values are staged as bounded immutable parts with durable generation state before a short transaction publishes their manifest.
+Call and await `migrate()` before `connect()`. Migration verifies exact validators and required indexes before writing the Bapx schema version and rejects unsupported versions. Schema v6 is a reset boundary: clear stores created with another schema version before migrating. Bapx stores canonical append-only conversation streams, immutable external attachments, durable submissions, claims, and leases, workflow runs, and distinct event streams. The canonical stream is the sole transcript and is replayed from its beginning; replay acceleration and persisted-log compaction are deferred. Sessions append for the instance lifetime and have no per-session deletion. Whole-instance stream and attachment deletion methods are low-level primitives, not public orchestration. Arbitrary values are staged as bounded immutable parts with durable generation state before a short transaction publishes their manifest.
 
 Use a dedicated database when possible. Otherwise set `collectionPrefix` to a unique namespace. Configure credentials, TLS, pooling, backups, and client lifecycle in the application-owned driver.

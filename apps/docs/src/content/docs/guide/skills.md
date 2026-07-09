@@ -1,16 +1,16 @@
 ---
 title: Skills
-description: Add Agent Skills to Flue agents and invoke them from sessions.
+description: Add Agent Skills to Bapx agents and invoke them from sessions.
 lastReviewedAt: 2026-06-12
 ---
 
-Flue supports [Agent Skills](https://agentskills.io/specification): reusable instructions and supporting resources that agents can load for specialized, repeatable work, such as applying a review process, following an operational workflow, or using shared project guidance. Skills can be bundled with your application or supplied by the runtime workspace where an agent operates.
+Bapx supports [Agent Skills](https://agentskills.io/specification): reusable instructions and supporting resources that agents can load for specialized, repeatable work, such as applying a review process, following an operational workflow, or using shared project guidance. Skills can be bundled with your application or supplied by the runtime workspace where an agent operates.
 
 Skills guide agent work; they do not add executable capabilities. Use [tools](/docs/guide/tools/) or [sandboxes](/docs/guide/sandboxes/) when an agent needs actions or workspace access.
 
 ## Add a skill
 
-Flue lets you import an Agent Skill from your project or an installed package. Flue packages its instructions and supporting files with your application so an initialized harness can use it without depending on files in its runtime workspace.
+Bapx lets you import an Agent Skill from your project or an installed package. Bapx packages its instructions and supporting files with your application so an initialized harness can use it without depending on files in its runtime workspace.
 
 To keep an application-owned skill next to the agents and workflows that use it, add its directory to your project. This guide uses `src/skills/`:
 
@@ -27,7 +27,7 @@ src/
    └─ review-change.ts
 ```
 
-The example stores the skill in `src/skills/` alongside other authored source, but its location does not make it available on its own. Import its `SKILL.md` to include it in the application and make it available to an agent. See [Project Layout](/docs/guide/project-layout/) for how Flue organizes authored source.
+The example stores the skill in `src/skills/` alongside other authored source, but its location does not make it available on its own. Import its `SKILL.md` to include it in the application and make it available to an agent. See [Project Layout](/docs/guide/project-layout/) for how Bapx organizes authored source.
 
 ## Import a skill
 
@@ -55,9 +55,9 @@ import review from '@acme/review-skills/review/SKILL.md' with { type: 'skill' };
 
 The package must publish `SKILL.md` and its supporting files. If it defines package exports, it must export the imported `SKILL.md` subpath.
 
-Imported skill directories are deployed application content: ordinary supporting files beside `SKILL.md` are included without additional imports. Do not store credentials, private keys, or runtime secrets in a skill directory that your application imports. Flue rejects common sensitive files and symbolic links inside imported skill directories when packaging them.
+Imported skill directories are deployed application content: ordinary supporting files beside `SKILL.md` are included without additional imports. Do not store credentials, private keys, or runtime secrets in a skill directory that your application imports. Bapx rejects common sensitive files and symbolic links inside imported skill directories when packaging them.
 
-Flue also loads skills from the sandbox where a harness runs, with no import required. At context initialization, it discovers [Agent Skills](https://agentskills.io/specification)-compatible directories under `<cwd>/.agents/skills/`:
+Bapx also loads skills from the sandbox where a harness runs, with no import required. At context initialization, it discovers [Agent Skills](https://agentskills.io/specification)-compatible directories under `<cwd>/.agents/skills/`:
 
 ```text title="Workspace-provided skill"
 <cwd>/
@@ -75,16 +75,16 @@ If an imported skill registered on an agent and a discovered workspace skill dec
 
 ## Frontmatter support
 
-Flue validates every `SKILL.md` against the [Agent Skills specification](https://agentskills.io/specification), whether the skill is imported or discovered in a workspace. The table below lists Flue's support level for each frontmatter field:
+Bapx validates every `SKILL.md` against the [Agent Skills specification](https://agentskills.io/specification), whether the skill is imported or discovered in a workspace. The table below lists Bapx's support level for each frontmatter field:
 
-| Field           | Spec     | Flue support                                                                                                                                                  |
+| Field           | Spec     | Bapx support                                                                                                                                                  |
 | --------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`          | Required | Validated: lowercase letters, numbers, and hyphens; no leading, trailing, or consecutive hyphens; at most 64 characters; must match the skill directory name. |
 | `description`   | Required | Validated: non-empty, at most 1024 characters. Tells the agent what the skill does and when to use it.                                                        |
 | `license`       | Optional | Accepted; informational only.                                                                                                                                 |
 | `compatibility` | Optional | Accepted; at most 500 characters; informational only.                                                                                                         |
-| `metadata`      | Optional | Accepted; string-to-string mapping; not interpreted by Flue.                                                                                                  |
-| `allowed-tools` | Optional | Accepted, not enforced. The field is experimental in the spec and support may vary between implementations; Flue does not restrict the session's toolset.     |
+| `metadata`      | Optional | Accepted; string-to-string mapping; not interpreted by Bapx.                                                                                                  |
+| `allowed-tools` | Optional | Accepted, not enforced. The field is experimental in the spec and support may vary between implementations; Bapx does not restrict the session's toolset.     |
 
 Unknown frontmatter fields are ignored, so skills that carry extra host-specific fields still load. The spec's [`skills-ref` validator](https://github.com/agentskills/agentskills/tree/main/skills-ref) flags unknown fields if you want stricter authoring checks.
 

@@ -3,7 +3,7 @@
  *
  * Backend-agnostic: runs against Cloudflare DO SQLite (workflow Durable
  * Objects) and `node:sqlite` (the Node `sqlite()` persistence adapter).
- * One `flue_runs` table backs records, lookups, and listings; pointers are
+ * One `bapX_runs` table backs records, lookups, and listings; pointers are
  * a column-subset projection of the run record.
  */
 
@@ -23,7 +23,7 @@ import {
 	type RunStore,
 	type WorkflowRunPointer,
 } from './runtime/run-store.ts';
-import { migrateFlueSqlSchema } from './schema-version.ts';
+import { migrateBapxSqlSchema } from './schema-version.ts';
 import type { SqlStorage } from './sql-storage.ts';
 
 type SqlRow = Record<string, unknown>;
@@ -40,7 +40,7 @@ class SqlRunStore implements RunStore {
 		// Idempotent first-writer-wins: a replayed runId must never resurrect
 		// a terminal record back to 'active'.
 		this.sql.exec(
-			`INSERT OR IGNORE INTO flue_runs
+			`INSERT OR IGNORE INTO bapX_runs
 			 (run_id, workflow_name, status, started_at, payload, traceparent, tracestate, ended_at, is_error, duration_ms, result, error)
 			 VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, NULL)`,
 			input.runId,
@@ -55,7 +55,7 @@ class SqlRunStore implements RunStore {
 
 	async endRun(input: EndRunInput): Promise<void> {
 		this.sql.exec(
-			`UPDATE flue_runs
+			`UPDATE bapX_runs
 			 SET status = ?, ended_at = ?, is_error = ?, duration_ms = ?, result = ?, error = ?
 			 WHERE run_id = ?`,
 			input.isError ? 'errored' : 'completed',
@@ -69,7 +69,7 @@ class SqlRunStore implements RunStore {
 	}
 
 	async getRun(runId: string): Promise<RunRecord | null> {
-		const rows = this.sql.exec('SELECT * FROM flue_runs WHERE run_id = ?', runId).toArray();
+		const rows = this.sql.exec('SELECT * FROM bapX_runs WHERE run_id = ?', runId).toArray();
 		const row = rows[0];
 		if (!row) return null;
 		return rowToRunRecord(row);
@@ -77,7 +77,7 @@ class SqlRunStore implements RunStore {
 
 	async lookupRun(runId: string): Promise<WorkflowRunPointer | null> {
 		const rows = this.sql
-			.exec('SELECT run_id, workflow_name FROM flue_runs WHERE run_id = ?', runId)
+			.exec('SELECT run_id, workflow_name FROM bapX_runs WHERE run_id = ?', runId)
 			.toArray();
 		const row = rows[0];
 		return row
@@ -106,7 +106,7 @@ class SqlRunStore implements RunStore {
 		const rows = this.sql
 			.exec(
 				`SELECT run_id, workflow_name, status, started_at, ended_at, duration_ms, is_error
-			 FROM flue_runs ${where}
+			 FROM bapX_runs ${where}
 			 ORDER BY started_at DESC, run_id DESC LIMIT ?`,
 				...bindings,
 				limit + 1,
@@ -120,9 +120,9 @@ class SqlRunStore implements RunStore {
 }
 
 function ensureRunTables(sql: SqlStorage): void {
-	migrateFlueSqlSchema(sql, () => {
+	migrateBapxSqlSchema(sql, () => {
 		sql.exec(
-			`CREATE TABLE IF NOT EXISTS flue_runs (
+			`CREATE TABLE IF NOT EXISTS bapX_runs (
 			 run_id TEXT PRIMARY KEY,
 			 workflow_name TEXT,
 			 status TEXT NOT NULL,
@@ -138,10 +138,10 @@ function ensureRunTables(sql: SqlStorage): void {
 			)`,
 		);
 		sql.exec(
-			'CREATE INDEX IF NOT EXISTS flue_runs_workflow_started_idx ON flue_runs (workflow_name, started_at DESC)',
+			'CREATE INDEX IF NOT EXISTS bapX_runs_workflow_started_idx ON bapX_runs (workflow_name, started_at DESC)',
 		);
 		sql.exec(
-			'CREATE INDEX IF NOT EXISTS flue_runs_status_started_idx ON flue_runs (status, started_at DESC, run_id DESC)',
+			'CREATE INDEX IF NOT EXISTS bapX_runs_status_started_idx ON bapX_runs (status, started_at DESC, run_id DESC)',
 		);
 	});
 }

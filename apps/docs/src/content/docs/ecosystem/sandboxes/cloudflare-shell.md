@@ -3,14 +3,14 @@ title: Cloudflare Shell
 description: Use a durable Cloudflare Workspace with code-oriented agent operations.
 ---
 
-The Cloudflare Shell adapter adapts an application-owned `@cloudflare/shell` `Workspace` into a Flue sandbox on the Cloudflare target. Unlike a Linux shell sandbox, it provides a durable workspace and a model-facing `code` tool that executes JavaScript against workspace state through a Worker Loader binding.
+The Cloudflare Shell adapter adapts an application-owned `@cloudflare/shell` `Workspace` into a Bapx sandbox on the Cloudflare target. Unlike a Linux shell sandbox, it provides a durable workspace and a model-facing `code` tool that executes JavaScript against workspace state through a Worker Loader binding.
 
 ## Quickstart
 
-Add durable workspace sandbox capability to an existing Flue project with the [Cloudflare Shell](https://developers.cloudflare.com/workers/runtime-apis/bindings/worker-loader/) blueprint. Run the following command in your terminal or coding agent of choice:
+Add durable workspace sandbox capability to an existing Bapx project with the [Cloudflare Shell](https://developers.cloudflare.com/workers/runtime-apis/bindings/worker-loader/) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```bash
-flue add sandbox cloudflare-shell
+bapX add sandbox cloudflare-shell
 ```
 
 ## Overview
@@ -18,7 +18,7 @@ flue add sandbox cloudflare-shell
 The blueprint installs `@cloudflare/shell` and `@cloudflare/codemode`, creates `<source-root>/sandboxes/cloudflare-shell.ts`, and adds a Worker Loader binding to Wrangler configuration. The generated adapter exports sandbox construction and default workspace helpers; its file API retries nested writes after recursively creating a missing parent directory.
 
 ```ts title="<source-root>/sandboxes/cloudflare-shell.ts (abridged)"
-// flue-blueprint: sandbox/cloudflare-shell@1
+// bapX-blueprint: sandbox/cloudflare-shell@1
 import { Workspace, WorkspaceFileSystem /* ... */ } from '@cloudflare/shell';
 import { stateTools } from '@cloudflare/shell/workers';
 import { DynamicWorkerExecutor, resolveProvider /* ... */ } from '@cloudflare/codemode';

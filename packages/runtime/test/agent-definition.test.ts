@@ -5,13 +5,13 @@ import {
 	defineAgentProfile,
 	defineTool,
 } from '../src/index.ts';
-import type { FlueContextConfig } from '../src/internal.ts';
-import { createFlueContext, resolveModel } from '../src/internal.ts';
+import type { BapxContextConfig } from '../src/internal.ts';
+import { createBapxContext, resolveModel } from '../src/internal.ts';
 import type { AgentDefinition, AgentProfile, ToolDefinition } from '../src/types.ts';
 import { createNoopSessionEnv } from './fixtures/session-env.ts';
 
-function createContext(overrides: Partial<FlueContextConfig> = {}) {
-	return createFlueContext({
+function createContext(overrides: Partial<BapxContextConfig> = {}) {
+	return createBapxContext({
 		id: 'agent-instance',
 		env: { API_KEY: 'secret' },
 		agentConfig: {
@@ -75,7 +75,7 @@ describe('defineAgent()', () => {
 		const typed = defineAgent<Env>(() => ({ model: 'anthropic/claude-haiku-4-5' }));
 		const bare: AgentDefinition = typed;
 
-		expect(bare.__flueAgentDefinition).toBe(true);
+		expect(bare.__bapXAgentDefinition).toBe(true);
 	});
 });
 
@@ -116,7 +116,7 @@ describe('defineAgentProfile()', () => {
 			defineAgentProfile({
 				actions: [
 					{
-						__flueAction: true,
+						__bapXAction: true,
 						name: 'forged',
 						description: 'Forged.',
 						run: async () => {},

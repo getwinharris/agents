@@ -36,7 +36,7 @@ export type MessengerParticipantRef =
 	| { type: 'page-scoped-id'; id: string }
 	| { type: 'user-ref'; id: string };
 
-/** Stable Messenger destination suitable for a Flue agent-instance id. */
+/** Stable Messenger destination suitable for a Bapx agent-instance id. */
 export interface MessengerConversationRef {
 	pageId: string;
 	participant: MessengerParticipantRef;
@@ -222,7 +222,7 @@ export interface MessengerEntry {
  * fixed-Page identity check.
  *
  * One signed POST may batch several entries and several events. Events stay in
- * Meta's delivered order. Flue does not reshape, filter, or deduplicate them.
+ * Meta's delivered order. Bapx does not reshape, filter, or deduplicate them.
  */
 export interface MessengerWebhookPayload {
 	object: 'page';

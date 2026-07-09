@@ -3,7 +3,7 @@
  * sandbox factory for use in `defineAgent(() => ({ sandbox: local(...) }))`,
  * and the built-in `sqlite()` persistence adapter.
  *
- * Import platform-agnostic types (`FlueEventContext`, `PersistenceAdapter`, etc.)
+ * Import platform-agnostic types (`BapxEventContext`, `PersistenceAdapter`, etc.)
  * from `@bapX/runtime`.
  */
 export { sqlite } from './agent-execution-store.ts';

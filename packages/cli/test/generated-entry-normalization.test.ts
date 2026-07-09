@@ -18,28 +18,28 @@ const normalizeBuiltModules = new Function(
 	`${generateBuiltModuleNormalizationSource()}; return normalizeBuiltModules;`,
 )(
 	(value: unknown, name: string) => {
-		const workflow = value as { __flueWorkflowDefinition?: unknown; agent?: unknown; action?: unknown };
+		const workflow = value as { __bapXWorkflowDefinition?: unknown; agent?: unknown; action?: unknown };
 		if (
 			!workflow ||
-			workflow.__flueWorkflowDefinition !== true ||
+			workflow.__bapXWorkflowDefinition !== true ||
 			!workflow.agent ||
 			!workflow.action
 		) {
-			throw new Error(`[flue] Workflow "${name}" must default-export defineWorkflow(...).`);
+			throw new Error(`[bapX] Workflow "${name}" must default-export defineWorkflow(...).`);
 		}
 	},
 ) as NormalizeBuiltModules;
 
 function agentModule(overrides: Record<string, unknown> = {}): Record<string, unknown> {
-	return { default: { __flueAgentDefinition: true, initialize: () => ({}) }, ...overrides };
+	return { default: { __bapXAgentDefinition: true, initialize: () => ({}) }, ...overrides };
 }
 
 function workflowModule(overrides: Record<string, unknown> = {}): Record<string, unknown> {
 	return {
 		default: {
-			__flueWorkflowDefinition: true,
-			agent: { __flueAgentDefinition: true, initialize: () => ({}) },
-			action: { __flueAction: true },
+			__bapXWorkflowDefinition: true,
+			agent: { __bapXAgentDefinition: true, initialize: () => ({}) },
+			action: { __bapXAction: true },
 		},
 		...overrides,
 	};
@@ -68,14 +68,14 @@ describe('normalizeBuiltModules()', () => {
 
 	it('throws when an agent description export is not a string', () => {
 		expect(() => normalizeBuiltModules({ support: agentModule({ description: 42 }) }, {})).toThrow(
-			'[flue] Agent "support" description export must be a non-empty string.',
+			'[bapX] Agent "support" description export must be a non-empty string.',
 		);
 	});
 
 	it('throws when an agent description export is an empty string', () => {
 		expect(() =>
 			normalizeBuiltModules({ support: agentModule({ description: '   ' }) }, {}),
-		).toThrow('[flue] Agent "support" description export must be a non-empty string.');
+		).toThrow('[bapX] Agent "support" description export must be a non-empty string.');
 	});
 
 	it('normalizes a Workflow module with no middleware exports', () => {
@@ -118,7 +118,7 @@ describe('normalizeBuiltModules()', () => {
 
 	it('rejects a Workflow module with an invalid runs export', () => {
 		expect(() => normalizeBuiltModules({}, { report: workflowModule({ runs: true }) })).toThrow(
-			'[flue] Workflow "report" runs export must be a callable Hono middleware value.',
+			'[bapX] Workflow "report" runs export must be a callable Hono middleware value.',
 		);
 	});
 
@@ -128,7 +128,7 @@ describe('normalizeBuiltModules()', () => {
 		expect(() =>
 			normalizeBuiltModules({}, { first: shared, second: { default: shared.default } }),
 		).toThrow(
-			'[flue] Workflows "first" and "second" default-export the same workflow definition value.',
+			'[bapX] Workflows "first" and "second" default-export the same workflow definition value.',
 		);
 	});
 
@@ -143,7 +143,7 @@ describe('normalizeBuiltModules()', () => {
 
 	it('rejects legacy workflow run exports', () => {
 		expect(() => normalizeBuiltModules({}, { report: { run: () => undefined } })).toThrow(
-			'[flue] Workflow "report" must default-export defineWorkflow(...).',
+			'[bapX] Workflow "report" must default-export defineWorkflow(...).',
 		);
 	});
 
@@ -177,7 +177,7 @@ describe('normalizeBuiltModules()', () => {
 		expect(() =>
 			normalizeBuiltModules({ support: agentModule() }, {}, { slack: { channel: null } }),
 		).toThrow(
-			'[flue] Channel "slack" must export a created channel as the named "channel" binding.',
+			'[bapX] Channel "slack" must export a created channel as the named "channel" binding.',
 		);
 	});
 
@@ -199,7 +199,7 @@ describe('normalizeBuiltModules()', () => {
 					},
 				},
 			),
-		).toThrow('[flue] Channel "slack" declares duplicate route "POST /events".');
+		).toThrow('[bapX] Channel "slack" declares duplicate route "POST /events".');
 	});
 
 	it('rejects a channel route path that escapes its namespace', () => {
@@ -215,7 +215,7 @@ describe('normalizeBuiltModules()', () => {
 					},
 				},
 			),
-		).toThrow('[flue] Channel "slack" route path must remain beneath its channel namespace.');
+		).toThrow('[bapX] Channel "slack" route path must remain beneath its channel namespace.');
 	});
 
 	it('rejects malformed channel route methods and suffixes', () => {

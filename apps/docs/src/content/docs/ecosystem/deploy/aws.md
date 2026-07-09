@@ -1,20 +1,20 @@
 ---
 title: Deploy Agents on AWS
-description: Run the Flue Docker image on AWS — ECS Express Mode, EC2, or ECS on Fargate — with managed Postgres for durable state.
+description: Run the Bapx Docker image on AWS — ECS Express Mode, EC2, or ECS on Fargate — with managed Postgres for durable state.
 lastReviewedAt: 2026-06-20
 ---
 
-Flue's Node target is a long-running HTTP server, not a function. It holds agent sessions in process and serves streamed responses over long-lived connections, so on AWS you run it as a container service that stays up — Flue owns the server, AWS owns the platform around it.
+Bapx's Node target is a long-running HTTP server, not a function. It holds agent sessions in process and serves streamed responses over long-lived connections, so on AWS you run it as a container service that stays up — Bapx owns the server, AWS owns the platform around it.
 
 Every option here runs the same image from [Deploy Agents with Docker](/docs/ecosystem/deploy/docker/). Build it, push it to a private repository in [Amazon ECR](https://docs.aws.amazon.com/AmazonECR/latest/userguide/), and point one of the compute options below at that image:
 
 ```bash
-aws ecr create-repository --repository-name flue-agents
-docker build -t flue-agents .
-docker tag flue-agents:latest <account>.dkr.ecr.<region>.amazonaws.com/flue-agents:latest
+aws ecr create-repository --repository-name bapX-agents
+docker build -t bapX-agents .
+docker tag bapX-agents:latest <account>.dkr.ecr.<region>.amazonaws.com/bapX-agents:latest
 aws ecr get-login-password --region <region> \
   | docker login --username AWS --password-stdin <account>.dkr.ecr.<region>.amazonaws.com
-docker push <account>.dkr.ecr.<region>.amazonaws.com/flue-agents:latest
+docker push <account>.dkr.ecr.<region>.amazonaws.com/bapX-agents:latest
 ```
 
 The image binds `PORT` (the Docker guide sets `8080`); whatever you choose, the platform's port and health check must match it. The built server reads only the environment supplied at start — it does not load `.env` — so the provider key (`ANTHROPIC_API_KEY` / `OPENAI_API_KEY`, optional `MODEL_SPECIFIER`) and `DATABASE_URL` come from the platform's secret store, never the image.
@@ -27,11 +27,11 @@ Three compute options follow, ordered by how much of the platform AWS manages fo
 
 ```bash
 aws ecs create-express-gateway-service \
-  --service-name flue-agents \
+  --service-name bapX-agents \
   --execution-role-arn arn:aws:iam::<account>:role/ecsTaskExecutionRole \
   --infrastructure-role-arn arn:aws:iam::<account>:role/ecsInfrastructureRoleForExpressServices \
   --primary-container '{
-    "image": "<account>.dkr.ecr.<region>.amazonaws.com/flue-agents:latest",
+    "image": "<account>.dkr.ecr.<region>.amazonaws.com/bapX-agents:latest",
     "containerPort": 8080,
     "environment": [{ "name": "MODEL_SPECIFIER", "value": "anthropic/claude-sonnet-4-6" }]
   }' \
@@ -44,7 +44,7 @@ aws ecs create-express-gateway-service \
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Image           | `--primary-container image` points at the ECR repository; the **execution role** pulls it.                                                                                                                                                                                                                                     |
 | Env and secrets | Plaintext vars go in `environment`. Inject secrets as a task `secrets` reference resolved by the execution role from [Secrets Manager or SSM Parameter Store](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data-secrets.html) — keep the provider key and `DATABASE_URL` out of the image. |
-| Health check    | `--health-check-path` is the ALB target-group path. Flue does not generate one — define `/health` in `app.ts`.                                                                                                                                                                                                                 |
+| Health check    | `--health-check-path` is the ALB target-group path. Bapx does not generate one — define `/health` in `app.ts`.                                                                                                                                                                                                                 |
 | Scaling         | `--scaling-target` sets `minTaskCount` / `maxTaskCount`; scaling tracks CPU. Keep `minTaskCount` ≥ 1 so a process is always up to hold sessions.                                                                                                                                                                               |
 
 For exposed workflow runs, the ALB sits in front of long-lived `GET /runs/:runId` reads (long-poll/SSE). Raise the target group's idle timeout, and retain the invocation's `runId` so clients can reconnect and resume the run stream. Multiple tasks need shared Postgres for durable state and workflow history, but each agent instance must still be routed to one live task; do not round-robin the same instance. See [Workflow HTTP exports](/docs/api/workflow-api/#http-exports).
@@ -57,18 +57,18 @@ A single instance is the most direct "your own box," and the most ops you own. R
 docker run -d --restart unless-stopped -p 80:8080 \
   -e ANTHROPIC_API_KEY=sk-... \
   -e MODEL_SPECIFIER=anthropic/claude-sonnet-4-6 \
-  <account>.dkr.ecr.<region>.amazonaws.com/flue-agents:latest
+  <account>.dkr.ecr.<region>.amazonaws.com/bapX-agents:latest
 ```
 
-Or skip the container and run the Node build directly under systemd — build to `dist/server.mjs` with `npx flue build --target node` and start it with `node dist/server.mjs`:
+Or skip the container and run the Node build directly under systemd — build to `dist/server.mjs` with `npx bapX build --target node` and start it with `node dist/server.mjs`:
 
 ```ini
-# /etc/systemd/system/flue.service
+# /etc/systemd/system/bapX.service
 [Service]
-WorkingDirectory=/opt/flue-agents
+WorkingDirectory=/opt/bapX-agents
 ExecStart=/usr/bin/node dist/server.mjs
 Environment=PORT=8080
-EnvironmentFile=/etc/flue-agents.env
+EnvironmentFile=/etc/bapX-agents.env
 Restart=always
 
 [Install]
@@ -93,21 +93,21 @@ Application Auto Scaling adjusts the desired task count; raise the ALB idle time
 
 ## Persistence
 
-Without a `db.ts` adapter, Flue keeps canonical conversations, attachments, accepted submissions, and run records in process-local memory — lost on restart or redeploy and unavailable to replacement tasks. For durable state and shared workflow history, back it with [Amazon RDS for PostgreSQL](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html) reachable from the service's VPC. Shared storage supports replacement recovery; it does not enable active-active ownership of one agent instance.
+Without a `db.ts` adapter, Bapx keeps canonical conversations, attachments, accepted submissions, and run records in process-local memory — lost on restart or redeploy and unavailable to replacement tasks. For durable state and shared workflow history, back it with [Amazon RDS for PostgreSQL](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html) reachable from the service's VPC. Shared storage supports replacement recovery; it does not enable active-active ownership of one agent instance.
 
 Add the adapter and a `db.ts` that reads `DATABASE_URL`:
 
-```typescript title=".flue/db.ts"
+```typescript title=".bapX/db.ts"
 import { postgres } from '@bapX/postgres';
 
 export default postgres(process.env.DATABASE_URL!);
 ```
 
-Store the RDS connection string in Secrets Manager and inject it as `DATABASE_URL` — as a task `secrets` reference on Express Mode and Fargate, or from SSM on EC2. Flue discovers `db.ts` at build time and wires it into the generated server; the adapter handles schema creation, canonical conversation streams, immutable attachments, durable submission state, and workflow history.
+Store the RDS connection string in Secrets Manager and inject it as `DATABASE_URL` — as a task `secrets` reference on Express Mode and Fargate, or from SSM on EC2. Bapx discovers `db.ts` at build time and wires it into the generated server; the adapter handles schema creation, canonical conversation streams, immutable attachments, durable submission state, and workflow history.
 
 ## Not AWS Lambda
 
-Flue does not target Lambda. The Node server is long-running and stateful — it holds agent sessions and an in-memory run coordinator in process, and serves streamed responses over long-lived `GET /runs/:runId` connections. Lambda's stateless, short-lived invocation model fits none of that: there is no durable process to hold sessions between calls, and the execution window does not suit open streams. Running Flue there would require an adapter that externalizes all coordination, which is out of scope — the same reasoning that puts function platforms like Vercel and Netlify out of scope. Use one of the container services above.
+Bapx does not target Lambda. The Node server is long-running and stateful — it holds agent sessions and an in-memory run coordinator in process, and serves streamed responses over long-lived `GET /runs/:runId` connections. Lambda's stateless, short-lived invocation model fits none of that: there is no durable process to hold sessions between calls, and the execution window does not suit open streams. Running Bapx there would require an adapter that externalizes all coordination, which is out of scope — the same reasoning that puts function platforms like Vercel and Netlify out of scope. Use one of the container services above.
 
 ## References
 

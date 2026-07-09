@@ -6,16 +6,16 @@
 }
 ---
 
-# Generic Flue Channel
+# Generic Bapx Channel
 
 ## Goal
 
-You are an AI coding agent adding a provider channel to a Flue project. The
-provider does not have a named Flue blueprint. Implement verified inbound webhook
+You are an AI coding agent adding a provider channel to a Bapx project. The
+provider does not have a named Bapx blueprint. Implement verified inbound webhook
 handling as project source, use the provider's established SDK for outbound API
 calls, and define only the model-facing tools the application actually needs.
 
-The user invoked `flue add channel <url>` or `flue update channel <url>` with
+The user invoked `bapX add channel <url>` or `bapX update channel <url>` with
 this research starting point:
 
 `{{URL}}`
@@ -25,9 +25,9 @@ provider's current protocol documentation, SDK source, and type declarations.
 
 For an update, inspect the user's current implementation before editing. Compare
 it with this refreshed complete guide, the provider's current primary sources,
-and the current Flue contract. Infer which changes are relevant, apply only
+and the current Bapx contract. Infer which changes are relevant, apply only
 those changes, preserve project-specific customizations, and update the primary
-file's `flue-blueprint` marker only after the implementation conforms. A URL
+file's `bapX-blueprint` marker only after the implementation conforms. A URL
 blueprint has no provider-specific historical diff; do not assume the CLI
 compared or modified the implementation.
 
@@ -36,8 +36,8 @@ compared or modified the implementation.
 Before editing:
 
 1. Read `AGENTS.md` and relevant local instructions.
-2. Detect the package manager and Flue target.
-3. Select the first existing Flue source root: `<root>/.flue/`, then
+2. Detect the package manager and Bapx target.
+3. Select the first existing Bapx source root: `<root>/.bapX/`, then
    `<root>/src/`, then `<root>/`.
 4. Inspect existing `agents/`, `workflows/`, `channels/`, `app.ts`, environment
    types, and secret conventions.
@@ -52,7 +52,7 @@ If a maintained `@bapX/<provider>` ingress package exists, use it. Otherwise,
 implement the discovered channel's structural route declarations directly:
 
 ```ts
-// flue-blueprint: channel/<provider>@1
+// bapX-blueprint: channel/<provider>@1
 import type { Handler } from 'hono';
 
 // Path: /channels/<provider>/webhook
@@ -80,7 +80,7 @@ channels/acme.ts + /webhook -> /channels/acme/webhook
 
 Add an exact default path comment immediately above each application handler.
 Do not create an `app.ts` merely to mount the channel. An existing `app.ts` may
-mount all of `flue()` beneath an outer prefix; it does not relocate one channel.
+mount all of `bapX()` beneath an outer prefix; it does not relocate one channel.
 
 Verify signatures against the exact unconsumed body. Enforce useful body
 limits, timestamps or replay windows, content types, provider identity, and
@@ -135,7 +135,7 @@ before using them to bind SDK operations.
 ## Verify
 
 1. Type-check the project.
-2. Build its configured Flue target.
+2. Build its configured Bapx target.
 3. Create representative webhook payloads and valid/invalid signatures locally.
 4. Confirm the discovered route, wrong-method behavior, invalid-signature
    rejection, handshake behavior, normalized event, and default response.

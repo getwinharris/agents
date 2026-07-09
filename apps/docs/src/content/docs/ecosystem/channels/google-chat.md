@@ -9,10 +9,10 @@ lastReviewedAt: 2026-06-14
 
 ## Quickstart
 
-Add authenticated interactions, optional Workspace Events, and project-owned outbound messaging to an existing Flue project with the [Google Chat](https://developers.google.com/workspace/chat) blueprint. Run the following command in your terminal or coding agent of choice:
+Add authenticated interactions, optional Workspace Events, and project-owned outbound messaging to an existing Bapx project with the [Google Chat](https://developers.google.com/workspace/chat) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel google-chat
+bapX add channel google-chat
 ```
 
 ## Overview
@@ -339,5 +339,5 @@ message ids, CloudEvent ids, or direct interactions.
 Crypto. The generated Fetch client is also exercised in both runtimes for
 service-account assertion signing, OAuth token exchange construction, and one
 threaded message request against a fail-closed fake transport. Cloudflare builds
-use Flue's required `nodejs_compat` setting. Validate any additional outbound
+use Bapx's required `nodejs_compat` setting. Validate any additional outbound
 operations your application adds.

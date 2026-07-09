@@ -1,34 +1,53 @@
 {
-	// User-owned wrangler config for this Flue app. Flue reads this file,
+	// User-owned wrangler config for this Bapx app. Bapx reads this file,
 	// merges its own contributions into an ignored Vite input config, and the
 	// official Cloudflare Vite integration emits the deployable Worker output.
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "cloudflare",
 	"compatibility_date": "2026-06-01",
-	"compatibility_flags": ["nodejs_compat"],
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
 	"migrations": [
 		{
-			"tag": "bapX-class-FlueRegistry",
-			"new_sqlite_classes": ["FlueRegistry"]
+			"tag": "bapX-class-BapxRegistry",
+			"new_sqlite_classes": [
+				"BapxRegistry"
+			]
 		},
 		{
 			"tag": "bapX-class-SkillsFromGitWorkflow",
-			"new_sqlite_classes": ["SkillsFromGitWorkflow"]
+			"new_sqlite_classes": [
+				"SkillsFromGitWorkflow"
+			]
 		},
 		{
 			"tag": "bapX-class-SkillsFromR2Workflow",
-			"new_sqlite_classes": ["SkillsFromR2Workflow"]
+			"new_sqlite_classes": [
+				"SkillsFromR2Workflow"
+			]
 		},
 		{
 			"tag": "bapX-class-WithCloudflareBinding",
-			"new_sqlite_classes": ["WithCloudflareBinding"]
+			"new_sqlite_classes": [
+				"WithCloudflareBinding"
+			]
 		},
 		{
 			"tag": "bapX-rename-generated-classes",
 			"renamed_classes": [
-				{ "from": "SkillsFromGitWorkflow", "to": "FlueSkillsFromGitWorkflow" },
-				{ "from": "SkillsFromR2Workflow", "to": "FlueSkillsFromR2Workflow" },
-				{ "from": "WithCloudflareBinding", "to": "FlueWithCloudflareBindingAgent" }
+				{
+					"from": "SkillsFromGitWorkflow",
+					"to": "BapxSkillsFromGitWorkflow"
+				},
+				{
+					"from": "SkillsFromR2Workflow",
+					"to": "BapxSkillsFromR2Workflow"
+				},
+				{
+					"from": "WithCloudflareBinding",
+					"to": "BapxWithCloudflareBindingAgent"
+				}
 			]
 		}
 	],
@@ -41,7 +60,11 @@
 	// — the agents that use it (skills-from-r2, skills-from-git) will
 	// throw at sandbox-construction with a clear error, but the rest of
 	// the example (with-cloudflare-binding) keeps working.
-	"worker_loaders": [{ "binding": "LOADER" }],
+	"worker_loaders": [
+		{
+			"binding": "LOADER"
+		}
+	],
 	// R2 bucket used by skills-from-r2.ts as the hydration source.
 	// `preview_bucket_name` lets wrangler dev (in --remote mode) use a
 	// separate bucket so you don't have to seed prod. Seed the dev bucket

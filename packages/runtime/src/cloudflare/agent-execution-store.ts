@@ -31,7 +31,7 @@ export function createSqlAgentExecutionStore(
 	const transactionSync = storage?.transactionSync;
 	if (!sql || typeof sql.exec !== 'function' || typeof transactionSync !== 'function') {
 		throw new Error(
-			`[flue] Cloudflare durable agent class "${className}" requires Durable Object SQLite. ` +
+			`[bapX] Cloudflare durable agent class "${className}" requires Durable Object SQLite. ` +
 				`Add "${className}" to a Wrangler migration's "new_sqlite_classes" list before its first deploy; ` +
 				`do not use legacy "new_classes". Existing KV-backed Durable Object classes cannot be converted ` +
 				`to SQLite in place.`,
@@ -44,7 +44,7 @@ export function createSqlAgentExecutionStore(
 	} catch (cause) {
 		const detail = cause instanceof Error ? cause.message : String(cause);
 		throw new Error(
-			`[flue] Cloudflare durable agent class "${className}" could not initialize its SQLite execution store. ` +
+			`[bapX] Cloudflare durable agent class "${className}" could not initialize its SQLite execution store. ` +
 				`Underlying error: ${detail}`,
 			{ cause },
 		);

@@ -16,7 +16,7 @@ export type JsonValue =
 /** JSON object used for provider-native Zendesk payload fields. */
 export type JsonObject = { [key: string]: JsonValue };
 
-/** Fixed route declaration consumed by Flue channel discovery. */
+/** Fixed route declaration consumed by Bapx channel discovery. */
 export interface ChannelRoute<E extends Env = Env> {
 	readonly method: string;
 	readonly path: string;

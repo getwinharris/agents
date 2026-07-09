@@ -1,20 +1,20 @@
 ---
-title: flue docs
-description: Reference for listing, reading, and searching the bundled Flue documentation.
+title: bapX docs
+description: Reference for listing, reading, and searching the bundled Bapx documentation.
 lastReviewedAt: 2026-06-09
 ---
 
 ## Synopsis
 
 ```bash
-flue docs
-flue docs read <path>
-flue docs search <query>
+bapX docs
+bapX docs read <path>
+bapX docs search <query>
 ```
 
 ## Description
 
-`flue docs` works with the documentation bundled inside the installed `@bapX/cli` package. It requires no network access, and its content always matches the installed CLI version.
+`bapX docs` works with the documentation bundled inside the installed `@bapX/cli` package. It requires no network access, and its content always matches the installed CLI version.
 
 With no arguments, the command prints usage hints and the full page catalog. `read` prints one page as Markdown. `search` prints ranked results as JSON.
 
@@ -30,12 +30,12 @@ The catalog, page Markdown, and search JSON print to stdout; usage hints and err
 
 ## Page paths
 
-`read` accepts the catalog path as printed by `flue docs`, plus equivalent website forms:
+`read` accepts the catalog path as printed by `bapX docs`, plus equivalent website forms:
 
 ```bash
-flue docs read guide/sandboxes
-flue docs read /docs/guide/sandboxes/
-flue docs read https://bapx.in/docs/guide/sandboxes/
+bapX docs read guide/sandboxes
+bapX docs read /docs/guide/sandboxes/
+bapX docs read https://bapx.in/docs/guide/sandboxes/
 ```
 
 Unknown pages exit with status `1`.
@@ -51,7 +51,7 @@ Unknown pages exit with status `1`.
     {
       "path": "concepts/durable-execution",
       "title": "Durable Agents",
-      "description": "Understand how Flue agents and workflows handle server restarts, interrupted connections, and other disruptions.",
+      "description": "Understand how Bapx agents and workflows handle server restarts, interrupted connections, and other disruptions.",
       "excerpt": "Durable execution is about recovering safely when running work is disrupted by a server restart, deployment, lost connec…",
       "score": 138.34
     }
@@ -62,10 +62,10 @@ Unknown pages exit with status `1`.
 ## Examples
 
 ```bash
-flue docs
-flue docs read guide/sandboxes
-flue docs search "durable execution"
-flue docs search sandbox adapter
+bapX docs
+bapX docs read guide/sandboxes
+bapX docs search "durable execution"
+bapX docs search sandbox adapter
 ```
 
-For coding agents, the typical loop is `flue docs search <query>` to find a page, then `flue docs read <path>` to read it.
+For coding agents, the typical loop is `bapX docs search <query>` to find a page, then `bapX docs read <path>` to read it.

@@ -1,26 +1,26 @@
-import type { FlueClient } from '@bapX/sdk';
+import type { BapxClient } from '@bapX/sdk';
 import { createContext, createElement, type ReactNode, useContext } from 'react';
 
-const FlueContext = createContext<FlueClient | undefined>(undefined);
+const BapxContext = createContext<BapxClient | undefined>(undefined);
 
-export interface FlueProviderProps {
-	client: FlueClient;
+export interface BapxProviderProps {
+	client: BapxClient;
 	children?: ReactNode;
 }
 
-export function FlueProvider({ client, children }: FlueProviderProps) {
-	return createElement(FlueContext.Provider, { value: client }, children);
+export function BapxProvider({ client, children }: BapxProviderProps) {
+	return createElement(BapxContext.Provider, { value: client }, children);
 }
 
-export function useFlueClient(): FlueClient {
-	const client = useContext(FlueContext);
-	if (!client) throw new Error('useFlueClient() requires a FlueProvider');
+export function useBapxClient(): BapxClient {
+	const client = useContext(BapxContext);
+	if (!client) throw new Error('useBapxClient() requires a BapxProvider');
 	return client;
 }
 
-export function useResolvedFlueClient(override?: FlueClient): FlueClient {
-	const provided = useContext(FlueContext);
+export function useResolvedBapxClient(override?: BapxClient): BapxClient {
+	const provided = useContext(BapxContext);
 	const client = override ?? provided;
-	if (!client) throw new Error('Flue hooks require a client option or FlueProvider');
+	if (!client) throw new Error('Bapx hooks require a client option or BapxProvider');
 	return client;
 }

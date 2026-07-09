@@ -5,9 +5,9 @@ import type { PackagedSkillDirectory } from '@bapX/runtime';
 import { buildPackagedSkill, parseSkillMarkdown } from '@bapX/runtime/internal';
 import { normalizePath, type Plugin, transformWithOxc } from 'vite';
 
-const MARKDOWN_MODULE_PREFIX = '\0flue-markdown:';
-const SKILL_MODULE_PREFIX = '\0flue-skill:';
-const ENCODED_SKILL_MODULE_PREFIX = '__x00__flue-skill:';
+const MARKDOWN_MODULE_PREFIX = '\0bapX-markdown:';
+const SKILL_MODULE_PREFIX = '\0bapX-skill:';
+const ENCODED_SKILL_MODULE_PREFIX = '__x00__bapX-skill:';
 const PACKAGED_FILE_WARNING_BYTES = 1024 * 1024;
 const EXCLUDED_DIRECTORIES = new Set([
 	'.git',
@@ -22,7 +22,7 @@ const EXCLUDED_FILES = new Set(['.netrc', '.npmrc', '.pypirc', '_netrc', 'creden
 const SENSITIVE_FILE_PATTERNS = [/\.key$/i, /\.pem$/i, /\.p12$/i, /\.pfx$/i, /^secrets?(?:\.|$)/i];
 
 /**
- * Handles Flue's attributed imports — `with { type: 'markdown' }` and
+ * Handles Bapx's attributed imports — `with { type: 'markdown' }` and
  * `with { type: 'skill' }` — in one plugin so each module in the graph is
  * type-stripped and parsed once per (re)build, and so the two attribute
  * types cannot drift apart.
@@ -31,11 +31,11 @@ export function importAttributePlugin(): Plugin {
 	let viteRoot = '';
 	const internalModuleToken = randomUUID();
 	const internalSkillModulePrefix = `${SKILL_MODULE_PREFIX}${internalModuleToken}:`;
-	const encodedInternalSkillModulePrefix = `__x00__flue-skill:${internalModuleToken}:`;
+	const encodedInternalSkillModulePrefix = `__x00__bapX-skill:${internalModuleToken}:`;
 	const trackedSkillDirectories = new Set<string>();
 
 	return {
-		name: 'flue-import-attributes',
+		name: 'bapX-import-attributes',
 		enforce: 'pre',
 		configResolved(config) {
 			viteRoot = config.root;
@@ -55,12 +55,12 @@ export function importAttributePlugin(): Plugin {
 			for (const declaration of markdownImports) {
 				if (isSkillMarkdownPath(declaration.specifier)) {
 					throw new Error(
-						`[flue] SKILL.md imports must use an import attribute: with { type: 'skill' }.`,
+						`[bapX] SKILL.md imports must use an import attribute: with { type: 'skill' }.`,
 					);
 				}
 				if (!/\.md$/i.test(declaration.specifier)) {
 					throw new Error(
-						`[flue] Markdown imports must target a .md file: ${declaration.specifier}`,
+						`[bapX] Markdown imports must target a .md file: ${declaration.specifier}`,
 					);
 				}
 				const rootRelativePath = declaration.specifier.startsWith('/')
@@ -70,11 +70,11 @@ export function importAttributePlugin(): Plugin {
 					? { id: rootRelativePath, external: false }
 					: await this.resolve(declaration.specifier, importerPath, { skipSelf: true });
 				if (!resolved || resolved.external) {
-					throw new Error(`[flue] Unable to resolve markdown import: ${declaration.specifier}`);
+					throw new Error(`[bapX] Unable to resolve markdown import: ${declaration.specifier}`);
 				}
 				if (isSkillMarkdownPath(resolved.id)) {
 					throw new Error(
-						`[flue] SKILL.md imports must use an import attribute: with { type: 'skill' }.`,
+						`[bapX] SKILL.md imports must use an import attribute: with { type: 'skill' }.`,
 					);
 				}
 				replacements.push({ ...declaration, moduleId: `${MARKDOWN_MODULE_PREFIX}${resolved.id}` });
@@ -82,25 +82,25 @@ export function importAttributePlugin(): Plugin {
 			for (const declaration of skillImports) {
 				if (!isSkillMarkdownPath(declaration.specifier)) {
 					throw new Error(
-						`[flue] Skill imports must target a SKILL.md file: ${declaration.specifier}`,
+						`[bapX] Skill imports must target a SKILL.md file: ${declaration.specifier}`,
 					);
 				}
 				const resolved = await this.resolve(declaration.specifier, importerPath, {
 					skipSelf: true,
 				});
 				if (!resolved || resolved.external) {
-					throw new Error(`[flue] Unable to resolve skill import: ${declaration.specifier}`);
+					throw new Error(`[bapX] Unable to resolve skill import: ${declaration.specifier}`);
 				}
 				const filesystemPath = stripQueryAndHash(resolved.id);
 				if (!path.isAbsolute(filesystemPath)) {
 					throw new Error(
-						`[flue] Skill imports must resolve to a filesystem path: ${declaration.specifier}`,
+						`[bapX] Skill imports must resolve to a filesystem path: ${declaration.specifier}`,
 					);
 				}
 				const resolvedPath = canonicalPath(filesystemPath);
 				if (!isSkillMarkdownPath(resolvedPath)) {
 					throw new Error(
-						`[flue] Skill imports must resolve to a SKILL.md file: ${declaration.specifier}`,
+						`[bapX] Skill imports must resolve to a SKILL.md file: ${declaration.specifier}`,
 					);
 				}
 				replacements.push({
@@ -124,13 +124,13 @@ export function importAttributePlugin(): Plugin {
 			if (internalModuleId) return internalModuleId;
 			if (source.startsWith(SKILL_MODULE_PREFIX) || source.includes(ENCODED_SKILL_MODULE_PREFIX)) {
 				throw new Error(
-					"[flue] Internal packaged-skill module IDs cannot be imported directly. Use a static SKILL.md import with { type: 'skill' }.",
+					"[bapX] Internal packaged-skill module IDs cannot be imported directly. Use a static SKILL.md import with { type: 'skill' }.",
 				);
 			}
 			if (!importer) return null;
 			if (isSkillMarkdownPath(source)) {
 				throw new Error(
-					`[flue] Markdown import "${source}" must use an import attribute: with { type: 'skill' }.`,
+					`[bapX] Markdown import "${source}" must use an import attribute: with { type: 'skill' }.`,
 				);
 			}
 			return null;
@@ -181,7 +181,7 @@ async function packageSkill(skillPath: string): Promise<PackagedSkillDirectory> 
 		const content = await fs.promises.readFile(filePath);
 		if (content.byteLength > PACKAGED_FILE_WARNING_BYTES) {
 			console.warn(
-				`[flue] Skill file "${filePath}" exceeds 1MB and will be packaged into the deployed application for lazy access.`,
+				`[bapX] Skill file "${filePath}" exceeds 1MB and will be packaged into the deployed application for lazy access.`,
 			);
 		}
 		files.push({
@@ -215,31 +215,31 @@ async function collectFiles(directory: string, skillRoot = directory): Promise<s
 		const relativePath = normalizePath(path.relative(skillRoot, absolutePath));
 		if (entry.isSymbolicLink()) {
 			throw new Error(
-				`[flue] Skill directory "${skillRoot}" contains symbolic link "${relativePath}", which cannot be packaged. Replace it with a regular file or directory.`,
+				`[bapX] Skill directory "${skillRoot}" contains symbolic link "${relativePath}", which cannot be packaged. Replace it with a regular file or directory.`,
 			);
 		}
 		if (entry.isDirectory()) {
 			if (EXCLUDED_DIRECTORIES.has(entry.name)) {
 				console.warn(
-					`[flue] Excluding skill directory "${relativePath}" from the deployed application package because it is generated or repository metadata.`,
+					`[bapX] Excluding skill directory "${relativePath}" from the deployed application package because it is generated or repository metadata.`,
 				);
 				continue;
 			}
 			if (SENSITIVE_DIRECTORIES.has(entry.name.toLowerCase())) {
 				throw new Error(
-					`[flue] Imported skill directory "${skillRoot}" contains sensitive directory "${relativePath}", which cannot be packaged. Remove credentials and private keys from the skill directory.`,
+					`[bapX] Imported skill directory "${skillRoot}" contains sensitive directory "${relativePath}", which cannot be packaged. Remove credentials and private keys from the skill directory.`,
 				);
 			}
 			files.push(...(await collectFiles(absolutePath, skillRoot)));
 		} else if (entry.isFile()) {
 			if (isSensitiveFile(entry.name)) {
 				throw new Error(
-					`[flue] Imported skill directory "${skillRoot}" contains sensitive file "${relativePath}", which cannot be packaged. Remove credentials and private keys from the skill directory.`,
+					`[bapX] Imported skill directory "${skillRoot}" contains sensitive file "${relativePath}", which cannot be packaged. Remove credentials and private keys from the skill directory.`,
 				);
 			}
 			if (isExcludedFile(entry.name)) {
 				console.warn(
-					`[flue] Excluding skill file "${relativePath}" from the deployed application package because it is generated content.`,
+					`[bapX] Excluding skill file "${relativePath}" from the deployed application package because it is generated content.`,
 				);
 				continue;
 			}
@@ -330,7 +330,7 @@ function collectAttributedImports(
 		const start = declaration.source?.start;
 		const end = declaration.source?.end;
 		if (typeof start !== 'number' || typeof end !== 'number') {
-			throw new Error(`[flue] Unable to transform ${attributeValue} import: ${specifier}`);
+			throw new Error(`[bapX] Unable to transform ${attributeValue} import: ${specifier}`);
 		}
 		imports.push({ specifier, start, end });
 	}
@@ -343,7 +343,7 @@ function assertNoDynamicSkillImports(ast: ModuleAst): void {
 		const specifier = node.source?.value;
 		if (typeof specifier === 'string' && isSkillMarkdownPath(specifier)) {
 			throw new Error(
-				`[flue] Dynamic SKILL.md import "${specifier}" is unsupported. Use a static import with { type: 'skill' }.`,
+				`[bapX] Dynamic SKILL.md import "${specifier}" is unsupported. Use a static import with { type: 'skill' }.`,
 			);
 		}
 	});

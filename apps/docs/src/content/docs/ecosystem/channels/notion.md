@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add verified webhook ingress and application-owned API behavior to an existing Flue project with the [Notion](https://developers.notion.com) blueprint. Run the following command in your terminal or coding agent of choice:
+Add verified webhook ingress and application-owned API behavior to an existing Bapx project with the [Notion](https://developers.notion.com) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel notion
+bapX add channel notion
 ```
 
 ## Overview
@@ -276,7 +276,7 @@ fetching, and outbound tools.
 ## Cloudflare Workers
 
 Ordinary API calls through `@notionhq/client@5.22.0` use the injected Fetch and
-execute in workerd with Flue's required `nodejs_compat` configuration. Use
+execute in workerd with Bapx's required `nodejs_compat` configuration. Use
 `process.env` or typed Worker bindings according to the project's credential
 convention, and verify the complete Worker build.
 

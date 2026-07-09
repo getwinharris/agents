@@ -6,15 +6,15 @@
 }
 ---
 
-# Add a Zendesk Channel to Flue
+# Add a Zendesk Channel to Bapx
 
 You are an AI coding agent adding verified Zendesk event-subscription ingress
-and application-owned Ticketing API behavior to a Flue project.
+and application-owned Ticketing API behavior to a Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and deployment target, and
-select the first existing source root: `<root>/.flue/`, then `<root>/src/`,
+select the first existing source root: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Inspect existing agents, environment types, secret
 conventions, Zendesk account configuration, and the event families the
 application needs.
@@ -25,7 +25,7 @@ than officially supported, and a narrow native Fetch client is portable across
 Node and Cloudflare Workers. Add a compatible `@types/node` development
 dependency only when the project needs types for `process` or `Buffer`.
 
-Flue owns exact-body signature verification, required delivery metadata,
+Bapx owns exact-body signature verification, required delivery metadata,
 account consistency checks, body limits, and passing through the
 provider-native common event envelope. The project owns webhook creation and
 subscription selection, API tokens and OAuth, tenant credential lookup,
@@ -180,7 +180,7 @@ Create `<source-dir>/channels/zendesk.ts`. Adapt the imported agent, selected
 event types, and payload validation to the application:
 
 ```ts
-// flue-blueprint: channel/zendesk@1
+// bapX-blueprint: channel/zendesk@1
 import {
   createZendeskChannel,
   type JsonValue,
@@ -339,7 +339,7 @@ Create a Zendesk webhook event subscription with:
 https://example.com/channels/zendesk/webhook
 ```
 
-If `flue()` has an outer mount prefix, include it. Configure JSON delivery and
+If `bapX()` has an outer mount prefix, include it. Configure JSON delivery and
 use the webhook's signing secret as `ZENDESK_WEBHOOK_SIGNING_SECRET`.
 
 Zendesk sends:
@@ -410,7 +410,7 @@ define support workflow policy.
 ## Test without Zendesk
 
 Run the project's strict typecheck, Node build, Cloudflare build, and actual
-workerd tests. Flue projects already enable `nodejs_compat`.
+workerd tests. Bapx projects already enable `nodejs_compat`.
 
 Create an original synthetic common event envelope and local signing secret.
 Serialize the body once, prepend the exact signature timestamp, HMAC-SHA256

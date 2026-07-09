@@ -34,11 +34,11 @@ An Action has these parts:
 
 - `name` is the model-facing name used when an agent exposes the Action.
 - `description` helps the model decide when to call it.
-- `input` is an optional top-level [Valibot](https://valibot.dev) object schema. Flue validates and transforms input before `run()` starts.
-- `output` is an optional Valibot schema. Flue validates and snapshots the returned value as JSON-compatible data.
+- `input` is an optional top-level [Valibot](https://valibot.dev) object schema. Bapx validates and transforms input before `run()` starts.
+- `output` is an optional Valibot schema. Bapx validates and snapshots the returned value as JSON-compatible data.
 - `run({ harness, input, log })` performs the operation. Use the harness to open sessions, work with the configured sandbox, or call other agent capabilities.
 
-This guide uses `src/actions/` to organize shared Actions, but Flue does not discover that directory. An Action becomes available only when you import it into a workflow or agent configuration.
+This guide uses `src/actions/` to organize shared Actions, but Bapx does not discover that directory. An Action becomes available only when you import it into a workflow or agent configuration.
 
 ## Use an Action in a workflow
 
@@ -75,7 +75,7 @@ export default defineAgent(() => ({
 }));
 ```
 
-Flue presents each configured Action to the model as a framework-managed tool using its name, description, and input schema. When the model calls it, Flue runs the Action with an isolated child harness and returns its result to the conversation. The child has independent sessions while sharing the parent agent's configuration, sandbox, and filesystem. Its conversation records remain in the append-only agent-instance stream rather than being recursively deleted.
+Bapx presents each configured Action to the model as a framework-managed tool using its name, description, and input schema. When the model calls it, Bapx runs the Action with an isolated child harness and returns its result to the conversation. The child has independent sessions while sharing the parent agent's configuration, sandbox, and filesystem. Its conversation records remain in the append-only agent-instance stream rather than being recursively deleted.
 
 Actions share the model-facing namespace with custom and framework-provided tools, so every active capability needs a distinct name.
 

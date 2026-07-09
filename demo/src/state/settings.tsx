@@ -1,12 +1,12 @@
-import type { FlueClient } from '@bapX/sdk'
+import type { BapxClient } from '@bapX/sdk'
 import { createContext, type ReactNode, useContext, useMemo, useState } from 'react'
-import { createClientFor, DEFAULT_CONNECTION, parseAgentUrl } from '@/lib/flue-client'
+import { createClientFor, DEFAULT_CONNECTION, parseAgentUrl } from '@/lib/bapX-client'
 import { loadJSON, saveJSON, STORAGE_KEYS } from '@/lib/storage'
 import type { Connection } from '@/lib/types'
 
 interface SettingsContextValue {
   connection: Connection
-  client: FlueClient
+  client: BapxClient
   /** Agent name derived from the connection URL (the part after `/agents/`). */
   agentName: string
   setConnection: (connection: Connection) => void

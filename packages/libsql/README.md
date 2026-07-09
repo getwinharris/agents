@@ -1,6 +1,6 @@
 # `@bapX/libsql`
 
-libSQL / Turso durable persistence for Flue applications on the Node.js target.
+libSQL / Turso durable persistence for Bapx applications on the Node.js target.
 One package serves a local SQLite file, a self-hosted libSQL server (`sqld`),
 an embedded replica, and hosted [Turso](https://turso.tech).
 
@@ -50,12 +50,12 @@ export default libsql({
 });
 ```
 
-Default-export the adapter from a source-root `db.ts`. Flue discovers it at
+Default-export the adapter from a source-root `db.ts`. Bapx discovers it at
 build time and wires it into the generated Node server. The adapter's
 `migrate()` hook runs once at startup and creates its tables idempotently, so
 there is no separate migration step.
 
-This adapter persists Flue runtime state:
+This adapter persists Bapx runtime state:
 
 - the canonical append-only conversation stream for each agent instance;
 - immutable external attachments referenced by conversation records;
@@ -96,14 +96,14 @@ of them:
 | Hosted Turso                                  | `{ url: 'libsql://<db>.turso.io', authToken }`               |
 | Embedded replica (local file synced to Turso) | `{ url: 'file:local.db', syncUrl: 'libsql://…', authToken }` |
 | Self-hosted libSQL server (`sqld`)            | `{ url: 'http://127.0.0.1:8080' }`                           |
-| Local SQLite file                             | `{ url: 'file:./data/flue.db' }`                             |
+| Local SQLite file                             | `{ url: 'file:./data/bapX.db' }`                             |
 
 ## Embedded-file concurrency
 
 When `url` is a local `file:` database, the embedded driver can surface
 `SQLITE_BUSY` when asynchronous writes overlap. The runner above serializes all
 operations from one process so its transactions do not contend with top-level
-queries. Flue does not promise multi-process or multi-tenant writes to one
+queries. Bapx does not promise multi-process or multi-tenant writes to one
 embedded file. Hosted Turso and a libSQL server serialize writes server-side.
 
 ## Target support
@@ -115,8 +115,8 @@ adapter does not apply there.
 ## Installation
 
 ```sh
-flue add database libsql   # local file / self-hosted libSQL server
-flue add database turso    # hosted Turso
+bapX add database libsql   # local file / self-hosted libSQL server
+bapX add database turso    # hosted Turso
 ```
 
 Both install this package and write the `db.ts` for the chosen target. See the

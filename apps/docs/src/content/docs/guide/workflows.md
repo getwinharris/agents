@@ -52,14 +52,14 @@ The Action owns the input, output, and handler, so the workflow does not repeat 
 Run a discovered workflow locally without adding authored workflow HTTP exposure:
 
 ```bash
-pnpm exec flue run summarize --input '{"text":"Flue workflows complete finite operations."}'
+pnpm exec bapX run summarize --input '{"text":"Bapx workflows complete finite operations."}'
 ```
 
-`flue run` validates the JSON supplied to `--input`, starts the configured Node.js or Cloudflare application temporarily, and invokes the workflow through its existing `flue()` mount. The normal `app.ts` pipeline and middleware execute; route-free resources are available only within this temporary local runtime. The command reports run events, prints the successful result as JSON, and exits.
+`bapX run` validates the JSON supplied to `--input`, starts the configured Node.js or Cloudflare application temporarily, and invokes the workflow through its existing `bapX()` mount. The normal `app.ts` pipeline and middleware execute; route-free resources are available only within this temporary local runtime. The command reports run events, prints the successful result as JSON, and exits.
 
 ### Application code
 
-Use ambient `invoke()` from application-owned routes, channels, schedules, or other code executing inside a Flue-built server:
+Use ambient `invoke()` from application-owned routes, channels, schedules, or other code executing inside a Bapx-built server:
 
 ```ts
 import { invoke } from '@bapX/runtime';
@@ -106,7 +106,7 @@ const events = await client.runs.events(runId);
 
 Invocation returns `{ runId }`, or `{ runId, result }` with `wait: 'result'`. The `runs` export also controls SDK `client.runs` and raw `GET` and `HEAD` requests to `/runs/<runId>`. Without the corresponding export, HTTP clients receive `404`. Run data may contain sensitive inputs, results, and model activity, so do not treat a run ID as a credential.
 
-These exports do not affect schedules, ambient `invoke()`, or server-side `listRuns()` and `getRun()`. A temporary local `flue run` process additionally exposes route-free resources through an existing authored `flue()` mount; remote attachment uses the server's authored exposure. See the [Workflow API HTTP exports](/docs/api/workflow-api/#http-exports) for the complete contract.
+These exports do not affect schedules, ambient `invoke()`, or server-side `listRuns()` and `getRun()`. A temporary local `bapX run` process additionally exposes route-free resources through an existing authored `bapX()` mount; remote attachment uses the server's authored exposure. See the [Workflow API HTTP exports](/docs/api/workflow-api/#http-exports) for the complete contract.
 
 ## Use the workflow harness
 

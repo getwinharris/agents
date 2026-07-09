@@ -7,21 +7,21 @@
 }
 ---
 
-# Add a Flue Sandbox Adapter: exe.dev
+# Add a Bapx Sandbox Adapter: exe.dev
 
 You are an AI coding agent installing the exe.dev sandbox adapter for a
-Flue project. Follow these instructions exactly. Confirm with the user only
+Bapx project. Follow these instructions exactly. Confirm with the user only
 when something is genuinely ambiguous (e.g. an unusual project layout or a
 missing required VM hostname).
 
 ## What this adapter does
 
-Wraps an already-available exe.dev VM into Flue's `SandboxFactory` interface
+Wraps an already-available exe.dev VM into Bapx's `SandboxFactory` interface
 over SSH + SFTP. The user owns the VM lifecycle; this adapter just adapts
 the VM.
 
 This adapter depends on Node.js APIs and the `ssh2` package, so use it with
-Flue's Node target. It is not suitable for Cloudflare Worker-target agents.
+Bapx's Node target. It is not suitable for Cloudflare Worker-target agents.
 
 exe.dev also exposes an HTTPS API (`POST https://exe.dev/exec`) for VM
 lifecycle commands like `new`, `cp`, and `rm`. This guide includes optional
@@ -30,7 +30,7 @@ already exists.
 
 ## Where to write the file
 
-Select the first existing source directory: `<root>/.flue/`, then `<root>/src/`,
+Select the first existing source directory: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Write the adapter to `<source-dir>/sandboxes/exedev.ts`.
 
 If neither feels right (uncommon layout, multiple workspaces, etc.), ask the
@@ -44,15 +44,15 @@ Write this file verbatim. Do not "improve" it — it conforms to the published
 `SandboxApi` contract.
 
 ```ts
-// flue-blueprint: sandbox/exedev@1
+// bapX-blueprint: sandbox/exedev@1
 /**
- * exe.dev adapter for Flue.
+ * exe.dev adapter for Bapx.
  *
- * Wraps an already-available exe.dev VM into Flue's SandboxFactory interface
+ * Wraps an already-available exe.dev VM into Bapx's SandboxFactory interface
  * using SSH for shell commands and SFTP for file operations.
  *
  * This adapter depends on Node.js APIs and the `ssh2` package, so use it
- * with Flue's Node target. It is not suitable for Cloudflare Worker-target
+ * with Bapx's Node target. It is not suitable for Cloudflare Worker-target
  * agents.
  *
  * Optional lifecycle helpers (`createExeVm`, `cloneExeVm`, `deleteExeVm`)
@@ -580,7 +580,7 @@ export class ExeDevSandboxApi implements SandboxApi {
     }
 
     // ssh2 has no AbortSignal integration. The option is accepted for the
-    // SandboxApi shape; Flue's runtime enforces pre/post signal checks.
+    // SandboxApi shape; Bapx's runtime enforces pre/post signal checks.
     return new Promise((resolve, reject) => {
       this.ssh.exec(cmd, {}, (err, stream) => {
         if (err) return reject(err);
@@ -602,7 +602,7 @@ export class ExeDevSandboxApi implements SandboxApi {
             stream.close();
             finish({
               stdout,
-              stderr: `${stderr}\n[flue:exedev] Command timed out after ${options.timeoutMs} milliseconds.`,
+              stderr: `${stderr}\n[bapX:exedev] Command timed out after ${options.timeoutMs} milliseconds.`,
               exitCode: 124,
             });
           }, options.timeoutMs);
@@ -653,7 +653,7 @@ export function exedev(vm: ExeDevVm | string, options?: ExeDevAdapterOptions): S
 ## Required dependencies
 
 This adapter imports from Node.js built-ins and `ssh2`, so it requires
-Flue's Node target and the user's project needs to depend on `ssh2` directly.
+Bapx's Node target and the user's project needs to depend on `ssh2` directly.
 If their `package.json` does not already list it, add it:
 
 ```bash
@@ -711,12 +711,12 @@ Use project conventions (`.env`, `.dev.vars`, a secret manager, CI vars,
 etc.) for storing any token or host values. If nothing in the project gives
 you a clear signal, ask the user instead of guessing.
 
-For reference: `flue dev --env <file>` and `flue run --env <file>` load
+For reference: `bapX dev --env <file>` and `bapX run --env <file>` load
 any `.env`-format file the user points them at.
 
 ## Wiring it into an agent
 
-Here's what using this adapter looks like inside a Flue agent. If the
+Here's what using this adapter looks like inside a Bapx agent. If the
 user is already working on an agent that this adapter is meant to plug
 into, you can finish that work by wiring the adapter into it. Otherwise,
 share the relevant snippet so they can wire it up themselves.
@@ -817,8 +817,8 @@ export default defineWorkflow({
    actually wrote the file.
 4. Tell the user the next steps: install `ssh2` and `@types/ssh2` (if you
    didn't), make sure the needed exe.dev SSH/API values are available at
-   runtime (per the Authentication section above), and run `flue dev --target node`
-   (or `flue run <workflow> --target node`) to try it.
+   runtime (per the Authentication section above), and run `bapX dev --target node`
+   (or `bapX run <workflow> --target node`) to try it.
 
 When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
 

@@ -3,7 +3,7 @@ title: React
 description: Build React interfaces for live agent conversations and workflow runs.
 ---
 
-`@bapX/react` turns Flue's durable event streams into live React state. Use `useFlueAgent()` for a continuing conversation with an agent instance and `useFlueWorkflow()` to observe a finite workflow run. HTTP requests, authentication, and stream transport remain in `@bapX/sdk`.
+`@bapX/react` turns Bapx's durable event streams into live React state. Use `useBapxAgent()` for a continuing conversation with an agent instance and `useBapxWorkflow()` to observe a finite workflow run. HTTP requests, authentication, and stream transport remain in `@bapX/sdk`.
 
 ## Set up React
 
@@ -14,33 +14,33 @@ pnpm add @bapX/react @bapX/sdk
 ```
 
 ```tsx title="src/main.tsx"
-import { FlueProvider } from '@bapX/react';
-import { createFlueClient } from '@bapX/sdk';
+import { BapxProvider } from '@bapX/react';
+import { createBapxClient } from '@bapX/sdk';
 import { createRoot } from 'react-dom/client';
 import { App } from './App.tsx';
 
-const client = createFlueClient({ baseUrl: '/api' });
+const client = createBapxClient({ baseUrl: '/api' });
 
 createRoot(document.getElementById('root')!).render(
-  <FlueProvider client={client}>
+  <BapxProvider client={client}>
     <App />
-  </FlueProvider>,
+  </BapxProvider>,
 );
 ```
 
-Configure authentication, headers, and custom `fetch` behavior on the client. The agent and workflow modules used below must export `route`; mounting `flue()` alone does not expose them. See [Routing](/docs/guide/routing/) to expose and protect the Flue API, including cross-origin applications.
+Configure authentication, headers, and custom `fetch` behavior on the client. The agent and workflow modules used below must export `route`; mounting `bapX()` alone does not expose them. See [Routing](/docs/guide/routing/) to expose and protect the Bapx API, including cross-origin applications.
 
 ## Build an agent conversation
 
 An agent instance is identified by its agent name and instance ID. The hook reconstructs its transcript from durable events, then follows new events:
 
 ```tsx title="src/Chat.tsx"
-import { useFlueAgent } from '@bapX/react';
+import { useBapxAgent } from '@bapX/react';
 import { useState } from 'react';
 
 export function Chat({ conversationId }: { conversationId: string }) {
   const [input, setInput] = useState('');
-  const agent = useFlueAgent({
+  const agent = useBapxAgent({
     name: 'support-assistant',
     id: conversationId,
   });
@@ -80,7 +80,7 @@ export function Chat({ conversationId }: { conversationId: string }) {
 
 `sendMessage()` adds the user message immediately and resolves when the server admits the prompt, not when generation finishes. The stream then reconciles that optimistic message with its durable copy without changing its transcript position. Use `status` to distinguish connection, submission, streaming, and error states. `historyReady` becomes `true` once the requested durable history has loaded as one coherent snapshot; it remains `true` through later live reconnects.
 
-Messages are Flue-owned `FlueConversationMessage` values with a parts-based shape: `text`, `reasoning`, `dynamic-tool`, and `file`. Validated structured tool output is preserved on the `dynamic-tool` part's `output`, so applications can render custom tool interfaces without a separate data-event channel. These are Flue's own types — they are not AI SDK types, and `@bapX/react` neither depends on `ai` at runtime nor implements its transport protocol. Durable file attachments project as `file` parts carrying media type only; historical bytes are not served, so render uploads optimistically from local data.
+Messages are Bapx-owned `BapxConversationMessage` values with a parts-based shape: `text`, `reasoning`, `dynamic-tool`, and `file`. Validated structured tool output is preserved on the `dynamic-tool` part's `output`, so applications can render custom tool interfaces without a separate data-event channel. These are Bapx's own types — they are not AI SDK types, and `@bapX/react` neither depends on `ai` at runtime nor implements its transport protocol. Durable file attachments project as `file` parts carrying media type only; historical bytes are not served, so render uploads optimistically from local data.
 
 The hook uses the SDK's materialized `agents.observe()` layer: it loads the complete canonical snapshot, publishes it atomically in durable order, and continues from that exact checkpoint through reconnects and canonical resets. Consumers do not need to coordinate the snapshot and live updates or sort `messages`. Observation follows live updates with Durable Streams long-polling. For a single point-in-time read with no live updates, call `client.agents.history()` directly instead. Partial text and reasoning are best-effort while streaming; the completed canonical assistant message is authoritative.
 
@@ -88,19 +88,19 @@ To observe a conversation that may be created out-of-band after mount — by a s
 
 ## Observe a workflow run
 
-Workflow invocation and observation are separate. Invoke the workflow with the SDK, retain its `runId`, and pass that ID to `useFlueWorkflow()`:
+Workflow invocation and observation are separate. Invoke the workflow with the SDK, retain its `runId`, and pass that ID to `useBapxWorkflow()`:
 
 ```tsx title="src/Report.tsx"
-import { useFlueClient, useFlueWorkflow } from '@bapX/react';
+import { useBapxClient, useBapxWorkflow } from '@bapX/react';
 import { useState } from 'react';
 
 export function Report() {
-  const flue = useFlueClient();
+  const bapX = useBapxClient();
   const [runId, setRunId] = useState<string>();
-  const run = useFlueWorkflow({ runId });
+  const run = useBapxWorkflow({ runId });
 
   async function generate() {
-    const invocation = await flue.workflows.invoke('weekly-report', {
+    const invocation = await bapX.workflows.invoke('weekly-report', {
       input: { week: 'current' },
     });
     setRunId(invocation.runId);

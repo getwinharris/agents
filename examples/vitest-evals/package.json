@@ -3,8 +3,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "flue dev",
-		"build": "flue build",
+		"dev": "bapX dev",
+		"build": "bapX build",
 		"check:types": "tsc --noEmit",
 		"evals": "vitest run --config vitest.evals.config.ts",
 		"evals:info": "VITEST_EVALS_REPORT_LEVEL=info vitest run --config vitest.evals.config.ts",

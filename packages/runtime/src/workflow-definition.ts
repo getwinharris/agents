@@ -16,7 +16,7 @@ type InlineRunResult<S extends ActionOutputSchema | undefined> = S extends Actio
 	: JsonValue | undefined;
 
 export interface WorkflowDefinition<TAction extends ActionDefinition = ActionDefinition> {
-	readonly __flueWorkflowDefinition: true;
+	readonly __bapXWorkflowDefinition: true;
 	readonly agent: AgentDefinition;
 	readonly action: TAction;
 }
@@ -96,7 +96,7 @@ function makeWorkflowDefinition<TAction extends ActionDefinition>(
 	action: TAction,
 ): WorkflowDefinition<TAction> {
 	const workflow = Object.freeze({
-		__flueWorkflowDefinition: true as const,
+		__bapXWorkflowDefinition: true as const,
 		agent,
 		action,
 	});
@@ -107,4 +107,3 @@ function makeWorkflowDefinition<TAction extends ActionDefinition>(
 export function isWorkflowDefinition(value: unknown): value is WorkflowDefinition {
 	return Boolean(value && typeof value === 'object' && workflowDefinitions.has(value));
 }
-

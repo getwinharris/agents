@@ -7,16 +7,16 @@
 }
 ---
 
-# Add a Flue Sandbox Adapter: Mirage
+# Add a Bapx Sandbox Adapter: Mirage
 
 You are an AI coding agent installing the Mirage sandbox adapter for a
-Flue project. Follow these instructions exactly. Confirm with the user only
+Bapx project. Follow these instructions exactly. Confirm with the user only
 when something is genuinely ambiguous (e.g. an unusual project layout).
 
 ## What this adapter does
 
 Wraps an already-initialized Mirage `Workspace` (created with the user's own
-`@struktoai/mirage-node` or `@struktoai/mirage-browser` SDK) into Flue's
+`@struktoai/mirage-node` or `@struktoai/mirage-browser` SDK) into Bapx's
 `SandboxFactory` interface. The user owns the root and its mounts;
 this adapter just adapts the root.
 
@@ -34,11 +34,11 @@ Things to know before installing:
   `@struktoai/mirage-browser` is a build error, so using any of those
   pins the user to `--target node`.
 - If you see `@struktoai/mirage-agents` in Mirage's docs, **don't install
-  it for Flue** — it's an adapter for other agent frameworks, not for Flue.
+  it for Bapx** — it's an adapter for other agent frameworks, not for Bapx.
 
 ## Where to write the file
 
-Select the first existing source directory: `<root>/.flue/`, then `<root>/src/`,
+Select the first existing source directory: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Write the adapter to `<source-dir>/sandboxes/mirage.ts`.
 
 If neither feels right (uncommon layout, multiple workspaces, etc.), ask the
@@ -52,14 +52,14 @@ Write this file verbatim. Do not "improve" it — it conforms to the published
 `SandboxApi` contract.
 
 ```ts
-// flue-blueprint: sandbox/mirage@1
+// bapX-blueprint: sandbox/mirage@1
 /**
- * Mirage adapter for Flue.
+ * Mirage adapter for Bapx.
  *
  * Wraps an already-initialized Mirage `Workspace` (from
- * `@struktoai/mirage-node` or `@struktoai/mirage-browser`) into Flue's
+ * `@struktoai/mirage-node` or `@struktoai/mirage-browser`) into Bapx's
  * SandboxFactory interface. The user constructs the Workspace and mounts
- * resources directly using the Mirage SDK — Flue just adapts it.
+ * resources directly using the Mirage SDK — Bapx just adapts it.
  *
  * @example
  * ```typescript
@@ -99,7 +99,7 @@ function shellQuote(value: string): string {
 /**
  * Implements SandboxApi by wrapping a Mirage Workspace.
  *
- * Each Flue context maps onto a Mirage session (created lazily by id) so
+ * Each Bapx context maps onto a Mirage session (created lazily by id) so
  * that cwd, env, history, and lastExitCode stay isolated across agent
  * instances and workflow invocations. Harnesses initialized within the same
  * context intentionally reuse that Mirage session.
@@ -118,7 +118,7 @@ function shellQuote(value: string): string {
 class MirageSandboxApi implements SandboxApi {
 	constructor(
 		private workspace: MirageWorkspace,
-		private flueContextId: string,
+		private bapXContextId: string,
 	) {}
 
 	async readFile(path: string): Promise<string> {
@@ -169,7 +169,7 @@ class MirageSandboxApi implements SandboxApi {
 			const result = await this.runShell(`mkdir -p ${shellQuote(path)}`);
 			if (result.exitCode !== 0) {
 				throw new Error(
-					`[flue:mirage] mkdir -p failed for ${path}: ` +
+					`[bapX:mirage] mkdir -p failed for ${path}: ` +
 						(result.stderr || result.stdout || `exit ${result.exitCode}`),
 				);
 			}
@@ -232,7 +232,7 @@ class MirageSandboxApi implements SandboxApi {
 
 		try {
 			const result = await this.workspace.execute(command, {
-				sessionId: this.flueContextId,
+				sessionId: this.bapXContextId,
 				cwd: options?.cwd,
 				env: options?.env,
 				signal,
@@ -253,7 +253,7 @@ class MirageSandboxApi implements SandboxApi {
 			if (isTimeout) {
 				return {
 					stdout: '',
-					stderr: `[flue:mirage] Command timed out after ${options?.timeoutMs} milliseconds.`,
+					stderr: `[bapX:mirage] Command timed out after ${options?.timeoutMs} milliseconds.`,
 					exitCode: 124,
 				};
 			}
@@ -263,8 +263,8 @@ class MirageSandboxApi implements SandboxApi {
 }
 
 /**
- * Create a Flue sandbox factory from an initialized Mirage Workspace.
- * The user owns the root lifecycle; Flue wraps it into a SessionEnv
+ * Create a Bapx sandbox factory from an initialized Mirage Workspace.
+ * The user owns the root lifecycle; Bapx wraps it into a SessionEnv
  * for agent use.
  */
 export function mirage(
@@ -273,7 +273,7 @@ export function mirage(
 ): SandboxFactory {
 	return {
 		async createSessionEnv({ id }: { id: string }): Promise<SessionEnv> {
-			// Map this Flue context to a Mirage session so cwd, env, history,
+			// Map this Bapx context to a Mirage session so cwd, env, history,
 			// and lastExitCode stay isolated across contexts sharing the same
 			// Workspace. createSession throws on duplicate ids, so fall back to
 			// getSession if the id is already registered (e.g. another harness
@@ -297,9 +297,9 @@ export function mirage(
 
 ## Required dependencies
 
-Pick the runtime package that matches the user's Flue build target. If
+Pick the runtime package that matches the user's Bapx build target. If
 you can't tell which target they're on, check `package.json` scripts for
-`flue dev` / `flue build` invocations and look for a `wrangler.jsonc` (or
+`bapX dev` / `bapX build` invocations and look for a `wrangler.jsonc` (or
 `.toml` / `.json`) at the project root. If still unclear, ask.
 
 For `--target node`:
@@ -338,12 +338,12 @@ a secret manager, CI vars) for storing whatever credentials the mounted
 resources need. If nothing in the project gives you a clear signal, ask
 the user.
 
-For reference: `flue dev --env <file>` and `flue run --env <file>` load
+For reference: `bapX dev --env <file>` and `bapX run --env <file>` load
 any `.env`-format file the user points them at.
 
 ## Wiring it into an agent
 
-Here's what using this adapter looks like inside a Flue agent. If the
+Here's what using this adapter looks like inside a Bapx agent. If the
 user is already working on an agent that this adapter is meant to plug
 into, you can finish that work by wiring the adapter into it. Otherwise,
 share this snippet so they can wire it up themselves.
@@ -381,8 +381,8 @@ export default defineWorkflow({
 3. Tell the user the next steps: install `@struktoai/mirage-node` or
    `@struktoai/mirage-browser` (whichever matches their target), make sure
    any credentials for resources they mount are available at runtime (per
-   the Authentication section above), and run `flue dev` (or
-   `flue run <workflow>`) to try it.
+   the Authentication section above), and run `bapX dev` (or
+   `bapX run <workflow>`) to try it.
 
 When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
 

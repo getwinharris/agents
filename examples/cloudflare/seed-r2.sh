@@ -16,8 +16,8 @@ set -euo pipefail
 BUCKET="${BUCKET:-dev}"
 REMOTE="${REMOTE:-1}"
 case "$BUCKET" in
-  dev)  BUCKET_NAME="flue-example-knowledge-base-dev" ;;
-  prod) BUCKET_NAME="flue-example-knowledge-base" ;;
+  dev)  BUCKET_NAME="bapX-example-knowledge-base-dev" ;;
+  prod) BUCKET_NAME="bapX-example-knowledge-base" ;;
   *)    echo "BUCKET must be 'dev' or 'prod' (got: $BUCKET)" >&2; exit 1 ;;
 esac
 

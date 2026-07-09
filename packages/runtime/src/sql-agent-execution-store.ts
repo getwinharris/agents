@@ -49,14 +49,14 @@ import {
 	createDispatchAgentSubmissionInput,
 } from './runtime/agent-submissions.ts';
 import type { DispatchInput } from './runtime/dispatch-queue.ts';
-import { migrateFlueSqlSchema } from './schema-version.ts';
+import { migrateBapxSqlSchema } from './schema-version.ts';
 import {
 	createSqlPersistedChunkStore,
 	ensureSqlPersistedChunkTable,
 } from './sql-persisted-chunk-store.ts';
 
 export function ensureSqlAgentExecutionTables(sql: SqlStorage): void {
-	migrateFlueSqlSchema(sql, () => {
+	migrateBapxSqlSchema(sql, () => {
 		ensureSubmissionTable(sql);
 		ensureSqlPersistedChunkTable(sql);
 	});
@@ -97,7 +97,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 		const now = Date.now();
 		const row = this.sql
 			.exec(
-				`UPDATE flue_agent_submissions
+				`UPDATE bapX_agent_submissions
 				 SET attempt_id = ?, recovery_requested_at = NULL, started_at = ?, attempt_count = attempt_count + 1${
 						lease ? ', owner_id = ?, lease_expires_at = ?' : ''
 					}
@@ -121,7 +121,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 	private getDispatchReceipt(submissionId: string): AgentDispatchReceipt | null {
 		const row = this.sql
 			.exec(
-				'SELECT dispatch_id, accepted_at FROM flue_agent_dispatch_receipts WHERE dispatch_id = ? LIMIT 1',
+				'SELECT dispatch_id, accepted_at FROM bapX_agent_dispatch_receipts WHERE dispatch_id = ? LIMIT 1',
 				submissionId,
 			)
 			.toArray()[0];
@@ -147,7 +147,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 	async markSubmissionCanonicalReady(submissionId: string): Promise<AgentSubmission | null> {
 		const row = this.sql
 			.exec(
-				`UPDATE flue_agent_submissions
+				`UPDATE bapX_agent_submissions
 				 SET canonical_ready_at = COALESCE(canonical_ready_at, ?)
 				 WHERE submission_id = ? AND status = 'queued'
 				 RETURNING ${submissionColumns}`,
@@ -163,7 +163,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 			this.sql
 				.exec(
 					`SELECT 1
-					 FROM flue_agent_submissions
+					 FROM bapX_agent_submissions
 				 WHERE status IN ('queued', 'running', 'terminalizing')
 				 LIMIT 1`,
 				)
@@ -176,7 +176,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 			this.sql
 				.exec(
 					`SELECT ${submissionColumns}
-					 FROM flue_agent_submissions
+					 FROM bapX_agent_submissions
 					 WHERE status = 'queued' AND canonical_ready_at IS NULL
 					 ORDER BY sequence ASC`,
 				)
@@ -189,12 +189,12 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 		const rows = this.sql
 			.exec(
 				`SELECT ${submissionColumnsFor('current')}
-				 FROM flue_agent_submissions AS current
+				 FROM bapX_agent_submissions AS current
 				 WHERE current.status = 'queued'
 				   AND current.canonical_ready_at IS NOT NULL
 				   AND NOT EXISTS (
 				     SELECT 1
-				     FROM flue_agent_submissions AS earlier
+				     FROM bapX_agent_submissions AS earlier
 				     WHERE earlier.session_key = current.session_key
 				       AND earlier.status IN ('queued', 'running', 'terminalizing')
 				       AND earlier.sequence < current.sequence
@@ -210,7 +210,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 			this.sql
 				.exec(
 					`SELECT ${submissionColumns}
-					 FROM flue_agent_submissions
+					 FROM bapX_agent_submissions
 					 WHERE status = 'running'
 					 ORDER BY sequence ASC`,
 				)
@@ -224,7 +224,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 			.exec(
 				`SELECT submission_id, session_key, attempt_id, settlement_record_id,
 				        settlement_record_json
-				 FROM flue_agent_submissions
+				 FROM bapX_agent_submissions
 				 WHERE status = 'terminalizing'
 				 ORDER BY sequence ASC`,
 			)
@@ -236,7 +236,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 
 	async insertAttemptMarker(attempt: SubmissionAttemptRef): Promise<void> {
 		this.sql.exec(
-			`INSERT OR IGNORE INTO flue_agent_attempt_markers (submission_id, attempt_id, created_at)
+			`INSERT OR IGNORE INTO bapX_agent_attempt_markers (submission_id, attempt_id, created_at)
 			 VALUES (?, ?, ?)`,
 			attempt.submissionId,
 			attempt.attemptId,
@@ -246,7 +246,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 
 	async deleteAttemptMarker(attempt: SubmissionAttemptRef): Promise<void> {
 		this.sql.exec(
-			'DELETE FROM flue_agent_attempt_markers WHERE submission_id = ? AND attempt_id = ?',
+			'DELETE FROM bapX_agent_attempt_markers WHERE submission_id = ? AND attempt_id = ?',
 			attempt.submissionId,
 			attempt.attemptId,
 		);
@@ -254,7 +254,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 
 	async listAttemptMarkers(): Promise<AgentAttemptMarker[]> {
 		const rows = this.sql
-			.exec('SELECT submission_id, attempt_id, created_at FROM flue_agent_attempt_markers')
+			.exec('SELECT submission_id, attempt_id, created_at FROM bapX_agent_attempt_markers')
 			.toArray();
 		return rows.map((row) => {
 			if (
@@ -280,7 +280,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 		const leaseExpiresAt = now + LEASE_DURATION_MS;
 		const placeholders = submissionIds.map(() => '?').join(', ');
 		this.sql.exec(
-			`UPDATE flue_agent_submissions
+			`UPDATE bapX_agent_submissions
 			 SET lease_expires_at = ?
 			 WHERE owner_id = ? AND status = 'running'
 			   AND submission_id IN (${placeholders})`,
@@ -296,7 +296,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 			this.sql
 				.exec(
 					`SELECT ${submissionColumns}
-					 FROM flue_agent_submissions
+					 FROM bapX_agent_submissions
 					 WHERE status = 'running' AND lease_expires_at > 0 AND lease_expires_at < ?
 					 ORDER BY sequence ASC`,
 					now,
@@ -311,7 +311,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 		const timeoutAt = now + DURABILITY_DEFAULT_TIMEOUT_MS;
 		const row = this.sql
 			.exec(
-				`UPDATE flue_agent_submissions AS current
+				`UPDATE bapX_agent_submissions AS current
 				 SET status = 'running', attempt_id = ?, started_at = ?, attempt_count = attempt_count + 1,
 				     max_retry = ?, timeout_at = CASE WHEN timeout_at = 0 THEN ? ELSE timeout_at END,
 				     owner_id = ?, lease_expires_at = ?
@@ -319,7 +319,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 				   AND current.canonical_ready_at IS NOT NULL
 				   AND NOT EXISTS (
 				     SELECT 1
-				     FROM flue_agent_submissions AS earlier
+				     FROM bapX_agent_submissions AS earlier
 				     WHERE earlier.session_key = current.session_key
 				       AND earlier.status IN ('queued', 'running', 'terminalizing')
 				       AND earlier.sequence < current.sequence
@@ -342,7 +342,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 		durability?: { maxRetry: number; timeoutAt: number },
 	): Promise<boolean> {
 		return this.updateOwnedSubmission(
-			`UPDATE flue_agent_submissions
+			`UPDATE bapX_agent_submissions
 			 SET input_applied_at = COALESCE(input_applied_at, ?),
 			     max_retry = CASE WHEN input_applied_at IS NULL THEN ? ELSE max_retry END,
 			     timeout_at = CASE WHEN input_applied_at IS NULL THEN ? ELSE timeout_at END
@@ -358,7 +358,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 
 	async requestSubmissionRecovery(attempt: SubmissionAttemptRef): Promise<boolean> {
 		return this.updateOwnedSubmission(
-			`UPDATE flue_agent_submissions
+			`UPDATE bapX_agent_submissions
 			 SET recovery_requested_at = COALESCE(recovery_requested_at, ?)
 			 WHERE submission_id = ? AND status = 'running' AND attempt_id = ?
 			 RETURNING submission_id`,
@@ -371,7 +371,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 	async requestSessionAbort(sessionKey: string): Promise<string[]> {
 		const rows = this.sql
 			.exec(
-				`UPDATE flue_agent_submissions
+				`UPDATE bapX_agent_submissions
 				 SET abort_requested_at = COALESCE(abort_requested_at, ?)
 				 WHERE session_key = ? AND status IN ('queued', 'running')
 				 RETURNING submission_id`,
@@ -386,7 +386,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 		return (
 			this.sql
 				.exec(
-					`UPDATE flue_agent_submissions
+					`UPDATE bapX_agent_submissions
 					 SET status = 'queued', attempt_id = NULL, recovery_requested_at = NULL, started_at = NULL, owner_id = NULL, lease_expires_at = 0
 					 WHERE submission_id = ? AND status = 'running'
 					   AND attempt_id = ? AND input_applied_at IS NULL
@@ -407,7 +407,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 		return this.transactionSync(() => {
 			const inserted = this.sql
 				.exec(
-					`UPDATE flue_agent_submissions
+					`UPDATE bapX_agent_submissions
 					 SET status = 'terminalizing', settlement_record_id = ?, settlement_record_json = ?
 					 WHERE submission_id = ? AND kind = 'direct' AND status = 'running' AND attempt_id = ?
 					 RETURNING submission_id, session_key, attempt_id, settlement_record_id,
@@ -423,7 +423,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 				.exec(
 					`SELECT submission_id, session_key, attempt_id, settlement_record_id,
 					        settlement_record_json
-					 FROM flue_agent_submissions
+					 FROM bapX_agent_submissions
 					 WHERE submission_id = ? AND kind = 'direct' AND status = 'terminalizing'
 					   AND attempt_id = ? AND settlement_record_id = ? AND settlement_record_json = ?`,
 					attempt.submissionId,
@@ -442,7 +442,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 		recordId: string,
 	): Promise<boolean> {
 		return this.updateOwnedSubmission(
-			`UPDATE flue_agent_submissions
+			`UPDATE bapX_agent_submissions
 			 SET status = 'settled', settled_at = ?, error = NULL
 			 WHERE submission_id = ? AND status = 'terminalizing' AND attempt_id = ?
 			   AND settlement_record_id = ?
@@ -456,7 +456,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 
 	async completeSubmission(attempt: SubmissionAttemptRef): Promise<boolean> {
 		return this.updateOwnedSubmission(
-			`UPDATE flue_agent_submissions
+			`UPDATE bapX_agent_submissions
 			 SET status = 'settled', settled_at = ?, error = NULL
 			 WHERE submission_id = ? AND status = 'running' AND attempt_id = ?
 			 RETURNING submission_id`,
@@ -468,7 +468,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 
 	async failSubmission(attempt: SubmissionAttemptRef, error: unknown): Promise<boolean> {
 		return this.updateOwnedSubmission(
-			`UPDATE flue_agent_submissions
+			`UPDATE bapX_agent_submissions
 			 SET status = 'settled', settled_at = ?, error = ?
 			 WHERE submission_id = ? AND status = 'running' AND attempt_id = ?
 			 RETURNING submission_id`,
@@ -486,7 +486,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 				getDispatchReceipt: (submissionId) => this.getDispatchReceipt(submissionId),
 				insertIfAbsent: (row) => {
 					this.sql.exec(
-						`INSERT OR IGNORE INTO flue_agent_submissions
+						`INSERT OR IGNORE INTO bapX_agent_submissions
 						 (submission_id, session_key, kind, payload, status, accepted_at)
 						 VALUES (?, ?, ?, ?, 'queued', ?)`,
 						row.submissionId,
@@ -529,7 +529,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 			} catch (error) {
 				if (typeof row.sequence !== 'number') throw error;
 				console.error(
-					'[flue] Terminating malformed submission (sequence %d):',
+					'[bapX] Terminating malformed submission (sequence %d):',
 					row.sequence,
 					error,
 				);
@@ -545,7 +545,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 		error: unknown,
 	): void {
 		this.sql.exec(
-			`UPDATE flue_agent_submissions
+			`UPDATE bapX_agent_submissions
 			 SET status = 'settled', settled_at = ?, error = ?
 			 WHERE sequence = ? AND ${status === 'queued' ? "status = 'queued'" : "status = 'running'"}`,
 			Date.now(),
@@ -558,7 +558,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 		return this.sql
 			.exec(
 				`SELECT ${submissionColumns}
-				 FROM flue_agent_submissions
+				 FROM bapX_agent_submissions
 				 WHERE submission_id = ?
 				 LIMIT 1`,
 				submissionId,
@@ -688,7 +688,7 @@ function parseSubmission(
 
 function ensureSubmissionTable(sql: SqlStorage): void {
 	sql.exec(
-		`CREATE TABLE IF NOT EXISTS flue_agent_submissions (
+		`CREATE TABLE IF NOT EXISTS bapX_agent_submissions (
 		 sequence INTEGER PRIMARY KEY AUTOINCREMENT,
 		 submission_id TEXT NOT NULL UNIQUE,
 		 session_key TEXT NOT NULL,
@@ -714,13 +714,13 @@ function ensureSubmissionTable(sql: SqlStorage): void {
 		)`,
 	);
 	sql.exec(
-		`CREATE TABLE IF NOT EXISTS flue_agent_dispatch_receipts (
+		`CREATE TABLE IF NOT EXISTS bapX_agent_dispatch_receipts (
 		 dispatch_id TEXT PRIMARY KEY,
 		 accepted_at INTEGER NOT NULL
 		)`,
 	);
 	sql.exec(
-		`CREATE TABLE IF NOT EXISTS flue_agent_attempt_markers (
+		`CREATE TABLE IF NOT EXISTS bapX_agent_attempt_markers (
 		 submission_id TEXT NOT NULL,
 		 attempt_id TEXT NOT NULL,
 		 created_at INTEGER NOT NULL,
@@ -728,9 +728,9 @@ function ensureSubmissionTable(sql: SqlStorage): void {
 		)`,
 	);
 	sql.exec(
-		'CREATE INDEX IF NOT EXISTS flue_agent_submissions_status_sequence_idx ON flue_agent_submissions (status, sequence ASC)',
+		'CREATE INDEX IF NOT EXISTS bapX_agent_submissions_status_sequence_idx ON bapX_agent_submissions (status, sequence ASC)',
 	);
 	sql.exec(
-		'CREATE INDEX IF NOT EXISTS flue_agent_submissions_session_status_sequence_idx ON flue_agent_submissions (session_key, status, sequence ASC)',
+		'CREATE INDEX IF NOT EXISTS bapX_agent_submissions_session_status_sequence_idx ON bapX_agent_submissions (session_key, status, sequence ASC)',
 	);
 }

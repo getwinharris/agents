@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add verified webhook ingress and application-owned API behavior to an existing Flue project with the [Intercom](https://developers.intercom.com) blueprint. Run the following command in your terminal or coding agent of choice:
+Add verified webhook ingress and application-owned API behavior to an existing Bapx project with the [Intercom](https://developers.intercom.com) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel intercom
+bapX add channel intercom
 ```
 
 ## Overview
@@ -332,7 +332,7 @@ or define outbound inbox policy.
 ## Cloudflare Workers
 
 The verifier uses Web Crypto. The official `intercom-client@7.0.3` uses Fetch,
-has no runtime dependencies, and executes in workerd with Flue's required
+has no runtime dependencies, and executes in workerd with Bapx's required
 `nodejs_compat` configuration. The example's workerd test performs a real
 `client.conversations.find()` request through injected fake Fetch and confirms
 the expected EU URL, bearer token, `Intercom-Version: 2.14`, and workerd runtime
@@ -341,7 +341,7 @@ header.
 That execution proves the client operation shown here, not every SDK method.
 Test each additional operation used by the application against its actual
 Worker target. Cloudflare projects may use typed bindings instead of
-`process.env`; `nodejs_compat` is already part of Flue's Worker configuration.
+`process.env`; `nodejs_compat` is already part of Bapx's Worker configuration.
 
 Create original synthetic notification bodies and local HMAC-SHA1 signatures.
 Exercise valid and tampered exact bytes, `HEAD`, ping, future topics,

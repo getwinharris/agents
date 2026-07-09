@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add verified Telegram Bot API webhook ingress with project-owned outbound Telegram access to an existing Flue project with the [Telegram](https://core.telegram.org/bots/api) blueprint. Run the following command in your terminal or coding agent of choice:
+Add verified Telegram Bot API webhook ingress with project-owned outbound Telegram access to an existing Bapx project with the [Telegram](https://core.telegram.org/bots/api) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel telegram
+bapX add channel telegram
 ```
 
 ## Overview
@@ -50,7 +50,7 @@ The abridged example omits the generated `conversationFromMessage` and
 `messageBody` helpers, callback-query branch, and message tool. Once configured, an incoming message
 continues the agent instance for its chat, business chat, or topic, and the
 bound grammY tool replies to that same destination. grammY's Fetch export runs
-on Node and Cloudflare Workers with Flue's `nodejs_compat` setting.
+on Node and Cloudflare Workers with Bapx's `nodejs_compat` setting.
 
 ## Configure
 
@@ -61,7 +61,7 @@ on Node and Cloudflare Workers with Flue's `nodejs_compat` setting.
 
 It installs `@bapX/telegram` for verified ingress and grammY for project-owned
 Bot API access. grammY publishes a browser/Fetch build that runs in both Node
-and workerd with Flue's required `nodejs_compat` configuration.
+and workerd with Bapx's required `nodejs_compat` configuration.
 
 Set the webhook URL to:
 
@@ -221,7 +221,7 @@ selects only message text.
 
 ## Verified inbound
 
-Flue owns one job on the inbound side: it verifies the
+Bapx owns one job on the inbound side: it verifies the
 `X-Telegram-Bot-Api-Secret-Token` header, enforces the body limit, parses the
 JSON, and forwards a single provider-native Bot API `Update` to your callback.
 There is no parallel normalized model — the update keeps Telegram's own field

@@ -1,5 +1,5 @@
 /**
- * Configure how the Flue CLI finds and builds a project.
+ * Configure how the Bapx CLI finds and builds a project.
  *
  * Use {@link defineConfig} in a `bapX.config.ts` file for type checking and
  * editor completion.
@@ -19,7 +19,7 @@ import { resolveSourceRoot } from './source-root.ts';
  * Configuration authored in `bapX.config.ts`. Only the fields declared by
  * this interface are accepted.
  */
-export interface UserFlueConfig {
+export interface UserBapxConfig {
 	/**
 	 * Build and development target. Required unless `--target` is passed to the
 	 * CLI. There is no default.
@@ -35,7 +35,7 @@ export interface UserFlueConfig {
 	 * Defaults to the config directory, or to the search directory when no
 	 * configuration file is loaded.
 	 *
-	 * Flue uses `<root>/.flue` when it exists as a directory, otherwise
+	 * Bapx uses `<root>/.bapX` when it exists as a directory, otherwise
 	 * `<root>/src` when it exists as a directory, otherwise `<root>`.
 	 */
 	root?: string;
@@ -43,13 +43,13 @@ export interface UserFlueConfig {
 	 * Build output directory. Must not be empty. Relative values loaded from a
 	 * configuration file resolve from the directory containing that file;
 	 * relative inline values resolve from the caller's working directory. Paths
-	 * do not resolve from {@link UserFlueConfig.root}. Defaults to `<root>/dist`.
+	 * do not resolve from {@link UserBapxConfig.root}. Defaults to `<root>/dist`.
 	 */
 	output?: string;
 }
 
 /** Fully resolved configuration consumed by the rest of the CLI. */
-export interface FlueConfig {
+export interface BapxConfig {
 	/** Selected build and development target. */
 	target: 'node' | 'cloudflare';
 	/** Absolute project-root path. */
@@ -72,7 +72,7 @@ export interface FlueConfig {
  * });
  * ```
  */
-export function defineConfig(config: UserFlueConfig): UserFlueConfig {
+export function defineConfig(config: UserBapxConfig): UserBapxConfig {
 	return config;
 }
 
@@ -82,7 +82,7 @@ const TargetSchema = v.picklist(['node', 'cloudflare'] as const);
 
 const NonEmptyPathSchema = v.pipe(v.string(), v.minLength(1, 'Path must not be empty.'));
 
-const UserFlueConfigSchema = v.strictObject({
+const UserBapxConfigSchema = v.strictObject({
 	target: v.optional(TargetSchema),
 	root: v.optional(NonEmptyPathSchema),
 	output: v.optional(NonEmptyPathSchema),
@@ -98,7 +98,7 @@ export interface ResolveConfigPathOptions {
 }
 
 /**
- * Resolve the absolute path of the user's `flue.config.*` file, or
+ * Resolve the absolute path of the user's `bapX.config.*` file, or
  * `undefined` if none is found and the user didn't ask for one. Relative `cwd`
  * values resolve from the process working directory; relative `configFile`
  * values resolve from the normalized `cwd`.
@@ -111,7 +111,7 @@ export function resolveConfigPath(opts: ResolveConfigPathOptions): string | unde
 	if (opts.configFile) {
 		const explicit = path.resolve(cwd, opts.configFile);
 		if (!fs.existsSync(explicit)) {
-			throw new Error(`[flue] Config file not found: ${opts.configFile}`);
+			throw new Error(`[bapX] Config file not found: ${opts.configFile}`);
 		}
 		return explicit;
 	}
@@ -149,7 +149,7 @@ async function loadConfigModule(absConfigPath: string): Promise<Record<string, u
 		const code = (err as { code?: string }).code;
 		if (code === 'ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX') {
 			throw new Error(
-				`[flue] ${path.basename(absConfigPath)} uses TypeScript syntax that Node's ` +
+				`[bapX] ${path.basename(absConfigPath)} uses TypeScript syntax that Node's ` +
 					`type-stripping loader doesn't support (e.g. \`enum\`, \`namespace\` with ` +
 					`runtime code, parameter properties, decorators). Rewrite using only ` +
 					`erasable types (or move the config to plain JS).\n  Original: ${(err as Error).message}`,
@@ -161,7 +161,7 @@ async function loadConfigModule(absConfigPath: string): Promise<Record<string, u
 			// anyway in case someone bypasses the bin (e.g. consumes the config
 			// loader directly on an old Node).
 			throw new Error(
-				`[flue] Cannot load ${path.basename(absConfigPath)}: this Node ` +
+				`[bapX] Cannot load ${path.basename(absConfigPath)}: this Node ` +
 					`(v${process.versions.node}) does not support TypeScript natively. ` +
 					`Upgrade to Node ≥ 22.18 or ≥ 23.6.`,
 			);
@@ -187,20 +187,20 @@ export interface ResolveConfigOptions {
 	 * present — `undefined` means "fall through to the config-file value or the
 	 * default". Relative paths resolve from `cwd`.
 	 */
-	inline?: UserFlueConfig;
+	inline?: UserBapxConfig;
 }
 
 export interface ResolvedConfigResult {
 	/** Absolute path of the loaded config file, or undefined if none. */
 	configPath: string | undefined;
 	/** The fully-resolved config consumed by the rest of the CLI. */
-	flueConfig: FlueConfig;
+	bapXConfig: BapxConfig;
 	/** Native Vite config exported as `vite` from the selected config module. */
 	viteConfig: ViteUserConfig;
 }
 
 /**
- * Discover, load, validate, merge, and resolve a Flue config. The single
+ * Discover, load, validate, merge, and resolve a Bapx config. The single
  * entry point the CLI calls. Internal — not exported from the public
  * `@bapX/cli/config` subpath.
  *
@@ -217,24 +217,24 @@ export async function resolveConfig(opts: ResolveConfigOptions): Promise<Resolve
 
 	// Explicit `--config <path>` is resolved relative to the caller's cwd
 	// (matches the help text: "(relative to cwd)"). Auto-discovery still
-	// scans `searchFrom` so `--root` continues to influence where we look
+	// scans `searchFrom` so `--root` continues to inbapXnce where we look
 	// when no `--config` was provided.
 	const configPath =
 		opts.configFile !== undefined
 			? resolveConfigPath({ cwd, configFile: opts.configFile })
 			: resolveConfigPath({ cwd: searchFrom, configFile: undefined });
 
-	let fileConfig: UserFlueConfig = {};
+	let fileConfig: UserBapxConfig = {};
 	let viteConfig: ViteUserConfig = {};
 	if (configPath) {
 		const configModule = await loadConfigModule(configPath);
 		const raw = configModule.default;
 		if (raw == null || typeof raw !== 'object') {
 			throw new Error(
-				`[flue] ${path.relative(cwd, configPath) || configPath} must export a config object as the default export.`,
+				`[bapX] ${path.relative(cwd, configPath) || configPath} must export a config object as the default export.`,
 			);
 		}
-		const result = v.safeParse(UserFlueConfigSchema, raw);
+		const result = v.safeParse(UserBapxConfigSchema, raw);
 		if (!result.success) {
 			throw new Error(formatValidationError(configPath, result.issues));
 		}
@@ -247,7 +247,7 @@ export async function resolveConfig(opts: ResolveConfigOptions): Promise<Resolve
 				Array.isArray(rawViteConfig)
 			) {
 				throw new Error(
-					`[flue] ${path.relative(cwd, configPath) || configPath} must export \`vite\` as a Vite config object.`,
+					`[bapX] ${path.relative(cwd, configPath) || configPath} must export \`vite\` as a Vite config object.`,
 				);
 			}
 			viteConfig = rawViteConfig as ViteUserConfig;
@@ -260,7 +260,7 @@ export async function resolveConfig(opts: ResolveConfigOptions): Promise<Resolve
 	// file set them.
 	const configDir = configPath ? path.dirname(configPath) : searchFrom;
 
-	const inlineResult = v.safeParse(UserFlueConfigSchema, opts.inline ?? {});
+	const inlineResult = v.safeParse(UserBapxConfigSchema, opts.inline ?? {});
 	if (!inlineResult.success) {
 		throw new Error(formatValidationError('inline options', inlineResult.issues));
 	}
@@ -268,7 +268,7 @@ export async function resolveConfig(opts: ResolveConfigOptions): Promise<Resolve
 
 	// Merge: per-field, inline > file. We don't merge nested structures because
 	// the surface is flat today.
-	const merged: UserFlueConfig = {
+	const merged: UserBapxConfig = {
 		target: inline.target ?? fileConfig.target,
 		root: inline.root ?? fileConfig.root,
 		output: inline.output ?? fileConfig.output,
@@ -278,7 +278,7 @@ export async function resolveConfig(opts: ResolveConfigOptions): Promise<Resolve
 	// error pointing the user at both available knobs.
 	if (!merged.target) {
 		throw new Error(
-			'[flue] Missing required `target`. Set it via `--target <node|cloudflare>` ' +
+			'[bapX] Missing required `target`. Set it via `--target <node|cloudflare>` ' +
 				'or in `bapX.config.ts` as `target: "node"` (or `"cloudflare"`).',
 		);
 	}
@@ -303,7 +303,7 @@ export async function resolveConfig(opts: ResolveConfigOptions): Promise<Resolve
 	// production builds that empty the output dir would delete project sources.
 	if (output === root || output === sourceRoot) {
 		throw new Error(
-			`[flue] \`output\` resolves to the project ${output === root ? 'root' : 'source root'} (${output}). ` +
+			`[bapX] \`output\` resolves to the project ${output === root ? 'root' : 'source root'} (${output}). ` +
 				'Build artifacts must go in a separate directory, e.g. `dist/`.',
 		);
 	}
@@ -311,7 +311,7 @@ export async function resolveConfig(opts: ResolveConfigOptions): Promise<Resolve
 	return {
 		configPath,
 		viteConfig,
-		flueConfig: {
+		bapXConfig: {
 			target: merged.target,
 			root,
 			sourceRoot,
@@ -334,7 +334,7 @@ function formatValidationError(
 	configPath: string,
 	issues: readonly v.BaseIssue<unknown>[],
 ): string {
-	const lines = [`[flue] Invalid config in ${configPath}:`];
+	const lines = [`[bapX] Invalid config in ${configPath}:`];
 	for (const issue of issues) {
 		const dotPath = v.getDotPath(issue);
 		const where = dotPath ? `  • ${dotPath}: ` : '  • ';

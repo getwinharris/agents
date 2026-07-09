@@ -1,6 +1,6 @@
 # `@bapX/teams`
 
-Authenticated Microsoft Teams Bot Connector activity ingress for Flue
+Authenticated Microsoft Teams Bot Connector activity ingress for Bapx
 applications.
 
 ```ts
@@ -17,8 +17,8 @@ export const channel = createTeamsChannel({
 });
 ```
 
-Place this export in `channels/teams.ts`. Flue discovers it and serves
-`POST /channels/teams/activities` relative to the `flue()` mount.
+Place this export in `channels/teams.ts`. Bapx discovers it and serves
+`POST /channels/teams/activities` relative to the `bapX()` mount.
 
 The package validates Bot Connector bearer tokens through Microsoft's OpenID
 metadata and endorsed JWKS keys, checks the token audience, issuer, expiry,
@@ -30,7 +30,7 @@ on the native `activity.type` (`message`, `conversationUpdate`, `invoke`,
 you need to address a reply.
 
 This package does not include an outbound Teams client, OAuth credential
-storage, installation flow, or model tools. Run `flue add channel teams` to generate
+storage, installation flow, or model tools. Run `bapX add channel teams` to generate
 editable project code using a narrow Fetch client over Microsoft's OAuth and
 Bot Connector REST protocols.
 

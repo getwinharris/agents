@@ -7,22 +7,22 @@
 }
 ---
 
-# Add a Flue Sandbox Adapter: Cloudflare Shell
+# Add a Bapx Sandbox Adapter: Cloudflare Shell
 
 You are an AI coding agent installing the Cloudflare Shell sandbox adapter
-for a Flue Cloudflare-target project. Follow these instructions exactly.
+for a Bapx Cloudflare-target project. Follow these instructions exactly.
 Confirm with the user only when something is genuinely ambiguous.
 
 ## What this adapter does
 
-Wraps an already-initialized `@cloudflare/shell` `Workspace` into Flue's
+Wraps an already-initialized `@cloudflare/shell` `Workspace` into Bapx's
 `SandboxFactory` interface. The adapter exposes a codemode-backed `code`
 tool that runs JavaScript against the durable workspace through a Worker Loader
 binding. The user owns workspace construction and hydration.
 
 ## Where to write the file
 
-Select the first existing source directory: `<root>/.flue/`, then `<root>/src/`,
+Select the first existing source directory: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Write the adapter to `<source-dir>/sandboxes/cloudflare-shell.ts`.
 
 If neither feels right, ask the user before writing. Create any missing parent
@@ -34,7 +34,7 @@ Write this file verbatim. It requires a Cloudflare Worker target with a
 `worker_loaders` binding.
 
 ```ts
-// flue-blueprint: sandbox/cloudflare-shell@1
+// bapX-blueprint: sandbox/cloudflare-shell@1
 import {
 	STATE_TYPES,
 	Workspace,
@@ -66,13 +66,13 @@ export interface GetShellSandboxOptions {
 export function getShellSandbox(options: GetShellSandboxOptions): SandboxFactory {
 	if (!options?.workspace) {
 		throw new Error(
-			'[flue] getShellSandbox requires a workspace. Pass `getDefaultWorkspace()` for the common case, ' +
+			'[bapX] getShellSandbox requires a workspace. Pass `getDefaultWorkspace()` for the common case, ' +
 				'or construct your own with `new Workspace({ sql: ctx.storage.sql, ... })`.',
 		);
 	}
 	if (!options.loader) {
 		throw new Error(
-			'[flue] getShellSandbox requires a WorkerLoader binding. Add this to your wrangler.jsonc:\n' +
+			'[bapX] getShellSandbox requires a WorkerLoader binding. Add this to your wrangler.jsonc:\n' +
 				'  { "worker_loaders": [{ "binding": "LOADER" }] }\n' +
 				'Then pass `loader: env.LOADER` to getShellSandbox(). Worker Loader is currently in beta — ' +
 				'see https://developers.cloudflare.com/workers/runtime-apis/bindings/worker-loader/.',
@@ -168,7 +168,7 @@ function createWorkspaceSessionEnv(
 }
 
 const EXEC_NOT_SUPPORTED_MESSAGE =
-	'[flue] The cf-shell sandbox does not support exec(). The agent\'s `code` tool runs JavaScript ' +
+	'[bapX] The cf-shell sandbox does not support exec(). The agent\'s `code` tool runs JavaScript ' +
 	'in an isolated Worker against the workspace; from your own code, use `session.fs` / `harness.fs` ' +
 	'(readFile, writeFile, stat, readdir, etc.) — they route through the same Workspace. If you ' +
 	'specifically need bash/grep/find or a real Linux environment, use `@cloudflare/sandbox` ' +
@@ -298,7 +298,7 @@ or tokens; the user authenticates through their existing Wrangler setup.
 
 ## Behavior and tradeoffs
 
-This adapter is not Flue's default just-bash virtual sandbox. It replaces the
+This adapter is not Bapx's default just-bash virtual sandbox. It replaces the
 normal shell and file-manipulation tool set with a `code` tool that runs
 JavaScript against the Workspace `state.*` API. Application code can still use
 `session.fs` and `harness.fs` against the same Workspace; `session.shell()` and
@@ -343,7 +343,7 @@ export default defineWorkflow({
 1. Run the user's typechecker.
 2. Confirm the import path matches where you wrote `cloudflare-shell.ts`.
 3. Confirm `wrangler.jsonc` has a `worker_loaders` binding matching the code.
-4. Tell the user to use `flue dev --target cloudflare`; if local Wrangler cannot simulate Worker Loader, use remote dev or deploy a preview Worker.
+4. Tell the user to use `bapX dev --target cloudflare`; if local Wrangler cannot simulate Worker Loader, use remote dev or deploy a preview Worker.
 
 When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
 

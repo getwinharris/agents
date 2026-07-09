@@ -1,7 +1,7 @@
 /** Shared per-agent HTTP dispatcher for the Node and Cloudflare targets. */
 
 import { parseActionInput, runActionWithParsedInput } from '../action.ts';
-import type { FlueContextInternal } from '../client.ts';
+import type { BapxContextInternal } from '../client.ts';
 import {
 	InvalidRequestError,
 	parseJsonBody,
@@ -10,11 +10,11 @@ import {
 } from '../errors.ts';
 import {
 	extractTraceCarrier,
-	type FlueTraceCarrier,
+	type BapxTraceCarrier,
 	interceptExecution,
 } from '../execution-interceptor.ts';
 import { assertProductEventV3 } from '../product-event.ts';
-import type { FlueEvent, FlueEventCallback } from '../types.ts';
+import type { BapxEvent, BapxEventCallback } from '../types.ts';
 import { isWorkflowDefinition, type WorkflowDefinition } from '../workflow-definition.ts';
 import type { AttachedAgentSubmissionAdmission } from './agent-submissions.ts';
 import type { DispatchInput } from './dispatch-queue.ts';
@@ -27,13 +27,13 @@ import { parseDeliveredMessage } from './schemas.ts';
 
 export function assertWorkflowDefinition(value: unknown, name: string): asserts value is WorkflowDefinition {
 	if (!isWorkflowDefinition(value)) {
-		throw new Error(`[flue] Workflow "${name}" must default-export defineWorkflow(...).`);
+		throw new Error(`[bapX] Workflow "${name}" must default-export defineWorkflow(...).`);
 	}
 }
 
 export function assertAgentDispatchAdmissionInput(input: unknown): asserts input is DispatchInput {
 	if (!isDispatchInput(input))
-		throw new Error('[flue] Internal dispatch admission received an invalid payload.');
+		throw new Error('[bapX] Internal dispatch admission received an invalid payload.');
 }
 
 function isDispatchInput(value: unknown): value is DispatchInput {
@@ -66,7 +66,7 @@ export interface CreateAgentContextOptions {
 	dispatchId?: string;
 }
 
-export type CreateAgentContextFn = (options: CreateAgentContextOptions) => FlueContextInternal;
+export type CreateAgentContextFn = (options: CreateAgentContextOptions) => BapxContextInternal;
 
 export interface CreateWorkflowContextOptions {
 	runId: string;
@@ -76,7 +76,7 @@ export interface CreateWorkflowContextOptions {
 
 export type CreateWorkflowContextFn = (
 	options: CreateWorkflowContextOptions,
-) => FlueContextInternal;
+) => BapxContextInternal;
 
 export interface WorkflowSchedulingPhases {
 	admitted: Promise<void>;
@@ -218,7 +218,7 @@ export interface InvokeWorkflowAttachedOptions {
 	input: unknown;
 	request: Request;
 	createContext: CreateWorkflowContextFn;
-	onEvent?: FlueEventCallback;
+	onEvent?: BapxEventCallback;
 	runStore?: RunStore;
 	eventStreamStore: EventStreamStore;
 }
@@ -257,7 +257,7 @@ interface WorkflowAdmissionOptions {
 	workflow: WorkflowDefinition;
 	input: unknown;
 	request: Request;
-	traceCarrier?: FlueTraceCarrier;
+	traceCarrier?: BapxTraceCarrier;
 	createContext: CreateWorkflowContextFn;
 	startWorkflowAdmission: StartWorkflowAdmissionFn;
 	runStore?: RunStore;
@@ -357,7 +357,7 @@ function startWorkflowExecution(execution: AdmittedWorkflowExecution): WorkflowS
 async function detachWorkflowExecution(execution: AdmittedWorkflowExecution): Promise<void> {
 	const scheduling = startWorkflowExecution(execution);
 	scheduling.completion.catch((error) => {
-		console.error('[flue] Workflow run failed:', execution.runId, error);
+		console.error('[bapX] Workflow run failed:', execution.runId, error);
 	});
 	await scheduling.admitted;
 }
@@ -456,11 +456,11 @@ export async function failRecoveredRun(opts: FailRecoveredRunOptions): Promise<v
 	});
 }
 
-async function readRecoveryEvents(opts: FailRecoveredRunOptions): Promise<FlueEvent[]> {
+async function readRecoveryEvents(opts: FailRecoveredRunOptions): Promise<BapxEvent[]> {
 	const streamPath = runStreamPath(opts.runId);
 	// Read all events — recovery needs the history to find a terminal
 	// run_end, the run_start input fallback, and the highest persisted event index.
-	const events: FlueEvent[] = [];
+	const events: BapxEvent[] = [];
 	let offset = '-1';
 	while (true) {
 		const result = await opts.eventStreamStore.readEvents(streamPath, { offset });
@@ -477,7 +477,7 @@ async function readRecoveryEvents(opts: FailRecoveredRunOptions): Promise<FlueEv
 async function reconcileTerminalRun(
 	opts: FailRecoveredRunOptions,
 	run: Awaited<ReturnType<RunStore['getRun']>> | undefined,
-	terminalEvent: Extract<FlueEvent, { type: 'run_end' }> | undefined,
+	terminalEvent: Extract<BapxEvent, { type: 'run_end' }> | undefined,
 ): Promise<void> {
 	const isError = terminalEvent?.isError ?? run?.isError ?? false;
 	const result = terminalEvent?.result !== undefined ? terminalEvent.result : run?.result;
@@ -514,11 +514,11 @@ async function reconcileTerminalRun(
 }
 
 function findTerminalRunEvent(
-	events: FlueEvent[],
-): Extract<FlueEvent, { type: 'run_end' }> | undefined {
+	events: BapxEvent[],
+): Extract<BapxEvent, { type: 'run_end' }> | undefined {
 	return [...events]
 		.reverse()
-		.find((event): event is Extract<FlueEvent, { type: 'run_end' }> => event.type === 'run_end');
+		.find((event): event is Extract<BapxEvent, { type: 'run_end' }> => event.type === 'run_end');
 }
 
 async function runSyncMode(execution: AdmittedWorkflowExecution): Promise<Response> {
@@ -564,7 +564,7 @@ export async function invokeWorkflowAttached(
 
 async function executeWorkflowDefinition(
 	workflow: WorkflowDefinition,
-	ctx: FlueContextInternal,
+	ctx: BapxContextInternal,
 	input: unknown,
 ): Promise<unknown> {
 	const parsedInput = parseActionInput(workflow.action, input);
@@ -587,7 +587,7 @@ interface WorkflowRunLifecycleOptions {
 	runId: string;
 	input: unknown;
 	request: Request;
-	traceCarrier?: FlueTraceCarrier;
+	traceCarrier?: BapxTraceCarrier;
 	createContext: CreateWorkflowContextFn;
 	runStore?: RunStore;
 	eventStreamStore: EventStreamStore;
@@ -595,7 +595,7 @@ interface WorkflowRunLifecycleOptions {
 }
 
 interface WorkflowRunLifecycle extends WorkflowRunLifecycleOptions {
-	ctx: FlueContextInternal;
+	ctx: BapxContextInternal;
 	startedAt: string;
 	startedAtMs: number;
 }
@@ -621,7 +621,7 @@ async function createWorkflowRunLifecycle(
 			);
 	} catch (error) {
 		console.error(
-			'[flue] Workflow admission error:',
+			'[bapX] Workflow admission error:',
 			{
 				workflowName,
 				runId: options.runId,
@@ -746,12 +746,12 @@ async function emitRunEnd(
 	try {
 		await eventStreamStore.appendEvent(runStreamPath(runId), decorated);
 	} catch (e) {
-		console.error('[flue:event-stream] appendEvent(run_end) failed:', e);
+		console.error('[bapX:event-stream] appendEvent(run_end) failed:', e);
 	}
 	try {
 		await eventStreamStore.closeStream(runStreamPath(runId));
 	} catch (e) {
-		console.error('[flue:event-stream] closeStream failed:', e);
+		console.error('[bapX:event-stream] closeStream failed:', e);
 	}
 
 	if (runStore)
@@ -789,7 +789,7 @@ function subscribeRunFanout(lifecycle: WorkflowRunLifecycle): () => Promise<void
 	const pending: Promise<void>[] = [];
 
 	// ── Streaming event buffering ────────────────────────────────────────
-	let bufferedEvents: FlueEvent[] = [];
+	let bufferedEvents: BapxEvent[] = [];
 	let bufferTimer: ReturnType<typeof setTimeout> | undefined;
 
 	function flushBufferedEvents(): void {
@@ -801,7 +801,7 @@ function subscribeRunFanout(lifecycle: WorkflowRunLifecycle): () => Promise<void
 				eventStreamStore.appendEvent(streamPath, event).then(
 					() => {},
 					(error) => {
-						console.error('[flue:event-stream] appendEvent failed:', error);
+						console.error('[bapX:event-stream] appendEvent failed:', error);
 					},
 				),
 			);
@@ -831,7 +831,7 @@ function subscribeRunFanout(lifecycle: WorkflowRunLifecycle): () => Promise<void
 			eventStreamStore.appendEvent(streamPath, event).then(
 				() => {},
 				(error) => {
-					console.error('[flue:event-stream] appendEvent failed:', error);
+					console.error('[bapX:event-stream] appendEvent failed:', error);
 				},
 			),
 		);
@@ -857,7 +857,7 @@ async function persistRunAdmission(
 		await fn();
 		return true;
 	} catch (error) {
-		console.error(`[flue:run-store] ${label} failed:`, error);
+		console.error(`[bapX:run-store] ${label} failed:`, error);
 		if (required) throw error;
 		return false;
 	}

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createIntercomChannel } from '../src/index.ts';
 
 const encoder = new TextEncoder();
-const CLIENT_SECRET = 'flue-intercom-workerd-secret';
+const CLIENT_SECRET = 'bapX-intercom-workerd-secret';
 
 describe('@bapX/intercom workerd ingress', () => {
 	it('verifies exact bytes and preserves a future topic when running in workerd', async () => {

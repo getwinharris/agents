@@ -3,10 +3,10 @@ import type { ActionDefinition } from './action.ts';
 import { discoverSessionContext } from './context.ts';
 import type { ConversationRecordWriter } from './conversation-writer.ts';
 import { SessionAlreadyExistsError, SessionNotFoundError } from './errors.ts';
-import type { FlueExecutionContext } from './execution-interceptor.ts';
+import type { BapxExecutionContext } from './execution-interceptor.ts';
 import type { AttachmentStore } from './runtime/attachment-store.ts';
 import { generateConversationId, generateSessionAffinityKey } from './runtime/ids.ts';
-import { createCwdSessionEnv, createFlueFs } from './sandbox.ts';
+import { createCwdSessionEnv, createBapxFs } from './sandbox.ts';
 import {
 	type CreateTaskSessionOptions,
 	createPublicSession,
@@ -22,13 +22,13 @@ import type {
 	AgentConfig,
 	AgentProfile,
 	CallHandle,
-	FlueEventInput,
-	FlueEventInputCallback,
-	FlueFs,
-	FlueHarness,
-	FlueObservationDetail,
-	FlueSession,
-	FlueSessions,
+	BapxEventInput,
+	BapxEventInputCallback,
+	BapxFs,
+	BapxHarness,
+	BapxObservationDetail,
+	BapxSession,
+	BapxSessions,
 	SessionEnv,
 	SessionToolFactory,
 	ShellOptions,
@@ -40,13 +40,13 @@ const DEFAULT_SESSION_NAME = 'default';
 
 type OpenMode = 'get-or-create' | 'get' | 'create';
 
-export class Harness implements FlueHarness {
-	readonly sessions: FlueSessions = {
+export class Harness implements BapxHarness {
+	readonly sessions: BapxSessions = {
 		get: (name?: string) => this.openSession(name, 'get'),
 		create: (name?: string) => this.openSession(name, 'create'),
 	};
 
-	readonly fs: FlueFs;
+	readonly fs: BapxFs;
 
 	private openSessions = new Map<string, Session>();
 	private pendingSessionOperations = new Map<string, Promise<void>>();
@@ -59,14 +59,14 @@ export class Harness implements FlueHarness {
 		readonly name: string,
 		private config: AgentConfig,
 		private env: SessionEnv,
-		private eventCallback: FlueEventInputCallback | undefined,
+		private eventCallback: BapxEventInputCallback | undefined,
 
 		private agentTools: ToolDefinition[],
 		private toolFactory: SessionToolFactory | undefined,
 		private conversationWriter: ConversationRecordWriter,
 		private attachmentStore: AttachmentStore,
 		private actions: ActionDefinition[] = config.actions ?? [],
-		private executionContext: FlueExecutionContext = {},
+		private executionContext: BapxExecutionContext = {},
 		private scopeName?: string,
 		private scopeDepth = 0,
 		private retainSession?: (
@@ -76,7 +76,7 @@ export class Harness implements FlueHarness {
 		) => Promise<void>,
 		scopeSignal?: AbortSignal,
 	) {
-		this.fs = createFlueFs(env);
+		this.fs = createBapxFs(env);
 		if (scopeSignal) {
 			if (scopeSignal.aborted) this.scopeAbortController.abort(scopeSignal.reason);
 			else
@@ -88,7 +88,7 @@ export class Harness implements FlueHarness {
 		}
 	}
 
-	async session(name?: string): Promise<FlueSession> {
+	async session(name?: string): Promise<BapxSession> {
 		return this.openSession(name, 'get-or-create');
 	}
 
@@ -114,13 +114,13 @@ export class Harness implements FlueHarness {
 		return call;
 	}
 
-	private async openSession(name: string | undefined, mode: OpenMode): Promise<FlueSession> {
+	private async openSession(name: string | undefined, mode: OpenMode): Promise<BapxSession> {
 		const sessionName = normalizeSessionName(name);
 		assertPublicSessionName(sessionName);
 		const session = await this.runSessionOperation(sessionName, () =>
 			this.loadSession(sessionName, mode),
 		);
-		// User code only ever receives the FlueSession facade; the internal
+		// User code only ever receives the BapxSession facade; the internal
 		// Session (durable submission executor, abort/close, metadata) stays
 		// runtime-owned.
 		return createPublicSession(session);
@@ -217,7 +217,7 @@ export class Harness implements FlueHarness {
 			? this.config.resolveModel(taskAgent.model)
 			: this.config.model;
 		if (!taskModel) {
-			throw new Error(`[flue] Subagent model "${taskAgent?.model}" could not be resolved.`);
+			throw new Error(`[bapX] Subagent model "${taskAgent?.model}" could not be resolved.`);
 		}
 		const taskConfig: AgentConfig = {
 			...this.config,
@@ -245,7 +245,7 @@ export class Harness implements FlueHarness {
 		const conversationId =
 			options.existing?.conversationId ??
 			(await this.createChildConversation(options, harnessScope, sessionName, taskAgent));
-		const eventCallback: FlueEventInputCallback | undefined = this.eventCallback
+		const eventCallback: BapxEventInputCallback | undefined = this.eventCallback
 			? (event, observation) => {
 					this.eventCallback?.({
 						...event,
@@ -362,13 +362,13 @@ export class Harness implements FlueHarness {
 		return this.closePromise;
 	}
 
-	private emit(event: FlueEventInput, observation?: FlueObservationDetail): void {
+	private emit(event: BapxEventInput, observation?: BapxObservationDetail): void {
 		this.eventCallback?.({ ...event, harness: event.harness ?? this.name }, observation);
 	}
 
 	private decorateEventCallback(
-		callback: FlueEventInputCallback | undefined,
-	): FlueEventInputCallback | undefined {
+		callback: BapxEventInputCallback | undefined,
+	): BapxEventInputCallback | undefined {
 		return callback
 			? (event, observation) => {
 					callback({ ...event, harness: event.harness ?? this.name }, observation);

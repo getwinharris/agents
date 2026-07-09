@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-	entry: { 'flue-dev-console': 'bin/flue-dev-console.ts' },
+	entry: { 'bapX-dev-console': 'bin/bapX-dev-console.ts' },
 	format: ['esm'],
 	dts: false,
 	clean: true,

@@ -211,7 +211,7 @@ async function createHarness(): Promise<Harness> {
 	if (!url) throw new TypeError('TEST_MONGODB_URL is required.');
 	const client = new MongoClient(url);
 	await client.connect();
-	const db = client.db(`flue_test_${randomUUID().replaceAll('-', '')}`);
+	const db = client.db(`bapX_test_${randomUUID().replaceAll('-', '')}`);
 	const adapter = mongodb(createRunner(client, db));
 	await adapter.migrate?.();
 	return { client, db, adapter };
@@ -320,12 +320,12 @@ describeMongo('mongodb() integration', () => {
 		if (!harness) throw new TypeError('Harness is required.');
 		// Corrupt persisted metadata so the row no longer matches its payload.
 		await harness.db
-			.collection('flue_submissions')
+			.collection('bapX_submissions')
 			.updateOne({ submissionId: 'malformed' }, { $set: { acceptedAt: 1 } });
 		const runnable = await submissions.listRunnableSubmissions();
 		expect(runnable.map((item) => item.submissionId)).toEqual(['healthy']);
 		expect(
-			await harness.db.collection('flue_submissions').findOne({ submissionId: 'malformed' }),
+			await harness.db.collection('bapX_submissions').findOne({ submissionId: 'malformed' }),
 		).toMatchObject({ status: 'settled', error: expect.stringContaining('malformed') });
 		// A later pass must not resurrect or re-report the terminalized row.
 		expect((await submissions.listRunnableSubmissions()).map((item) => item.submissionId)).toEqual([
@@ -349,12 +349,12 @@ describeMongo('mongodb() integration', () => {
 		void value;
 		if (!harness) throw new TypeError('Harness is required.');
 		await harness.db
-			.collection<{ _id: string; value: number }>('flue_meta')
+			.collection<{ _id: string; value: number }>('bapX_meta')
 			.updateOne({ _id: 'schema_version' }, { $set: { value: 2 } });
 		await expect(harness.adapter.migrate?.()).rejects.toThrow(PersistedSchemaVersionError);
 		expect(
 			await harness.db
-				.collection<{ _id: string; value: number }>('flue_meta')
+				.collection<{ _id: string; value: number }>('bapX_meta')
 				.findOne({ _id: 'schema_version' }),
 		).toMatchObject({ value: 2 });
 		await cleanup();
@@ -364,7 +364,7 @@ describeMongo('mongodb() integration', () => {
 		void value;
 		if (!harness) throw new TypeError('Harness is required.');
 		await harness.db
-			.collection<{ _id: string; value: number }>('flue_meta')
+			.collection<{ _id: string; value: number }>('bapX_meta')
 			.updateOne({ _id: 'schema_version' }, { $set: { value: 999 } });
 		await expect(harness.adapter.migrate?.()).rejects.toThrow(PersistedSchemaVersionError);
 		await cleanup();

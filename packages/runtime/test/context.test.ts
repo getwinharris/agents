@@ -5,9 +5,9 @@ import {
 } from '@earendil-works/pi-ai/compat';
 import { afterEach, describe, expect, it } from 'vitest';
 import { defineAgent } from '../src/index.ts';
-import type { FlueContextConfig } from '../src/internal.ts';
-import { createFlueContext, resolveModel } from '../src/internal.ts';
-import type { FlueEvent, SessionEnv } from '../src/types.ts';
+import type { BapxContextConfig } from '../src/internal.ts';
+import { createBapxContext, resolveModel } from '../src/internal.ts';
+import type { BapxEvent, SessionEnv } from '../src/types.ts';
 
 const providers: FauxProviderRegistration[] = [];
 
@@ -79,8 +79,8 @@ function createEnv({
 	};
 }
 
-function createContext(overrides: Partial<FlueContextConfig> = {}) {
-	return createFlueContext({
+function createContext(overrides: Partial<BapxContextConfig> = {}) {
+	return createBapxContext({
 		id: 'context-instance',
 		env: {},
 		agentConfig: {
@@ -91,7 +91,7 @@ function createContext(overrides: Partial<FlueContextConfig> = {}) {
 	});
 }
 
-describe('FlueContext', () => {
+describe('BapxContext', () => {
 	it('exposes id env and request when the runtime creates a context', () => {
 		const env = { API_KEY: 'test-key' };
 		const req = new Request('https://example.com/agents/reviewer', {
@@ -105,7 +105,7 @@ describe('FlueContext', () => {
 	});
 
 	it('decorates workflow events with run identity when a context has a run id', () => {
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const ctx = createContext({ id: 'workflow-instance', runId: 'run-123' });
 		ctx.setEventCallback((event) => {
 			events.push(event);
@@ -125,7 +125,7 @@ describe('FlueContext', () => {
 	});
 
 	it('decorates agent events with instance identity when a context has no run id', () => {
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const ctx = createContext({ id: 'agent-instance' });
 		ctx.setEventCallback((event) => {
 			events.push(event);
@@ -145,7 +145,7 @@ describe('FlueContext', () => {
 	});
 
 	it('decorates agent events with dispatch identity when a context has a dispatch id', () => {
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const ctx = createContext({ id: 'agent-instance', dispatchId: 'dispatch-123' });
 		ctx.setEventCallback((event) => {
 			events.push(event);
@@ -166,7 +166,7 @@ describe('FlueContext', () => {
 	});
 
 	it('assigns increasing event indexes when a context emits multiple events', () => {
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const ctx = createContext({ id: 'agent-indexed' });
 		ctx.setEventCallback((event) => {
 			events.push(event);
@@ -202,7 +202,7 @@ describe('FlueContext', () => {
 	});
 
 	it('emits structured log events when application code calls context log methods', () => {
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const ctx = createContext({ id: 'agent-logger' });
 		ctx.setEventCallback((event) => {
 			events.push(event);
@@ -247,7 +247,7 @@ describe('FlueContext', () => {
 	});
 
 	it('serializes attributes.error when application code logs an Error instance', () => {
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const ctx = createContext({ id: 'agent-error-logger' });
 		ctx.setEventCallback((event) => {
 			events.push(event);
@@ -302,7 +302,7 @@ describe('session context discovery', () => {
 	it('includes agent instructions and discovered AGENTS.md content when the initial model request begins', async () => {
 		const provider = createProvider();
 		provider.setResponses([fauxAssistantMessage('Reviewed.')]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const ctx = createContext({
 			agentConfig: {
 				resolveModel: () => provider.getModel(),
@@ -324,11 +324,11 @@ describe('session context discovery', () => {
 		await session.prompt('Review this workspace.');
 
 		const request = events.find(
-			(event): event is Extract<FlueEvent, { type: 'turn_request' }> =>
+			(event): event is Extract<BapxEvent, { type: 'turn_request' }> =>
 				event.type === 'turn_request',
 		);
 		const terminal = events.find(
-			(event): event is Extract<FlueEvent, { type: 'turn' }> => event.type === 'turn',
+			(event): event is Extract<BapxEvent, { type: 'turn' }> => event.type === 'turn',
 		);
 		expect(request).toMatchObject({
 			request: {
@@ -362,7 +362,7 @@ describe('session context discovery', () => {
 	it('includes CLAUDE.md content when it exists beside AGENTS.md', async () => {
 		const provider = createProvider();
 		provider.setResponses([fauxAssistantMessage('Reviewed.')]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const ctx = createContext({
 			agentConfig: {
 				resolveModel: () => provider.getModel(),
@@ -388,7 +388,7 @@ describe('session context discovery', () => {
 		await session.prompt('Review this workspace.');
 
 		const request = events.find(
-			(event): event is Extract<FlueEvent, { type: 'turn_request' }> =>
+			(event): event is Extract<BapxEvent, { type: 'turn_request' }> =>
 				event.type === 'turn_request',
 		);
 		const systemPrompt = request?.request.input.systemPrompt ?? '';
@@ -402,7 +402,7 @@ describe('session context discovery', () => {
 	it('discovers context from the agent-definition cwd when a relative cwd is configured', async () => {
 		const provider = createProvider();
 		provider.setResponses([fauxAssistantMessage('Reviewed.')]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const ctx = createContext({
 			agentConfig: {
 				resolveModel: () => provider.getModel(),
@@ -430,7 +430,7 @@ describe('session context discovery', () => {
 		await session.prompt('Review this workspace.');
 
 		const request = events.find(
-			(event): event is Extract<FlueEvent, { type: 'turn_request' }> =>
+			(event): event is Extract<BapxEvent, { type: 'turn_request' }> =>
 				event.type === 'turn_request',
 		);
 		const systemPrompt = request?.request.input.systemPrompt ?? '';
@@ -442,7 +442,7 @@ describe('session context discovery', () => {
 	it('scopes a custom sandbox cwd once when a relative agent-definition cwd is configured', async () => {
 		const provider = createProvider();
 		provider.setResponses([fauxAssistantMessage('Reviewed.')]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const factoryOptions: { id: string }[] = [];
 		const ctx = createContext({
 			agentConfig: {
@@ -475,7 +475,7 @@ describe('session context discovery', () => {
 		await session.prompt('Review this workspace.');
 
 		const request = events.find(
-			(event): event is Extract<FlueEvent, { type: 'turn_request' }> =>
+			(event): event is Extract<BapxEvent, { type: 'turn_request' }> =>
 				event.type === 'turn_request',
 		);
 		const systemPrompt = request?.request.input.systemPrompt ?? '';

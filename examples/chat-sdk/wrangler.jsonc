@@ -2,19 +2,30 @@
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "chat-sdk-example",
 	"compatibility_date": "2026-06-01",
-	"compatibility_flags": ["nodejs_compat"],
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
 	"migrations": [
 		{
 			"tag": "bapX-class-Assistant",
-			"new_sqlite_classes": ["Assistant"]
+			"new_sqlite_classes": [
+				"Assistant"
+			]
 		},
 		{
-			"tag": "bapX-class-FlueRegistry",
-			"new_sqlite_classes": ["FlueRegistry"]
+			"tag": "bapX-class-BapxRegistry",
+			"new_sqlite_classes": [
+				"BapxRegistry"
+			]
 		},
 		{
 			"tag": "bapX-rename-generated-classes",
-			"renamed_classes": [{ "from": "Assistant", "to": "FlueAssistantAgent" }]
+			"renamed_classes": [
+				{
+					"from": "Assistant",
+					"to": "BapxAssistantAgent"
+				}
+			]
 		}
 	]
 }

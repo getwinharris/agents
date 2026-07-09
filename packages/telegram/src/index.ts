@@ -43,7 +43,7 @@ export interface TelegramChannelOptions<E extends Env = Env> {
 }
 
 /**
- * Canonical Telegram destination suitable for a Flue agent-instance id.
+ * Canonical Telegram destination suitable for a Bapx agent-instance id.
  *
  * This is an identifier, not an authorization capability. A caller able to
  * choose an agent id by another route must be authorized before its

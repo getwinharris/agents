@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { type FlueObservation, observe } from '../src/index.ts';
-import { createFlueContext, resolveModel } from '../src/internal.ts';
+import { type BapxObservation, observe } from '../src/index.ts';
+import { createBapxContext, resolveModel } from '../src/internal.ts';
 
 function createContext(id: string) {
-	return createFlueContext({
+	return createBapxContext({
 		id,
 		env: {},
 		agentConfig: {
@@ -99,7 +99,7 @@ describe('observe()', () => {
 			ctx.emitEvent({ type: 'idle' });
 
 			expect(events).toEqual(['idle']);
-			expect(failure).toHaveBeenCalledWith('[flue:observe] subscriber failed:', error);
+			expect(failure).toHaveBeenCalledWith('[bapX:observe] subscriber failed:', error);
 		} finally {
 			stopThrowing();
 			stopRecording();
@@ -124,7 +124,7 @@ describe('observe()', () => {
 
 			expect(events).toEqual(['idle']);
 			await vi.waitFor(() => {
-				expect(failure).toHaveBeenCalledWith('[flue:observe] subscriber failed:', error);
+				expect(failure).toHaveBeenCalledWith('[bapX:observe] subscriber failed:', error);
 			});
 		} finally {
 			stopRejecting();
@@ -151,7 +151,7 @@ describe('observe()', () => {
 	});
 
 	it('delivers events with circular values when an event is emitted', () => {
-		const events: FlueObservation[] = [];
+		const events: BapxObservation[] = [];
 		const stopObserving = observe((event, ctx) => {
 			if (ctx.id === 'observe-circular-values') events.push(event);
 		});
@@ -173,7 +173,7 @@ describe('observe()', () => {
 				v: event.v,
 			});
 			const observedCircular = (
-				events[0] as Extract<FlueObservation, { type: 'log' }>
+				events[0] as Extract<BapxObservation, { type: 'log' }>
 			).attributes?.circular as { self?: unknown };
 			expect(observedCircular.self).toBe(observedCircular);
 		} finally {
@@ -182,7 +182,7 @@ describe('observe()', () => {
 	});
 
 	it('adds observation-only detail without changing product events', () => {
-		const observations: FlueObservation[] = [];
+		const observations: BapxObservation[] = [];
 		const productEvents: unknown[] = [];
 		const stopObserving = observe((event, ctx) => {
 			if (ctx.id === 'observe-detail') observations.push(event);

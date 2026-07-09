@@ -6,23 +6,23 @@
 }
 ---
 
-# Add a Telegram Channel to Flue
+# Add a Telegram Channel to Bapx
 
 You are an AI coding agent adding verified Telegram Bot API webhook ingress
-with project-owned outbound Telegram access to a Flue project.
+with project-owned outbound Telegram access to a Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.flue/`, then `<root>/src/`, then
+first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 which Telegram Update families the application handles.
 
-Install `@bapX/telegram` and `grammy@^1.44.0`. Flue owns verified webhook
+Install `@bapX/telegram` and `grammy@^1.44.0`. Bapx owns verified webhook
 ingress. The project owns grammY's full `Api` client, update policy, durable
 deduplication, and every outbound tool.
 
-grammY's browser/Fetch export executes in Node and workerd with Flue's required
+grammY's browser/Fetch export executes in Node and workerd with Bapx's required
 `nodejs_compat` configuration. Keep a workerd fake-transport test for every Bot
 API operation the project relies on.
 
@@ -39,7 +39,7 @@ grammY). At most one of its optional fields is present per update, so branch on
 those fields directly. Derive the conversation key from the native `Message`.
 
 ```ts
-// flue-blueprint: channel/telegram@1
+// bapX-blueprint: channel/telegram@1
 import {
   createTelegramChannel,
   type TelegramConversationRef,
@@ -203,7 +203,7 @@ the id in durable application storage before dispatch when duplicate admission
 is unacceptable.
 
 Webhook delivery and `getUpdates` polling are mutually exclusive. Do not add
-polling lifecycle behavior to the Flue channel.
+polling lifecycle behavior to the Bapx channel.
 
 ## Respect identity boundaries
 

@@ -6,16 +6,16 @@
 }
 ---
 
-# Add a Flue Sandbox Adapter: Modal
+# Add a Bapx Sandbox Adapter: Modal
 
-You are an AI coding agent installing the Modal sandbox adapter for a Flue
+You are an AI coding agent installing the Modal sandbox adapter for a Bapx
 project. Follow these instructions exactly. Confirm with the user only when
 something is genuinely ambiguous (e.g. an unusual project layout).
 
 ## What this adapter does
 
 Wraps an already-initialized Modal Sandbox (created with the user's own
-`modal` JS SDK client) into Flue's `SandboxFactory` interface. The user owns
+`modal` JS SDK client) into Bapx's `SandboxFactory` interface. The user owns
 the Modal Sandbox lifecycle; this adapter just adapts the sandbox.
 
 A few things worth knowing about Modal that shape this adapter:
@@ -23,7 +23,7 @@ A few things worth knowing about Modal that shape this adapter:
 - Modal's `sandbox.exec()` returns a long-running `ContainerProcess` with
   `stdout`/`stderr` streams, not a `{ stdout, stderr, exitCode }` result.
   The adapter pipes both streams to completion and waits for the exit
-  code so it conforms to Flue's `SandboxApi.exec` shape.
+  code so it conforms to Bapx's `SandboxApi.exec` shape.
 - Modal's filesystem API only exposes file open/read/write/close. There is
   no native `mkdir`, `rm`, `stat`, `readdir`, or `exists`, so those are
   implemented by shelling out (the same pattern the boxd adapter uses).
@@ -34,7 +34,7 @@ A few things worth knowing about Modal that shape this adapter:
 
 ## Where to write the file
 
-Select the first existing source directory: `<root>/.flue/`, then `<root>/src/`,
+Select the first existing source directory: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Write the adapter to `<source-dir>/sandboxes/modal.ts`.
 
 If neither feels right (uncommon layout, multiple workspaces, etc.), ask the
@@ -48,13 +48,13 @@ Write this file verbatim. Do not "improve" it — it conforms to the published
 `SandboxApi` contract.
 
 ```ts
-// flue-blueprint: sandbox/modal@1
+// bapX-blueprint: sandbox/modal@1
 /**
- * Modal adapter for Flue.
+ * Modal adapter for Bapx.
  *
- * Wraps an already-initialized Modal Sandbox into Flue's SandboxFactory
+ * Wraps an already-initialized Modal Sandbox into Bapx's SandboxFactory
  * interface. The user creates and configures the Sandbox using the Modal
- * JS SDK directly — Flue just adapts it.
+ * JS SDK directly — Bapx just adapts it.
  *
  * @example
  * ```typescript
@@ -81,7 +81,7 @@ export interface ModalAdapterOptions {
 	 * Default working directory for `exec()` calls when the caller doesn't
 	 * pass one. Modal sandboxes don't have a strict notion of a "default
 	 * cwd" — it's whatever the underlying image's WORKDIR is — so this is
-	 * also the value Flue uses to resolve relative paths in the session.
+	 * also the value Bapx uses to resolve relative paths in the session.
 	 * Defaults to "/".
 	 */
 	cwd?: string;
@@ -147,7 +147,7 @@ class ModalSandboxApi implements SandboxApi {
 		);
 		if (result.exitCode !== 0 || !result.stdout.trim()) {
 			throw new Error(
-				`[flue:modal] stat failed for ${path}: ` +
+				`[bapX:modal] stat failed for ${path}: ` +
 					(result.stderr || result.stdout || `exit ${result.exitCode}`),
 			);
 		}
@@ -165,7 +165,7 @@ class ModalSandboxApi implements SandboxApi {
 			!Number.isSafeInteger(mtimeSecs) ||
 			!Number.isFinite(mtime.getTime())
 		) {
-			throw new Error(`[flue:modal] malformed stat output for ${path}`);
+			throw new Error(`[bapX:modal] malformed stat output for ${path}`);
 		}
 		return {
 			isFile: type === 'regular file' || type === 'regular empty file',
@@ -181,7 +181,7 @@ class ModalSandboxApi implements SandboxApi {
 		const result = await this.runShell(`ls -A1 ${shellQuote(path)}`);
 		if (result.exitCode !== 0) {
 			throw new Error(
-				`[flue:modal] readdir failed for ${path}: ` +
+				`[bapX:modal] readdir failed for ${path}: ` +
 					(result.stderr || result.stdout || `exit ${result.exitCode}`),
 			);
 		}
@@ -200,7 +200,7 @@ class ModalSandboxApi implements SandboxApi {
 		const result = await this.runShell(cmd);
 		if (result.exitCode !== 0) {
 			throw new Error(
-				`[flue:modal] mkdir failed for ${path}: ` +
+				`[bapX:modal] mkdir failed for ${path}: ` +
 					(result.stderr || result.stdout || `exit ${result.exitCode}`),
 			);
 		}
@@ -212,7 +212,7 @@ class ModalSandboxApi implements SandboxApi {
 		const result = await this.runShell(`rm${flagArg} ${shellQuote(path)}`);
 		if (result.exitCode !== 0) {
 			throw new Error(
-				`[flue:modal] rm failed for ${path}: ` +
+				`[bapX:modal] rm failed for ${path}: ` +
 					(result.stderr || result.stdout || `exit ${result.exitCode}`),
 			);
 		}
@@ -240,13 +240,13 @@ class ModalSandboxApi implements SandboxApi {
 		},
 	): Promise<{ stdout: string; stderr: string; exitCode: number }> {
 		// Modal's exec takes argv (no shell parsing), so wrap in `bash -lc`
-		// so users can pass shell commands the way Flue's other adapters
+		// so users can pass shell commands the way Bapx's other adapters
 		// accept them. `pipe` for stdout/stderr is required to read them
 		// back; the default `ignore` discards output.
 		const proc = await this.sandbox.exec(['bash', '-lc', command], {
 			workdir: options?.cwd,
 			env: options?.env,
-			// Flue and Modal both express command timeouts in milliseconds.
+			// Bapx and Modal both express command timeouts in milliseconds.
 			timeoutMs: options?.timeoutMs,
 			stdout: 'pipe',
 			stderr: 'pipe',
@@ -265,8 +265,8 @@ class ModalSandboxApi implements SandboxApi {
 }
 
 /**
- * Create a Flue sandbox factory from an initialized Modal Sandbox.
- * The user owns the Sandbox lifecycle; Flue wraps it into a SessionEnv
+ * Create a Bapx sandbox factory from an initialized Modal Sandbox.
+ * The user owns the Sandbox lifecycle; Bapx wraps it into a SessionEnv
  * for agent use.
  */
 export function modal(sandbox: ModalSandbox, options?: ModalAdapterOptions): SandboxFactory {
@@ -317,12 +317,12 @@ Their conventions, an `AGENTS.md`, or an existing setup (`.env`,
 right answer. If nothing in the project gives you a clear signal, ask the
 user instead of guessing.
 
-For reference: `flue dev --env <file>` and `flue run --env <file>` load
+For reference: `bapX dev --env <file>` and `bapX run --env <file>` load
 any `.env`-format file the user points them at.
 
 ## Wiring it into an agent
 
-Here's what using this adapter looks like inside a Flue agent. If the
+Here's what using this adapter looks like inside a Bapx agent. If the
 user is already working on an agent that this adapter is meant to plug
 into, you can finish that work by wiring the adapter into it. Otherwise,
 share this snippet so they can wire it up themselves.
@@ -338,7 +338,7 @@ const agent = defineAgent(async () => {
   // ModalClient reads MODAL_TOKEN_ID / MODAL_TOKEN_SECRET (or ~/.modal.toml)
   // automatically.
   const client = new ModalClient();
-  const app = await client.apps.fromName('my-flue-app', { createIfMissing: true });
+  const app = await client.apps.fromName('my-bapX-app', { createIfMissing: true });
   const image = client.images.fromRegistry('python:3.13-slim');
   const sandbox = await client.sandboxes.create(app, image);
   return {
@@ -368,8 +368,8 @@ installing packages on every cold start.
    actually wrote the file.
 3. Tell the user the next steps: install `modal` (if you didn't), make sure
    `MODAL_TOKEN_ID` and `MODAL_TOKEN_SECRET` are available at runtime (per
-   the Authentication section above), and run `flue dev` (or
-   `flue run <workflow>`) to try it.
+   the Authentication section above), and run `bapX dev` (or
+   `bapX run <workflow>`) to try it.
 
 When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
 

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { InMemoryRunStore } from '../src/node/run-store.ts';
-import { configureFlueRuntime, resetFlueRuntimeForTests } from '../src/runtime/flue-app.ts';
+import { configureBapxRuntime, resetBapxRuntimeForTests } from '../src/runtime/bapX-app.ts';
 import { getRun, listAgents, listRuns } from '../src/runtime/inspect.ts';
 import {
 	cloudflareRuntime,
@@ -10,7 +10,7 @@ import {
 } from './helpers/runtime-config.ts';
 
 afterEach(() => {
-	resetFlueRuntimeForTests();
+	resetBapxRuntimeForTests();
 });
 
 describe('listRuns()', () => {
@@ -29,7 +29,7 @@ describe('listRuns()', () => {
 			isError: false,
 			result: { delivered: true },
 		});
-		configureFlueRuntime({ ...nodeRuntime(), runStore });
+		configureBapxRuntime({ ...nodeRuntime(), runStore });
 
 		await expect(listRuns()).resolves.toEqual({
 			runs: [
@@ -49,7 +49,7 @@ describe('listRuns()', () => {
 	it('forwards status, workflowName, limit, and cursor options to the run store', async () => {
 		const runStore = new InMemoryRunStore();
 		const listRunsSpy = vi.spyOn(runStore, 'listRuns');
-		configureFlueRuntime({ ...nodeRuntime(), runStore });
+		configureBapxRuntime({ ...nodeRuntime(), runStore });
 
 		await listRuns({
 			status: 'errored',
@@ -80,7 +80,7 @@ describe('getRun()', () => {
 			startedAt: '2026-06-01T10:00:00.000Z',
 			input: { report: 'weekly' },
 		});
-		configureFlueRuntime({ ...nodeRuntime(), runStore });
+		configureBapxRuntime({ ...nodeRuntime(), runStore });
 
 		await expect(getRun('run_01DAILYREPORT')).resolves.toEqual({
 			runId: 'run_01DAILYREPORT',
@@ -92,7 +92,7 @@ describe('getRun()', () => {
 	});
 
 	it('returns null when no run with the id is recorded', async () => {
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...nodeRuntime(),
 			runStore: new InMemoryRunStore(),
 		});
@@ -114,7 +114,7 @@ describe('getRun()', () => {
 			expect(url.searchParams.has('meta')).toBe(true);
 			return Response.json({ runId: 'run_01DAILYREPORT', status: 'completed' });
 		});
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...cloudflareRuntime(),
 			createRunIndexForRequest: () => runIndex,
 			routeRunRequest,
@@ -133,7 +133,7 @@ describe('getRun()', () => {
 
 describe('listAgents()', () => {
 	it('returns built agents from the ambient deployment manifest', async () => {
-		configureFlueRuntime({
+		configureBapxRuntime({
 			...nodeRuntime(),
 			agents: [
 				agentRecord('support', {

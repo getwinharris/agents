@@ -1,16 +1,16 @@
 import type {
-	FlueClient,
-	FlueConversationMessage,
-	FlueEvent,
-	FlueEventStream,
+	BapxClient,
+	BapxConversationMessage,
+	BapxEvent,
+	BapxEventStream,
 } from '@bapX/sdk';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { useFlueAgent } from '../src/use-agent.ts';
-import { useFlueWorkflow } from '../src/use-workflow.ts';
+import { useBapxAgent } from '../src/use-agent.ts';
+import { useBapxWorkflow } from '../src/use-workflow.ts';
 import { conversation, createFakeObservation } from './fixtures/observation.ts';
 
-function eventStream<T>(events: T[], offset = 'offset-1'): FlueEventStream<T> {
+function eventStream<T>(events: T[], offset = 'offset-1'): BapxEventStream<T> {
 	return {
 		offset,
 		cancel: vi.fn(),
@@ -20,7 +20,7 @@ function eventStream<T>(events: T[], offset = 'offset-1'): FlueEventStream<T> {
 	};
 }
 
-function pendingStream<T>(): FlueEventStream<T> & { push(event: T): void } {
+function pendingStream<T>(): BapxEventStream<T> & { push(event: T): void } {
 	const values: T[] = [];
 	let wake: (() => void) | undefined;
 	let canceled = false;
@@ -44,12 +44,12 @@ function pendingStream<T>(): FlueEventStream<T> & { push(event: T): void } {
 	};
 }
 
-function client(overrides: Partial<FlueClient>): FlueClient {
-	return overrides as FlueClient;
+function client(overrides: Partial<BapxClient>): BapxClient {
+	return overrides as BapxClient;
 }
 
-describe('useFlueAgent()', () => {
-	const historyMessages: FlueConversationMessage[] = [
+describe('useBapxAgent()', () => {
+	const historyMessages: BapxConversationMessage[] = [
 		{
 			id: 'entry-user',
 			role: 'user',
@@ -63,9 +63,9 @@ describe('useFlueAgent()', () => {
 	it('reports history ready only after the observed transcript is available', async () => {
 		const observation = createFakeObservation();
 		const observe = vi.fn().mockReturnValue(observation);
-		const flue = client({ agents: { observe } as unknown as FlueClient['agents'] });
+		const bapX = client({ agents: { observe } as unknown as BapxClient['agents'] });
 		const { result, unmount } = renderHook(() =>
-			useFlueAgent({ name: 'agent', id: 'id', client: flue }),
+			useBapxAgent({ name: 'agent', id: 'id', client: bapX }),
 		);
 
 		expect(result.current.historyReady).toBe(false);
@@ -87,9 +87,9 @@ describe('useFlueAgent()', () => {
 	it('forwards the configured live mode to observe()', async () => {
 		const observation = createFakeObservation();
 		const observe = vi.fn().mockReturnValue(observation);
-		const flue = client({ agents: { observe } as unknown as FlueClient['agents'] });
+		const bapX = client({ agents: { observe } as unknown as BapxClient['agents'] });
 		const { unmount } = renderHook(() =>
-			useFlueAgent({ name: 'agent', id: 'id', live: 'long-poll', client: flue }),
+			useBapxAgent({ name: 'agent', id: 'id', live: 'long-poll', client: bapX }),
 		);
 
 		await waitFor(() => expect(observe).toHaveBeenCalledTimes(1));
@@ -100,8 +100,8 @@ describe('useFlueAgent()', () => {
 	it('defaults to sse live mode for smoother streaming when none is configured', async () => {
 		const observation = createFakeObservation();
 		const observe = vi.fn().mockReturnValue(observation);
-		const flue = client({ agents: { observe } as unknown as FlueClient['agents'] });
-		const { unmount } = renderHook(() => useFlueAgent({ name: 'agent', id: 'id', client: flue }));
+		const bapX = client({ agents: { observe } as unknown as BapxClient['agents'] });
+		const { unmount } = renderHook(() => useBapxAgent({ name: 'agent', id: 'id', client: bapX }));
 
 		await waitFor(() => expect(observe).toHaveBeenCalledTimes(1));
 		expect(observe).toHaveBeenCalledWith('agent', 'id', { live: 'sse' });
@@ -109,8 +109,8 @@ describe('useFlueAgent()', () => {
 	});
 
 	it('stays dormant without an id while validating a client override', () => {
-		const flue = client({});
-		const { result } = renderHook(() => useFlueAgent({ name: 'agent', client: flue }));
+		const bapX = client({});
+		const { result } = renderHook(() => useBapxAgent({ name: 'agent', client: bapX }));
 
 		expect(result.current.status).toBe('idle');
 		expect(result.current.historyReady).toBe(false);
@@ -121,14 +121,14 @@ describe('useFlueAgent()', () => {
 		const observation = createFakeObservation();
 		const observe = vi.fn().mockReturnValue(observation);
 		const send = vi.fn().mockResolvedValue({
-			streamUrl: 'https://flue.test/agents/agent/id',
+			streamUrl: 'https://bapX.test/agents/agent/id',
 			offset: 'offset-history',
 			submissionId: 'submission-1',
 		});
-		const flue = client({
-			agents: { observe, send } as unknown as FlueClient['agents'],
+		const bapX = client({
+			agents: { observe, send } as unknown as BapxClient['agents'],
 		});
-		const { result } = renderHook(() => useFlueAgent({ name: 'agent', id: 'id', client: flue }));
+		const { result } = renderHook(() => useBapxAgent({ name: 'agent', id: 'id', client: bapX }));
 
 		act(() =>
 			observation.emit({
@@ -168,7 +168,7 @@ describe('useFlueAgent()', () => {
 	});
 });
 
-describe('useFlueWorkflow()', () => {
+describe('useBapxWorkflow()', () => {
 	it('derives completed state and logs from replay', async () => {
 		const events = [
 			{
@@ -200,11 +200,11 @@ describe('useFlueWorkflow()', () => {
 				eventIndex: 2,
 				timestamp: '2026-06-12T00:00:02.000Z',
 			},
-		] as FlueEvent[];
-		const flue = client({
-			runs: { stream: vi.fn(() => eventStream(events)) } as unknown as FlueClient['runs'],
+		] as BapxEvent[];
+		const bapX = client({
+			runs: { stream: vi.fn(() => eventStream(events)) } as unknown as BapxClient['runs'],
 		});
-		const { result } = renderHook(() => useFlueWorkflow({ runId: 'run-1', client: flue }));
+		const { result } = renderHook(() => useBapxWorkflow({ runId: 'run-1', client: bapX }));
 
 		await waitFor(() => expect(result.current.status).toBe('completed'));
 		expect(result.current.result).toEqual({ ok: true });
@@ -212,13 +212,13 @@ describe('useFlueWorkflow()', () => {
 	});
 
 	it('reports running when replay begins with run_resume', async () => {
-		const stream = pendingStream<FlueEvent>();
-		const flue = client({
+		const stream = pendingStream<BapxEvent>();
+		const bapX = client({
 			runs: {
 				stream: vi.fn(() => stream),
-			} as unknown as FlueClient['runs'],
+			} as unknown as BapxClient['runs'],
 		});
-		const { result } = renderHook(() => useFlueWorkflow({ runId: 'run-1', client: flue }));
+		const { result } = renderHook(() => useBapxWorkflow({ runId: 'run-1', client: bapX }));
 		act(() => {
 			stream.push({
 				v: 3,
@@ -235,12 +235,12 @@ describe('useFlueWorkflow()', () => {
 	});
 
 	it('reports disconnected when a stream closes without run_end', async () => {
-		const flue = client({
+		const bapX = client({
 			runs: {
-				stream: vi.fn(() => eventStream<FlueEvent>([])),
-			} as unknown as FlueClient['runs'],
+				stream: vi.fn(() => eventStream<BapxEvent>([])),
+			} as unknown as BapxClient['runs'],
 		});
-		const { result } = renderHook(() => useFlueWorkflow({ runId: 'run-1', client: flue }));
+		const { result } = renderHook(() => useBapxWorkflow({ runId: 'run-1', client: bapX }));
 
 		await waitFor(() => expect(result.current.status).toBe('disconnected'));
 		expect(result.current.error).toBeUndefined();

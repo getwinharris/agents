@@ -1,10 +1,10 @@
 import { expect } from 'vitest';
 import { describeEval, toolCalls } from 'vitest-evals';
-import { createFlueAgentHarness } from './harness.ts';
+import { createBapxAgentHarness } from './harness.ts';
 
-const harness = createFlueAgentHarness({ agentName: 'service-status' });
+const harness = createBapxAgentHarness({ agentName: 'service-status' });
 
-describeEval('Flue service status agent', { harness }, (it) => {
+describeEval('Bapx service status agent', { harness }, (it) => {
 	it('checks live service status before answering', async ({ run }) => {
 		const result = await run('Is the checkout service currently operational?');
 

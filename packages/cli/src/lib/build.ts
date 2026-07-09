@@ -61,7 +61,7 @@ async function buildApplication(options: BuildOptions): Promise<BuildResult> {
 	const { agents, workflows, channels, appEntry, cloudflareEntry, dbEntry } = ctx;
 
 	if (verbose) {
-		brandRows('flue build', [
+		brandRows('bapX build', [
 			['target', plugin.name],
 			['output', rel(output)],
 			['config', options.configFile ? rel(options.configFile) : undefined],
@@ -91,7 +91,7 @@ async function buildApplication(options: BuildOptions): Promise<BuildResult> {
 
 	if (agents.length === 0 && workflows.length === 0) {
 		throw new Error(
-			`[flue] No agent or workflow files found.\n\n` +
+			`[bapX] No agent or workflow files found.\n\n` +
 				`Expected at: ${path.join(sourceRoot, 'agents')}/ or ${path.join(sourceRoot, 'workflows')}/\n` +
 				`Add at least one agent or workflow file.`,
 		);
@@ -151,7 +151,7 @@ async function buildApplication(options: BuildOptions): Promise<BuildResult> {
 	} else if (bundleStrategy === 'vite-cloudflare') {
 		if (!plugin.entryFilename || !plugin.viteInputs) {
 			throw new Error(
-				`[flue] Plugin "${plugin.name}" set bundle: 'vite-cloudflare' but did not provide its generated entry and Vite inputs.`,
+				`[bapX] Plugin "${plugin.name}" set bundle: 'vite-cloudflare' but did not provide its generated entry and Vite inputs.`,
 			);
 		}
 		const inputDir = viteInputDir(root);
@@ -239,9 +239,9 @@ async function withTemporaryProcessEnv<T>(
 function resolvePlugin(options: BuildOptions): BuildPlugin {
 	if (!options.target) {
 		throw new Error(
-			'[flue] No build target specified. Use --target to choose a target:\n' +
-				'  flue build --target node\n' +
-				'  flue build --target cloudflare',
+			'[bapX] No build target specified. Use --target to choose a target:\n' +
+				'  bapX build --target node\n' +
+				'  bapX build --target cloudflare',
 		);
 	}
 
@@ -252,7 +252,7 @@ function resolvePlugin(options: BuildOptions): BuildPlugin {
 			return new CloudflarePlugin();
 		default:
 			throw new Error(
-				`[flue] Unknown target: "${options.target}". Supported targets: node, cloudflare`,
+				`[bapX] Unknown target: "${options.target}". Supported targets: node, cloudflare`,
 			);
 	}
 }
@@ -301,14 +301,14 @@ function discoverModules(sourceRoot: string, kind: 'agent' | 'workflow' | 'chann
 		if (!name || ((kind === 'agent' || kind === 'channel') && name.includes(':'))) {
 			throw new Error(
 				kind === 'workflow'
-					? `[flue] Workflow basename "${name}" is invalid. Workflow names must be non-empty.`
-					: `[flue] ${kind === 'agent' ? 'Agent' : 'Channel'} basename "${name}" is invalid. ${kind === 'agent' ? 'Agent' : 'Channel'} names must be non-empty and must not contain ":".`,
+					? `[bapX] Workflow basename "${name}" is invalid. Workflow names must be non-empty.`
+					: `[bapX] ${kind === 'agent' ? 'Agent' : 'Channel'} basename "${name}" is invalid. ${kind === 'agent' ? 'Agent' : 'Channel'} names must be non-empty and must not contain ":".`,
 			);
 		}
 		const previous = seen.get(name);
 		if (previous) {
 			throw new Error(
-				`[flue] Duplicate ${kind} basename "${name}" found: ${previous}, ${file}. Keep only one ${kind} source file per basename.`,
+				`[bapX] Duplicate ${kind} basename "${name}" found: ${previous}, ${file}. Keep only one ${kind} source file per basename.`,
 			);
 		}
 		seen.set(name, file);
@@ -345,11 +345,11 @@ function getUserExternals(root: string): string[] {
 }
 
 export function viteInputDir(root: string): string {
-	return path.join(root, '.flue-vite');
+	return path.join(root, '.bapX-vite');
 }
 
 export function cloudflareViteConfigPath(root: string): string {
-	return path.join(root, '.flue-vite.wrangler.jsonc');
+	return path.join(root, '.bapX-vite.wrangler.jsonc');
 }
 
 export function createSharedViteConfig(root: string) {
@@ -385,10 +385,10 @@ export function viteGeneratedEntryDependencyResolver(
 	options: { external?: boolean; importers?: readonly string[] } = {},
 ) {
 	const resolvers = [...collectNodePaths(root)].map((nodePath) =>
-		createRequire(path.join(nodePath, '__flue_vite_resolve__.mjs')),
+		createRequire(path.join(nodePath, '__bapX_vite_resolve__.mjs')),
 	);
 	return {
-		name: 'flue-generated-entry-dependency-resolver',
+		name: 'bapX-generated-entry-dependency-resolver',
 		enforce: 'pre' as const,
 		async resolveId(source: string, importer?: string) {
 			if (
@@ -467,7 +467,7 @@ function getCLIDir(): string {
 function resolveRuntimeDir(root: string): string | undefined {
 	let dir = root;
 	while (dir !== path.dirname(dir)) {
-		const candidate = path.join(dir, 'node_modules', '@flue', 'runtime');
+		const candidate = path.join(dir, 'node_modules', '@bapX', 'runtime');
 		if (fs.existsSync(candidate)) return candidate;
 		dir = path.dirname(dir);
 	}

@@ -6,7 +6,7 @@ import type {
 	CloudflareRuntime,
 	NodeRuntime,
 	WorkflowRecord,
-} from '../../src/runtime/flue-app.ts';
+} from '../../src/runtime/bapX-app.ts';
 import type { AgentDefinition } from '../../src/types.ts';
 import type { WorkflowDefinition } from '../../src/workflow-definition.ts';
 import { createTestEventStreamStore } from './test-event-stream-store.ts';

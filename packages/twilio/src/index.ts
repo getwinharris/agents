@@ -100,7 +100,7 @@ export interface TwilioStatusCallbackPayload extends TwilioWebhookPayload {
 	readonly MessageStatus: string;
 }
 
-/** Stable Twilio destination suitable for a Flue agent-instance id. */
+/** Stable Twilio destination suitable for a Bapx agent-instance id. */
 export type TwilioConversationRef =
 	| {
 			type: 'address';

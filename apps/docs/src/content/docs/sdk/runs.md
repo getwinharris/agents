@@ -17,7 +17,7 @@ Retrieves one workflow-run record via `GET /runs/:runId?meta`. The owning workfl
 ## `client.runs.events(...)`
 
 ```ts
-events(runId: string, options?: RunEventsOptions): Promise<FlueEvent[]>;
+events(runId: string, options?: RunEventsOptions): Promise<BapxEvent[]>;
 ```
 
 Retrieves events from a workflow run as an array. This is a Durable Streams catch-up read with no live tailing. Omit `offset` for full history, provide an offset to resume strictly after that point, or pass `tail` to limit a full-history read to the most recent events.
@@ -25,18 +25,18 @@ Retrieves events from a workflow run as an array. This is a Durable Streams catc
 ### `RunEventsOptions`
 
 ```ts
-type RunEventsOptions = Omit<FlueStreamOptions, 'live'>;
+type RunEventsOptions = Omit<BapxStreamOptions, 'live'>;
 ```
 
-The same options as [`FlueStreamOptions`](#fluestreamoptions) minus `live`, which `events()` never uses.
+The same options as [`BapxStreamOptions`](#bapXstreamoptions) minus `live`, which `events()` never uses.
 
 ## `client.runs.stream(...)`
 
 ```ts
-stream(runId: string, options?: FlueStreamOptions): FlueEventStream<FlueEvent>;
+stream(runId: string, options?: BapxStreamOptions): BapxEventStream<BapxEvent>;
 ```
 
-Streams workflow-run events via the [Durable Streams](https://durablestreams.com) protocol. See [Streaming Protocol](/docs/api/streaming-protocol/) for the raw HTTP contract. Returns an async iterable of typed `FlueEvent` objects. When `live` is enabled, the stream tails the run until `run_end`, cancellation, or disconnection. Interrupted streams resume automatically from the last received offset.
+Streams workflow-run events via the [Durable Streams](https://durablestreams.com) protocol. See [Streaming Protocol](/docs/api/streaming-protocol/) for the raw HTTP contract. Returns an async iterable of typed `BapxEvent` objects. When `live` is enabled, the stream tails the run until `run_end`, cancellation, or disconnection. Interrupted streams resume automatically from the last received offset.
 
 ```ts
 const run = await client.workflows.invoke('summarize', {
@@ -49,7 +49,7 @@ for await (const event of client.runs.stream(run.runId, { live: true })) {
 }
 ```
 
-### `FlueStreamOptions`
+### `BapxStreamOptions`
 
 | Option           | Type                              | Default | Description                                                                                                         |
 | ---------------- | --------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
@@ -63,14 +63,14 @@ for await (const event of client.runs.stream(run.runId, { live: true })) {
 
 ### `BackoffOptions`
 
-`BackoffOptions` is exported by `@durable-streams/client` and passed through by Flue for reconnect behavior. Most callers can use the defaults.
+`BackoffOptions` is exported by `@durable-streams/client` and passed through by Bapx for reconnect behavior. Most callers can use the defaults.
 
-### `FlueEventStream<T>`
+### `BapxEventStream<T>`
 
 An async iterable that yields typed events. Use `for await` to consume events. Call `cancel()` to stop the stream explicitly.
 
 ```ts
-interface FlueEventStream<T> extends AsyncIterable<T> {
+interface BapxEventStream<T> extends AsyncIterable<T> {
   cancel(reason?: unknown): void;
   readonly offset: string;
 }

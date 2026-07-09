@@ -3,7 +3,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "flue build --target node",
+		"build": "bapX build --target node",
 		"check:types": "tsc --noEmit",
 		"test": "pnpm run test:node && pnpm run test:workerd",
 		"test:node": "vitest run",

@@ -380,7 +380,7 @@ export class MongoSubmissionStore implements AgentSubmissionStore {
 			} catch (error) {
 				const sequence = Number(row.sequence);
 				if (!Number.isFinite(sequence)) throw error;
-				console.error('[flue] Terminating malformed submission (sequence %d):', sequence, error);
+				console.error('[bapX] Terminating malformed submission (sequence %d):', sequence, error);
 				await this.failSubmissionSequence(sequence, status, error);
 			}
 		}

@@ -9,7 +9,7 @@ import type { SandboxFactory, SessionEnv } from '../types.ts';
  * Minimal structural surface of a `@cloudflare/sandbox` Durable Object stub
  * (the value returned by `getSandbox()`). Kept structural so `@bapX/runtime`
  * does not depend on `@cloudflare/sandbox` and stays importable on Node;
- * only the methods Flue calls are listed. A wrong object fails loudly on
+ * only the methods Bapx calls are listed. A wrong object fails loudly on
  * the first method call.
  */
 export interface CloudflareSandboxStub {
@@ -34,7 +34,7 @@ export interface CloudflareSandboxOptions {
 }
 
 /**
- * Wrap a Cloudflare Sandbox Durable Object stub into a Flue
+ * Wrap a Cloudflare Sandbox Durable Object stub into a Bapx
  * {@link SandboxFactory}:
  *
  * ```ts

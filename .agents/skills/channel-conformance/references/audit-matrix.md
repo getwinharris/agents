@@ -122,7 +122,7 @@ Typical focused commands:
 pnpm --filter <provider>-channel-example run check:types
 pnpm --filter <provider>-channel-example run test
 pnpm --filter <provider>-channel-example run build
-pnpm --dir packages/cli exec flue build --target cloudflare
+pnpm --dir packages/cli exec bapX build --target cloudflare
 ```
 
 Run the Cloudflare build from the example directory or use its configured
@@ -138,7 +138,7 @@ equivalent. Follow the repository's dependency build order.
 - It explains ingress and outbound credentials separately.
 - It instructs local synthetic verification and fake-transport client tests.
 - It never tells the coding agent to contact the provider.
-- `flue add channel <provider> --print` returns the intended blueprint.
+- `bapX add channel <provider> --print` returns the intended blueprint.
 - The channel guide teaches setup, route URLs, callbacks, client composition,
   useful outbound examples where applicable, retries, and runtime support
   without claiming turnkey deployment.
@@ -161,7 +161,7 @@ equivalent. Follow the repository's dependency build order.
 - Install the tarball into a clean strict TypeScript consumer.
 - Typecheck a custom Hono environment and import the constructor at runtime.
 - Confirm no accidental `@bapX/runtime` or provider SDK runtime dependency.
-- Confirm every declared runtime dependency executes under Flue's required
+- Confirm every declared runtime dependency executes under Bapx's required
   Workers `nodejs_compat` configuration and does not call unsupported stubs.
 
 ## Security And Quality Review

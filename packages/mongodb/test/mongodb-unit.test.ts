@@ -67,14 +67,14 @@ describe('mongodb() migration guards', () => {
 		expect(topologyCalls).toBe(0);
 		expect(ddlCalls).toBe(0);
 	});
-	it('rejects unversioned Flue persistence before topology or DDL', async () => {
+	it('rejects unversioned Bapx persistence before topology or DDL', async () => {
 		let topologyCalls = 0;
 		let ddlCalls = 0;
 		const adapter = mongodb(
 			runner({
 				collection: (name) =>
 					collection({
-						findOne: async () => (name === 'flue_runs' ? { _id: 'legacy' } : null),
+						findOne: async () => (name === 'bapX_runs' ? { _id: 'legacy' } : null),
 					}),
 				topology: async () => {
 					topologyCalls++;
@@ -97,7 +97,7 @@ describe('mongodb() migration guards', () => {
 				collection: (name) =>
 					collection({
 						findOne: async (filter) => {
-							if (name === 'flue_meta' && typeof filter._id === 'object') metaDataFilter = filter;
+							if (name === 'bapX_meta' && typeof filter._id === 'object') metaDataFilter = filter;
 							return null;
 						},
 					}),
@@ -210,7 +210,7 @@ describe('MongoSubmissionStore update semantics', () => {
 				transaction: (fn) =>
 					fn({ collection: (name) => (name.endsWith('submissions') ? submissions : collection()) }),
 			}),
-			'flue_',
+			'bapX_',
 		);
 		await store.claimSubmission({
 			submissionId: 's',
@@ -236,7 +236,7 @@ describe('MongoSubmissionStore update semantics', () => {
 		});
 		const store = new MongoSubmissionStore(
 			runner({ collection: (name) => (name.endsWith('submissions') ? submissions : collection()) }),
-			'flue_',
+			'bapX_',
 		);
 		await store.markSubmissionInputApplied({ submissionId: 's', attemptId: 'a' });
 		await store.requestSubmissionRecovery({ submissionId: 's', attemptId: 'a' });
@@ -314,7 +314,7 @@ describe('MongoSubmissionStore malformed rows', () => {
 							? values
 							: collection(),
 			}),
-			'flue_',
+			'bapX_',
 		);
 		const running = await store.listRunningSubmissions();
 		expect(running.map((submission) => submission.submissionId)).toEqual(['healthy']);
@@ -353,7 +353,7 @@ describe('ValueStore publication cleanup', () => {
 		});
 		const valueStore = new ValueStore(
 			runner({ collection: (name) => (name.endsWith('value_generations') ? registry : values) }),
-			'flue_',
+			'bapX_',
 		);
 		const pointer: StoredValue = { owner: 'o', generation: 'g', count: 1 };
 		await valueStore.publish(pointer, { collection: () => registry });
@@ -377,7 +377,7 @@ describe('ValueStore publication cleanup', () => {
 							})
 						: collection(),
 			}),
-			'flue_',
+			'bapX_',
 		);
 		await expect(valueStore.stage('o', { value: true })).rejects.toThrow('partial');
 		expect(deleted).toBe(1);

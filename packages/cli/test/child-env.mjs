@@ -5,9 +5,9 @@
  * - The runtime resolves model-provider credentials from the environment
  *   (pi-ai's env API-key registry: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
  *   `GEMINI_API_KEY`, `AWS_*` Bedrock credentials, `GOOGLE_*` Vertex
- *   settings, ...). An exported key would let a spawned `flue run` reach the
+ *   settings, ...). An exported key would let a spawned `bapX run` reach the
  *   live provider instead of failing with "No API key for provider".
- * - `flue add`/`flue update` detect coding agents through environment markers
+ * - `bapX add`/`bapX update` detect coding agents through environment markers
  *   (@vercel/detect-agent: `CLAUDECODE`, `CODEX_*`, `CURSOR_*`, ...) and
  *   print raw blueprint Markdown instead of human instructions when one is
  *   present — e.g. when the tests themselves run under a coding agent.

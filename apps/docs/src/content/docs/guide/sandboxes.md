@@ -6,7 +6,7 @@ lastReviewedAt: 2026-05-30
 
 Sandboxes give an agent a workspace to read, write, and run commands in while it works. Use them when an agent needs to operate on files or run commands, rather than only respond to prompts or call application-defined [tools](/docs/guide/tools/).
 
-Flue provides a lightweight virtual sandbox by default. Use a local sandbox when a trusted Node.js agent should operate directly on its host machine, or a remote sandbox when work needs an isolated environment with its own tooling and lifecycle.
+Bapx provides a lightweight virtual sandbox by default. Use a local sandbox when a trusted Node.js agent should operate directly on its host machine, or a remote sandbox when work needs an isolated environment with its own tooling and lifecycle.
 
 ## Virtual sandbox
 

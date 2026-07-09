@@ -1,17 +1,17 @@
 ---
 title: Errors Reference
-description: Reference Flue transport errors, runtime failures, and development diagnostics.
+description: Reference Bapx transport errors, runtime failures, and development diagnostics.
 lastReviewedAt: 2026-06-21
 ---
 
-Flue exposes stable machine-readable error categories through its public transports. Runtime operations, workflow records, CLI commands, development servers, and builds also report failures, but not every surface uses the transport error vocabulary.
+Bapx exposes stable machine-readable error categories through its public transports. Runtime operations, workflow records, CLI commands, development servers, and builds also report failures, but not every surface uses the transport error vocabulary.
 
 ## Public transport errors
 
-#### `FluePublicError`
+#### `BapxPublicError`
 
 ```ts
-interface FluePublicError {
+interface BapxPublicError {
   type: string;
   message: string;
   details: string;
@@ -20,7 +20,7 @@ interface FluePublicError {
 }
 ```
 
-Caller-safe error details exposed by Flue transports. Unknown failures become a generic `internal_error` payload without leaking their original message. Branch on `type`, not message prose.
+Caller-safe error details exposed by Bapx transports. Unknown failures become a generic `internal_error` payload without leaking their original message. Branch on `type`, not message prose.
 
 | Field     | Meaning                                                                                   |
 | --------- | ----------------------------------------------------------------------------------------- |
@@ -30,7 +30,7 @@ Caller-safe error details exposed by Flue transports. Unknown failures become a 
 | `dev`     | Additional local development guidance when available.                                     |
 | `meta`    | Structured error-specific metadata when available. For example, validation issue details. |
 
-`dev` is omitted unless the runtime has additional guidance and is running locally. Temporary local `flue run` runtimes use local error rendering on Node.js and in Cloudflare's Vite/workerd development runtime. An absolute `--server` attachment renders whatever envelope that server provides; preview and production builds omit local-only guidance.
+`dev` is omitted unless the runtime has additional guidance and is running locally. Temporary local `bapX run` runtimes use local error rendering on Node.js and in Cloudflare's Vite/workerd development runtime. An absolute `--server` attachment renders whatever envelope that server provides; preview and production builds omit local-only guidance.
 
 ### Categories
 
@@ -54,8 +54,8 @@ The following categories are stable for framework-owned transport failures. HTTP
 
 | Surface                                                  | Envelope                     |
 | -------------------------------------------------------- | ---------------------------- |
-| Framework HTTP error response                            | `{ error: FluePublicError }` |
-| Durable Streams invalid-query or missing-stream response | `{ error: FluePublicError }` |
+| Framework HTTP error response                            | `{ error: BapxPublicError }` |
+| Durable Streams invalid-query or missing-stream response | `{ error: BapxPublicError }` |
 
 Durable Streams reads use the same framework envelope for invalid query parameters and missing streams. A stream may still terminate through transport behavior rather than a JSON error body, such as a client disconnect during SSE.
 
@@ -71,10 +71,10 @@ Workflow-run records, `run_end` events, and operation events expose open-ended `
 
 ## Runtime exceptions
 
-### `FlueError`
+### `BapxError`
 
 ```ts
-class FlueError extends Error {
+class BapxError extends Error {
   readonly type: string;
   readonly details: string;
   readonly dev: string;
@@ -82,11 +82,11 @@ class FlueError extends Error {
 }
 ```
 
-The catchable base class for framework-thrown runtime failures, exported from `@bapX/runtime`. Application code distinguishes Flue failures from arbitrary errors with `instanceof FlueError`, then narrows with the concrete subclasses below or the stable `type` field. Message, `details`, and `dev` strings are human-readable prose, not API.
+The catchable base class for framework-thrown runtime failures, exported from `@bapX/runtime`. Application code distinguishes Bapx failures from arbitrary errors with `instanceof BapxError`, then narrows with the concrete subclasses below or the stable `type` field. Message, `details`, and `dev` strings are human-readable prose, not API.
 
 ### Runtime errors
 
-Harness and session operations, and runtime provider registration, reject with typed `FlueError` subclasses, all importable from `@bapX/runtime`:
+Harness and session operations, and runtime provider registration, reject with typed `BapxError` subclasses, all importable from `@bapX/runtime`:
 
 | Class                       | `type`                          | Thrown when                                                                                                                                                                                                                          |
 | --------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -120,7 +120,7 @@ Thrown when an agent cannot produce a required structured result, either because
 
 ### Cancellation
 
-Aborted prompt, skill, task, and shell operations reject with a standard `AbortError` (`DOMException`) carrying the abort reason as `cause` when the runtime permits it. Cancellation is deliberately not part of the `FlueError` vocabulary.
+Aborted prompt, skill, task, and shell operations reject with a standard `AbortError` (`DOMException`) carrying the abort reason as `cause` when the runtime permits it. Cancellation is deliberately not part of the `BapxError` vocabulary.
 
 Authoring and definition-time validation failures, such as invalid agent profiles, tool definitions, or model ids, reject with human-readable `Error` messages. Those messages are not stable machine-readable categories. A `dispatch()` call with a missing `agent` or `id` also rejects this way; a malformed `message` instead throws the stable `invalid_request` `InvalidRequestError` below, the same validation a direct HTTP prompt's body goes through.
 
@@ -131,24 +131,24 @@ CLI diagnostics are human-oriented messages written to stderr. They do not curre
 | Surface                  | Diagnostic families                                                                                                             |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
 | CLI arguments            | Unsupported flags, missing values, invalid targets, and invalid JSON payloads.                                                  |
-| Configuration            | Missing or invalid `flue.config.*` files, invalid default exports, unsupported fields, missing `target`, and environment files. |
+| Configuration            | Missing or invalid `bapX.config.*` files, invalid default exports, unsupported fields, missing `target`, and environment files. |
 | Build                    | Missing source modules, invalid or duplicate source names, generated module exports, imported skills, and target requirements.  |
 | Cloudflare build         | Wrangler availability, compatibility settings, reserved bindings, target packages, and filename constraints.                    |
-| `flue dev` initial build | Reports the build failure and exits.                                                                                            |
-| `flue dev` rebuild       | Reports the rebuild failure and keeps watching for a later fix.                                                                 |
+| `bapX dev` initial build | Reports the build failure and exits.                                                                                            |
+| `bapX dev` rebuild       | Reports the rebuild failure and keeps watching for a later fix.                                                                 |
 
-Use the actionable diagnostic prose when resolving these errors. Do not parse it as a stable API. See [`flue build`](/docs/cli/build/) and [`flue dev`](/docs/cli/dev/) for command behavior.
+Use the actionable diagnostic prose when resolving these errors. Do not parse it as a stable API. See [`bapX build`](/docs/cli/build/) and [`bapX dev`](/docs/cli/dev/) for command behavior.
 
 ## Application-owned responses
 
-An authored [`app.ts`](/docs/api/routing-api/) owns its request pipeline. Custom routes and middleware may return arbitrary statuses and bodies, including authorization responses. Flue does not impose an `unauthorized` transport category on application-owned responses.
+An authored [`app.ts`](/docs/api/routing-api/) owns its request pipeline. Custom routes and middleware may return arbitrary statuses and bodies, including authorization responses. Bapx does not impose an `unauthorized` transport category on application-owned responses.
 
 ## Stability boundary
 
 | Surface                                                           | Contract                                                 |
 | ----------------------------------------------------------------- | -------------------------------------------------------- |
-| `FluePublicError` fields and documented categories                | Stable public transport contract.                        |
-| Exported `FlueError` subclasses and their `type` fields           | Stable public runtime contract.                          |
+| `BapxPublicError` fields and documented categories                | Stable public transport contract.                        |
+| Exported `BapxError` subclasses and their `type` fields           | Stable public runtime contract.                          |
 | Workflow-run records, workflow events, and operation events       | Structured but open-ended failure data.                  |
 | Runtime exception messages and CLI, configuration, build messages | Human-oriented diagnostics subject to refinement.        |
 | Generated target internals                                        | Implementation details, not public transport categories. |

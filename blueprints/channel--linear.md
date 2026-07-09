@@ -6,24 +6,24 @@
 }
 ---
 
-# Add a Linear Channel to Flue
+# Add a Linear Channel to Bapx
 
 You are an AI coding agent adding verified Linear resource and agent-session
-webhooks with project-owned outbound Linear API access to a Flue project.
+webhooks with project-owned outbound Linear API access to a Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.flue/`, then `<root>/src/`, then
+first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 whether the application needs ordinary issue comments, Linear agent sessions,
 or both.
 
-Install `@bapX/linear` and `@linear/sdk@^86.0.0`. Flue owns verified ingress.
+Install `@bapX/linear` and `@linear/sdk@^86.0.0`. Bapx owns verified ingress.
 The project owns the official SDK client and every outbound tool.
 
 The current official SDK is used by Linear's own Cloudflare Workers agent
-example with `nodejs_compat`. Flue's Cloudflare target supplies that
+example with `nodejs_compat`. Bapx's Cloudflare target supplies that
 compatibility flag. Keep a workerd fake-transport test for every SDK operation
 the project relies on.
 
@@ -35,7 +35,7 @@ Create `<source-dir>/channels/linear.ts`. Adapt the imported agent, dispatched
 message, event policy, and tool:
 
 ```ts
-// flue-blueprint: channel/linear@1
+// bapX-blueprint: channel/linear@1
 import {
   createLinearChannel,
   type LinearConversationRef,

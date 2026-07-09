@@ -1,17 +1,17 @@
 /**
- * Sentry error reporting for Flue.
+ * Sentry error reporting for Bapx.
  *
  * This file is the entire integration. It does two things:
  *
  *   1. Initializes the Sentry Node SDK at module scope so every isolate
  *      that imports `app.ts` has a configured Sentry client.
  *
- *   2. Calls `observe(...)` to register a global Flue event subscriber
- *      that translates terminal Flue failures and explicit error logs into
- *      `Sentry.captureException(...)` calls with Flue correlation tags.
+ *   2. Calls `observe(...)` to register a global Bapx event subscriber
+ *      that translates terminal Bapx failures and explicit error logs into
+ *      `Sentry.captureException(...)` calls with Bapx correlation tags.
  *
  * Read top-to-bottom — there are no other Sentry-related files in the
- * project. Every workflow in `src/workflows/` is a created Flue workflow;
+ * project. Every workflow in `src/workflows/` is a created Bapx workflow;
  * none of them know that Sentry exists.
  *
  *
@@ -29,7 +29,7 @@
  * What this example does NOT do (deliberate, for now):
  *
  *   - It does not emit Sentry spans / traces for runs, operations, or
- *     tool calls. The Flue event stream already carries the data a
+ *     tool calls. The Bapx event stream already carries the data a
  *     future span-based integration would need (`durationMs`, `usage`,
  *     `operationKind`, etc.), so layering spans on top is a follow-up
  *     rather than a redesign.
@@ -67,8 +67,8 @@
  *   SENTRY_RELEASE      e.g. a git SHA. Optional.
  */
 
-import { type FlueEvent, observe } from '@bapX/runtime';
-import { flue } from '@bapX/runtime/routing';
+import { type BapxEvent, observe } from '@bapX/runtime';
+import { bapX } from '@bapX/runtime/routing';
 import * as Sentry from '@sentry/node';
 import { Hono } from 'hono';
 
@@ -91,17 +91,17 @@ Sentry.init({
 	enabled: Boolean(process.env.SENTRY_DSN),
 });
 
-// ─── 2. The Flue → Sentry event bridge ──────────────────────────────────────
+// ─── 2. The Bapx → Sentry event bridge ──────────────────────────────────────
 
 const runOwnerTags = new Map<string, Record<string, string>>();
 
 observe((event) => {
 	if (event.type === 'run_start' || event.type === 'run_resume') {
-		runOwnerTags.set(event.runId, { 'flue.workflow': event.workflowName });
+		runOwnerTags.set(event.runId, { 'bapX.workflow': event.workflowName });
 		return;
 	}
 
-	const tags = flueCorrelationTags(event);
+	const tags = bapXCorrelationTags(event);
 
 	if (event.type === 'run_end') {
 		runOwnerTags.delete(event.runId);
@@ -126,7 +126,7 @@ observe((event) => {
 		Sentry.withScope((scope) => {
 			scope.setTags(tags);
 			scope.setLevel('error');
-			if (event.attributes) scope.setContext('flue.log_attributes', event.attributes);
+			if (event.attributes) scope.setContext('bapX.log_attributes', event.attributes);
 			if (Object.hasOwn(event.attributes ?? {}, 'error')) {
 				Sentry.captureException(reconstructError(event.attributes?.error));
 			} else {
@@ -144,7 +144,7 @@ function captureIncident(
 	Sentry.withScope((scope) => {
 		scope.setTags(tags);
 		scope.setLevel('error');
-		if (context) scope.setContext('flue.incident', context);
+		if (context) scope.setContext('bapX.incident', context);
 		Sentry.captureException(reconstructError(error));
 	});
 }
@@ -154,28 +154,28 @@ function captureIncident(
 /**
  * Build the Sentry tags attached to every capture from this bridge.
  *
- * Tag keys use the `flue.*` prefix to namespace them away from
+ * Tag keys use the `bapX.*` prefix to namespace them away from
  * Sentry's built-in tags and from any application tags the user
- * adds. Pivoting on `flue.run.id` in Sentry's search box is the
- * fastest way to find every issue raised by a single Flue run.
+ * adds. Pivoting on `bapX.run.id` in Sentry's search box is the
+ * fastest way to find every issue raised by a single Bapx run.
  */
-function flueCorrelationTags(event: FlueEvent): Record<string, string> {
+function bapXCorrelationTags(event: BapxEvent): Record<string, string> {
 	const tags: Record<string, string> = event.runId ? { ...runOwnerTags.get(event.runId) } : {};
-	if (event.runId) tags['flue.run.id'] = event.runId;
-	if (event.instanceId) tags['flue.instance.id'] = event.instanceId;
-	if (event.dispatchId) tags['flue.dispatch.id'] = event.dispatchId;
-	if (event.submissionId) tags['flue.submission.id'] = event.submissionId;
-	if (event.harness) tags['flue.harness'] = event.harness;
-	if (event.session) tags['flue.session'] = event.session;
-	if (event.parentSession) tags['flue.parent_session'] = event.parentSession;
-	if (event.operationId) tags['flue.operation.id'] = event.operationId;
-	if (event.taskId) tags['flue.task.id'] = event.taskId;
+	if (event.runId) tags['bapX.run.id'] = event.runId;
+	if (event.instanceId) tags['bapX.instance.id'] = event.instanceId;
+	if (event.dispatchId) tags['bapX.dispatch.id'] = event.dispatchId;
+	if (event.submissionId) tags['bapX.submission.id'] = event.submissionId;
+	if (event.harness) tags['bapX.harness'] = event.harness;
+	if (event.session) tags['bapX.session'] = event.session;
+	if (event.parentSession) tags['bapX.parent_session'] = event.parentSession;
+	if (event.operationId) tags['bapX.operation.id'] = event.operationId;
+	if (event.taskId) tags['bapX.task.id'] = event.taskId;
 	return tags;
 }
 
 /**
  * Reconstruct an `Error` instance from a value that may already be an
- * `Error`, may be the JSON-serialized envelope Flue's run-store uses
+ * `Error`, may be the JSON-serialized envelope Bapx's run-store uses
  * (`{ name, message }`), or may be something arbitrary a handler
  * threw (a string, a number, a plain object).
  *
@@ -204,9 +204,9 @@ function safeStringify(value: unknown): string {
 	}
 }
 
-// ─── 3. Mount the Flue agent route ──────────────────────────────────────────
+// ─── 3. Mount the Bapx agent route ──────────────────────────────────────────
 
 const app = new Hono();
-app.route('/', flue());
+app.route('/', bapX());
 
 export default app;

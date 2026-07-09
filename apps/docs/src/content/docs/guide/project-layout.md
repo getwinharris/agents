@@ -1,10 +1,10 @@
 ---
 title: Project Layout
-description: Understand the source files and generated output in a Flue project.
+description: Understand the source files and generated output in a Bapx project.
 lastReviewedAt: 2026-06-22
 ---
 
-Flue discovers application entrypoints from your project's source directory. Use `src/` for new projects, with `app.ts`, `db.ts`, `cloudflare.ts`, `agents/`, `workflows/`, and `channels/` defining the application surfaces Flue builds.
+Bapx discovers application entrypoints from your project's source directory. Use `src/` for new projects, with `app.ts`, `db.ts`, `cloudflare.ts`, `agents/`, `workflows/`, and `channels/` defining the application surfaces Bapx builds.
 
 ## Example project layout
 
@@ -25,13 +25,13 @@ my-project/
 └─ dist/
 ```
 
-Organize supporting application code however you prefer inside `src/`. The files and directories below are the parts of your application that Flue discovers and builds automatically.
+Organize supporting application code however you prefer inside `src/`. The files and directories below are the parts of your application that Bapx discovers and builds automatically.
 
 ## Important files and directories
 
 | Path            | Purpose                                                                               | Learn more                                                            |
 | --------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `app.ts`        | Optional entrypoint for composing Flue with your application's routes and middleware. | [Routing](/docs/guide/routing/)                                       |
+| `app.ts`        | Optional entrypoint for composing Bapx with your application's routes and middleware. | [Routing](/docs/guide/routing/)                                       |
 | `db.ts`         | Optional Node.js persistence adapter for agent conversations and workflow runs.       | [Database](/docs/guide/database/)                                     |
 | `cloudflare.ts` | Optional Cloudflare-only module for Worker exports and non-HTTP handlers.             | [Cloudflare](/docs/ecosystem/deploy/cloudflare/#extending-the-worker) |
 | `agents/`       | Addressable agents that can receive continuing interactions over time.                | [Agents](/docs/guide/building-agents/)                                |
@@ -40,7 +40,7 @@ Organize supporting application code however you prefer inside `src/`. The files
 
 ### `app.ts`
 
-`app.ts` is an optional custom application entrypoint. Add it when your server needs to compose Flue routes with application behavior such as authentication, webhooks, health endpoints, or a route prefix. A project without `app.ts` uses Flue's generated application directly.
+`app.ts` is an optional custom application entrypoint. Add it when your server needs to compose Bapx routes with application behavior such as authentication, webhooks, health endpoints, or a route prefix. A project without `app.ts` uses Bapx's generated application directly.
 
 For more information, see [Routing](/docs/guide/routing/).
 
@@ -58,7 +58,7 @@ For more information, see [Deploy on Cloudflare](/docs/ecosystem/deploy/cloudfla
 
 ### `agents/`
 
-The `agents/` directory contains agents that Flue can address by name. Each immediate file defines one discovered agent, and its filename becomes the agent name: `src/agents/support-assistant.ts` is discovered as `support-assistant`.
+The `agents/` directory contains agents that Bapx can address by name. Each immediate file defines one discovered agent, and its filename becomes the agent name: `src/agents/support-assistant.ts` is discovered as `support-assistant`.
 
 Keep agent files flat inside `agents/`; nested files are not discovered as additional agents. Prefer lower-kebab-case filenames such as `support-assistant.ts` so names remain portable across deployment targets.
 
@@ -66,7 +66,7 @@ For more information, see [Agents](/docs/guide/building-agents/).
 
 ### `workflows/`
 
-The `workflows/` directory contains finite operations that Flue can invoke by name. Each immediate file defines one discovered workflow, and its filename becomes the workflow name: `src/workflows/summarize-ticket.ts` is discovered as `summarize-ticket`.
+The `workflows/` directory contains finite operations that Bapx can invoke by name. Each immediate file defines one discovered workflow, and its filename becomes the workflow name: `src/workflows/summarize-ticket.ts` is discovered as `summarize-ticket`.
 
 Keep workflow files flat inside `workflows/`; nested files are not discovered as additional workflows. Prefer lower-kebab-case filenames such as `summarize-ticket.ts` so names remain portable across deployment targets.
 
@@ -87,13 +87,13 @@ For more information, see [Channels](/docs/guide/channels/).
 
 ## Source directory
 
-`src/` is the canonical source directory for new Flue projects. When integrating Flue into another application or maintaining an existing layout, authored modules may instead live in `.flue/` or at the project root. Flue selects one source directory in this order:
+`src/` is the canonical source directory for new Bapx projects. When integrating Bapx into another application or maintaining an existing layout, authored modules may instead live in `.bapX/` or at the project root. Bapx selects one source directory in this order:
 
-1. `.flue/` — A self-contained Flue source area inside a larger application.
+1. `.bapX/` — A self-contained Bapx source area inside a larger application.
 2. `src/` **(Recommended)** — The recommended layout for new projects.
 3. The project root — A compact layout for small dedicated projects.
 
-The first matching directory wins. Flue does not merge layouts: when `.flue/` exists, it does not discover agents, workflows, channels, `app.ts`, `db.ts`, or `cloudflare.ts` from `src/` or the project root. Authored modules may still import ordinary supporting code from elsewhere in the project.
+The first matching directory wins. Bapx does not merge layouts: when `.bapX/` exists, it does not discover agents, workflows, channels, `app.ts`, `db.ts`, or `cloudflare.ts` from `src/` or the project root. Authored modules may still import ordinary supporting code from elsewhere in the project.
 
 The source directory is always discovered relative to your project root. To configure the project root, see [Configuration](/docs/reference/configuration/).
 

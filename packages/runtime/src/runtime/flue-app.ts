@@ -133,12 +133,12 @@ export interface CloudflareRuntime extends RuntimeBase {
 
 	/**
 	 * Cloudflare-only factory for the request-scoped run index client
-	 * (cross-deployment lookup/listing over the `FlueRegistry` index DO).
+	 * (cross-deployment lookup/listing over the `BapxRegistry` index DO).
 	 */
 	createRunIndexForRequest: (env: unknown) => RunListing | undefined;
 }
 
-export type FlueRuntime = NodeRuntime | CloudflareRuntime;
+export type BapxRuntime = NodeRuntime | CloudflareRuntime;
 
 /** Cross-deployment run lookup/listing surface of a {@link RunStore}. */
 export type RunListing = Pick<RunStore, 'lookupRun' | 'listRuns'>;
@@ -185,8 +185,8 @@ export async function dispatch(
 	const rt = runtimeConfig;
 	if (!rt) {
 		throw new Error(
-			'[flue] dispatch() called before runtime was configured. ' +
-				'This usually means it was used outside a Flue-built server entry.',
+			'[bapX] dispatch() called before runtime was configured. ' +
+				'This usually means it was used outside a Bapx-built server entry.',
 		);
 	}
 	const request = isAgentDefinitionValue(agentOrRequest)
@@ -206,8 +206,8 @@ function isAgentDefinitionValue(
 	value: AgentDefinition | NamedAgentDispatchRequest,
 ): value is AgentDefinition {
 	return (
-		'__flueAgentDefinition' in value &&
-		value.__flueAgentDefinition === true &&
+		'__bapXAgentDefinition' in value &&
+		value.__bapXAgentDefinition === true &&
 		typeof value.initialize === 'function'
 	);
 }
@@ -215,40 +215,40 @@ function isAgentDefinitionValue(
 function resolveAgentDefinitionDispatchRequest(
 	agent: AgentDefinition,
 	request: AgentDispatchRequest | undefined,
-	rt: FlueRuntime,
+	rt: BapxRuntime,
 ): NamedAgentDispatchRequest {
-	if (!request) throw new Error('[flue] dispatch(agent, request) requires a dispatch request.');
+	if (!request) throw new Error('[bapX] dispatch(agent, request) requires a dispatch request.');
 	const name = rt.agents.find((record) => record.definition === agent)?.name;
 	if (!name) {
 		throw new Error(
-			'[flue] dispatch() target agent definition is not a discovered default-exported agent in this built application.',
+			'[bapX] dispatch() target agent definition is not a discovered default-exported agent in this built application.',
 		);
 	}
 	return { agent: name, id: request.id, message: request.message };
 }
 
-let runtimeConfig: FlueRuntime | undefined;
+let runtimeConfig: BapxRuntime | undefined;
 
 /**
  * Not part of the public API — exposed via `@bapX/runtime/internal` only
  * because the generated entry imports it from a stable bare specifier.
  */
-export function configureFlueRuntime(cfg: FlueRuntime): void {
+export function configureBapxRuntime(cfg: BapxRuntime): void {
 	runtimeConfig = cfg;
 	configureErrorRendering({ devMode: cfg.devMode ?? false });
 }
 
-export function resetFlueRuntimeForTests(): void {
+export function resetBapxRuntimeForTests(): void {
 	runtimeConfig = undefined;
 	configureErrorRendering({ devMode: false });
 }
 
-export function getFlueRuntime(): FlueRuntime | undefined {
+export function getBapxRuntime(): BapxRuntime | undefined {
 	return runtimeConfig;
 }
 
 /**
- * Creates a mountable Hono sub-app for Flue's public HTTP API.
+ * Creates a mountable Hono sub-app for Bapx's public HTTP API.
  * Routes are relative to the application-chosen mount prefix.
  *
  * The mounted sub-app exposes:
@@ -262,7 +262,7 @@ export function getFlueRuntime(): FlueRuntime | undefined {
  * opts into HTTP transport. Event streams use the Durable Streams protocol
  * (catch-up, long-poll, SSE) and are read-only.
  */
-export function flue(): Hono {
+export function bapX(): Hono {
 	const app = new Hono();
 
 	app.post(
@@ -284,7 +284,7 @@ export function flue(): Hono {
 	// Opt-in attachment byte download. A distinct (longer) path, so it never
 	// collides with the agent prompt/stream routes above.
 	app.all('/agents/:name/:id/attachments/:attachmentId', attachmentsRouteHandler);
-	// Non-POSTs still reach the canonical Flue 405 envelope instead of
+	// Non-POSTs still reach the canonical Bapx 405 envelope instead of
 	// Hono's default 404 for unmatched methods.
 	app.all('/agents/:name/:id', agentRouteHandler);
 	app.all('/channels/:name', channelRouteHandler);
@@ -299,7 +299,7 @@ export function flue(): Hono {
 
 /**
  * Build the default outer Hono app used when no user `app.ts` is
- * present. Mounts `flue()` at root, renders canonical Flue envelopes
+ * present. Mounts `bapX()` at root, renders canonical Bapx envelopes
  * for unmatched paths and any thrown errors.
  *
  * Lives in @bapX/runtime rather than the generated entry so that user
@@ -309,9 +309,9 @@ export function flue(): Hono {
  * write an `app.ts`, they own this composition and must `pnpm add
  * hono` (or equivalent) themselves.
  */
-export function createDefaultFlueApp(): Hono {
+export function createDefaultBapxApp(): Hono {
 	const app = new Hono();
-	app.route('/', flue());
+	app.route('/', bapX());
 	app.notFound((c) => {
 		throw new RouteNotFoundError({
 			method: c.req.method,
@@ -362,8 +362,8 @@ const workflowRouteHandler: MiddlewareHandler = async (c) => {
 	const rt = runtimeConfig;
 	if (!rt) {
 		throw new Error(
-			'[flue] flue() route invoked before runtime was configured. ' +
-				'This usually means flue() was used outside a Flue-built server entry.',
+			'[bapX] bapX() route invoked before runtime was configured. ' +
+				'This usually means bapX() was used outside a Bapx-built server entry.',
 		);
 	}
 
@@ -379,7 +379,7 @@ const workflowRouteHandler: MiddlewareHandler = async (c) => {
 	const record = rt.workflows.find((workflow) => workflow.name === name);
 	return runAttachedMiddleware(c, record?.route, async () => {
 		if (rt.target === 'node') {
-			if (!record) throw new Error('[flue] Node runtime is missing workflow configuration.');
+			if (!record) throw new Error('[bapX] Node runtime is missing workflow configuration.');
 			return handleWorkflowRequest({
 				request,
 				workflowName: name,
@@ -411,8 +411,8 @@ const agentRouteHandler: MiddlewareHandler = async (c) => {
 	const rt = runtimeConfig;
 	if (!rt) {
 		throw new Error(
-			'[flue] flue() route invoked before runtime was configured. ' +
-				'This usually means flue() was used outside a Flue-built server entry.',
+			'[bapX] bapX() route invoked before runtime was configured. ' +
+				'This usually means bapX() was used outside a Bapx-built server entry.',
 		);
 	}
 
@@ -456,7 +456,7 @@ const agentRouteHandler: MiddlewareHandler = async (c) => {
 		if (rt.target === 'node') {
 			const admitAttachedSubmission = rt.createAgentAdmission(name, id);
 			if (!admitAttachedSubmission) {
-				throw new Error('[flue] Node runtime is missing agent admission configuration.');
+				throw new Error('[bapX] Node runtime is missing agent admission configuration.');
 			}
 			return handleAgentRequest({
 				request,
@@ -483,8 +483,8 @@ const abortRouteHandler: MiddlewareHandler = async (c) => {
 	const rt = runtimeConfig;
 	if (!rt) {
 		throw new Error(
-			'[flue] flue() route invoked before runtime was configured. ' +
-				'This usually means flue() was used outside a Flue-built server entry.',
+			'[bapX] bapX() route invoked before runtime was configured. ' +
+				'This usually means bapX() was used outside a Bapx-built server entry.',
 		);
 	}
 
@@ -565,8 +565,8 @@ const channelRouteHandler: MiddlewareHandler = async (c) => {
 	const rt = runtimeConfig;
 	if (!rt) {
 		throw new Error(
-			'[flue] flue() route invoked before runtime was configured. ' +
-				'This usually means flue() was used outside a Flue-built server entry.',
+			'[bapX] bapX() route invoked before runtime was configured. ' +
+				'This usually means bapX() was used outside a Bapx-built server entry.',
 		);
 	}
 
@@ -607,7 +607,7 @@ const channelRouteHandler: MiddlewareHandler = async (c) => {
 	}
 	if (!response) {
 		throw new TypeError(
-			`[flue] Channel "${name}" handler for ${c.req.method} ${suffix} must return a Response.`,
+			`[bapX] Channel "${name}" handler for ${c.req.method} ${suffix} must return a Response.`,
 		);
 	}
 	return response;
@@ -754,7 +754,7 @@ function nodeStreamReadResponse(
  * resource-existence outcome).
  */
 async function findRunPointer(
-	rt: FlueRuntime,
+	rt: BapxRuntime,
 	env: unknown,
 	runId: string,
 ): Promise<WorkflowRunPointer | null> {
@@ -766,11 +766,11 @@ async function findRunPointer(
 	return rt.runStore.lookupRun(runId);
 }
 
-function requiredRuntime(): FlueRuntime {
+function requiredRuntime(): BapxRuntime {
 	if (!runtimeConfig) {
 		throw new Error(
-			'[flue] flue() route invoked before runtime was configured. ' +
-				'This usually means flue() was used outside a Flue-built server entry.',
+			'[bapX] bapX() route invoked before runtime was configured. ' +
+				'This usually means bapX() was used outside a Bapx-built server entry.',
 		);
 	}
 	return runtimeConfig;
@@ -798,13 +798,13 @@ async function runAttachedMiddleware(
 	);
 }
 
-function registeredAgentsForTransport(rt: FlueRuntime): readonly string[] {
+function registeredAgentsForTransport(rt: BapxRuntime): readonly string[] {
 	return rt.agents
 		.filter((agent) => rt.temporaryLocalExposure || agent.route !== undefined)
 		.map((agent) => agent.name);
 }
 
-function registeredWorkflowsForTransport(rt: FlueRuntime): readonly string[] {
+function registeredWorkflowsForTransport(rt: BapxRuntime): readonly string[] {
 	return rt.workflows
 		.filter((workflow) => rt.temporaryLocalExposure || workflow.route !== undefined)
 		.map((workflow) => workflow.name);

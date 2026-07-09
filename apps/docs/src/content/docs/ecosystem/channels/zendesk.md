@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add verified event-subscription ingress and application-owned Ticketing API behavior to an existing Flue project with the [Zendesk](https://developer.zendesk.com) blueprint. Run the following command in your terminal or coding agent of choice:
+Add verified event-subscription ingress and application-owned Ticketing API behavior to an existing Bapx project with the [Zendesk](https://developer.zendesk.com) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel zendesk
+bapX add channel zendesk
 ```
 
 ## Overview
@@ -356,7 +356,7 @@ semantics.
 
 ## Event shape
 
-The callback receives `{ c, payload, delivery }`, keeping the Flue-verified
+The callback receives `{ c, payload, delivery }`, keeping the Bapx-verified
 provider-native payload separate from the unsigned header metadata.
 
 `payload` is Zendesk's own [common event envelope](https://developer.zendesk.com/api-reference/webhooks/event-types/webhook-event-types/),
@@ -417,7 +417,7 @@ acknowledgment.
 
 Ingress uses Web Crypto and standards-based Fetch APIs. The project-owned
 client uses native Fetch plus `Buffer` for documented Basic authentication.
-Both paths execute in workerd with Flue's required `nodejs_compat`
+Both paths execute in workerd with Bapx's required `nodejs_compat`
 configuration.
 
 Test the real exported client with injected fail-closed Fetch in Node and

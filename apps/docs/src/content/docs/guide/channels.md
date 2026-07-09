@@ -1,9 +1,9 @@
 ---
 title: Channels
-description: Receive verified provider events and connect them to Flue applications.
+description: Receive verified provider events and connect them to Bapx applications.
 ---
 
-Channels bring provider HTTP events into a Flue application. A channel verifies
+Channels bring provider HTTP events into a Bapx application. A channel verifies
 the provider request, parses it into typed provider-native data, and calls your
 application handler. Your handler can dispatch work to an agent, invoke
 application code, or return a provider-specific response.
@@ -15,11 +15,11 @@ application or agents need.
 
 ## Add a channel
 
-Use `flue add` to give your coding agent the integration blueprint for a
+Use `bapX add` to give your coding agent the integration blueprint for a
 first-party channel:
 
 ```sh
-flue add channel slack --print | codex
+bapX add channel slack --print | codex
 ```
 
 The blueprint inspects the project and creates a module such as
@@ -42,7 +42,7 @@ export const channel = createSlackChannel({
 });
 ```
 
-The named `channel` export is the Flue integration. The named `client` export is
+The named `channel` export is the Bapx integration. The named `client` export is
 ordinary application code initialized with the provider SDK. A channel module
 may also export application-owned tools or helper functions.
 
@@ -51,11 +51,11 @@ and provider-specific setup.
 
 ## Custom Channel
 
-When Flue does not provide a first-party channel, give `flue add` the provider's
+When Bapx does not provide a first-party channel, give `bapX add` the provider's
 webhook documentation and select the generic channel blueprint:
 
 ```sh
-flue add channel https://provider.example/webhooks --print | codex
+bapX add channel https://provider.example/webhooks --print | codex
 ```
 
 The blueprint guides your coding agent through creating a discovered
@@ -69,7 +69,7 @@ for the full implementation and verification checklist.
 
 ## Understand ownership
 
-Flue channels own the provider ingress boundary. Your application owns how that
+Bapx channels own the provider ingress boundary. Your application owns how that
 event affects the rest of the system.
 
 | Concern                                                | Owner           |
@@ -77,14 +77,14 @@ event affects the rest of the system.
 | Request authentication and signature verification      | Channel package |
 | Provider handshakes and automatic protocol responses   | Channel package |
 | Body limits, parsing, and typed provider payloads      | Channel package |
-| Discovered routes beneath `/channels/<name>/...`       | Flue            |
+| Discovered routes beneath `/channels/<name>/...`       | Bapx            |
 | Provider SDK client and outbound credentials           | Application     |
 | OAuth, installation, token storage, and token rotation | Application     |
 | Agent tools and authorization policy                   | Application     |
 | Delivery deduplication and business persistence        | Application     |
 
 This boundary keeps each provider's large outbound API in its established SDK
-instead of rebuilding it inside Flue. Provider ecosystem guides can document
+instead of rebuilding it inside Bapx. Provider ecosystem guides can document
 useful SDK operations, but those methods remain SDK capabilities rather than
 features implemented by the channel package.
 
@@ -104,21 +104,21 @@ The provider package defines one or more fixed, non-empty suffixes such as
 `/webhook`, `/events`, or `/interactions`. The namespace itself, such as
 `/channels/slack`, is not an endpoint.
 
-No `app.ts` is required. If an authored application mounts `flue()` beneath a
+No `app.ts` is required. If an authored application mounts `bapX()` beneath a
 prefix, discovered channels receive the same prefix as agents and workflows:
 
 ```ts title="src/app.ts"
-import { flue } from '@bapX/runtime/routing';
+import { bapX } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 const app = new Hono();
-app.route('/api', flue());
+app.route('/api', bapX());
 
 export default app;
 ```
 
 This publishes the Slack Events API route at
-`/api/channels/slack/events`. An authored application can prefix all Flue
+`/api/channels/slack/events`. An authored application can prefix all Bapx
 routes, but it cannot relocate one discovered channel independently.
 
 Use an application-owned Hono route instead when a provider requires a fully
@@ -315,7 +315,7 @@ and does not by itself authorize an operation.
 ## Run on Node and Cloudflare
 
 First-party channel packages use Fetch and Web Crypto and are tested on Node
-and workerd. Flue Cloudflare builds enable `nodejs_compat`.
+and workerd. Bapx Cloudflare builds enable `nodejs_compat`.
 
 The outbound client remains application-owned. A client import successfully
 bundling for Cloudflare is not proof that every SDK operation works there.
@@ -325,7 +325,7 @@ Validate any additional SDK paths your application depends on.
 
 Long-lived sockets, polling loops, and provider-managed background transports
 are outside the current channel model. Use verified HTTP delivery, or keep that
-integration in application-owned infrastructure until Flue supports the
+integration in application-owned infrastructure until Bapx supports the
 required transport.
 
 ## Other integration paths
@@ -334,7 +334,7 @@ required transport.
 cross-provider conversation model, adapters, and chat-side state are a better
 fit than provider-native first-party channels. In that design, Chat SDK owns
 its adapter and state boundary, while application handlers call
-`dispatch(...)` to deliver accepted messages to Flue agents.
+`dispatch(...)` to deliver accepted messages to Bapx agents.
 
 ## Next steps
 

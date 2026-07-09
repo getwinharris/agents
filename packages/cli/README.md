@@ -1,6 +1,6 @@
-# Flue — The Agent Harness Framework
+# Bapx — The Agent Harness Framework
 
-Not another SDK. Build autonomous agents and powerful AI workflows with Flue's programmable TypeScript harness.
+Not another SDK. Build autonomous agents and powerful AI workflows with Bapx's programmable TypeScript harness.
 
 ```ts
 // agents/triage.ts
@@ -38,7 +38,7 @@ The first agents were built with raw LLM API calls. This worked for simple chatb
 
 Agents like Claude Code and Codex broke the mold. These were _real agents._ Autonomous. You give them a task — not a pre-defined series of steps — and trust them to complete it using the context and tools that you provide.
 
-**Flue unlocks this new architecture for agents.** Its built-in TypeScript harness gives any model the context and environment it needs for truly autonomous work: sessions, tools, skills, instructions, filesystem access, and a secure sandbox to run in. Run your agents locally via CLI or deploy them to your hosted runtime of choice.
+**Bapx unlocks this new architecture for agents.** Its built-in TypeScript harness gives any model the context and environment it needs for truly autonomous work: sessions, tools, skills, instructions, filesystem access, and a secure sandbox to run in. Run your agents locally via CLI or deploy them to your hosted runtime of choice.
 
 ## Features
 
@@ -69,7 +69,7 @@ Build agents that can safely take action, maintain continuity, and connect to th
 | Package                                         | Description                                            |
 | ----------------------------------------------- | ------------------------------------------------------ |
 | [`@bapX/runtime`](packages/runtime)             | Runtime: harness, sessions, tools, sandbox             |
-| [`@bapX/cli`](packages/cli)                     | CLI and build/dev tooling (`flue` binary)              |
+| [`@bapX/cli`](packages/cli)                     | CLI and build/dev tooling (`bapX` binary)              |
 | [`@bapX/sdk`](packages/sdk)                     | Client SDK for consuming deployed agents and workflows |
 | [`@bapX/opentelemetry`](packages/opentelemetry) | OpenTelemetry tracing adapter                          |
 | [`@bapX/postgres`](packages/postgres)           | Postgres persistence adapter                           |

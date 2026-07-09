@@ -6,7 +6,7 @@ import { parseSkillMarkdown } from './skill-frontmatter.ts';
 import type { SessionEnv, Skill } from './types.ts';
 
 export interface WorkspaceSkill {
-	readonly __flueWorkspaceSkill: true;
+	readonly __bapXWorkspaceSkill: true;
 	readonly name: string;
 	readonly description: string;
 	readonly directory: string;
@@ -16,7 +16,7 @@ export interface WorkspaceSkill {
 export function isWorkspaceSkill(skill: Skill): skill is Skill & WorkspaceSkill {
 	const candidate = skill as Partial<WorkspaceSkill>;
 	return (
-		candidate.__flueWorkspaceSkill === true &&
+		candidate.__bapXWorkspaceSkill === true &&
 		typeof candidate.directory === 'string' &&
 		typeof candidate.skillMdPath === 'string'
 	);
@@ -89,11 +89,11 @@ async function discoverLocalSkills(
 			parsed = parseSkillMarkdown(content, { directoryName: entry, path: skillMdPath });
 		} catch (error) {
 			const detail = error instanceof Error ? error.message : String(error);
-			console.warn(`[flue] Skipping invalid workspace skill "${entry}": ${detail}`);
+			console.warn(`[bapX] Skipping invalid workspace skill "${entry}": ${detail}`);
 			continue;
 		}
 		const workspaceSkill: WorkspaceSkill = {
-			__flueWorkspaceSkill: true,
+			__bapXWorkspaceSkill: true,
 			name: parsed.name,
 			description: parsed.description,
 			directory: skillDir,
@@ -116,7 +116,7 @@ function mergeSkillCatalog(
 	for (const [name, skill] of Object.entries(discoveredSkills)) {
 		if (Object.hasOwn(merged, name)) {
 			throw new Error(
-				`[flue] Skill name "${name}" appears in both agent definition and workspace discovery.`,
+				`[bapX] Skill name "${name}" appears in both agent definition and workspace discovery.`,
 			);
 		}
 		merged[name] = skill;

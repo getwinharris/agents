@@ -2,9 +2,9 @@
 { "kind": "database", "version": 1, "website": "https://supabase.com" }
 ---
 
-# Add a Supabase Database to Flue
+# Add a Supabase Database to Bapx
 
-You are an AI coding agent configuring Supabase Postgres persistence for a Flue
+You are an AI coding agent configuring Supabase Postgres persistence for a Bapx
 project using the existing first-party `@bapX/postgres` adapter and the `pg`
 driver. Do not create a Supabase-specific package or modify `@bapX/postgres`.
 
@@ -22,7 +22,7 @@ project targets Cloudflare, stop and tell the user — there is nothing to add.
 ## Inspect the project
 
 Read local instructions (`AGENTS.md` and similar), detect the package manager,
-and select the first existing source root: `<root>/.flue/`, then `<root>/src/`,
+and select the first existing source root: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Check for an existing `db.ts` in that root — if one is present,
 the project already has an adapter; confirm with the user before replacing it.
 Inspect how the project reads secrets so the connection string follows the same
@@ -61,7 +61,7 @@ and `COMMIT` or `ROLLBACK`; calling the pool from inside the callback could move
 work onto another connection.
 
 ```ts title="src/db.ts"
-// flue-blueprint: database/supabase@1
+// bapX-blueprint: database/supabase@1
 import { postgres } from '@bapX/postgres';
 import { Pool } from 'pg';
 
@@ -90,8 +90,8 @@ export default postgres({
 ```
 
 Do not hardcode or invent a connection string. Follow the project's secret
-conventions and never commit a real value. For local development, `flue dev
---env <file>` and `flue run --env <file>` load any `.env`-format file. Update an
+conventions and never commit a real value. For local development, `bapX dev
+--env <file>` and `bapX run --env <file>` load any `.env`-format file. Update an
 existing `.env.example` or environment documentation when the project keeps
 one; do not introduce a new secret-management convention without need.
 
@@ -101,10 +101,10 @@ locks are released when their transactions complete.
 
 ## Migrations and stored state
 
-Flue discovers `db.ts` at build time and wires its default export into the
+Bapx discovers `db.ts` at build time and wires its default export into the
 generated Node server. The adapter's `migrate()` hook runs automatically at
-startup, creates the `flue_*` tables idempotently, and stamps a schema version.
-There is no separate migration command. A database written by a newer Flue
+startup, creates the `bapX_*` tables idempotently, and stamps a schema version.
+There is no separate migration command. A database written by a newer Bapx
 version refuses to start rather than risking incompatible writes.
 
 The adapter stores canonical append-only conversation streams, immutable external
@@ -121,7 +121,7 @@ files, external API effects, provider secrets, or application business data.
 2. Build the project's configured Node target and confirm `db.ts` is discovered
    and wired into the generated server.
 3. Point `SUPABASE_DATABASE_URL` at a non-production Supabase project, start the
-   server, and confirm `migrate()` creates the `flue_*` tables.
+   server, and confirm `migrate()` creates the `bapX_*` tables.
 4. Create agent or workflow state, restart the server, and confirm that state is
    reloaded rather than recreated.
 5. If using the shared pooler, confirm the selected mode matches the deployment:

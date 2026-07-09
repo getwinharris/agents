@@ -3,8 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { createShopifyChannel, type ShopifyChannel } from '../src/index.ts';
 
 const encoder = new TextEncoder();
-const CURRENT_SECRET = 'flue-shopify-workerd-current';
-const PREVIOUS_SECRET = 'flue-shopify-workerd-previous';
+const CURRENT_SECRET = 'bapX-shopify-workerd-current';
+const PREVIOUS_SECRET = 'bapX-shopify-workerd-previous';
 
 describe('@bapX/shopify workerd ingress', () => {
 	it('verifies exact bytes with Web Crypto in workerd', async () => {

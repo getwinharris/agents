@@ -1,18 +1,18 @@
 ---
 title: Deploy Agents on Railway
-description: Run the Flue Node server as a long-running Railway service.
+description: Run the Bapx Node server as a long-running Railway service.
 lastReviewedAt: 2026-06-20
 ---
 
-Flue's Node target is a long-running HTTP server, not a serverless function, so it deploys to Railway as a standard service that stays up between requests. This guide covers the Railway-specific setup; the build itself is the same `node` target described in [Deploy Agents on Node.js](/docs/ecosystem/deploy/node/) — `npx flue build --target node` produces `dist/server.mjs`, which you start with `node dist/server.mjs`.
+Bapx's Node target is a long-running HTTP server, not a serverless function, so it deploys to Railway as a standard service that stays up between requests. This guide covers the Railway-specific setup; the build itself is the same `node` target described in [Deploy Agents on Node.js](/docs/ecosystem/deploy/node/) — `npx bapX build --target node` produces `dist/server.mjs`, which you start with `node dist/server.mjs`.
 
-Railway owns the platform — building the repo, injecting `PORT`, running the start command, provisioning Postgres. Flue owns the server it starts. The two meet at the build command, the start command, and a handful of environment variables.
+Railway owns the platform — building the repo, injecting `PORT`, running the start command, provisioning Postgres. Bapx owns the server it starts. The two meet at the build command, the start command, and a handful of environment variables.
 
 ## Build and start
 
-Railway builds a connected repo with [Railpack](https://railpack.com), which auto-detects Node projects with zero configuration. Set the build and start commands so Railpack compiles the Flue Node target and launches the generated server:
+Railway builds a connected repo with [Railpack](https://railpack.com), which auto-detects Node projects with zero configuration. Set the build and start commands so Railpack compiles the Bapx Node target and launches the generated server:
 
-- **Build command** — `npm ci && npx flue build --target node`
+- **Build command** — `npm ci && npx bapX build --target node`
 - **Start command** — `node dist/server.mjs`
 
 The build externalizes your dependencies rather than bundling them, so `node_modules` must be present at runtime. `npm ci` installs them; keep `@bapX/cli` available to the build command. The built server reads only the environment present when it starts — it does not load `.env` — so configuration lives in Railway variables, not a committed file.
@@ -28,7 +28,7 @@ Pin the build and deploy settings in a `railway.json` (or `railway.toml`) at the
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "RAILPACK",
-    "buildCommand": "npm ci && npx flue build --target node"
+    "buildCommand": "npm ci && npx bapX build --target node"
   },
   "deploy": {
     "startCommand": "node dist/server.mjs",
@@ -42,7 +42,7 @@ Set `build.builder` to `DOCKERFILE` (with `build.dockerfilePath` if non-standard
 
 ## Environment variables
 
-Set variables on the service's **Variables** tab. Flue needs the API key for your model provider, plus an optional model specifier:
+Set variables on the service's **Variables** tab. Bapx needs the API key for your model provider, plus an optional model specifier:
 
 | Variable                               | Purpose                                                                                                 |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------- |
@@ -55,7 +55,7 @@ Use the variable name your provider expects, and **seal** the provider key so it
 
 The Node target keeps canonical agent conversations and accepted submissions in memory by default. That state is lost on every restart and redeploy.
 
-For durable process or host replacement, add a Railway Postgres service (**+ New > Database > PostgreSQL**) to the same project. A shared database does not enable active-active ownership of one agent instance: route each instance to one live Node process and avoid overlapping owners during replacement. The database exposes a `DATABASE_URL`; wire it into your Flue service with a reference variable rather than copying the value:
+For durable process or host replacement, add a Railway Postgres service (**+ New > Database > PostgreSQL**) to the same project. A shared database does not enable active-active ownership of one agent instance: route each instance to one live Node process and avoid overlapping owners during replacement. The database exposes a `DATABASE_URL`; wire it into your Bapx service with a reference variable rather than copying the value:
 
 ```
 DATABASE_URL=${{Postgres.DATABASE_URL}}
@@ -67,23 +67,23 @@ Then install the adapter and read that variable in `db.ts`:
 npm install @bapX/postgres
 ```
 
-```typescript title=".flue/db.ts"
+```typescript title=".bapX/db.ts"
 import { postgres } from '@bapX/postgres';
 
 export default postgres(process.env.DATABASE_URL!);
 ```
 
-Flue discovers `db.ts` at build time and wires it into the generated server. Schema creation, canonical streams, attachments, and durable submission state are handled by the adapter. See [Database](/docs/guide/database/) for the adapter contract and alternatives.
+Bapx discovers `db.ts` at build time and wires it into the generated server. Schema creation, canonical streams, attachments, and durable submission state are handled by the adapter. See [Database](/docs/guide/database/) for the adapter contract and alternatives.
 
 ## Health and streaming
 
-Flue does not generate a `/health` route. If you set `deploy.healthcheckPath`, define the matching route in `app.ts` — otherwise Railway's check never passes and the deploy is held back. Without a health check, Railway considers the deploy ready once the process binds `PORT`.
+Bapx does not generate a `/health` route. If you set `deploy.healthcheckPath`, define the matching route in `app.ts` — otherwise Railway's check never passes and the deploy is held back. Without a health check, Railway considers the deploy ready once the process binds `PORT`.
 
 Exposed workflow runs are streamed through `GET /runs/:runId` with long-poll or SSE. For long-running workflows, retain the invocation's `runId` and read that resource from offset `-1` instead of holding one `?wait=result` request. Railway's edge proxy keeps active streams open, but treat any attached request as bounded; move genuinely long work to a scheduled run or separate worker. See [Workflow HTTP exports](/docs/api/workflow-api/#http-exports).
 
 ## Going further
 
-- **Scheduled workflows.** Prefer invoking the deployed application's authenticated workflow endpoint from a **Cron Schedule**, or attach the CLI with `npx flue run workflow:<name> --server https://<host>/<flue-mount>`. This avoids rebuilding and starting a second application runtime for every fire. Railway enforces a minimum interval of five minutes, evaluates schedules in UTC, and skips a fire if the previous run is still active.
+- **Scheduled workflows.** Prefer invoking the deployed application's authenticated workflow endpoint from a **Cron Schedule**, or attach the CLI with `npx bapX run workflow:<name> --server https://<host>/<bapX-mount>`. This avoids rebuilding and starting a second application runtime for every fire. Railway enforces a minimum interval of five minutes, evaluates schedules in UTC, and skips a fire if the previous run is still active.
 - **Queue-backed workers.** For continuous, queue-driven delivery, run a second always-on service that makes attached agent requests and waits for results, or have application code call `dispatch(...)` for asynchronous delivery identified by `dispatchId`. A worker service has no public port; it just runs `node dist/server.mjs` (or a custom entry) and processes work.
 
 ## References

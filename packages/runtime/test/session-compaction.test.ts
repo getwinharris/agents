@@ -5,8 +5,8 @@ import {
 } from '@earendil-works/pi-ai/compat';
 import { afterEach, describe, expect, it } from 'vitest';
 import { defineAgent, SessionBusyError } from '../src/index.ts';
-import { createFlueContext } from '../src/internal.ts';
-import type { FlueEvent } from '../src/types.ts';
+import { createBapxContext } from '../src/internal.ts';
+import type { BapxEvent } from '../src/types.ts';
 import { createNoopSessionEnv } from './fixtures/session-env.ts';
 
 const providers: FauxProviderRegistration[] = [];
@@ -21,10 +21,10 @@ describe('session.compact()', () => {
 			provider: `session-compaction-${crypto.randomUUID()}`,
 		});
 		providers.push(provider);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const model = provider.getModel();
 		const modelSpecifier = `${model.provider}/${model.id}`;
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'manual-empty-compaction',
 			env: {},
 			agentConfig: {
@@ -55,10 +55,10 @@ describe('session.compact()', () => {
 			fauxAssistantMessage('ok'),
 			fauxAssistantMessage('summary checkpoint'),
 		]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const model = provider.getModel();
 		const modelSpecifier = `${model.provider}/${model.id}`;
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'manual-event-compaction',
 			env: {},
 			agentConfig: {
@@ -102,10 +102,10 @@ describe('session.compact()', () => {
 				errorMessage: 'summarization provider unavailable',
 			}),
 		]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const model = provider.getModel();
 		const modelSpecifier = `${model.provider}/${model.id}`;
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'manual-failed-compaction',
 			env: {},
 			agentConfig: {
@@ -156,7 +156,7 @@ describe('session.compact()', () => {
 		]);
 		const model = provider.getModel();
 		const modelSpecifier = `${model.provider}/${model.id}`;
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'manual-overlap-compaction',
 			env: {},
 			agentConfig: {
@@ -187,10 +187,10 @@ describe('session.compact()', () => {
 			fauxAssistantMessage('current response'),
 			fauxAssistantMessage('summary checkpoint'),
 		]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const model = provider.getModel();
 		const modelSpecifier = `${model.provider}/${model.id}`;
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'manual-disabled-threshold-compaction',
 			env: {},
 			agentConfig: {
@@ -233,10 +233,10 @@ describe('automatic compaction', () => {
 		});
 		providers.push(provider);
 		provider.setResponses([fauxAssistantMessage('ok'), fauxAssistantMessage('summary checkpoint')]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const model = provider.getModel();
 		const modelSpecifier = `${model.provider}/${model.id}`;
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'automatic-threshold-compaction',
 			env: {},
 			agentConfig: {
@@ -275,10 +275,10 @@ describe('automatic compaction', () => {
 		});
 		providers.push(provider);
 		provider.setResponses([fauxAssistantMessage('ok')]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const model = provider.getModel();
 		const modelSpecifier = `${model.provider}/${model.id}`;
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'automatic-threshold-disabled',
 			env: {},
 			agentConfig: {
@@ -318,10 +318,10 @@ describe('automatic compaction', () => {
 			fauxAssistantMessage('summary checkpoint'),
 			fauxAssistantMessage('recovered response'),
 		]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const model = provider.getModel();
 		const modelSpecifier = `${model.provider}/${model.id}`;
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'overflow-compaction',
 			env: {},
 			agentConfig: {
@@ -363,10 +363,10 @@ describe('automatic compaction', () => {
 			fauxAssistantMessage('summary checkpoint'),
 			fauxAssistantMessage('recovered response'),
 		]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const model = provider.getModel();
 		const modelSpecifier = `${model.provider}/${model.id}`;
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'overflow-disabled-threshold-compaction',
 			env: {},
 			agentConfig: {
@@ -414,7 +414,7 @@ describe('automatic compaction', () => {
 		]);
 		const model = provider.getModel();
 		const modelSpecifier = `${model.provider}/${model.id}`;
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'next-request-after-compaction',
 			env: {},
 			agentConfig: {
@@ -468,13 +468,13 @@ describe('automatic compaction', () => {
 			fauxAssistantMessage('ok'),
 			fauxAssistantMessage('summary checkpoint'),
 		]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const agentModel = provider.getModel('agent');
 		const summarizerModel = provider.getModel('summarizer');
 		if (!agentModel || !summarizerModel) throw new Error('Expected faux compaction models.');
 		const agentModelSpecifier = `${agentModel.provider}/${agentModel.id}`;
 		const summarizerModelSpecifier = `${summarizerModel.provider}/${summarizerModel.id}`;
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'configured-compaction-model',
 			env: {},
 			agentConfig: {
@@ -504,7 +504,7 @@ describe('automatic compaction', () => {
 		expect(
 			events
 				.filter(
-					(event): event is Extract<FlueEvent, { type: 'turn_request' }> =>
+					(event): event is Extract<BapxEvent, { type: 'turn_request' }> =>
 						event.type === 'turn_request' && event.purpose === 'agent',
 				)
 				.map((event) => event.request.requestedModel),
@@ -512,7 +512,7 @@ describe('automatic compaction', () => {
 		expect(
 			events
 				.filter(
-					(event): event is Extract<FlueEvent, { type: 'turn_request' }> =>
+					(event): event is Extract<BapxEvent, { type: 'turn_request' }> =>
 						event.type === 'turn_request' && event.purpose === 'compaction',
 				)
 				.map((event) => event.request.requestedModel),

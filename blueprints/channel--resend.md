@@ -6,15 +6,15 @@
 }
 ---
 
-# Add a Resend Channel to Flue
+# Add a Resend Channel to Bapx
 
 You are an AI coding agent adding verified Resend webhook ingress and
-application-owned email behavior to a Flue project.
+application-owned email behavior to a Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.flue/`, then `<root>/src/`, then
+first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions,
 receiving-domain setup, and which Resend email, contact, or domain events the
 application needs.
@@ -25,7 +25,7 @@ dependencies because the SDK's public declarations reference `Buffer` and
 React email types. Both are declaration-only requirements; they do not add
 Node or React runtime code to a Worker bundle.
 
-Flue owns exact-body signature verification and typed ingress. The project owns
+Bapx owns exact-body signature verification and typed ingress. The project owns
 receiving domains and MX records, webhook registration, credentials,
 deduplication, persistence, retrieving complete email content and attachments,
 outbound email, replies, and every model tool.
@@ -36,7 +36,7 @@ Create `<source-dir>/channels/resend.ts`. Adapt the imported agent, dispatched
 message, local message identity, and retrieval tool to the application:
 
 ```ts
-// flue-blueprint: channel/resend@1
+// bapX-blueprint: channel/resend@1
 import { createResendChannel } from '@bapX/resend';
 import { defineTool, dispatch, type JsonValue } from '@bapX/runtime';
 import { Resend } from 'resend';
@@ -159,7 +159,7 @@ Configure the webhook URL as:
 https://example.com/channels/resend/webhook
 ```
 
-If `flue()` is mounted beneath an outer prefix, include it. Subscribe only to
+If `bapX()` is mounted beneath an outer prefix, include it. Subscribe only to
 events the application handles.
 
 `RESEND_WEBHOOK_SECRET` verifies inbound deliveries.
@@ -189,7 +189,7 @@ when the application intentionally wants redelivery.
 ## Test without Resend
 
 Run the project's focused typecheck and configured Node and Cloudflare checks.
-The SDK and verifier run in Node and workerd with Flue's required
+The SDK and verifier run in Node and workerd with Bapx's required
 `nodejs_compat` configuration. Use the project's existing credential
 convention; both `process.env` and typed Worker bindings are supported.
 

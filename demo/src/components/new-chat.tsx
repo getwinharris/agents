@@ -1,7 +1,7 @@
 import { useNavigate } from '@tanstack/react-router'
 import { Composer } from '@/components/chat/composer'
 import { SidebarTrigger } from '@/components/ui/sidebar'
-import { parseAgentUrl } from '@/lib/flue-client'
+import { parseAgentUrl } from '@/lib/bapX-client'
 import { useConversations } from '@/state/conversations'
 import { useSettings } from '@/state/settings'
 
@@ -27,7 +27,7 @@ export function NewChat() {
           <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-primary text-lg font-semibold text-primary-foreground">
             F
           </div>
-          <h2 className="mb-1 text-2xl font-semibold">Flue Demo Chat</h2>
+          <h2 className="mb-1 text-2xl font-semibold">Bapx Demo Chat</h2>
           {agentName ? (
             <p className="mb-8 text-sm text-muted-foreground">
               Talking to{' '}

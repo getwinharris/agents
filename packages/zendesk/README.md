@@ -1,6 +1,6 @@
 # `@bapX/zendesk`
 
-Verified Zendesk event-subscription webhook ingress for Flue.
+Verified Zendesk event-subscription webhook ingress for Bapx.
 
 The package exposes one fixed `POST /webhook` route and verifies Zendesk's
 base64 HMAC-SHA256 over the signature timestamp concatenated directly with the
@@ -22,8 +22,8 @@ export const channel = createZendeskChannel({
 });
 ```
 
-Place this export in `channels/zendesk.ts`. Flue discovers it and serves
-`POST /channels/zendesk/webhook` relative to the `flue()` mount.
+Place this export in `channels/zendesk.ts`. Bapx discovers it and serves
+`POST /channels/zendesk/webhook` relative to the `bapX()` mount.
 
 The callback receives `{ c, payload, delivery }`. `payload` is the
 provider-native common event envelope with Zendesk's own snake_case field names

@@ -2,10 +2,10 @@
 { "kind": "database", "version": 1, "website": "https://turso.tech" }
 ---
 
-# Add a Turso Database to Flue
+# Add a Turso Database to Bapx
 
 You are an AI coding agent configuring hosted [Turso](https://turso.tech)
-persistence for a Flue project using the first-party `@bapX/libsql` adapter.
+persistence for a Bapx project using the first-party `@bapX/libsql` adapter.
 Turso is hosted libSQL; this is the same adapter as the `libsql` blueprint with
 a Turso client configuration. For a local file or self-hosted libSQL server,
 use the `libsql` blueprint instead.
@@ -24,7 +24,7 @@ project targets Cloudflare, stop and tell the user — there is nothing to add.
 ## Inspect the project
 
 Read local instructions (`AGENTS.md` and similar), detect the package manager,
-and select the first existing source root: `<root>/.flue/`, then `<root>/src/`,
+and select the first existing source root: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Check for an existing `db.ts` — if one is present, the project
 already has an adapter; confirm with the user before replacing it. Inspect how
 the project reads secrets.
@@ -45,7 +45,7 @@ callback in one `write` transaction, and `close`. `@libsql/client` returns a
 `ResultSet`, so map its `rows`/`columns` into plain objects:
 
 ```ts title="src/db.ts"
-// flue-blueprint: database/turso@1
+// bapX-blueprint: database/turso@1
 import { libsql } from '@bapX/libsql';
 import { createClient, type ResultSet } from '@libsql/client';
 
@@ -87,7 +87,7 @@ local file synced from the remote database — by adding `syncUrl` and a local
 `file:` `url`. Suggest this only if the user asks about read latency; the plain
 remote client above is the default.
 
-Flue discovers `db.ts` at build time and wires the default export into the
+Bapx discovers `db.ts` at build time and wires the default export into the
 generated Node server. The adapter's `migrate()` hook runs automatically at
 startup and creates its tables idempotently, so there is no separate migration
 step. Do not add an `app.ts` solely to register the database.
@@ -96,7 +96,7 @@ step. Do not add an `app.ts` solely to register the database.
 
 The client reads `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` at runtime. Follow
 the project's secret conventions and never commit real values. For local
-development, `flue dev --env <file>` and `flue run --env <file>` load any
+development, `bapX dev --env <file>` and `bapX run --env <file>` load any
 `.env`-format file. Update existing environment documentation or `.env.example`
 when the project keeps one.
 
@@ -107,7 +107,7 @@ when the project keeps one.
    discovered and wired into the generated server.
 3. With `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` set (a development database
    is fine), start the server and confirm it boots — `migrate()` creates the
-   `flue_*` tables on first run. Restart it and confirm existing state is
+   `bapX_*` tables on first run. Restart it and confirm existing state is
    reloaded rather than recreated.
 4. Do not point the adapter at a production database to test.
 

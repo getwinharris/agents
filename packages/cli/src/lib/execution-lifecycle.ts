@@ -1,8 +1,8 @@
 import * as fs from 'node:fs';
 import path from 'node:path';
-import { createFlueClient, type FlueClient } from '@bapX/sdk';
+import { createBapxClient, type BapxClient } from '@bapX/sdk';
 import { ulid } from 'ulidx';
-import { type FlueConfig, resolveConfig, resolveConfigPath, type UserFlueConfig } from './config.ts';
+import { type BapxConfig, resolveConfig, resolveConfigPath, type UserBapxConfig } from './config.ts';
 import { createEnvLoader, type EnvLoader, selectEnvFile } from './env.ts';
 import {
 	type LocalHttpRuntime,
@@ -38,7 +38,7 @@ interface PreparedExecution {
 }
 
 interface StartedExecution extends PreparedExecution {
-	readonly client: FlueClient;
+	readonly client: BapxClient;
 	readonly baseUrl: string;
 }
 
@@ -51,7 +51,7 @@ export interface ExecutionLifecycle {
 }
 
 interface LocalApplication {
-	cfg: FlueConfig;
+	cfg: BapxConfig;
 	configPath?: string;
 	envLoader: EnvLoader;
 	envFile?: string;
@@ -73,7 +73,7 @@ export function createExecutionLifecycle(options: ExecutionLifecycleOptions): Ex
 		cleaned = true;
 		if (cloudflareScratch) restoreFiles(cloudflareScratch);
 		if (!cloudflareInputDirExisted && application) {
-			const inputDir = path.join(application.cfg.root, '.flue-vite');
+			const inputDir = path.join(application.cfg.root, '.bapX-vite');
 			try {
 				if (fs.readdirSync(inputDir).length === 0) fs.rmdirSync(inputDir);
 			} catch {}
@@ -154,7 +154,7 @@ export function createExecutionLifecycle(options: ExecutionLifecycleOptions): Ex
 				: resolveServerUrl(options.server, runtime?.url as string);
 			return {
 				...preparedExecution,
-				client: createFlueClient({ baseUrl, headers: parseHeaders(options.headers ?? []) }),
+				client: createBapxClient({ baseUrl, headers: parseHeaders(options.headers ?? []) }),
 				baseUrl,
 			};
 		} catch (error) {
@@ -170,12 +170,12 @@ export function createExecutionLifecycle(options: ExecutionLifecycleOptions): Ex
 	}
 
 	async function startLocalRuntime(): Promise<void> {
-		if (!application) throw new Error('[flue] Local application was not resolved.');
+		if (!application) throw new Error('[bapX] Local application was not resolved.');
 		if (application.cfg.target === 'cloudflare') {
-			cloudflareInputDirExisted = fs.existsSync(path.join(application.cfg.root, '.flue-vite'));
+			cloudflareInputDirExisted = fs.existsSync(path.join(application.cfg.root, '.bapX-vite'));
 			cloudflareScratch = snapshotFiles([
-				path.join(application.cfg.root, '.flue-vite', '_entry.ts'),
-				path.join(application.cfg.root, '.flue-vite.wrangler.jsonc'),
+				path.join(application.cfg.root, '.bapX-vite', '_entry.ts'),
+				path.join(application.cfg.root, '.bapX-vite.wrangler.jsonc'),
 			]);
 		}
 		runtime = await startLocalHttpRuntime({
@@ -203,11 +203,11 @@ async function resolveLocalApplication(options: ExecutionLifecycleOptions): Prom
 	const envLoader = createEnvLoader(selectEnvFile(options.envFile, baseDir));
 	envLoader.apply();
 	try {
-		const inline: UserFlueConfig = {};
+		const inline: UserBapxConfig = {};
 		if (options.target) inline.target = options.target;
 		if (options.explicitRoot) inline.root = options.explicitRoot;
 		if (options.explicitOutput) inline.output = options.explicitOutput;
-		const { flueConfig: cfg, configPath } = await resolveConfig({
+		const { bapXConfig: cfg, configPath } = await resolveConfig({
 			cwd,
 			searchFrom,
 			configFile: options.configFile,
@@ -229,7 +229,7 @@ function resolveRemoteResource(value: string): RunResource {
 	const qualified = value.match(/^(agent|workflow):(.+)$/);
 	if (!qualified) {
 		throw new Error(
-			`[flue] Absolute --server requires a qualified resource: agent:${value} or workflow:${value}.`,
+			`[bapX] Absolute --server requires a qualified resource: agent:${value} or workflow:${value}.`,
 		);
 	}
 	return {

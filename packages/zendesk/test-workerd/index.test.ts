@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createZendeskChannel, type ZendeskChannel } from '../src/index.ts';
 
 const encoder = new TextEncoder();
-const SIGNING_SECRET = 'flue-zendesk-workerd-signing-secret';
+const SIGNING_SECRET = 'bapX-zendesk-workerd-signing-secret';
 const ACCOUNT_ID = '9223372036854775807';
 const WEBHOOK_ID = 'workerd-webhook-29';
 const TIMESTAMP = '2026-06-13T23:58:31Z';

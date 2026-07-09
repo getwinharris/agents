@@ -10,10 +10,10 @@
 
 ## Goal
 
-You are an AI coding agent being asked to build a Flue **sandbox** adapter
-for a provider that Flue does not have a built-in blueprint for. The deliverable
+You are an AI coding agent being asked to build a Bapx **sandbox** adapter
+for a provider that Bapx does not have a built-in blueprint for. The deliverable
 is one file in the user's project that exports a `SandboxFactory` for the
-provider, satisfying Flue's published contract.
+provider, satisfying Bapx's published contract.
 
 There's no fixed procedure for getting there — your provider's shape (typed
 SDK, multiple packages, HTTP-only, CLI-driven, something else) will dictate
@@ -22,7 +22,7 @@ reasonably infer from the spec or the worked example.
 
 ## Starting point
 
-The user invoked `flue add sandbox <url>` or `flue update sandbox <url>` with
+The user invoked `bapX add sandbox <url>` or `bapX update sandbox <url>` with
 this argument as their starting point for the provider's documentation:
 
 `{{URL}}`
@@ -34,9 +34,9 @@ on where to go from there to collect the necessary information to complete your 
 
 For an update, inspect the user's current adapter before editing. Compare it
 with this refreshed complete guide, the provider's current primary sources,
-and the current Flue contract. Infer which changes are relevant, apply only
+and the current Bapx contract. Infer which changes are relevant, apply only
 those changes, preserve project-specific customizations, and update the primary
-file's `flue-blueprint` marker only after the adapter conforms. A URL blueprint
+file's `bapX-blueprint` marker only after the adapter conforms. A URL blueprint
 has no provider-specific historical diff; do not assume the CLI compared or
 modified the implementation.
 
@@ -50,14 +50,14 @@ Read these before writing code.
   adapter; your provider's shape may be quite different):
   `https://bapx.in/cli/blueprints/daytona.md`
 
-## Flue-specific conventions
+## Bapx-specific conventions
 
 These are the things that aren't obvious from the spec or the example.
 
 - **File location.** Select the first existing source directory in this order:
-  `<root>/.flue/`, `<root>/src/`, then `<root>/`. Write the adapter to
+  `<root>/.bapX/`, `<root>/src/`, then `<root>/`. Write the adapter to
   `<source-dir>/sandboxes/<name>.ts`. Its first generated line must be
-  `// flue-blueprint: sandbox/<provider>@1`, replacing `<provider>` with the
+  `// bapX-blueprint: sandbox/<provider>@1`, replacing `<provider>` with the
   selected provider slug. Ask the user if their layout is unusual.
 - **Imports.** The published surface is `@bapX/runtime`. Don't import
   from `@bapX/runtime/internal` or any other internal path.
@@ -73,7 +73,7 @@ These are the things that aren't obvious from the spec or the example.
   values for them. Let the project's conventions (`AGENTS.md`, an existing
   `.env` / `.dev.vars`, a secret manager, CI vars, etc.) decide where they
   belong, and ask the user only if nothing in the project gives a clear
-  signal. For local dev, `flue dev --env <file>` and `flue run --env <file>`
+  signal. For local dev, `bapX dev --env <file>` and `bapX run --env <file>`
   load any `.env`-format file.
 
 ## Wrapping up
@@ -83,7 +83,7 @@ These are the things that aren't obvious from the spec or the example.
   into, finish that wiring. Otherwise share a small snippet showing how to
   wire it up — typically returning the factory from a bound `defineAgent(() => ({ sandbox: ... }))`, then passing that agent to a default-exported `defineWorkflow({ agent, ... })` or default-exporting it from an agent module.
 - Tell the user what commands to run next: any new deps you added, any env
-  vars they need to set, and `flue dev`.
+  vars they need to set, and `bapX dev`.
 
 ## Hard rules
 

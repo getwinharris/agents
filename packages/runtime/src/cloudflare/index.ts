@@ -10,7 +10,7 @@
 export type { CloudflareAIBinding, CloudflareAIBindingRegistration } from '../runtime/providers.ts';
 export type { CloudflareSandboxOptions, CloudflareSandboxStub } from './cf-sandbox.ts';
 export { cloudflareSandbox } from './cf-sandbox.ts';
-export type { CloudflareContext, FlueDurableObjectIdentity } from './context.ts';
+export type { CloudflareContext, BapxDurableObjectIdentity } from './context.ts';
 export { getCloudflareContext, getDurableObjectIdentity } from './context.ts';
 export type {
 	CloudflareAgentLike,

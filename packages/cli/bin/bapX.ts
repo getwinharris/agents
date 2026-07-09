@@ -4,16 +4,16 @@ import * as fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { type ParseArgsOptionsConfig, parseArgs as parseNodeArgs } from 'node:util';
-import type { ConversationStreamChunk, FlueEvent } from '@bapX/sdk';
+import type { ConversationStreamChunk, BapxEvent } from '@bapX/sdk';
 import { determineAgent } from '@vercel/detect-agent';
 import MiniSearch from 'minisearch';
 import pc from 'picocolors';
 import { build } from '../src/lib/build.ts';
 import {
-	type FlueConfig,
+	type BapxConfig,
 	resolveConfig,
 	resolveConfigPath,
-	type UserFlueConfig,
+	type UserBapxConfig,
 } from '../src/lib/config.ts';
 import { resolveConfigCandidates } from '../src/lib/config-paths.ts';
 import { closeExecutionForSignal } from '../src/lib/console-shutdown.ts';
@@ -61,20 +61,20 @@ async function resolveCliConfig(args: {
 	explicitRoot: string | undefined;
 	explicitOutput: string | undefined;
 	configFile: string | undefined;
-}): Promise<{ cfg: FlueConfig; configPath?: string; viteConfig: import('vite').UserConfig }> {
-	const inline: UserFlueConfig = {};
+}): Promise<{ cfg: BapxConfig; configPath?: string; viteConfig: import('vite').UserConfig }> {
+	const inline: UserBapxConfig = {};
 	if (args.target) inline.target = args.target;
 	if (args.explicitRoot) inline.root = args.explicitRoot;
 	if (args.explicitOutput) inline.output = args.explicitOutput;
 
 	try {
-		const { flueConfig, configPath, viteConfig } = await resolveConfig({
+		const { bapXConfig, configPath, viteConfig } = await resolveConfig({
 			cwd: process.cwd(),
 			searchFrom: args.explicitRoot ?? process.cwd(),
 			configFile: args.configFile,
 			inline,
 		});
-		return { cfg: flueConfig, configPath, viteConfig };
+		return { cfg: bapXConfig, configPath, viteConfig };
 	} catch (err) {
 		cliError(err instanceof Error ? err.message : String(err));
 		process.exit(1);
@@ -82,7 +82,7 @@ async function resolveCliConfig(args: {
 }
 
 async function resolveApplicationCommand(args: ApplicationConfigArgs): Promise<{
-	cfg: FlueConfig;
+	cfg: BapxConfig;
 	envLoader: EnvLoader;
 	configPath?: string;
 	viteConfig: import('vite').UserConfig;
@@ -97,13 +97,13 @@ async function resolveApplicationCommand(args: ApplicationConfigArgs): Promise<{
 function printUsage(log: (message: string) => void = console.error) {
 	log(
 		'Usage:\n' +
-			'  flue dev   [--target <node|cloudflare>] [--root <path>] [--output <path>] [--config <path>] [--port <number>] [--env <path>]\n' +
-			"  flue run     <name> [--target <node|cloudflare>] [--id <id>] [--input <json>] [--server <path|url>] [--header 'Name: value'] [--root <path>] [--output <path>] [--config <path>] [--env <path>]\n" +
-			'  flue build   [--target <node|cloudflare>] [--root <path>] [--output <path>] [--config <path>] [--env <path>]\n' +
-			'  flue init  --target <node|cloudflare> [--root <path>] [--force]\n' +
-			'  flue add   [<kind> <name|url>] [--print]\n' +
-			'  flue update <kind> <name|url> [--print]\n' +
-			'  flue docs  [read <path> | search <query>]\n' +
+			'  bapX dev   [--target <node|cloudflare>] [--root <path>] [--output <path>] [--config <path>] [--port <number>] [--env <path>]\n' +
+			"  bapX run     <name> [--target <node|cloudflare>] [--id <id>] [--input <json>] [--server <path|url>] [--header 'Name: value'] [--root <path>] [--output <path>] [--config <path>] [--env <path>]\n" +
+			'  bapX build   [--target <node|cloudflare>] [--root <path>] [--output <path>] [--config <path>] [--env <path>]\n' +
+			'  bapX init  --target <node|cloudflare> [--root <path>] [--force]\n' +
+			'  bapX add   [<kind> <name|url>] [--print]\n' +
+			'  bapX update <kind> <name|url> [--print]\n' +
+			'  bapX docs  [read <path> | search <query>]\n' +
 			'\n' +
 			'Commands:\n' +
 			'  dev    Long-running watch-mode dev server. Rebuilds and reloads on file changes.\n' +
@@ -112,38 +112,38 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  init   Scaffold a starter bapX.config.ts in the target directory.\n' +
 			'  add    Fetch a blueprint implementation guide for an AI coding agent to follow.\n' +
 			'  update Fetch an updated blueprint implementation guide for an AI coding agent to follow.\n' +
-			'  docs   Browse the Flue docs. No args lists pages; `read` prints a page as markdown; `search` prints JSON results.\n' +
+			'  docs   Browse the Bapx docs. No args lists pages; `read` prints a page as markdown; `search` prints JSON results.\n' +
 			'\n' +
 			'Flags:\n' +
 			'  --root <path>        Project root. Default: current working directory.\n' +
 			'  --output <path>      Where the build artifacts are written. Default: <root>/dist.\n' +
-			'  --config <path>      Path to a flue.config.{ts,mts,mjs,js,cjs,cts} file (relative to cwd).\n' +
-			'                       Default: search the root dir (or cwd) for `flue.config.*`.\n' +
+			'  --config <path>      Path to a bapX.config.{ts,mts,mjs,js,cjs,cts} file (relative to cwd).\n' +
+			'                       Default: search the root dir (or cwd) for `bapX.config.*`.\n' +
 			'                       CLI flags always override values set in the config file.\n' +
 			`  --port <number>      Port for the dev server. Default: ${DEFAULT_DEV_PORT}\n` +
 			'  --env <path>         Select one alternate .env-format file for build/dev/run before config loads.\n' +
 			'                       Without --env, these commands load <project>/.env when present. Shell values win.\n' +
-			'  --print              (flue add/update) Print the raw blueprint Markdown to stdout regardless of whether the caller is an agent.\n' +
-			'  --force              (flue init) Overwrite an existing flue.config.* in the target directory.\n' +
+			'  --print              (bapX add/update) Print the raw blueprint Markdown to stdout regardless of whether the caller is an agent.\n' +
+			'  --force              (bapX init) Overwrite an existing bapX.config.* in the target directory.\n' +
 			'\n' +
 			'Examples:\n' +
-			'  flue dev --target node\n' +
-			'  flue dev --target cloudflare --port 8787\n' +
-			'  flue run hello --target node\n' +
-			'  flue run hello --target node --input \'{"name": "World"}\' --env .env.staging\n' +
-			'  flue build --target node\n' +
-			'  flue build --target cloudflare --root ./my-app\n' +
-			'  flue build --target node --output ./build\n' +
-			'  flue init --target node\n' +
-			'  flue add\n' +
-			'  flue add sandbox daytona | claude\n' +
-			'  flue add channel slack | codex\n' +
-			'  flue add sandbox https://e2b.dev | claude\n' +
-			'  flue add channel https://developers.notion.com/reference/webhooks | codex\n' +
-			'  flue update channel slack | claude\n' +
-			'  flue docs\n' +
-			'  flue docs read guide/sandboxes\n' +
-			'  flue docs search "durable execution"\n' +
+			'  bapX dev --target node\n' +
+			'  bapX dev --target cloudflare --port 8787\n' +
+			'  bapX run hello --target node\n' +
+			'  bapX run hello --target node --input \'{"name": "World"}\' --env .env.staging\n' +
+			'  bapX build --target node\n' +
+			'  bapX build --target cloudflare --root ./my-app\n' +
+			'  bapX build --target node --output ./build\n' +
+			'  bapX init --target node\n' +
+			'  bapX add\n' +
+			'  bapX add sandbox daytona | claude\n' +
+			'  bapX add channel slack | codex\n' +
+			'  bapX add sandbox https://e2b.dev | claude\n' +
+			'  bapX add channel https://developers.notion.com/reference/webhooks | codex\n' +
+			'  bapX update channel slack | claude\n' +
+			'  bapX docs\n' +
+			'  bapX docs read guide/sandboxes\n' +
+			'  bapX docs search "durable execution"\n' +
 			'\n' +
 			'Note: set the model in `defineAgent(() => ({ model: "provider-id/model-id" }))` ' +
 			'or per-call `{ model: ... }` on prompt/skill/task.',
@@ -274,10 +274,10 @@ function parseCommandOptions(
 	)) {
 		const optionName = token.name;
 		if (!known.has(token.rawName)) {
-			fail(`Unknown flag for \`flue ${command}\`: ${token.rawName}`, true);
+			fail(`Unknown flag for \`bapX ${command}\`: ${token.rawName}`, true);
 		}
 		if (!allowed.has(token.rawName)) {
-			fail(`\`flue ${command}\` does not accept ${token.rawName}.`);
+			fail(`\`bapX ${command}\` does not accept ${token.rawName}.`);
 		}
 		// Prevent a following known flag from being consumed as this string option's value.
 		if (
@@ -408,14 +408,14 @@ function parseBlueprintCommandArgs(
 
 	if (positionals.length < 2) {
 		console.error(
-			`Missing blueprint ${positionals.length === 0 ? 'kind and name or URL' : 'name or URL'}.\n\nUsage:\n  flue ${command} <kind> <name|url> [--print]`,
+			`Missing blueprint ${positionals.length === 0 ? 'kind and name or URL' : 'name or URL'}.\n\nUsage:\n  bapX ${command} <kind> <name|url> [--print]`,
 		);
 		process.exit(1);
 	}
 
 	const extra = positionals[2];
 	if (extra !== undefined) {
-		console.error(`Unexpected extra argument for \`flue ${command}\`: ${extra}`);
+		console.error(`Unexpected extra argument for \`bapX ${command}\`: ${extra}`);
 		printUsage();
 		process.exit(1);
 	}
@@ -438,12 +438,12 @@ function parseDocsArgs(rest: string[]): DocsArgs {
 	if (action === 'read') {
 		const value = values[0];
 		if (!value) {
-			console.error('Missing docs page path.\n\nUsage:\n  flue docs read <path>');
+			console.error('Missing docs page path.\n\nUsage:\n  bapX docs read <path>');
 			process.exit(1);
 		}
 		const extra = values[1];
 		if (extra !== undefined) {
-			console.error(`Unexpected extra argument for \`flue docs read\`: ${extra}`);
+			console.error(`Unexpected extra argument for \`bapX docs read\`: ${extra}`);
 			process.exit(1);
 		}
 		return { command: 'docs', action: 'read', value };
@@ -452,19 +452,19 @@ function parseDocsArgs(rest: string[]): DocsArgs {
 	if (action === 'search') {
 		const value = values.join(' ').trim();
 		if (!value) {
-			console.error('Missing search query.\n\nUsage:\n  flue docs search <query>');
+			console.error('Missing search query.\n\nUsage:\n  bapX docs search <query>');
 			process.exit(1);
 		}
 		return { command: 'docs', action: 'search', value };
 	}
 
 	console.error(
-		`Unknown \`flue docs\` subcommand: ${action}\n\n` +
+		`Unknown \`bapX docs\` subcommand: ${action}\n\n` +
 			'Usage:\n' +
-			'  flue docs                  List all documentation pages\n' +
-			'  flue docs read <path>      Print a documentation page as markdown\n' +
-			'  flue docs search <query>   Search the documentation (JSON results)\n' +
-			(action.includes('/') ? `\nDid you mean \`flue docs read ${action}\`?\n` : ''),
+			'  bapX docs                  List all documentation pages\n' +
+			'  bapX docs read <path>      Print a documentation page as markdown\n' +
+			'  bapX docs search <query>   Search the documentation (JSON results)\n' +
+			(action.includes('/') ? `\nDid you mean \`bapX docs read ${action}\`?\n` : ''),
 	);
 	process.exit(1);
 }
@@ -483,7 +483,7 @@ function parseInitArgs(rest: string[]): InitArgs {
 	const target = targetFlag(stringFlag(values, 'target', 'Missing value for --target'));
 
 	for (const positional of positionals) {
-		fail(`Unexpected argument for \`flue init\`: ${positional}`, true);
+		fail(`Unexpected argument for \`bapX init\`: ${positional}`, true);
 	}
 
 	if (!target) {
@@ -533,7 +533,7 @@ function parseArgs(argv: string[]): ParsedArgs {
 			new Set(['--target', '--root', '--output', '--config', '--env']),
 		);
 		if (flags.positionals.length > 0) {
-			console.error(`Unexpected argument for \`flue build\`: ${flags.positionals[0]}`);
+			console.error(`Unexpected argument for \`bapX build\`: ${flags.positionals[0]}`);
 			printUsage();
 			process.exit(1);
 		}
@@ -554,7 +554,7 @@ function parseArgs(argv: string[]): ParsedArgs {
 			new Set(['--target', '--root', '--output', '--config', '--port', '--env']),
 		);
 		if (flags.positionals.length > 0) {
-			console.error(`Unexpected argument for \`flue dev\`: ${flags.positionals[0]}`);
+			console.error(`Unexpected argument for \`bapX dev\`: ${flags.positionals[0]}`);
 			printUsage();
 			process.exit(1);
 		}
@@ -592,7 +592,7 @@ function parseArgs(argv: string[]): ParsedArgs {
 			process.exit(1);
 		}
 		if (extra.length > 0) {
-			console.error(`Unexpected extra arguments for \`flue ${command}\`: ${extra.join(' ')}`);
+			console.error(`Unexpected extra arguments for \`bapX ${command}\`: ${extra.join(' ')}`);
 			printUsage();
 			process.exit(1);
 		}
@@ -821,9 +821,9 @@ async function run(args: RunArgs) {
 		const execution = await lifecycle.start();
 		const input = args.input === undefined ? undefined : JSON.parse(args.input);
 		if (execution.resource.kind === 'agent' && input === undefined) {
-			throw new Error('[flue] Agent `flue run` requires --input.');
+			throw new Error('[bapX] Agent `bapX run` requires --input.');
 		}
-		brandRows('flue run', [
+		brandRows('bapX run', [
 			[execution.resource.kind, execution.resource.name],
 			['id', execution.instanceId],
 			['target', execution.target],
@@ -860,7 +860,7 @@ async function run(args: RunArgs) {
 		const completed = await runTarget(
 			execution.client,
 			target,
-			(event: ConversationStreamChunk | FlueEvent) => {
+			(event: ConversationStreamChunk | BapxEvent) => {
 				if (!runIdShown && event.type === 'run_start') {
 					runIdShown = true;
 					row('run', event.runId);
@@ -894,7 +894,7 @@ async function run(args: RunArgs) {
 	}
 }
 
-// ─── `flue init` ────────────────────────────────────────────────────────────
+// ─── `bapX init` ────────────────────────────────────────────────────────────
 
 function renderConfigTemplate(target: 'node' | 'cloudflare'): string {
 	return (
@@ -914,7 +914,7 @@ function initCommand(args: InitArgs) {
 		process.exit(1);
 	}
 
-	// Detect any existing flue.config.* in the target dir, using the same
+	// Detect any existing bapX.config.* in the target dir, using the same
 	// discovery rule the rest of the CLI uses. This catches `.mts`, `.js`,
 	// etc. — not just `.ts`.
 	let existing: string | undefined;
@@ -927,7 +927,7 @@ function initCommand(args: InitArgs) {
 
 	if (existing && !args.force) {
 		const rel = path.relative(process.cwd(), existing) || existing;
-		cliError(`A Flue config already exists at ${rel}.\n  Re-run with --force to overwrite.`);
+		cliError(`A Bapx config already exists at ${rel}.\n  Re-run with --force to overwrite.`);
 		process.exit(1);
 	}
 
@@ -942,7 +942,7 @@ function initCommand(args: InitArgs) {
 	}
 
 	const relOut = path.relative(process.cwd(), outPath) || outPath;
-	console.error(brand(['flue init', `target ${args.target}`, `wrote ${relOut}`]));
+	console.error(brand(['bapX init', `target ${args.target}`, `wrote ${relOut}`]));
 
 	// If --force overwrote a non-`.ts` variant, the new bapX.config.ts will
 	// take precedence (CONFIG_BASENAMES priority), but the old file still
@@ -958,7 +958,7 @@ function initCommand(args: InitArgs) {
 	note('next: fetch https://bapx.in/start.md to create a new agent');
 }
 
-// ─── `flue add` ─────────────────────────────────────────────────────────────
+// ─── `bapX add` ─────────────────────────────────────────────────────────────
 
 // Default blueprint registry base. FLUE_REGISTRY_URL is an internal-only
 // override used for local development against `pnpm --filter @bapX/www dev`.
@@ -1014,7 +1014,7 @@ function kindRootHint(): string {
 	lines.push(`Don't see what you need?`);
 	for (const root of KIND_ROOTS) {
 		lines.push('');
-		lines.push(`  flue add ${root.kind} <url>`);
+		lines.push(`  bapX add ${root.kind} <url>`);
 		lines.push(
 			`    Build a ${blueprintResultByKind[root.kind] ?? root.kind} from scratch. Pass a URL pointing at the`,
 		);
@@ -1026,14 +1026,14 @@ function kindRootHint(): string {
 
 function availableBlueprintRows(kind?: string) {
 	return BLUEPRINTS.filter((blueprint) => !kind || blueprint.kind === kind).map((blueprint) => ({
-		command: `flue add ${blueprint.kind} ${blueprint.slug}`,
+		command: `bapX add ${blueprint.kind} ${blueprint.slug}`,
 		kind: blueprint.kind,
 		website: blueprint.website,
 	}));
 }
 
 function printListing(stream: NodeJS.WriteStream) {
-	stream.write('flue add <kind> <name|url>\n\n');
+	stream.write('bapX add <kind> <name|url>\n\n');
 	stream.write('Available blueprints:\n');
 	stream.write(renderBlueprintTable(availableBlueprintRows()));
 	stream.write('\n');
@@ -1046,7 +1046,7 @@ function printUnknownBlueprint(kind: string, name: string, stream: NodeJS.WriteS
 	stream.write(`Available ${kind} blueprints:\n`);
 	stream.write(renderBlueprintTable(availableBlueprintRows(kind)));
 	stream.write('\n\nTo build one from scratch with your coding agent:\n');
-	stream.write(`  flue add ${kind} <url>\n`);
+	stream.write(`  bapX add ${kind} <url>\n`);
 }
 
 async function fetchBlueprintMarkdown(
@@ -1070,7 +1070,7 @@ async function fetchBlueprintMarkdown(
 	return { body: await res.text() };
 }
 
-// ─── flue docs ───────────────────────────────────────────────────────────────
+// ─── bapX docs ───────────────────────────────────────────────────────────────
 
 interface DocsPage {
 	/** Page path without extension, e.g. `guide/sandboxes`. */
@@ -1089,7 +1089,7 @@ interface DocsPage {
  * (dev via tsx) and `dist/` (built) sit directly under the package root, so
  * the relative hop is identical in both contexts.
  *
- * The `apps/docs` candidate exists only for development inside the Flue
+ * The `apps/docs` candidate exists only for development inside the Bapx
  * monorepo itself and can never resolve in a user's `node_modules`. It is
  * checked first because in a repo checkout the docs site content is the
  * source of truth, and a stale `<package root>/docs` snapshot left behind by
@@ -1236,9 +1236,9 @@ function docsCommand(args: DocsArgs): void {
 
 	if (args.action === 'list') {
 		process.stderr.write(
-			'Flue documentation\n\n' +
-				'  flue docs read <path>      Print a documentation page as markdown\n' +
-				'  flue docs search <query>   Search the documentation (JSON results)\n\n' +
+			'Bapx documentation\n\n' +
+				'  bapX docs read <path>      Print a documentation page as markdown\n' +
+				'  bapX docs search <query>   Search the documentation (JSON results)\n\n' +
 				`Pages (${pages.length}):\n\n`,
 		);
 		for (const page of pages) {
@@ -1255,7 +1255,7 @@ function docsCommand(args: DocsArgs): void {
 		const page = pages.find((candidate) => candidate.path === target);
 		if (!page) {
 			cliError(
-				`Unknown docs page: ${args.value}\nRun \`flue docs\` to list available pages, or \`flue docs search <query>\` to find one.`,
+				`Unknown docs page: ${args.value}\nRun \`bapX docs\` to list available pages, or \`bapX docs search <query>\` to find one.`,
 			);
 			process.exit(1);
 		}
@@ -1298,11 +1298,11 @@ function docsCommand(args: DocsArgs): void {
 		}));
 
 	process.stdout.write(`${JSON.stringify({ query: args.value, results }, null, 2)}\n`);
-	process.stderr.write('\nRead a page with: flue docs read <path>\n');
+	process.stderr.write('\nRead a page with: bapX docs read <path>\n');
 }
 
 function printHumanInstructions(args: BlueprintCommandArgs) {
-	const cmd = `flue ${args.command} ${args.kind} ${shellQuote(args.target)}`;
+	const cmd = `bapX ${args.command} ${args.kind} ${shellQuote(args.target)}`;
 	const stream = process.stderr;
 	stream.write(`${cmd}\n\n`);
 	stream.write('To apply this blueprint, pipe it to your coding agent:\n\n');

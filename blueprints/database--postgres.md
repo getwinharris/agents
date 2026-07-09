@@ -2,9 +2,9 @@
 { "kind": "database", "version": 1, "website": "https://www.postgresql.org" }
 ---
 
-# Add a Postgres Database to Flue
+# Add a Postgres Database to Bapx
 
-You are an AI coding agent configuring Postgres-backed persistence for a Flue
+You are an AI coding agent configuring Postgres-backed persistence for a Bapx
 project using the first-party `@bapX/postgres` adapter.
 
 This persists canonical agent conversation streams, immutable attachments,
@@ -21,7 +21,7 @@ project targets Cloudflare, stop and tell the user — there is nothing to add.
 ## Inspect the project
 
 Read local instructions (`AGENTS.md` and similar), detect the package manager,
-and select the first existing source root: `<root>/.flue/`, then `<root>/src/`,
+and select the first existing source root: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Check for an existing `db.ts` in that root — if one is present,
 the project already has an adapter; confirm with the user before replacing it.
 Inspect how the project reads secrets so the connection string follows the same
@@ -52,7 +52,7 @@ issue `BEGIN`/`COMMIT`/`ROLLBACK` itself — a pool cannot run a transaction
 across arbitrary connections:
 
 ```ts title="src/db.ts"
-// flue-blueprint: database/postgres@1
+// bapX-blueprint: database/postgres@1
 import { postgres } from '@bapX/postgres';
 import { Pool } from 'pg';
 
@@ -81,7 +81,7 @@ export default postgres({
 Do not hardcode a connection string, and do not invent one — `DATABASE_URL` (or
 the project's existing equivalent) is supplied by the environment.
 
-Flue discovers `db.ts` at build time and wires the default export into the
+Bapx discovers `db.ts` at build time and wires the default export into the
 generated Node server. The adapter's `migrate()` hook runs automatically at
 startup and creates its tables idempotently, so there is no separate migration
 step to run. Do not add an `app.ts` solely to register the database.
@@ -90,7 +90,7 @@ step to run. Do not add an `app.ts` solely to register the database.
 
 The driver reads `DATABASE_URL` at runtime. Follow the project's secret
 conventions and never commit a real connection string. For local development,
-`flue dev --env <file>` and `flue run --env <file>` load any `.env`-format file.
+`bapX dev --env <file>` and `bapX run --env <file>` load any `.env`-format file.
 Update existing environment documentation or `.env.example` when the project
 keeps one; don't introduce a new secret-management convention without need.
 
@@ -101,7 +101,7 @@ keeps one; don't introduce a new secret-management convention without need.
    discovered and wired into the generated server.
 3. With `DATABASE_URL` pointed at a reachable Postgres (a local container is
    fine), start the server and confirm it boots — `migrate()` creates the
-   `flue_*` tables on first run. Restart it and confirm existing state is
+   `bapX_*` tables on first run. Restart it and confirm existing state is
    reloaded rather than recreated.
 4. Do not point the adapter at a production database to test.
 

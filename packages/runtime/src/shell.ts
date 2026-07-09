@@ -8,10 +8,10 @@
 
 import type { AgentToolResult } from '@earendil-works/pi-agent-core';
 import { formatBashResult } from './agent.ts';
-import { interceptExecution, type FlueExecutionContext } from './execution-interceptor.ts';
+import { interceptExecution, type BapxExecutionContext } from './execution-interceptor.ts';
 import type {
-	FlueEventInput,
-	FlueObservationDetail,
+	BapxEventInput,
+	BapxObservationDetail,
 	SessionEnv,
 	ShellOptions,
 	ShellResult,
@@ -27,11 +27,11 @@ import type {
  */
 export async function execShellWithEvents(
 	env: SessionEnv,
-	emit: (event: FlueEventInput, detail?: FlueObservationDetail) => void,
+	emit: (event: BapxEventInput, detail?: BapxObservationDetail) => void,
 	command: string,
 	options: ShellOptions | undefined,
 	signal: AbortSignal | undefined,
-	executionContext: FlueExecutionContext,
+	executionContext: BapxExecutionContext,
 	record?: (
 		toolCallId: string,
 		args: Record<string, unknown>,

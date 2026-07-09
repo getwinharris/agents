@@ -1,8 +1,8 @@
-import type { ConversationLiveMode, FlueClient } from '@bapX/sdk';
+import type { ConversationLiveMode, BapxClient } from '@bapX/sdk';
 import { useEffect, useMemo, useSyncExternalStore } from 'react';
 import { type AgentSnapshot, emptyAgentState } from './agent-reducer.ts';
 import { AgentSession, type SendMessageOptions } from './agent-session.ts';
-import { useResolvedFlueClient } from './provider.ts';
+import { useResolvedBapxClient } from './provider.ts';
 
 const emptySnapshot: AgentSnapshot = {
 	messages: emptyAgentState.messages,
@@ -13,14 +13,14 @@ const emptySnapshot: AgentSnapshot = {
 };
 const emptySubscribe = () => () => {};
 
-export interface UseFlueAgentOptions {
+export interface UseBapxAgentOptions {
 	name: string;
 	id?: string;
 	live?: ConversationLiveMode;
-	client?: FlueClient;
+	client?: BapxClient;
 }
 
-export interface UseFlueAgentResult extends AgentSnapshot {
+export interface UseBapxAgentResult extends AgentSnapshot {
 	sendMessage(message: string, options?: SendMessageOptions): Promise<void>;
 	/**
 	 * Re-checks the conversation and resumes live updates. Call this to observe a
@@ -31,8 +31,8 @@ export interface UseFlueAgentResult extends AgentSnapshot {
 	refresh(): void;
 }
 
-export function useFlueAgent(options: UseFlueAgentOptions): UseFlueAgentResult {
-	const client = useResolvedFlueClient(options.client);
+export function useBapxAgent(options: UseBapxAgentOptions): UseBapxAgentResult {
+	const client = useResolvedBapxClient(options.client);
 	// Default to SSE: lower-latency token-by-token streaming for chat UIs.
 	// Safe because React consumes only via observe(), which dedupes redelivered
 	// chunks; the SDK transport falls back to long-poll if SSE can't stay open.
@@ -55,7 +55,7 @@ export function useFlueAgent(options: UseFlueAgentOptions): UseFlueAgentResult {
 		sendMessage: session
 			? session.sendMessage.bind(session)
 			: async () => {
-					throw new Error('useFlueAgent() cannot send without an agent id');
+					throw new Error('useBapxAgent() cannot send without an agent id');
 				},
 		refresh: session ? session.refresh : () => {},
 	};

@@ -2,7 +2,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { DatabaseSync } from 'node:sqlite';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AgentExecutionStore } from '../src/agent-execution-store.ts';
-import type { FlueContextInternal } from '../src/client.ts';
+import type { BapxContextInternal } from '../src/client.ts';
 import { createCloudflareAgentRuntime } from '../src/cloudflare/agent-coordinator.ts';
 import type {
 	AgentSubmissionInspection,
@@ -140,7 +140,7 @@ function makeRecoveryContext(options: {
 		subscribeEvent() {
 			return () => {};
 		},
-	} as unknown as FlueContextInternal;
+	} as unknown as BapxContextInternal;
 	return { ctx, terminalRecords };
 }
 
@@ -174,7 +174,7 @@ function prepare(
 ): AgentExecutionStore {
 	const prepared = runtime.prepare({
 		storage: instance.ctx.storage,
-		className: 'FlueAssistantAgent',
+		className: 'BapxAssistantAgent',
 		agentName: 'assistant',
 	});
 	runtime.attach(instance, prepared);
@@ -211,7 +211,7 @@ describe('createCloudflareAgentRuntime()', () => {
 		const instance = makeInstance(storage);
 		const prepared = runtime.prepare({
 			storage: instance.ctx.storage,
-			className: 'FlueAssistantAgent',
+			className: 'BapxAssistantAgent',
 			agentName: 'assistant',
 		});
 		const acquireProducer = prepared.conversationStreamStore.acquireProducer.bind(
@@ -233,7 +233,7 @@ describe('createCloudflareAgentRuntime()', () => {
 		await runtime.onStart(instance, () => {});
 
 		expect(consoleError).toHaveBeenCalledWith(
-			'[flue:submission-reconciliation]',
+			'[bapX:submission-reconciliation]',
 			expect.objectContaining({ operation: 'materialize_submission' }),
 			expect.any(Error),
 		);
@@ -295,7 +295,7 @@ describe('createCloudflareAgentRuntime()', () => {
 		await runtime.onFiberRecovered(
 			instance,
 			{
-				name: 'flue:submission-attempt',
+				name: 'bapX:submission-attempt',
 				snapshot: { submissionId: 'direct-1', attemptId: 'attempt-1' },
 			},
 			() => {},
@@ -369,7 +369,7 @@ describe('createCloudflareAgentRuntime()', () => {
 			leaseExpiresAt: Date.now() + 30_000,
 		});
 		db.prepare(
-			'INSERT INTO flue_agent_attempt_markers (submission_id, attempt_id, created_at) VALUES (?, ?, ?)',
+			'INSERT INTO bapX_agent_attempt_markers (submission_id, attempt_id, created_at) VALUES (?, ?, ?)',
 		).run('direct-1', 'attempt-1', Date.now() - 16 * 60 * 1000);
 
 		await runtime.onStart(instance, () => {});
@@ -386,7 +386,7 @@ describe('createCloudflareAgentRuntime()', () => {
 		const runtime = makeRuntime();
 		const instance = makeInstance(storage);
 		const executionStore = prepare(runtime, instance);
-		db.exec('DROP TABLE flue_agent_attempt_markers');
+		db.exec('DROP TABLE bapX_agent_attempt_markers');
 		await executionStore.submissions.admitDirect(directInput());
 		await executionStore.submissions.markSubmissionCanonicalReady('direct-1');
 
@@ -396,7 +396,7 @@ describe('createCloudflareAgentRuntime()', () => {
 			status: 'running',
 		});
 		expect(consoleError).toHaveBeenCalledWith(
-			'[flue:submission-reconciliation]',
+			'[bapX:submission-reconciliation]',
 			expect.objectContaining({
 				operation: 'list_attempt_markers',
 				outcome: 'degraded_to_empty_marker_set',
@@ -461,7 +461,7 @@ describe('createCloudflareAgentRuntime()', () => {
 			status: 'running',
 		});
 		expect(consoleError).toHaveBeenCalledWith(
-			'[flue:submission-reconciliation]',
+			'[bapX:submission-reconciliation]',
 			expect.objectContaining({
 				submissionId: 'direct-1',
 				operation: 'start_submission',
@@ -551,7 +551,7 @@ describe('createCloudflareAgentRuntime()', () => {
 					subscribeEvent() {
 						return () => {};
 					},
-				} as unknown as FlueContextInternal;
+				} as unknown as BapxContextInternal;
 			},
 		});
 		const instance = makeInstance(storage);
@@ -622,7 +622,7 @@ describe('createCloudflareAgentRuntime()', () => {
 
 		const response = await runtime.onRequest(
 			instance,
-			new Request('https://flue.invalid/agents/assistant/agent-1/abort', { method: 'POST' }),
+			new Request('https://bapX.invalid/agents/assistant/agent-1/abort', { method: 'POST' }),
 		);
 
 		expect(response).not.toBeNull();
@@ -645,7 +645,7 @@ describe('createCloudflareAgentRuntime()', () => {
 			agents: [{ name: 'assistant', definition: {} as never }],
 			createContext: () => {
 				if (!contextStore.getStore()) {
-					throw new Error('[flue] createContext ran outside the instance context.');
+					throw new Error('[bapX] createContext ran outside the instance context.');
 				}
 				return recovery.ctx;
 			},
@@ -657,7 +657,7 @@ describe('createCloudflareAgentRuntime()', () => {
 
 		const response = await runtime.onRequest(
 			instance,
-			new Request('https://flue.invalid/__flue/internal/dispatch', {
+			new Request('https://bapX.invalid/__bapX/internal/dispatch', {
 				method: 'POST',
 				body: JSON.stringify(dispatchInput()),
 			}),
@@ -678,7 +678,7 @@ describe('createCloudflareAgentRuntime()', () => {
 			agents: [{ name: 'assistant', definition: {} as never }],
 			createContext: () => {
 				if (!contextStore.getStore()) {
-					throw new Error('[flue] createContext ran outside the instance context.');
+					throw new Error('[bapX] createContext ran outside the instance context.');
 				}
 				return recovery.ctx;
 			},
@@ -716,7 +716,7 @@ describe('createCloudflareAgentRuntime()', () => {
 			agents: [{ name: 'assistant', definition: {} as never }],
 			createContext: () => {
 				if (!contextStore.getStore()) {
-					throw new Error('[flue] createContext ran outside the instance context.');
+					throw new Error('[bapX] createContext ran outside the instance context.');
 				}
 				return {
 					async initializeRootHarness() {
@@ -738,7 +738,7 @@ describe('createCloudflareAgentRuntime()', () => {
 					subscribeEvent() {
 						return () => {};
 					},
-				} as unknown as FlueContextInternal;
+				} as unknown as BapxContextInternal;
 			},
 			runWithInstanceContext: (_instance, _agentName, callback) =>
 				contextStore.run(true, callback),
@@ -776,7 +776,7 @@ describe('createCloudflareAgentRuntime()', () => {
 
 		const response = await runtime.onRequest(
 			instance,
-			new Request('https://flue.invalid/agents/assistant/agent-1/abort', { method: 'POST' }),
+			new Request('https://bapX.invalid/agents/assistant/agent-1/abort', { method: 'POST' }),
 		);
 
 		expect(await response?.json()).toEqual({ aborted: false });

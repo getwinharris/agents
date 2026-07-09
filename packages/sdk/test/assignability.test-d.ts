@@ -1,6 +1,6 @@
 import {
 	IMAGE_DATA_OMITTED as RUNTIME_IMAGE_DATA_OMITTED,
-	type FlueEvent as RuntimeFlueEvent,
+	type BapxEvent as RuntimeBapxEvent,
 	type LlmMessage as RuntimeLlmMessage,
 	type ModelRequestInfo as RuntimeModelRequestInfo,
 	type PromptUsage as RuntimePromptUsage,
@@ -14,9 +14,9 @@ import type {
 // wire-conformance assertions below must still pin it to the runtime shape.
 import type { ConversationStreamChunk as SdkConversationChunk } from '../src/public/conversation-stream.ts';
 import {
-	type FlueConversationSnapshot,
+	type BapxConversationSnapshot,
 	IMAGE_DATA_OMITTED as SDK_IMAGE_DATA_OMITTED,
-	type FlueEvent as SdkFlueEvent,
+	type BapxEvent as SdkBapxEvent,
 	type LlmMessage as SdkLlmMessage,
 	type ModelRequestInfo as SdkModelRequestInfo,
 	type PromptUsage as SdkPromptUsage,
@@ -27,8 +27,8 @@ import {
 // wire as these shapes; the SDK reduces them behind observe()/history(). The
 // two definitions are independent (the runtime cannot import the SDK), so they
 // must stay mutually assignable or the wire silently drifts.
-const _convSnapshot: FlueConversationSnapshot = {} as RuntimeConversationSnapshot;
-const _convSnapshotBack: RuntimeConversationSnapshot = {} as FlueConversationSnapshot;
+const _convSnapshot: BapxConversationSnapshot = {} as RuntimeConversationSnapshot;
+const _convSnapshotBack: RuntimeConversationSnapshot = {} as BapxConversationSnapshot;
 const _convChunk: SdkConversationChunk = {} as RuntimeConversationChunk;
 const _convChunkBack: RuntimeConversationChunk = {} as SdkConversationChunk;
 void _convSnapshot;
@@ -41,31 +41,31 @@ void _convChunkBack;
 // wire union deliberately omits it.
 type MessageSnapshotEvent = { type: 'message_start' | 'message_end' };
 type CheckpointOneSettlementEvent = { type: 'submission_settled' };
-const _: Exclude<SdkFlueEvent, MessageSnapshotEvent | CheckpointOneSettlementEvent> = {} as Exclude<
-	RuntimeFlueEvent,
+const _: Exclude<SdkBapxEvent, MessageSnapshotEvent | CheckpointOneSettlementEvent> = {} as Exclude<
+	RuntimeBapxEvent,
 	{ type: 'turn_request' } | MessageSnapshotEvent | CheckpointOneSettlementEvent
 >;
 void _;
 
-const _snapshot: Extract<SdkFlueEvent, MessageSnapshotEvent>['message'] = {} as RuntimeLlmMessage;
-const _snapshotTurnId: Extract<SdkFlueEvent, MessageSnapshotEvent>['turnId'] = {} as Extract<
-	RuntimeFlueEvent,
+const _snapshot: Extract<SdkBapxEvent, MessageSnapshotEvent>['message'] = {} as RuntimeLlmMessage;
+const _snapshotTurnId: Extract<SdkBapxEvent, MessageSnapshotEvent>['turnId'] = {} as Extract<
+	RuntimeBapxEvent,
 	MessageSnapshotEvent
 >['turnId'];
 void _snapshot;
 void _snapshotTurnId;
 
 type _SettlementError = Extract<
-	SdkFlueEvent,
+	SdkBapxEvent,
 	CheckpointOneSettlementEvent
 >['error'];
 const _settlementError: _SettlementError = { message: 'failed' };
 void _settlementError;
 
 type ExpectNever<T extends never> = T;
-type _SdkMessageUpdateIsAbsent = ExpectNever<Extract<SdkFlueEvent, { type: 'message_update' }>>;
+type _SdkMessageUpdateIsAbsent = ExpectNever<Extract<SdkBapxEvent, { type: 'message_update' }>>;
 type _RuntimeMessageUpdateIsAbsent = ExpectNever<
-	Extract<RuntimeFlueEvent, { type: 'message_update' }>
+	Extract<RuntimeBapxEvent, { type: 'message_update' }>
 >;
 
 // The SDK duplicates `PromptUsage`; the shapes must stay mutually assignable.

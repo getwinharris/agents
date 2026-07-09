@@ -7,8 +7,8 @@ import {
 } from '@earendil-works/pi-ai/compat';
 import { afterEach, describe, expect, it } from 'vitest';
 import { defineAgent, IMAGE_DATA_OMITTED } from '../src/index.ts';
-import { createFlueContext } from '../src/internal.ts';
-import type { FlueEvent } from '../src/types.ts';
+import { createBapxContext } from '../src/internal.ts';
+import type { BapxEvent } from '../src/types.ts';
 import { createNoopSessionEnv } from './fixtures/session-env.ts';
 
 const IMAGE_BYTES = 'aGVsbG8taW1hZ2UtYnl0ZXM=';
@@ -29,7 +29,7 @@ function createProvider(): FauxProviderRegistration {
 }
 
 function createContext(provider: FauxProviderRegistration) {
-	return createFlueContext({
+	return createBapxContext({
 		id: 'session-event-images-instance',
 		env: {},
 		agentConfig: {
@@ -46,7 +46,7 @@ describe('session event image redaction', () => {
 	it('omits prompt image bytes from message and agent events when a prompt includes an image', async () => {
 		const provider = createProvider();
 		provider.setResponses([fauxAssistantMessage('Described the image.')]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const ctx = createContext(provider);
 		ctx.subscribeEvent((event) => {
 			events.push(event);
@@ -62,11 +62,11 @@ describe('session event image redaction', () => {
 
 		expect(JSON.stringify(events)).not.toContain(IMAGE_BYTES);
 		const userMessageStart = events.find(
-			(event): event is Extract<FlueEvent, { type: 'message_start' }> =>
+			(event): event is Extract<BapxEvent, { type: 'message_start' }> =>
 				event.type === 'message_start' && event.message.role === 'user',
 		);
 		const userMessageEnd = events.find(
-			(event): event is Extract<FlueEvent, { type: 'message_end' }> =>
+			(event): event is Extract<BapxEvent, { type: 'message_end' }> =>
 				event.type === 'message_end' && event.message.role === 'user',
 		);
 		expect((userMessageStart?.message as Extract<AgentMessage, { role: 'user' }> | undefined)?.content).toContainEqual(
@@ -75,9 +75,9 @@ describe('session event image redaction', () => {
 		expect((userMessageEnd?.message as Extract<AgentMessage, { role: 'user' }> | undefined)?.content).toContainEqual(
 			expect.objectContaining({ type: 'image', data: IMAGE_DATA_OMITTED, mimeType: 'image/png' }),
 		);
-		expect(events.indexOf(userMessageStart as FlueEvent)).toBeLessThan(events.indexOf(userMessageEnd as FlueEvent));
+		expect(events.indexOf(userMessageStart as BapxEvent)).toBeLessThan(events.indexOf(userMessageEnd as BapxEvent));
 		const agentEnd = events.find(
-			(event): event is Extract<FlueEvent, { type: 'agent_end' }> => event.type === 'agent_end',
+			(event): event is Extract<BapxEvent, { type: 'agent_end' }> => event.type === 'agent_end',
 		);
 		const agentEndUserMessage = agentEnd?.messages.find(
 			(message): message is Extract<AgentMessage, { role: 'user' }> => message.role === 'user',
@@ -90,7 +90,7 @@ describe('session event image redaction', () => {
 	it('omits image bytes from turn_request input when the model context contains an image', async () => {
 		const provider = createProvider();
 		provider.setResponses([fauxAssistantMessage('Described the image.')]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const ctx = createContext(provider);
 		ctx.subscribeEvent((event) => {
 			events.push(event);
@@ -105,7 +105,7 @@ describe('session event image redaction', () => {
 		});
 
 		const turnRequest = events.find(
-			(event): event is Extract<FlueEvent, { type: 'turn_request' }> =>
+			(event): event is Extract<BapxEvent, { type: 'turn_request' }> =>
 				event.type === 'turn_request',
 		);
 		const userInput = turnRequest?.request.input.messages.find((message) => message.role === 'user');
@@ -123,7 +123,7 @@ describe('session event image redaction', () => {
 			fauxAssistantMessage(fauxToolCall('screenshot', {}), { stopReason: 'toolUse' }),
 			fauxAssistantMessage('Reviewed the screenshot.'),
 		]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const ctx = createContext(provider);
 		ctx.subscribeEvent((event) => {
 			events.push(event);
@@ -154,14 +154,14 @@ describe('session event image redaction', () => {
 
 		expect(JSON.stringify(events)).not.toContain(IMAGE_BYTES);
 		const toolCall = events.find(
-			(event): event is Extract<FlueEvent, { type: 'tool' }> =>
+			(event): event is Extract<BapxEvent, { type: 'tool' }> =>
 				event.type === 'tool' && event.toolName === 'screenshot',
 		);
 		expect((toolCall?.result as { content?: unknown[] } | undefined)?.content).toEqual([
 			{ type: 'image', data: IMAGE_DATA_OMITTED, mimeType: 'image/png' },
 		]);
 		const turnEnd = events.find(
-			(event): event is Extract<FlueEvent, { type: 'turn_messages' }> =>
+			(event): event is Extract<BapxEvent, { type: 'turn_messages' }> =>
 				event.type === 'turn_messages' && event.toolResults.length > 0,
 		);
 		const toolResultMessage = turnEnd?.toolResults.find(
@@ -182,7 +182,7 @@ describe('session event image redaction', () => {
 				return fauxAssistantMessage('Described the image.');
 			},
 		]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const ctx = createContext(provider);
 		ctx.subscribeEvent((event) => {
 			events.push(event);
@@ -217,7 +217,7 @@ describe('session event image redaction', () => {
 				return fauxAssistantMessage('Reviewed the screenshot.');
 			},
 		]);
-		const events: FlueEvent[] = [];
+		const events: BapxEvent[] = [];
 		const ctx = createContext(provider);
 		ctx.subscribeEvent((event) => {
 			events.push(event);

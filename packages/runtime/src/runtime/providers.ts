@@ -227,7 +227,7 @@ export function getRegisteredStoreResponses(providerId: string): boolean {
 export function registerApiProvider(
 	provider: Parameters<typeof piRegisterApiProvider>[0],
 ): void {
-	piRegisterApiProvider(provider, 'flue-runtime');
+	piRegisterApiProvider(provider, 'bapX-runtime');
 }
 
 // ─── Model binding extension ────────────────────────────────────────────────

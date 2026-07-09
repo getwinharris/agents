@@ -10,7 +10,7 @@ export type JsonValue =
 	| JsonValue[]
 	| { [key: string]: JsonValue };
 
-/** Fixed route declaration consumed by Flue channel discovery. */
+/** Fixed route declaration consumed by Bapx channel discovery. */
 export interface ChannelRoute<E extends Env = Env> {
 	readonly method: string;
 	readonly path: string;
@@ -115,7 +115,7 @@ export interface SalesforceMarketingCloudChannelOptions<E extends Env = Env> {
 	bodyLimit?: number;
 	/**
 	 * Optional setup-only handler for the unsigned callback-verification
-	 * challenge. Unsigned requests are rejected when this is omitted. Flue
+	 * challenge. Unsigned requests are rejected when this is omitted. Bapx
 	 * returns the required empty `200` after the handler completes.
 	 */
 	verification?(input: SalesforceMarketingCloudVerificationHandlerInput<E>): void | Promise<void>;

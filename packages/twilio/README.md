@@ -1,6 +1,6 @@
 # @bapX/twilio
 
-Verified Twilio Programmable Messaging ingress for Flue channels.
+Verified Twilio Programmable Messaging ingress for Bapx channels.
 
 ```ts
 import { createTwilioChannel } from '@bapX/twilio';

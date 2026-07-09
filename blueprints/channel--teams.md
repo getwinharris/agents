@@ -6,15 +6,15 @@
 }
 ---
 
-# Add a Microsoft Teams Channel to Flue
+# Add a Microsoft Teams Channel to Bapx
 
 You are an AI coding agent adding authenticated Microsoft Teams Bot Connector
-activities and project-owned outbound messaging to a Flue project.
+activities and project-owned outbound messaging to a Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.flue/`, then `<root>/src/`, then
+first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 the activity families the application needs.
 
@@ -55,7 +55,7 @@ Create `<source-dir>/channels/teams.ts`. Adapt the imported agent, dispatched
 message, event policy, and tool:
 
 ```ts
-// flue-blueprint: channel/teams@1
+// bapX-blueprint: channel/teams@1
 import { defineTool, dispatch } from '@bapX/runtime';
 import * as v from 'valibot';
 import { createTeamsChannel, type TeamsConversationRef } from '@bapX/teams';
@@ -149,7 +149,7 @@ Set the Azure Bot messaging endpoint to:
 https://example.com/channels/teams/activities
 ```
 
-If `flue()` has an outer mount prefix, include it in the configured URL.
+If `bapX()` has an outer mount prefix, include it in the configured URL.
 Bots receive channel messages when mentioned by default. Add the appropriate
 Teams resource-specific consent permissions only when the application needs all
 channel or group-chat messages.

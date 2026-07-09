@@ -1,7 +1,7 @@
 /**
- * Merge Flue's Cloudflare additions into the user's wrangler config.
+ * Merge Bapx's Cloudflare additions into the user's wrangler config.
  *
- * Philosophy: the user's wrangler config is the source of truth. Flue contributes
+ * Philosophy: the user's wrangler config is the source of truth. Bapx contributes
  * the pieces it owns (the Worker entrypoint and its generated Durable Object
  * bindings) and leaves everything else untouched. The merged result is written
  * as the official Vite plugin's input configuration so its output Worker sees
@@ -9,7 +9,7 @@
  *
  * We delegate configuration parsing and validation to Wrangler, while retaining
  * environment blocks in the generated input configuration for the Vite plugin.
- * Flue owns Durable Object binding de-duplication and Flue-specific validation
+ * Bapx owns Durable Object binding de-duplication and Bapx-specific validation
  * (compat date floor, required compat flags), but migration history remains
  * entirely user-authored.
  */
@@ -19,34 +19,34 @@ import * as path from 'node:path';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-/** Minimum compatibility_date Flue supports. */
+/** Minimum compatibility_date Bapx supports. */
 const MIN_COMPATIBILITY_DATE = '2026-04-01';
 
-/** compatibility_flag Flue requires for pi-ai's process.env-based API key lookup. */
+/** compatibility_flag Bapx requires for pi-ai's process.env-based API key lookup. */
 const REQUIRED_COMPAT_FLAG = 'nodejs_compat';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-/** A Flue-owned generated DO binding. */
+/** A Bapx-owned generated DO binding. */
 interface DoBinding {
 	class_name: string;
 	name: string;
 }
 
 /**
- * Everything Flue contributes to the wrangler config.
+ * Everything Bapx contributes to the wrangler config.
  *
- * Flue contributes generated Durable Object bindings. Everything else — user
+ * Bapx contributes generated Durable Object bindings. Everything else — user
  * Durable Object bindings (e.g. Sandbox), container entries, and the complete
  * Durable Object migration history — belongs to the user's own wrangler.jsonc
  * and is passed through untouched during merge.
  */
-export interface FlueAdditions {
+export interface BapxAdditions {
 	/** Fallback name if the user didn't set one in their wrangler config. */
 	defaultName: string;
-	/** Always written; Flue owns the generated Worker source entry. */
+	/** Always written; Bapx owns the generated Worker source entry. */
 	main: string;
-	/** Flue's generated DO bindings. Merged into durable_objects.bindings by `name`. */
+	/** Bapx's generated DO bindings. Merged into durable_objects.bindings by `name`. */
 	doBindings: DoBinding[];
 }
 
@@ -84,7 +84,7 @@ export async function readUserWranglerConfig(root: string): Promise<UserConfigRe
 		wrangler = (await import(wranglerPath)) as typeof wrangler;
 	} catch (err) {
 		throw new Error(
-			`[flue] Reading the Cloudflare wrangler config requires the Wrangler version provided by "@cloudflare/vite-plugin".\n` +
+			`[bapX] Reading the Cloudflare wrangler config requires the Wrangler version provided by "@cloudflare/vite-plugin".\n` +
 				`Underlying error: ${err instanceof Error ? err.message : String(err)}`,
 		);
 	}
@@ -96,7 +96,7 @@ export async function readUserWranglerConfig(root: string): Promise<UserConfigRe
 		effective = wrangler.unstable_readConfig({ config: foundPath }, { hideWarnings: true });
 	} catch (err) {
 		throw new Error(
-			`[flue] Failed to read ${foundPath}: ${err instanceof Error ? err.message : String(err)}`,
+			`[bapX] Failed to read ${foundPath}: ${err instanceof Error ? err.message : String(err)}`,
 		);
 	}
 
@@ -110,7 +110,7 @@ export async function readUserWranglerConfig(root: string): Promise<UserConfigRe
 // ─── Validation ─────────────────────────────────────────────────────────────
 
 /**
- * Validate that the user's wrangler config meets Flue's minimum runtime
+ * Validate that the user's wrangler config meets Bapx's minimum runtime
  * requirements. Throws a clear error describing the fix if it doesn't.
  *
  * We're intentionally strict here rather than silently massaging bad configs —
@@ -118,8 +118,8 @@ export async function readUserWranglerConfig(root: string): Promise<UserConfigRe
  * compat_date) produce confusing runtime errors, and surfacing the problem at
  * build time is much friendlier.
  *
- * Together with `mergeFlueAdditions`, this enforces two invariants on every
- * Flue worker:
+ * Together with `mergeBapxAdditions`, this enforces two invariants on every
+ * Bapx worker:
  *   1. `nodejs_compat` is in `compatibility_flags` (added if missing).
  *   2. `compatibility_date >= MIN_COMPATIBILITY_DATE` (defaulted if missing).
  *
@@ -152,13 +152,13 @@ function validateCompatibilitySettings(
 	const keyPrefix = envName === null ? '' : `env.${envName}.`;
 
 	// compatibility_flags must include nodejs_compat if user set the field.
-	// (If unset, Flue adds it during merge — handled in mergeFlueAdditions.)
+	// (If unset, Bapx adds it during merge — handled in mergeBapxAdditions.)
 	if (Array.isArray(config.compatibility_flags)) {
 		const flags = config.compatibility_flags as unknown[];
 		if (!flags.includes(REQUIRED_COMPAT_FLAG)) {
 			throw new Error(
-				`[flue] Your wrangler config's "${keyPrefix}compatibility_flags" is missing "${REQUIRED_COMPAT_FLAG}". ` +
-					`Flue relies on it at runtime (e.g. for API key resolution via process.env). ` +
+				`[bapX] Your wrangler config's "${keyPrefix}compatibility_flags" is missing "${REQUIRED_COMPAT_FLAG}". ` +
+					`Bapx relies on it at runtime (e.g. for API key resolution via process.env). ` +
 					`Add "${REQUIRED_COMPAT_FLAG}" to the list.`,
 			);
 		}
@@ -169,13 +169,13 @@ function validateCompatibilitySettings(
 		const userDate = config.compatibility_date;
 		if (!/^\d{4}-\d{2}-\d{2}$/.test(userDate)) {
 			throw new Error(
-				`[flue] Your wrangler config's "${keyPrefix}compatibility_date" ("${userDate}") is not in YYYY-MM-DD format.`,
+				`[bapX] Your wrangler config's "${keyPrefix}compatibility_date" ("${userDate}") is not in YYYY-MM-DD format.`,
 			);
 		}
 		if (userDate < MIN_COMPATIBILITY_DATE) {
 			throw new Error(
-				`[flue] Your wrangler config's "${keyPrefix}compatibility_date" is "${userDate}". ` +
-					`Flue requires at least "${MIN_COMPATIBILITY_DATE}" for SQLite-backed Durable Object support, nodejs_compat v2, and AsyncLocalStorage. ` +
+				`[bapX] Your wrangler config's "${keyPrefix}compatibility_date" is "${userDate}". ` +
+					`Bapx requires at least "${MIN_COMPATIBILITY_DATE}" for SQLite-backed Durable Object support, nodejs_compat v2, and AsyncLocalStorage. ` +
 					`Bump the date (set it to today unless you have a specific reason).`,
 			);
 		}
@@ -185,17 +185,17 @@ function validateCompatibilitySettings(
 // ─── Merging ────────────────────────────────────────────────────────────────
 
 /**
- * Produce the merged wrangler config: start from the user's, layer Flue's
+ * Produce the merged wrangler config: start from the user's, layer Bapx's
  * contributions on top. Pure function — caller handles reading and writing.
  */
-export function mergeFlueAdditions(
+export function mergeBapxAdditions(
 	userConfig: Record<string, unknown>,
-	additions: FlueAdditions,
+	additions: BapxAdditions,
 ): Record<string, unknown> {
 	// Shallow clone so we don't mutate the user's parsed config in place.
 	const merged: Record<string, unknown> = { ...userConfig };
 
-	// main: Flue always wins. Flue owns the generated Worker source entry that
+	// main: Bapx always wins. Bapx owns the generated Worker source entry that
 	// the official Vite plugin builds for deployment. A conflicting user main
 	// would bypass that runtime bootstrap.
 	merged.main = additions.main;
@@ -205,15 +205,15 @@ export function mergeFlueAdditions(
 		merged.name = additions.defaultName;
 	}
 
-	// compatibility_date: user wins if set; fall back to Flue's known-good
+	// compatibility_date: user wins if set; fall back to Bapx's known-good
 	// minimum. (validateUserWranglerConfig already ensured any user-set value
-	// meets Flue's minimum.)
+	// meets Bapx's minimum.)
 	//
 	// We deliberately do NOT default to "today's date". A user running an
-	// older Flue install gets a workerd version that's pinned via wrangler;
+	// older Bapx install gets a workerd version that's pinned via wrangler;
 	// "today" can be ahead of that workerd's supported compat range and
 	// produce a confusing "compatibility_date is in the future" error. The
-	// floor is conservative but correct for any Flue release.
+	// floor is conservative but correct for any Bapx release.
 	if (typeof merged.compatibility_date !== 'string') {
 		merged.compatibility_date = MIN_COMPATIBILITY_DATE;
 	}
@@ -254,15 +254,15 @@ export function mergeFlueAdditions(
 				existing.environment !== undefined
 			) {
 				throw new Error(
-					`[flue] wrangler.jsonc durable object binding "${binding.name}" is reserved by Flue. ` +
+					`[bapX] wrangler.jsonc durable object binding "${binding.name}" is reserved by Bapx. ` +
 						`Expected a local class_name "${binding.class_name}" binding without script_name or environment.`,
 				);
 			}
 		}
-		const flueBindingsToAdd = additions.doBindings.filter((b) => !existingBindingNames.has(b.name));
+		const bapXBindingsToAdd = additions.doBindings.filter((b) => !existingBindingNames.has(b.name));
 		config.durable_objects = {
 			...existingDo,
-			bindings: [...existingBindings, ...flueBindingsToAdd],
+			bindings: [...existingBindings, ...bapXBindingsToAdd],
 		};
 	};
 
@@ -296,7 +296,7 @@ export function mergeFlueAdditions(
 		merged.env = environments;
 	}
 
-	// containers: user owns the `containers` array entirely. Flue contributes
+	// containers: user owns the `containers` array entirely. Bapx contributes
 	// nothing here — any entries the user declared pass through untouched via
 	// the shallow `{ ...userConfig }` clone above. Nothing to merge.
 

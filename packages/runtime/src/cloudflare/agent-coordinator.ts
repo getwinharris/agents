@@ -3,9 +3,9 @@ import type {
 	AgentSubmission,
 	AgentSubmissionStore,
 } from '../agent-execution-store.ts';
-import type { FlueContextInternal } from '../client.ts';
+import type { BapxContextInternal } from '../client.ts';
 import { ConversationRecordWriter } from '../conversation-writer.ts';
-import type { FlueTraceCarrier } from '../execution-interceptor.ts';
+import type { BapxTraceCarrier } from '../execution-interceptor.ts';
 import {
 	agentSubmissionDispatchId,
 	type createAgentSubmissionSessionHandler,
@@ -35,12 +35,12 @@ import {
 	createSqlConversationStores,
 } from './agent-execution-store.ts';
 
-export const CLOUDFLARE_AGENT_INTERNAL_DISPATCH_PATH = '/__flue/internal/dispatch';
+export const CLOUDFLARE_AGENT_INTERNAL_DISPATCH_PATH = '/__bapX/internal/dispatch';
 
-const FLUE_AGENT_SUBMISSION_WAKE_CALLBACK = '__flueWakeAgentSubmissions';
+const FLUE_AGENT_SUBMISSION_WAKE_CALLBACK = '__bapXWakeAgentSubmissions';
 const FLUE_AGENT_SUBMISSION_WAKE_SECONDS = 30;
 const FLUE_AGENT_SUBMISSION_ATTEMPT_STALE_MS = 15 * 60 * 1000;
-const FLUE_AGENT_SUBMISSION_ATTEMPT_FIBER = 'flue:submission-attempt';
+const FLUE_AGENT_SUBMISSION_ATTEMPT_FIBER = 'bapX:submission-attempt';
 
 import type { SqlStorage } from '../sql-storage.ts';
 
@@ -93,7 +93,7 @@ interface CloudflareAgentRuntimeOptions {
 		readonly request: Request;
 		readonly initialEventIndex?: number;
 		readonly dispatchId?: string;
-	}) => FlueContextInternal;
+	}) => BapxContextInternal;
 	readonly runWithInstanceContext: <T>(
 		instance: CloudflareAgentInstance,
 		agentName: string,
@@ -131,7 +131,7 @@ export function createCloudflareAgentRuntime(
 	const getCoordinator = (instance: CloudflareAgentInstance): CloudflareAgentCoordinator => {
 		const coordinator = coordinators.get(instance);
 		if (!coordinator) {
-			throw new Error('[flue] Generated Cloudflare agent coordinator was not initialized.');
+			throw new Error('[bapX] Generated Cloudflare agent coordinator was not initialized.');
 		}
 		return coordinator;
 	};
@@ -338,7 +338,7 @@ class CloudflareAgentCoordinator {
 		request: Request,
 		initialEventIndex?: number,
 		dispatchId?: string,
-	): FlueContextInternal {
+	): BapxContextInternal {
 		return this.options.createContext({
 			executionStore: this.executionStore,
 			instance: this.instance,
@@ -352,7 +352,7 @@ class CloudflareAgentCoordinator {
 	private createDurableContext(
 		request: Request,
 		dispatchId?: string,
-	): FlueContextInternal {
+	): BapxContextInternal {
 		const ctx = this.createContext(request, undefined, dispatchId);
 		ctx.setConversationWriter?.(this.conversationWriter);
 		ctx.setAttachmentStore?.(this.prepared.attachmentStore);
@@ -362,7 +362,7 @@ class CloudflareAgentCoordinator {
 	private assertAgentsDurabilityApi(method: 'runFiber' | 'schedule'): void {
 		if (typeof this.instance[method] !== 'function') {
 			throw new Error(
-				`[flue] The installed "agents" package does not provide the required Cloudflare Agents SDK method "${method}". Install or upgrade the "agents" package in your project.`,
+				`[bapX] The installed "agents" package does not provide the required Cloudflare Agents SDK method "${method}". Install or upgrade the "agents" package in your project.`,
 			);
 		}
 	}
@@ -396,7 +396,7 @@ class CloudflareAgentCoordinator {
 					(record) => record.name === submission.input.agent,
 				)?.definition;
 				if (!agent || submission.input.agent !== this.agentName || submission.input.id !== this.instance.name) {
-					console.error('[flue:submission-reconciliation]', {
+					console.error('[bapX:submission-reconciliation]', {
 						agentName: this.agentName,
 						instanceId: this.instance.name,
 						submissionId: submission.submissionId,
@@ -421,7 +421,7 @@ class CloudflareAgentCoordinator {
 				const canonical = await writer.getRecord(settlement.recordId);
 				if (!canonical) await writer.append([settlement.record], { submission: attempt });
 				else if (JSON.stringify(canonical) !== JSON.stringify(settlement.record)) {
-					throw new Error('[flue] Pending settlement does not match its canonical record. Clear incompatible beta persistence.');
+					throw new Error('[bapX] Pending settlement does not match its canonical record. Clear incompatible beta persistence.');
 				}
 				await this.submissions.finalizeSubmissionSettlement(attempt, settlement.recordId);
 			}
@@ -437,7 +437,7 @@ class CloudflareAgentCoordinator {
 			} catch (error) {
 				attemptMarkers = new Set();
 				console.error(
-					'[flue:submission-reconciliation]',
+					'[bapX:submission-reconciliation]',
 					{
 						agentName: this.agentName,
 						instanceId: this.instance.name,
@@ -480,7 +480,7 @@ class CloudflareAgentCoordinator {
 			}
 		} catch (error) {
 			console.error(
-				'[flue:submission-reconciliation]',
+				'[bapX:submission-reconciliation]',
 				{
 					agentName: this.agentName,
 					instanceId: this.instance.name,
@@ -500,7 +500,7 @@ class CloudflareAgentCoordinator {
 		error: unknown,
 	): void {
 		console.error(
-			'[flue:submission-reconciliation]',
+			'[bapX:submission-reconciliation]',
 			{
 				agentName: this.agentName,
 				instanceId: this.instance.name,
@@ -517,7 +517,7 @@ class CloudflareAgentCoordinator {
 	private async reconcileInterruptedSubmission(submission: AgentSubmission): Promise<void> {
 		const conversationWriter = await this.ensureConversationWriter();
 		const agent = this.options.agents.find((record) => record.name === this.agentName)?.definition;
-		if (!agent) throw new Error('[flue] Agent target unavailable during durable reconciliation.');
+		if (!agent) throw new Error('[bapX] Agent target unavailable during durable reconciliation.');
 		const replacement = await reconcileInterruptedSubmission(
 			this.submissions,
 			submission,
@@ -543,7 +543,7 @@ class CloudflareAgentCoordinator {
 		this.activeControllers.set(submission.submissionId, controller);
 		let running: Promise<void>;
 		try {
-			// Flue's own durable evidence that this attempt started; deleted at
+			// Bapx's own durable evidence that this attempt started; deleted at
 			// settlement. The fiber stash below stays for the SDK's crash replay
 			// (onFiberRecovered); the marker is what reconciliation reads.
 			await this.submissions.insertAttemptMarker(attempt);
@@ -565,7 +565,7 @@ class CloudflareAgentCoordinator {
 		void running
 			.catch((error) => {
 				console.error(
-					'[flue:submission-processing]',
+					'[bapX:submission-processing]',
 					{
 						agentName: this.agentName,
 						instanceId: this.instance.name,
@@ -619,7 +619,7 @@ class CloudflareAgentCoordinator {
 			await this.submissions.deleteAttemptMarker(attempt);
 		} catch (error) {
 			console.error(
-				'[flue:submission-reconciliation]',
+				'[bapX:submission-reconciliation]',
 				{
 					agentName: this.agentName,
 					instanceId: this.instance.name,
@@ -672,7 +672,7 @@ class CloudflareAgentCoordinator {
 			submission,
 			resolveAgent: (name) => {
 				const agent = this.options.agents.find((record) => record.name === name)?.definition;
-				if (!agent) throw new Error('[flue] Agent target unavailable during durable processing.');
+				if (!agent) throw new Error('[bapX] Agent target unavailable during durable processing.');
 				return agent;
 			},
 			createContext: (dispatchId) =>
@@ -683,7 +683,7 @@ class CloudflareAgentCoordinator {
 			onSettled: () => {
 				void this.reconcileSubmissions().catch((error) => {
 					console.error(
-						'[flue:submission-reconciliation]',
+						'[bapX:submission-reconciliation]',
 						{
 							agentName: this.agentName,
 							instanceId: this.instance.name,
@@ -699,7 +699,7 @@ class CloudflareAgentCoordinator {
 
 	private async admitAttachedSubmission(
 		message: DeliveredMessage,
-		traceCarrier?: FlueTraceCarrier,
+		traceCarrier?: BapxTraceCarrier,
 	) {
 		const input = createDirectAgentSubmissionInput({
 			agent: this.agentName,
@@ -708,7 +708,7 @@ class CloudflareAgentCoordinator {
 			traceCarrier,
 		});
 		const agent = this.options.agents.find((record) => record.name === this.agentName)?.definition;
-		if (!agent) throw new Error('[flue] Agent target unavailable during durable admission.');
+		if (!agent) throw new Error('[bapX] Agent target unavailable during durable admission.');
 		const admitted = await this.submissions.admitDirect(input);
 		if (admitted.canonicalReadyAt === null) {
 			await this.materializeSubmissionConversation(input, agent);
@@ -741,7 +741,7 @@ class CloudflareAgentCoordinator {
 		if (admission.submission.canonicalReadyAt === null) {
 			await this.materializeSubmissionConversation(createDispatchAgentSubmissionInput(input), agent);
 			const ready = await this.submissions.markSubmissionCanonicalReady(input.dispatchId);
-			if (!ready) throw new Error('[flue] Dispatch admission disappeared before canonical readiness.');
+			if (!ready) throw new Error('[bapX] Dispatch admission disappeared before canonical readiness.');
 		}
 		await this.armSubmissionWake();
 		await this.reconcileSubmissions({ driverAlreadyArmed: true });

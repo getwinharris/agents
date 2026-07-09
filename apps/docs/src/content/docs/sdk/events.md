@@ -4,11 +4,11 @@ description: SDK event, workflow-run record, and normalized model-turn types.
 lastReviewedAt: 2026-06-15
 ---
 
-## `FlueEvent`
+## `BapxEvent`
 
-`FlueEvent` is the observable runtime-event union. It includes run lifecycle, agent lifecycle, model turn, message, tool, task, compaction, operation, log, structured `data`, idle, and recovery-settlement (`submission_settled`) events. Events are durably stored in an event stream and can be replayed from any offset via the Durable Streams protocol. Dispatched activity uses `dispatchId` as its delivery identity rather than becoming a workflow run.
+`BapxEvent` is the observable runtime-event union. It includes run lifecycle, agent lifecycle, model turn, message, tool, task, compaction, operation, log, structured `data`, idle, and recovery-settlement (`submission_settled`) events. Events are durably stored in an event stream and can be replayed from any offset via the Durable Streams protocol. Dispatched activity uses `dispatchId` as its delivery identity rather than becoming a workflow run.
 
-Every delivered event carries the durable event-format version `v: 3`, a per-context `eventIndex`, and a `timestamp`. SDK readers reject v1, v2, missing, and unknown versions with `UnsupportedFlueEventVersionError`; they do not normalize historical formats. The SDK union mirrors the wire format: `turn_request` is in-process only on the server (`observe()` subscribers and exporters) and never appears on streams the SDK reads.
+Every delivered event carries the durable event-format version `v: 3`, a per-context `eventIndex`, and a `timestamp`. SDK readers reject v1, v2, missing, and unknown versions with `UnsupportedBapxEventVersionError`; they do not normalize historical formats. The SDK union mirrors the wire format: `turn_request` is in-process only on the server (`observe()` subscribers and exporters) and never appears on streams the SDK reads.
 
 A `data` event carries a template-safe `name`, optional stable `id`, and JSON-compatible `data` payload. It is append-only on the wire; UI consumers can reconcile repeated `(name, id)` events last-writer-wins, while events without ids remain distinct.
 

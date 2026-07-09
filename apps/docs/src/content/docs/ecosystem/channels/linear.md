@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add verified Linear resource and agent-session webhooks with project-owned outbound Linear API access to an existing Flue project with the [Linear](https://linear.app/developers) blueprint. Run the following command in your terminal or coding agent of choice:
+Add verified Linear resource and agent-session webhooks with project-owned outbound Linear API access to an existing Bapx project with the [Linear](https://linear.app/developers) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel linear
+bapX add channel linear
 ```
 
 ## Overview
@@ -63,7 +63,7 @@ The abridged example shows the generated comment path and omits the agent-sessio
 branch, reusable type guards, and message tool. Once configured, a new issue
 comment continues the agent instance for that issue or comment thread, while
 the bound SDK tool posts replies to the same Linear conversation. The official
-SDK also supports the generated agent-session path and runs with Flue's
+SDK also supports the generated agent-session path and runs with Bapx's
 `nodejs_compat` setting on Cloudflare Workers.
 
 ## Configure
@@ -77,7 +77,7 @@ SDK also supports the generated agent-session path and runs with Flue's
 
 It installs `@bapX/linear` for verified ingress and the official
 `@linear/sdk` for project-owned outbound API access. Linear uses that SDK in
-its own Cloudflare Workers agent example with `nodejs_compat`, which Flue's
+its own Cloudflare Workers agent example with `nodejs_compat`, which Bapx's
 Cloudflare target already enables.
 
 Set the webhook URL to:
@@ -229,7 +229,7 @@ optionally checks configured organization and webhook ids.
 The handler receives the provider-native `payload`, typed by Linear's official
 `LinearWebhookPayload` union (re-exported from `@linear/sdk/webhooks`). Entity
 deliveries are discriminated on `type` (`'Comment'`, `'Issue'`, `'Project'`, …)
-and carry `action` and `data`; Flue forwards the body unmodified, including
+and carry `action` and `data`; Bapx forwards the body unmodified, including
 verified deliveries the union does not model. The union has a catch-all member
 that keeps `type` widened to `string`, so a literal `type` check alone does not
 narrow it — pair the literal with a discriminating nested field in a small

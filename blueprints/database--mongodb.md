@@ -2,9 +2,9 @@
 { "kind": "database", "version": 1, "website": "https://www.mongodb.com" }
 ---
 
-# Add MongoDB to Flue
+# Add MongoDB to Bapx
 
-You are an AI coding agent configuring MongoDB-backed persistence for a Flue
+You are an AI coding agent configuring MongoDB-backed persistence for a Bapx
 project using the first-party `@bapX/mongodb` adapter and the official `mongodb`
 driver.
 
@@ -20,7 +20,7 @@ project targets Cloudflare, stop and tell the user — there is nothing to add.
 
 MongoDB must be Atlas, a replica set, a transaction-capable sharded cluster, or
 a single-node replica set. A standalone `mongod` is unsupported. Migration
-checks topology before creating collections or stamping the Flue schema version
+checks topology before creating collections or stamping the Bapx schema version
 and fails when transactions are unavailable.
 
 For local development, a single-node replica set means starting one `mongod`
@@ -31,7 +31,7 @@ project rather than adding host-specific deployment instructions.
 ## Inspect the project
 
 Read local instructions (`AGENTS.md` and similar), detect the package manager,
-and select the first existing source root: `<root>/.flue/`, then `<root>/src/`,
+and select the first existing source root: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Check for an existing `db.ts`; if one is present, confirm with
 the user before replacing it. Inspect the project's secret conventions.
 
@@ -46,7 +46,7 @@ transaction bound to its `ClientSession` and serialized through the operation
 queue. Whole transactions and commit uncertainty use separate bounded retries.
 
 ```ts title="src/db.ts"
-// flue-blueprint: database/mongodb@1
+// bapX-blueprint: database/mongodb@1
 import {
   mongodb,
   type MongoCollection,
@@ -219,19 +219,19 @@ application should override the URL's database. `client.db(undefined)` uses the
 driver's database selection from the URL (and otherwise its driver default), so
 an explicit `MONGODB_DATABASE` is recommended.
 
-Never commit credentials. For local development, `flue dev --env <file>` and
-`flue run --env <file>` load any `.env`-format file. In production, use the
+Never commit credentials. For local development, `bapX dev --env <file>` and
+`bapX run --env <file>` load any `.env`-format file. In production, use the
 platform's secret store. A dedicated database is preferred; otherwise pass a
 stable unique `collectionPrefix` as the second argument to `mongodb()`. Changing
 the prefix selects a separate namespace and does not migrate existing data.
 
 ## Migrations and indexes
 
-Flue discovers `db.ts` and runs `migrate()` at server startup. Migration first
+Bapx discovers `db.ts` and runs `migrate()` at server startup. Migration first
 rejects unsupported topology, then creates or updates collections with strict
 validators and required indexes. It inspects the actual collection validator,
 validation settings, index keys, uniqueness, partial filters, and collations
-before stamping the schema version. A database written by a newer Flue version
+before stamping the schema version. A database written by a newer Bapx version
 is rejected. There is no separate migration command.
 
 ## Values and stored state

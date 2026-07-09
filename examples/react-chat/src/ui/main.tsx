@@ -1,25 +1,25 @@
 import {
-	type FlueConversationPart,
-	FlueProvider,
-	useFlueAgent,
-	useFlueClient,
-	useFlueWorkflow,
+	type BapxConversationPart,
+	BapxProvider,
+	useBapxAgent,
+	useBapxClient,
+	useBapxWorkflow,
 } from '@bapX/react';
-import { createFlueClient } from '@bapX/sdk';
+import { createBapxClient } from '@bapX/sdk';
 import { type FormEvent, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 
-const client = createFlueClient({ baseUrl: '/api' });
+const client = createBapxClient({ baseUrl: '/api' });
 
 function App() {
 	const [input, setInput] = useState('');
 	const [instanceId] = useState(() => crypto.randomUUID());
 	const [runId, setRunId] = useState<string>();
 	const [actionError, setActionError] = useState<string>();
-	const agent = useFlueAgent({ name: 'assistant', id: instanceId });
-	const workflow = useFlueWorkflow({ runId });
-	const flue = useFlueClient();
+	const agent = useBapxAgent({ name: 'assistant', id: instanceId });
+	const workflow = useBapxWorkflow({ runId });
+	const bapX = useBapxClient();
 
 	async function submit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -38,7 +38,7 @@ function App() {
 	async function triggerWorkflow() {
 		setActionError(undefined);
 		try {
-			const result = await flue.workflows.invoke('demo', {
+			const result = await bapX.workflows.invoke('demo', {
 				input: { requestedAt: new Date().toISOString() },
 			});
 			setRunId(result.runId);
@@ -50,7 +50,7 @@ function App() {
 	return (
 		<main>
 			<header>
-				<p className="eyebrow">Flue React hooks</p>
+				<p className="eyebrow">Bapx React hooks</p>
 				<h1>Chat and workflow test bed</h1>
 			</header>
 			<section>
@@ -107,7 +107,7 @@ function App() {
 	);
 }
 
-function MessagePart({ part }: { part: FlueConversationPart }) {
+function MessagePart({ part }: { part: BapxConversationPart }) {
 	if (part.type === 'text') return <p>{part.text}</p>;
 	if (part.type === 'reasoning')
 		return (
@@ -131,7 +131,7 @@ function MessagePart({ part }: { part: FlueConversationPart }) {
 	);
 }
 
-function partKey(part: FlueConversationPart): string {
+function partKey(part: BapxConversationPart): string {
 	if (part.type === 'dynamic-tool') return `tool:${part.toolCallId}`;
 	if (part.type === 'file') return `file:${part.id ?? part.url ?? part.mediaType}`;
 	return `${part.type}:${part.text}`;
@@ -141,7 +141,7 @@ const root = document.getElementById('root');
 if (!root) throw new Error('Missing React root element');
 
 createRoot(root).render(
-	<FlueProvider client={client}>
+	<BapxProvider client={client}>
 		<App />
-	</FlueProvider>,
+	</BapxProvider>,
 );

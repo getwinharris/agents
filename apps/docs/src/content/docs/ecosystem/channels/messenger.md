@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add verified Page webhook ingress and project-owned outbound Graph API access to an existing Flue project with the [Facebook Messenger](https://developers.facebook.com/docs/messenger-platform) blueprint. Run the following command in your terminal or coding agent of choice:
+Add verified Page webhook ingress and project-owned outbound Graph API access to an existing Bapx project with the [Facebook Messenger](https://developers.facebook.com/docs/messenger-platform) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel messenger
+bapX add channel messenger
 ```
 
 ## Overview
@@ -79,7 +79,7 @@ The abridged example omits the generated `postMessage()` tool and Graph client i
 
 It installs `@bapX/messenger` for verified Page ingress and creates an editable
 Graph API Fetch client for outbound messages. The same client runs in Node and
-workerd with Flue's required `nodejs_compat` configuration.
+workerd with Bapx's required `nodejs_compat` configuration.
 
 Configure Meta to use:
 

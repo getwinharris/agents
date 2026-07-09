@@ -8,7 +8,7 @@ interface DurableObjectStateLike {
 
 import { DurableObject } from 'cloudflare:workers';
 
-export class FlueRegistry extends DurableObject {
+export class BapxRegistry extends DurableObject {
 	private ops: RegistryOps;
 
 	constructor(state: DurableObjectStateLike, env: unknown) {

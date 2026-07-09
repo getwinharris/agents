@@ -1,19 +1,19 @@
-import type { FlueClient } from '@bapX/sdk';
+import type { BapxClient } from '@bapX/sdk';
 import { useEffect, useMemo, useSyncExternalStore } from 'react';
-import { useResolvedFlueClient } from './provider.ts';
+import { useResolvedBapxClient } from './provider.ts';
 import { emptyWorkflowSnapshot, WorkflowRun, type WorkflowSnapshot } from './workflow-run.ts';
 
 const emptySubscribe = () => () => {};
 
-export interface UseFlueWorkflowOptions {
+export interface UseBapxWorkflowOptions {
 	runId?: string;
-	client?: FlueClient;
+	client?: BapxClient;
 }
 
-export type UseFlueWorkflowResult = WorkflowSnapshot;
+export type UseBapxWorkflowResult = WorkflowSnapshot;
 
-export function useFlueWorkflow(options: UseFlueWorkflowOptions): UseFlueWorkflowResult {
-	const client = useResolvedFlueClient(options.client);
+export function useBapxWorkflow(options: UseBapxWorkflowOptions): UseBapxWorkflowResult {
+	const client = useResolvedBapxClient(options.client);
 	const run = useMemo(
 		() => (options.runId ? new WorkflowRun(client, options.runId) : undefined),
 		[client, options.runId],

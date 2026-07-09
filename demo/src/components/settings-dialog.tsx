@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { DEFAULT_CONNECTION } from '@/lib/flue-client'
+import { DEFAULT_CONNECTION } from '@/lib/bapX-client'
 import type { Connection } from '@/lib/types'
 import { usePreferences } from '@/state/preferences'
 import { useSettings } from '@/state/settings'
@@ -75,7 +75,7 @@ export function SettingsDialog({ trigger }: { trigger: ReactNode }) {
           </DialogTitle>
           <DialogDescription>
             Point the demo at any agent by URL. Start a server with{' '}
-            <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">flue dev</code>.
+            <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">bapX dev</code>.
           </DialogDescription>
         </DialogHeader>
 

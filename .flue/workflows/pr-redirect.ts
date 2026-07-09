@@ -26,7 +26,7 @@
  * before adding any secret to the sandbox.
  */
 
-import { defineAgent, defineWorkflow, type FlueSession } from '@bapX/runtime';
+import { defineAgent, defineWorkflow, type BapxSession } from '@bapX/runtime';
 import { local } from '@bapX/runtime/node';
 import * as v from 'valibot';
 import {
@@ -39,7 +39,7 @@ import {
 	removeLabelIfPresent,
 } from '../lib/github.ts';
 
-// Subset of FlueLogger; declared locally so helpers can take a logger
+// Subset of BapxLogger; declared locally so helpers can take a logger
 // without passing the whole execution context through every signature.
 type Logger = {
 	info: (msg: string, attrs?: Record<string, unknown>) => void;
@@ -95,7 +95,7 @@ type Decision =
 
 // ─── Step 0: fetch PR via `gh` ──────────────────────────────────────────────
 
-async function fetchPullRequest(session: FlueSession, prNumber: number): Promise<PrDetails> {
+async function fetchPullRequest(session: BapxSession, prNumber: number): Promise<PrDetails> {
 	// `gh pr view --json` returns structured data, so PR-controlled
 	// strings (title, body, branch name) never reach a shell parser.
 	const fields =
@@ -118,7 +118,7 @@ async function fetchPullRequest(session: FlueSession, prNumber: number): Promise
 	};
 	const headOwner = raw.headRepositoryOwner.login;
 	const headName = raw.headRepository.name;
-	const baseRepo = process.env.GITHUB_REPOSITORY ?? 'withastro/flue';
+	const baseRepo = process.env.GITHUB_REPOSITORY ?? 'withastro/bapX';
 	const diffStat = raw.files
 		.slice(0, 25)
 		.map((f) => `- \`${f.path}\` (+${f.additions} / -${f.deletions})`)
@@ -139,7 +139,7 @@ async function fetchPullRequest(session: FlueSession, prNumber: number): Promise
 
 // ─── Step 1: classify ───────────────────────────────────────────────────────
 
-async function classify(session: FlueSession, pr: PrDetails): Promise<Classification> {
+async function classify(session: BapxSession, pr: PrDetails): Promise<Classification> {
 	const prompt = `You are triaging a GitHub pull request to a TypeScript framework. Decide whether it's:
 - a **bug** fix (addresses incorrect or broken behavior), or
 - a **feature** (adds new functionality, enhances existing behavior, refactors APIs).
@@ -195,7 +195,7 @@ interface Candidate {
 }
 
 async function generateSearchQueries(
-	session: FlueSession,
+	session: BapxSession,
 	pr: PrDetails,
 	classification: Classification,
 ): Promise<string[]> {
@@ -231,7 +231,7 @@ function shellEscape(s: string): string {
 }
 
 async function searchIssues(
-	session: FlueSession,
+	session: BapxSession,
 	log: Logger,
 	repo: string,
 	query: string,
@@ -263,7 +263,7 @@ async function searchIssues(
 }
 
 async function searchDiscussions(
-	session: FlueSession,
+	session: BapxSession,
 	log: Logger,
 	repo: string,
 	query: string,
@@ -304,7 +304,7 @@ async function searchDiscussions(
 }
 
 async function scoreDuplicates(
-	session: FlueSession,
+	session: BapxSession,
 	log: Logger,
 	pr: PrDetails,
 	classification: Classification,
@@ -437,7 +437,7 @@ const BUG_REPORT_TEMPLATE = `### Describe the Bug
  * trust the model to produce well-formed markdown that follows the
  * shape of the template.
  */
-async function writeBugIssueBody(session: FlueSession, pr: PrDetails): Promise<string> {
+async function writeBugIssueBody(session: BapxSession, pr: PrDetails): Promise<string> {
 	const prompt = `A contributor opened a pull request fixing what they believe is a bug. Translate their PR into a bug-report issue body that follows the template below.
 
 Fill each section based on what the PR title, body, and changed files imply. If a section is genuinely impossible to infer (for example, no reproduction steps are mentioned anywhere), leave its placeholder text in place so a maintainer can fill it in later. Do not invent reproduction steps you can't justify from the PR's content.

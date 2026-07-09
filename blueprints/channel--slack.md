@@ -6,22 +6,22 @@
 }
 ---
 
-# Add a Slack Channel to Flue
+# Add a Slack Channel to Bapx
 
 You are an AI coding agent adding verified Slack HTTP ingress and
-application-owned Slack Web API behavior to a Flue project.
+application-owned Slack Web API behavior to a Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.flue/`, then `<root>/src/`, then
+first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 whether the application needs Events API, interactivity, slash commands, or a
 combination.
 
 Install `@bapX/slack` and Slack's official
 `@slack/web-api@^8.0.0-rc.1` SDK with the project's package manager. Version 8
-uses Fetch and supports Cloudflare Workers with Flue's existing
+uses Fetch and supports Cloudflare Workers with Bapx's existing
 `nodejs_compat` configuration.
 
 Install `valibot` using the project's existing dependency conventions.
@@ -32,7 +32,7 @@ Create `<source-dir>/channels/slack.ts`. Adapt the imported agent and dispatched
 message to the application:
 
 ```ts
-// flue-blueprint: channel/slack@1
+// bapX-blueprint: channel/slack@1
 import { defineTool, dispatch } from '@bapX/runtime';
 import { createSlackChannel } from '@bapX/slack';
 import { WebClient } from '@slack/web-api';

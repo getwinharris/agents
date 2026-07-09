@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { FlueConversationSnapshot } from '../src/public/conversation.ts';
+import type { BapxConversationSnapshot } from '../src/public/conversation.ts';
 import {
 	type ConversationStreamChunk,
 	ConversationStreamError,
@@ -8,7 +8,7 @@ import {
 	createConversationStreamState,
 } from '../src/public/conversation-stream.ts';
 
-function emptySnapshot(): FlueConversationSnapshot {
+function emptySnapshot(): BapxConversationSnapshot {
 	return { v: 1, conversationId: 'c1', offset: '-1', messages: [], settlements: [] };
 }
 
@@ -178,7 +178,7 @@ describe('applyConversationChunk()', () => {
 	});
 
 	it('continues a snapshot in-progress streaming block when live deltas resume after a reset', () => {
-		const snapshot: FlueConversationSnapshot = {
+		const snapshot: BapxConversationSnapshot = {
 			v: 1,
 			conversationId: 'c1',
 			offset: '5',
@@ -198,7 +198,7 @@ describe('applyConversationChunk()', () => {
 	});
 
 	it('creates a fresh part for an assistant message with no materialized streaming part', () => {
-		const snapshot: FlueConversationSnapshot = {
+		const snapshot: BapxConversationSnapshot = {
 			v: 1,
 			conversationId: 'c1',
 			offset: '5',

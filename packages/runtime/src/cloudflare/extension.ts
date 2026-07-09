@@ -4,7 +4,7 @@ const CLOUDFLARE_EXTENSION = Symbol.for('@bapX/runtime/cloudflare-extension');
 
 /**
  * Minimal structural view of the Cloudflare Agents SDK `Agent` base class
- * that Flue passes to `extend()` callbacks. `@bapX/runtime` does not depend
+ * that Bapx passes to `extend()` callbacks. `@bapX/runtime` does not depend
  * on the `agents` package, so this models the documented extension surface
  * (state, lifecycle, scheduling, queueing) instead of importing the real
  * class. Pass an explicit `TBase` to `extend()` to type against a richer
@@ -38,7 +38,7 @@ export type ExtensionClass<TInstance extends object = CloudflareAgentLike> = new
 ) => TInstance;
 
 /**
- * The class shape Flue hands to `base` and `wrap`: every class the generated
+ * The class shape Bapx hands to `base` and `wrap`: every class the generated
  * Cloudflare entry passes in extends the Agents SDK `Agent`, which is a real,
  * branded `DurableObject`. The `cloudflare:workers` import is type-only, so
  * this module's runtime graph stays free of that virtual module; consumers of
@@ -79,12 +79,12 @@ export function extend<TBase extends object = CloudflareAgentLike, TEnv = any>(
 ): CloudflareExtension<TBase, TEnv> {
 	if (typeof extension !== 'object' || extension === null || Array.isArray(extension)) {
 		throw new Error(
-			'[flue] extend() expects an object containing optional base and wrap callbacks.',
+			'[bapX] extend() expects an object containing optional base and wrap callbacks.',
 		);
 	}
 	const unknownKeys = Object.keys(extension).filter((key) => key !== 'base' && key !== 'wrap');
 	if (unknownKeys.length > 0) {
-		throw new Error(`[flue] extend() received unknown option(s): ${unknownKeys.join(', ')}.`);
+		throw new Error(`[bapX] extend() received unknown option(s): ${unknownKeys.join(', ')}.`);
 	}
 	const branded: BrandedCloudflareExtension = {
 		...extension,
@@ -102,16 +102,16 @@ export function resolveCloudflareExtension(
 	if (extension === undefined) return { base: identity, wrap: identity };
 	if (!isCloudflareExtension(extension)) {
 		throw new Error(
-			`[flue] ${kind} "${name}" cloudflare export must be created with extend({ base, wrap }) from "@bapX/runtime/cloudflare".`,
+			`[bapX] ${kind} "${name}" cloudflare export must be created with extend({ base, wrap }) from "@bapX/runtime/cloudflare".`,
 		);
 	}
 	const base = extension.base === undefined ? identity : extension.base;
 	const wrap = extension.wrap === undefined ? identity : extension.wrap;
 	if (typeof base !== 'function') {
-		throw new Error(`[flue] ${kind} "${name}" cloudflare.base must be a function.`);
+		throw new Error(`[bapX] ${kind} "${name}" cloudflare.base must be a function.`);
 	}
 	if (typeof wrap !== 'function') {
-		throw new Error(`[flue] ${kind} "${name}" cloudflare.wrap must be a function.`);
+		throw new Error(`[bapX] ${kind} "${name}" cloudflare.wrap must be a function.`);
 	}
 	return {
 		base(Base) {
@@ -148,7 +148,7 @@ function assertExtensionClass(
 		!isConstructable(value as ExtensionClass<any>)
 	) {
 		throw new Error(
-			`[flue] ${kind} "${name}" cloudflare.base must return the received class or a subclass.`,
+			`[bapX] ${kind} "${name}" cloudflare.base must return the received class or a subclass.`,
 		);
 	}
 	return value as ExtensionClass<any>;
@@ -166,7 +166,7 @@ function assertExtensionWrapper(
 		!isConstructable(value as ExtensionClass<any>)
 	) {
 		throw new Error(
-			`[flue] ${kind} "${name}" cloudflare.wrap(Final) must return the received class or a constructor proxy.`,
+			`[bapX] ${kind} "${name}" cloudflare.wrap(Final) must return the received class or a constructor proxy.`,
 		);
 	}
 	return value as ExtensionClass<any>;

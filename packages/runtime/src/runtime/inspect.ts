@@ -4,16 +4,16 @@
  * These free functions read the ambient generated runtime (the same pattern
  * as `dispatch()`) and are the building blocks for application-owned
  * inspection endpoints: mount your own route, apply your own authorization,
- * and serve whatever shape your operators need. Flue does not ship an
+ * and serve whatever shape your operators need. Bapx does not ship an
  * inspection HTTP surface of its own.
  */
 import { RunStoreUnavailableError } from '../errors.ts';
 import {
 	type AgentManifestEntry,
-	type FlueRuntime,
-	getFlueRuntime,
+	type BapxRuntime,
+	getBapxRuntime,
 	type RunListing,
-} from './flue-app.ts';
+} from './bapX-app.ts';
 import type { ListRunsOpts, ListRunsResponse, RunRecord } from './run-store.ts';
 
 /**
@@ -41,13 +41,13 @@ export async function getRun(runId: string): Promise<RunRecord | null> {
 	const pointer = await requireRunListing(rt).lookupRun(runId);
 	if (!pointer) return null;
 	const response = await rt.routeRunRequest(
-		new Request(`https://flue.invalid/runs/${encodeURIComponent(runId)}?meta`),
+		new Request(`https://bapX.invalid/runs/${encodeURIComponent(runId)}?meta`),
 		undefined,
 		{ workflowName: pointer.workflowName, runId },
 	);
 	if (!response || response.status === 404) return null;
 	if (!response.ok) {
-		throw new Error(`[flue] getRun("${runId}") failed with status ${response.status}.`);
+		throw new Error(`[bapX] getRun("${runId}") failed with status ${response.status}.`);
 	}
 	return (await response.json()) as RunRecord;
 }
@@ -63,18 +63,18 @@ export async function listAgents(): Promise<AgentManifestEntry[]> {
 	}));
 }
 
-function requireInspectRuntime(label: string): FlueRuntime {
-	const rt = getFlueRuntime();
+function requireInspectRuntime(label: string): BapxRuntime {
+	const rt = getBapxRuntime();
 	if (!rt) {
 		throw new Error(
-			`[flue] ${label}() called before runtime was configured. ` +
-				'This usually means it was used outside a Flue-built server entry.',
+			`[bapX] ${label}() called before runtime was configured. ` +
+				'This usually means it was used outside a Bapx-built server entry.',
 		);
 	}
 	return rt;
 }
 
-function requireRunListing(rt: FlueRuntime): RunListing {
+function requireRunListing(rt: BapxRuntime): RunListing {
 	if (rt.target === 'cloudflare') {
 		const index = rt.createRunIndexForRequest(undefined);
 		if (!index) throw new RunStoreUnavailableError();

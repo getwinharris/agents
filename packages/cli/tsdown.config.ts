@@ -2,14 +2,14 @@ import { defineConfig } from 'tsdown';
 
 export default defineConfig({
 	entry: {
-		// Bin entry, written to dist/flue.mjs (the build script renames to dist/flue.js).
-		flue: 'bin/flue.ts',
+		// Bin entry, written to dist/bapX.mjs (the build script renames to dist/bapX.js).
+		bapX: 'bin/bapX.ts',
 		// `@bapX/cli/config` subpath, written to dist/config.mjs.
 		config: 'src/config.ts',
 	},
 	format: ['esm'],
 	// tsdown emits `.d.mts` for every entry. We only need one for the
-	// public `./config` subpath; the bin entry's `flue.d.mts` is a
+	// public `./config` subpath; the bin entry's `bapX.d.mts` is a
 	// near-empty stub that no consumer reads.
 	dts: true,
 	clean: true,

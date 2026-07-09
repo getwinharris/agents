@@ -1,7 +1,7 @@
 import { clampLimit } from '../adapter-helpers.ts';
 import type { ConversationRecord } from '../conversation-records.ts';
 import { ConversationStreamStoreError } from '../errors.ts';
-import { migrateFlueSqlSchema } from '../schema-version.ts';
+import { migrateBapxSqlSchema } from '../schema-version.ts';
 import { parseSessionStorageKey } from '../session-identity.ts';
 import type { SqlStorage } from '../sql-storage.ts';
 import { formatOffset, parseOffset } from './event-stream-store.ts';
@@ -75,7 +75,7 @@ export interface ConversationStreamStore {
 }
 
 const CREATE_STREAMS_TABLE = `
-CREATE TABLE IF NOT EXISTS flue_conversation_streams (
+CREATE TABLE IF NOT EXISTS bapX_conversation_streams (
   path TEXT PRIMARY KEY,
   identity_json TEXT NOT NULL,
   next_offset INTEGER NOT NULL DEFAULT 0,
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS flue_conversation_streams (
 )`;
 
 const CREATE_BATCHES_TABLE = `
-CREATE TABLE IF NOT EXISTS flue_conversation_stream_batches (
+CREATE TABLE IF NOT EXISTS bapX_conversation_stream_batches (
   path TEXT NOT NULL,
   seq INTEGER NOT NULL,
   producer_id TEXT NOT NULL,
@@ -135,7 +135,7 @@ export class StreamListenerRegistry {
 }
 
 export function ensureSqlConversationStreamTables(sql: SqlStorage): void {
-	migrateFlueSqlSchema(sql, () => {
+	migrateBapxSqlSchema(sql, () => {
 		sql.exec(CREATE_STREAMS_TABLE);
 		sql.exec(CREATE_BATCHES_TABLE);
 	});
@@ -348,14 +348,14 @@ export class SqliteConversationStreamStore implements ConversationStreamStore {
 		const data = JSON.stringify(identity);
 		this.runTransaction(() => {
 			const existing = this.sql
-				.exec('SELECT identity_json FROM flue_conversation_streams WHERE path = ?', path)
+				.exec('SELECT identity_json FROM bapX_conversation_streams WHERE path = ?', path)
 				.toArray()[0];
 			if (existing) {
 				if (existing.identity_json !== data) this.fail('create', path, 'Stream identity conflicts.');
 				return;
 			}
 			this.sql.exec(
-				'INSERT INTO flue_conversation_streams (path, identity_json, incarnation) VALUES (?, ?, ?)',
+				'INSERT INTO bapX_conversation_streams (path, identity_json, incarnation) VALUES (?, ?, ?)',
 				path,
 				data,
 				crypto.randomUUID(),
@@ -367,7 +367,7 @@ export class SqliteConversationStreamStore implements ConversationStreamStore {
 		return this.runTransaction(() => {
 			const row = this.sql
 				.exec(
-					`UPDATE flue_conversation_streams
+					`UPDATE bapX_conversation_streams
 					 SET producer_id = ?, producer_epoch = producer_epoch + 1, next_producer_sequence = 0
 					 WHERE path = ?
 					 RETURNING producer_epoch, next_offset, incarnation`,
@@ -401,7 +401,7 @@ export class SqliteConversationStreamStore implements ConversationStreamStore {
 			const meta = this.sql
 				.exec(
 					`SELECT next_offset, producer_id, producer_epoch, next_producer_sequence, incarnation
-					 FROM flue_conversation_streams WHERE path = ?`,
+					 FROM bapX_conversation_streams WHERE path = ?`,
 					input.path,
 				)
 				.toArray()[0];
@@ -415,7 +415,7 @@ export class SqliteConversationStreamStore implements ConversationStreamStore {
 			}
 			const retry = this.sql
 				.exec(
-					`SELECT seq, data, submission_id, attempt_id FROM flue_conversation_stream_batches
+					`SELECT seq, data, submission_id, attempt_id FROM bapX_conversation_stream_batches
 					 WHERE path = ? AND producer_id = ? AND producer_epoch = ? AND producer_sequence = ?`,
 					input.path,
 					input.producerId,
@@ -439,7 +439,7 @@ export class SqliteConversationStreamStore implements ConversationStreamStore {
 			this.assertSubmissionAuthorization(input.path, input.submission, input.records);
 			const seq = meta.next_offset as number;
 			this.sql.exec(
-				`INSERT INTO flue_conversation_stream_batches
+				`INSERT INTO bapX_conversation_stream_batches
 				 (path, seq, producer_id, producer_epoch, producer_sequence, data, submission_id, attempt_id)
 				 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 				input.path,
@@ -452,7 +452,7 @@ export class SqliteConversationStreamStore implements ConversationStreamStore {
 				input.submission?.attemptId ?? null,
 			);
 			this.sql.exec(
-				`UPDATE flue_conversation_streams
+				`UPDATE bapX_conversation_streams
 				 SET next_offset = next_offset + 1, next_producer_sequence = next_producer_sequence + 1
 				 WHERE path = ?`,
 				input.path,
@@ -481,7 +481,7 @@ export class SqliteConversationStreamStore implements ConversationStreamStore {
 		const limit = clampLimit(options?.limit, DEFAULT_READ_LIMIT, MAX_READ_LIMIT);
 		const rows = this.sql
 			.exec(
-				`SELECT seq, data FROM flue_conversation_stream_batches
+				`SELECT seq, data FROM bapX_conversation_stream_batches
 				 WHERE path = ? AND seq > ? ORDER BY seq ASC LIMIT ?`,
 				path,
 				startAfter,
@@ -504,7 +504,7 @@ export class SqliteConversationStreamStore implements ConversationStreamStore {
 		const row = this.sql
 			.exec(
 				`SELECT identity_json, next_offset, producer_id, producer_epoch, next_producer_sequence, incarnation
-				 FROM flue_conversation_streams WHERE path = ?`,
+				 FROM bapX_conversation_streams WHERE path = ?`,
 				path,
 			)
 			.toArray()[0];
@@ -521,8 +521,8 @@ export class SqliteConversationStreamStore implements ConversationStreamStore {
 
 	async delete(path: string): Promise<void> {
 		this.runTransaction(() => {
-			this.sql.exec('DELETE FROM flue_conversation_stream_batches WHERE path = ?', path);
-			this.sql.exec('DELETE FROM flue_conversation_streams WHERE path = ?', path);
+			this.sql.exec('DELETE FROM bapX_conversation_stream_batches WHERE path = ?', path);
+			this.sql.exec('DELETE FROM bapX_conversation_streams WHERE path = ?', path);
 		});
 		this.listeners.notify(path);
 	}
@@ -556,7 +556,7 @@ export class SqliteConversationStreamStore implements ConversationStreamStore {
 		const row = this.sql
 			.exec(
 				`SELECT status, attempt_id, session_key, settlement_record_id, settlement_record_json
-				 FROM flue_agent_submissions WHERE submission_id = ?`,
+				 FROM bapX_agent_submissions WHERE submission_id = ?`,
 				submission.submissionId,
 			)
 			.toArray()[0];
@@ -564,7 +564,7 @@ export class SqliteConversationStreamStore implements ConversationStreamStore {
 			? parseSessionStorageKey(row.session_key)
 			: undefined;
 		const streamIdentity = this.sql
-			.exec('SELECT identity_json FROM flue_conversation_streams WHERE path = ?', path)
+			.exec('SELECT identity_json FROM bapX_conversation_streams WHERE path = ?', path)
 			.toArray()[0];
 		const instanceId = streamIdentity
 			? (JSON.parse(streamIdentity.identity_json as string) as ConversationStreamIdentity).instanceId

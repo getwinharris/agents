@@ -6,19 +6,19 @@
 }
 ---
 
-# Add a Twilio Messaging Channel to Flue
+# Add a Twilio Messaging Channel to Bapx
 
 You are an AI coding agent adding verified Twilio SMS and MMS webhook ingress
-with project-owned outbound Twilio access to a Flue project.
+with project-owned outbound Twilio access to a Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.flue/`, then `<root>/src/`, then
+first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 whether the project uses one Twilio address or a Messaging Service.
 
-Install `@bapX/twilio` and `twilio@^6.0.2`. Flue owns signed webhook validation,
+Install `@bapX/twilio` and `twilio@^6.0.2`. Bapx owns signed webhook validation,
 exact public-URL handling, fixed account and destination identity, provider-native verified form
 fields, optional delivery-status callbacks, TwiML acknowledgement, and canonical
 conversation keys. The project owns credentials, outbound REST access, tools,
@@ -59,7 +59,7 @@ Create `<source-dir>/channels/twilio.ts`. Adapt the imported agent, dispatched
 message, destination mode, and tool:
 
 ```ts
-// flue-blueprint: channel/twilio@1
+// bapX-blueprint: channel/twilio@1
 import {
   createTwilioChannel,
   type TwilioConversationRef,
@@ -169,13 +169,13 @@ TWILIO_WEBHOOK_URL=https://example.com/channels/twilio/webhook
 
 Configure the phone number or Messaging Service inbound webhook to send `POST`
 requests to the exact `TWILIO_WEBHOOK_URL` value. The URL must include any
-outer `flue()` mount prefix and any query string. Twilio signs the external
+outer `bapX()` mount prefix and any query string. Twilio signs the external
 configured URL and form fields in `X-Twilio-Signature`, so do not derive this
 value from the incoming request behind a proxy.
 
 The external path may differ from the internal request path when a trusted
 proxy strips a prefix. The package validates the signature over the configured
-external URL — query string included — while Flue's fixed route owns the
+external URL — query string included — while Bapx's fixed route owns the
 internal path. The incoming request's own query string is not re-checked: it is
 already covered by the signed bytes, so any tampering fails signature (`401`).
 

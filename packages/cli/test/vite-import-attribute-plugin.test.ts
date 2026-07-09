@@ -116,7 +116,7 @@ export const references = [review];`,
 });
 
 function createFixtureRoot(): string {
-	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'flue-import-attributes-'));
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapX-import-attributes-'));
 	fixtureRoots.push(root);
 	fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({ type: 'module' }));
 	return root;

@@ -26,7 +26,7 @@ uses one agent instance for the containing pull request and posts responses to
 its conversation timeline.
 
 The typed Octokit `issues.createComment()` path is exercised in workerd through
-its Fetch transport with Flue's required `nodejs_compat` configuration and
+its Fetch transport with Bapx's required `nodejs_compat` configuration and
 without contacting GitHub.
 
 The channel module imports the agent and the agent imports the channel. This

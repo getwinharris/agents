@@ -1,9 +1,9 @@
 import type {
 	AgentConversationObservation,
 	AgentConversationObservationSnapshot,
-	FlueConversationMessage,
-	FlueConversationSettlement,
-	FlueConversationState,
+	BapxConversationMessage,
+	BapxConversationSettlement,
+	BapxConversationState,
 } from '@bapX/sdk';
 import { type Mock, vi } from 'vitest';
 
@@ -46,8 +46,8 @@ export function createFakeObservation(
 
 /** Builds a materialized conversation state as `observe()` would expose it. */
 export function conversation(
-	messages: FlueConversationMessage[] = [],
-	settlements: FlueConversationSettlement[] = [],
-): FlueConversationState {
+	messages: BapxConversationMessage[] = [],
+	settlements: BapxConversationSettlement[] = [],
+): BapxConversationState {
 	return { conversationId: 'conversation-1', messages, settlements };
 }

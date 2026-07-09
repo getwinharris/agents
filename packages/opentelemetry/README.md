@@ -1,6 +1,6 @@
-# OpenTelemetry for Flue
+# OpenTelemetry for Bapx
 
-`@bapX/opentelemetry` projects Flue runtime observations into the OpenTelemetry GenAI semantic conventions pinned at commit `4c8addb53718b544134be47e256237026fe88875`.
+`@bapX/opentelemetry` projects Bapx runtime observations into the OpenTelemetry GenAI semantic conventions pinned at commit `4c8addb53718b544134be47e256237026fe88875`.
 
 ## Usage
 
@@ -28,19 +28,19 @@ const instrumentation = createOpenTelemetryInstrumentation({
 
 ## Semantic model
 
-| Flue boundary | OpenTelemetry representation |
+| Bapx boundary | OpenTelemetry representation |
 | --- | --- |
 | Workflow invocation | `invoke_workflow <name>` internal span |
 | Prompt or skill | `invoke_agent <agent>` internal span |
 | Delegated task | one task-owned `invoke_agent <agent>` internal span |
 | Provider inference | `chat <requested-model>` client span |
 | GenAI tool execution | `execute_tool <name>` internal span |
-| Caller shell execution | `flue.operation shell` internal span |
-| Context compaction | `flue.compaction` internal span with standard child chat spans |
+| Caller shell execution | `bapX.operation shell` internal span |
+| Context compaction | `bapX.compaction` internal span with standard child chat spans |
 
 A provider chat span measures provider inference only. Tool spans are siblings under the owning agent invocation and correlate with model output through `gen_ai.tool.call.id`.
 
-`gen_ai.conversation.id` is the persisted opaque Flue session identity. Run, submission, dispatch, operation, trace, session-name, and provider-affinity values never substitute for it.
+`gen_ai.conversation.id` is the persisted opaque Bapx session identity. Run, submission, dispatch, operation, trace, session-name, and provider-affinity values never substitute for it.
 
 ## Content capture
 
@@ -59,11 +59,11 @@ const instrumentation = createOpenTelemetryInstrumentation({
 });
 ```
 
-The master `enabled` value is the privacy ceiling. One detached copy passes through `transform`; returning `undefined` suppresses both destinations. Transforms are trusted application code: Flue does not validate their returned GenAI shape. After transformation, `maxMessageParts` retains the first complete parts in every input/output message and the first top-level system instructions, while `maxToolDefinitions` retains the first definitions. Limits must be finite nonnegative safe integers.
+The master `enabled` value is the privacy ceiling. One detached copy passes through `transform`; returning `undefined` suppresses both destinations. Transforms are trusted application code: Bapx does not validate their returned GenAI shape. After transformation, `maxMessageParts` retains the first complete parts in every input/output message and the first top-level system instructions, while `maxToolDefinitions` retains the first definitions. Limits must be finite nonnegative safe integers.
 
 `externalContent` is a side-effect-only sink for system instructions and input/output messages. It receives a detached, structurally limited clone plus a stable `contentType` scope before inline recording, regardless of sampling or `inline`. Its return value and mutations are ignored, failures only produce safe diagnostics, and tool definitions, descriptions, arguments, and results are never delivered to it.
 
-Set `inline: false` to skip serialization while retaining external delivery. `maxAttributeBytes` applies only to the exact final UTF-8 inline attribute string. Object-shaped tool arguments/results use standard `gen_ai.tool.call.*` attributes; other useful values use `flue.tool.call.arguments` or `flue.tool.call.result` under the same privacy and size policy. Tool descriptions and plain-text fallbacks remain raw strings. Structural truncation and byte omission are marked with bounded `flue.telemetry.content.*` attributes. Flue does not flatten undeclared child keys beneath `gen_ai.*`.
+Set `inline: false` to skip serialization while retaining external delivery. `maxAttributeBytes` applies only to the exact final UTF-8 inline attribute string. Object-shaped tool arguments/results use standard `gen_ai.tool.call.*` attributes; other useful values use `bapX.tool.call.arguments` or `bapX.tool.call.result` under the same privacy and size policy. Tool descriptions and plain-text fallbacks remain raw strings. Structural truncation and byte omission are marked with bounded `bapX.telemetry.content.*` attributes. Bapx does not flatten undeclared child keys beneath `gen_ai.*`.
 
 ## Metrics and Logs
 
@@ -81,18 +81,18 @@ Logs are optional and require explicit structural Logger injection. Failed infer
 
 ## Propagation and recovery
 
-Flue validates and persists `traceparent` plus optional `tracestate` at workflow and direct-agent admission. Baggage is not persisted. Durable direct-agent execution activates its extracted admission context. `dispatch(...)` does not currently propagate trace context.
+Bapx validates and persists `traceparent` plus optional `tracestate` at workflow and direct-agent admission. Baggage is not persisted. Durable direct-agent execution activates its extracted admission context. `dispatch(...)` does not currently propagate trace context.
 
 A restarted execution cannot keep an in-memory span open. Workflow recovery restores the persisted admission carrier as the parent of a new recovery-handling span. The new span begins at `run_resume`; it does not reconstruct or backdate the interrupted span. Recovery does not replay provider or tool execution. Replayed stream chunks do not create chat spans or usage metrics, and synthetic interrupted-tool repairs do not create tool spans.
 
 ## Current limitation
 
-Pi does not currently expose authoritative raw provider stream-item lifecycle callbacks. Flue therefore does not emit `gen_ai.client.operation.time_to_first_chunk` or `gen_ai.client.operation.time_per_output_chunk`; semantic text/reasoning deltas and recovered chunks are not valid substitutes.
+Pi does not currently expose authoritative raw provider stream-item lifecycle callbacks. Bapx therefore does not emit `gen_ai.client.operation.time_to_first_chunk` or `gen_ai.client.operation.time_per_output_chunk`; semantic text/reasoning deltas and recovered chunks are not valid substitutes.
 
 ## Breaking migration
 
-Replace `createOpenTelemetryObserver()` with `createOpenTelemetryInstrumentation()`, replace `observe(...)` registration with `instrument(...)`, and replace the per-event `exportContent` callback with the global `content` policy. The old API and custom `flue.turn.*`/`flue.tool.*` content attributes are not emitted in parallel.
+Replace `createOpenTelemetryObserver()` with `createOpenTelemetryInstrumentation()`, replace `observe(...)` registration with `instrument(...)`, and replace the per-event `exportContent` callback with the global `content` policy. The old API and custom `bapX.turn.*`/`bapX.tool.*` content attributes are not emitted in parallel.
 
 ## Unsupported operations
 
-Flue does not fabricate GenAI operations for agent creation, planning, embeddings, retrieval, memory CRUD/search, remote agent clients, or evaluations. These remain absent until Flue has genuine corresponding API boundaries.
+Bapx does not fabricate GenAI operations for agent creation, planning, embeddings, retrieval, memory CRUD/search, remote agent clients, or evaluations. These remain absent until Bapx has genuine corresponding API boundaries.

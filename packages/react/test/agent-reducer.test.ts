@@ -1,10 +1,10 @@
-import type { FlueConversationState } from '@bapX/sdk';
+import type { BapxConversationState } from '@bapX/sdk';
 import { describe, expect, it } from 'vitest';
 import { type AgentReducerEvent, emptyAgentState, reduceAgentEvent } from '../src/agent-reducer.ts';
 import { conversation } from './fixtures/observation.ts';
 
 function observed(
-	state: FlueConversationState | undefined,
+	state: BapxConversationState | undefined,
 	phase: 'loading' | 'connecting' | 'live' | 'absent' | 'error' | 'closed' = 'live',
 	error?: Error,
 ): AgentReducerEvent {

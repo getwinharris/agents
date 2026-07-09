@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add verified SMS and MMS webhook ingress and project-owned outbound messaging to an existing Flue project with the [Twilio](https://www.twilio.com/docs/messaging) blueprint. Run the following command in your terminal or coding agent of choice:
+Add verified SMS and MMS webhook ingress and project-owned outbound messaging to an existing Bapx project with the [Twilio](https://www.twilio.com/docs/messaging) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel twilio
+bapX add channel twilio
 ```
 
 ## Overview
@@ -68,7 +68,7 @@ The abridged example omits the generated `postMessage()` tool and the Fetch clie
 It installs `@bapX/twilio` for verified ingress and creates an editable Fetch
 client for outbound Programmable Messaging. The official Twilio Node helper is
 not the canonical path because it is Node-only; the generated REST client runs
-in Node and workerd with Flue's required `nodejs_compat` configuration.
+in Node and workerd with Bapx's required `nodejs_compat` configuration.
 
 Set the inbound webhook URL to:
 
@@ -83,7 +83,7 @@ request, so `webhookUrl` is required and must include any outer mount prefix or
 query string.
 
 A trusted proxy may strip an external path prefix before the request reaches
-Flue. Signature validation still uses `webhookUrl`; the fixed channel route owns
+Bapx. Signature validation still uses `webhookUrl`; the fixed channel route owns
 the internal path. The incoming request's own query string is not re-checked —
 it is already part of the signed bytes, so any tampering fails signature
 (`401`).

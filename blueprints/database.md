@@ -6,12 +6,12 @@
 
 ## Goal
 
-You are an AI coding agent being asked to build a Flue **database** adapter
-for a backend that Flue does not have a built-in adapter for. The deliverable
+You are an AI coding agent being asked to build a Bapx **database** adapter
+for a backend that Bapx does not have a built-in adapter for. The deliverable
 is one file in the user's project that default-exports a `PersistenceAdapter`
-for the backend, satisfying Flue's published contract.
+for the backend, satisfying Bapx's published contract.
 
-A `PersistenceAdapter` stores Flue runtime state: canonical append-only agent
+A `PersistenceAdapter` stores Bapx runtime state: canonical append-only agent
 conversation streams, immutable external attachments,
 accepted submissions and durable turn journals, workflow-run records, and event
 streams. It is **not** a place for application business data. Implementing one
@@ -25,7 +25,7 @@ reasonably infer from the spec or the worked example.
 
 ## Starting point
 
-The user invoked `flue add database <url>` or `flue update database <url>` with
+The user invoked `bapX add database <url>` or `bapX update database <url>` with
 this argument as their starting point for the backend's documentation:
 
 `{{URL}}`
@@ -37,9 +37,9 @@ where to go from there to collect the information you need.
 
 For an update, inspect the user's current adapter before editing. Compare it
 with this refreshed complete guide, the backend's current primary sources, and
-the current Flue contract. Infer which changes are relevant, apply only those
+the current Bapx contract. Infer which changes are relevant, apply only those
 changes, preserve project-specific customizations, and update the primary
-file's `flue-blueprint` marker only after the adapter conforms. A URL blueprint
+file's `bapX-blueprint` marker only after the adapter conforms. A URL blueprint
 has no backend-specific historical diff; do not assume the CLI compared or
 modified the implementation.
 
@@ -54,7 +54,7 @@ Read these before writing code.
   the full contract; your backend's shape may be quite different):
   `https://bapx.in/cli/blueprints/postgres.md`
 
-## Flue-specific conventions
+## Bapx-specific conventions
 
 These are the things that aren't obvious from the spec or the example.
 
@@ -63,10 +63,10 @@ These are the things that aren't obvious from the spec or the example.
   build time — do not build a database adapter for a Cloudflare project.
 - **File location.** The adapter is a single source-root `db.ts`, not a file
   under `sandboxes/`. Select the first existing source directory in this
-  order: `<root>/.flue/`, `<root>/src/`, then `<root>/`, and write `db.ts`
+  order: `<root>/.bapX/`, `<root>/src/`, then `<root>/`, and write `db.ts`
   there. Its first generated line must be
-  `// flue-blueprint: database/<provider>@1`, replacing `<provider>` with the
-  selected provider slug. Flue discovers it at build time and wires the default
+  `// bapX-blueprint: database/<provider>@1`, replacing `<provider>` with the
+  selected provider slug. Bapx discovers it at build time and wires the default
   export into the generated Node server. Ask the user if their layout is unusual.
 - **Imports.** The contract types and helpers live at `@bapX/runtime/adapter`.
   Don't import from `@bapX/runtime/internal` or any other internal path.
@@ -74,7 +74,7 @@ These are the things that aren't obvious from the spec or the example.
   before serving. Make schema/collection/index creation idempotent — it runs
   against fresh and already-provisioned databases alike. Stamp and check the
   schema version with the exported helpers so a database written by a newer
-  Flue refuses to start rather than corrupting state.
+  Bapx refuses to start rather than corrupting state.
 - **Honor the durable contract, don't approximate it.** The submission store
   is the hard part: per-session FIFO ordering, single-claim under concurrency,
   idempotent dispatch admission, lease expiry, and turn-journal phases are
@@ -87,7 +87,7 @@ These are the things that aren't obvious from the spec or the example.
   (commonly `DATABASE_URL`) and let the project's conventions (`AGENTS.md`, an
   existing `.env`, a secret manager, CI vars) decide where it lives. Ask the
   user only if nothing in the project gives a clear signal. For local dev,
-  `flue dev --env <file>` and `flue run --env <file>` load any `.env`-format
+  `bapX dev --env <file>` and `bapX run --env <file>` load any `.env`-format
   file.
 
 ## Wrapping up
@@ -101,7 +101,7 @@ These are the things that aren't obvious from the spec or the example.
 ## Hard rules
 
 - Never invent connection strings, credentials, or secrets.
-- Don't store the application's business data in the adapter — it holds Flue
+- Don't store the application's business data in the adapter — it holds Bapx
   runtime state only.
 - Don't modify files outside the `db.ts` path you've chosen unless the user
   agreed (e.g. `package.json` to add a dependency).

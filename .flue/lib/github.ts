@@ -9,10 +9,10 @@
  *
  * Keeping this module unreachable from inside `session.shell` is what
  * makes the agent's prompt injection blast radius bounded. See the
- * security note in `.flue/workflows/pr-redirect.ts`.
+ * security note in `.bapX/workflows/pr-redirect.ts`.
  */
 
-const REPO = process.env.GITHUB_REPOSITORY ?? 'withastro/flue';
+const REPO = process.env.GITHUB_REPOSITORY ?? 'withastro/bapX';
 
 function requireBotToken(): string {
 	const token = process.env.FREDKBOT_GITHUB_TOKEN;
@@ -29,7 +29,7 @@ function headers(): Record<string, string> {
 		Authorization: `token ${requireBotToken()}`,
 		'Content-Type': 'application/json',
 		Accept: 'application/vnd.github+json',
-		'User-Agent': 'flue-pr-redirect',
+		'User-Agent': 'bapX-pr-redirect',
 	};
 }
 

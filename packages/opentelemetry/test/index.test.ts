@@ -1,4 +1,4 @@
-import type { FlueObservation } from '@bapX/runtime';
+import type { BapxObservation } from '@bapX/runtime';
 import { context, propagation, SpanKind, SpanStatusCode, type Meter, type Span, type SpanOptions, trace, type Tracer } from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
 import { W3CTraceContextPropagator } from '@opentelemetry/core';
@@ -67,13 +67,13 @@ class RecordingTracer {
 	}
 }
 
-function observation(value: Record<string, unknown>): FlueObservation {
+function observation(value: Record<string, unknown>): BapxObservation {
 	return {
 		...value,
 		v: 3,
 		eventIndex: value.eventIndex ?? 0,
 		timestamp: value.timestamp ?? '2026-06-22T00:00:00.000Z',
-	} as unknown as FlueObservation;
+	} as unknown as BapxObservation;
 }
 
 const ctx = { id: 'instance-1', agentName: 'assistant', env: {}, req: undefined } as never;
@@ -254,7 +254,7 @@ describe('createOpenTelemetryInstrumentation()', () => {
 			result: { content: [{ type: 'text', text: 'null' }], details: { output: null } },
 			effectiveResult: null, durationMs: 1,
 		}), ctx);
-		expect(tracer.spans[1]?.attributes['flue.tool.call.result']).toBe('null');
+		expect(tracer.spans[1]?.attributes['bapX.tool.call.result']).toBe('null');
 		expect(tracer.spans[1]?.attributes).not.toHaveProperty('gen_ai.tool.call.result');
 	});
 
@@ -297,7 +297,7 @@ describe('createOpenTelemetryInstrumentation()', () => {
 		expect(records).toContainEqual(expect.objectContaining({ name: 'gen_ai.client.operation.duration', value: 1.25, attributes: expect.objectContaining({ 'error.type': 'rate_limit' }) }));
 		expect(records).toContainEqual(expect.objectContaining({ name: 'gen_ai.client.token.usage', value: 12, attributes: expect.objectContaining({ 'gen_ai.token.type': 'input' }) }));
 		expect(records).toContainEqual(expect.objectContaining({ name: 'gen_ai.client.token.usage', value: 2, attributes: expect.objectContaining({ 'gen_ai.token.type': 'output' }) }));
-		expect(Object.keys(records[0]?.attributes ?? {})).not.toEqual(expect.arrayContaining(['flue.turn.id', 'gen_ai.conversation.id']));
+		expect(Object.keys(records[0]?.attributes ?? {})).not.toEqual(expect.arrayContaining(['bapX.turn.id', 'gen_ai.conversation.id']));
 		expect(logs).toEqual([expect.objectContaining({ eventName: 'gen_ai.client.operation.exception', severityNumber: 13, severityText: 'WARN', attributes: expect.objectContaining({ 'exception.type': 'rate_limit' }) })]);
 	});
 
@@ -402,13 +402,13 @@ describe('createOpenTelemetryInstrumentation()', () => {
 		instrumentation.observe(observation({ type: 'run_end', runId: 'run-a', durationMs: 1, isError: false }), ctx);
 
 		const runSpan = (runId: string) => tracer.spans.find((candidate) =>
-			candidate.attributes['flue.run.id'] === runId && candidate.attributes['flue.operation.id'] === undefined,
+			candidate.attributes['bapX.run.id'] === runId && candidate.attributes['bapX.operation.id'] === undefined,
 		);
 		const operationSpan = (runId: string) => tracer.spans.find((candidate) =>
-			candidate.attributes['flue.run.id'] === runId && candidate.attributes['flue.operation.id'] === 'shared-operation' && candidate.attributes['flue.turn.id'] === undefined,
+			candidate.attributes['bapX.run.id'] === runId && candidate.attributes['bapX.operation.id'] === 'shared-operation' && candidate.attributes['bapX.turn.id'] === undefined,
 		);
 		const turnSpan = (runId: string) => tracer.spans.find((candidate) =>
-			candidate.attributes['flue.run.id'] === runId && candidate.attributes['flue.turn.id'] === 'shared-turn',
+			candidate.attributes['bapX.run.id'] === runId && candidate.attributes['bapX.turn.id'] === 'shared-turn',
 		);
 		expect(runSpan('run-a')?.ended).toBe(true);
 		expect(operationSpan('run-a')?.ended).toBe(true);
@@ -416,7 +416,7 @@ describe('createOpenTelemetryInstrumentation()', () => {
 		expect(runSpan('run-b')?.ended).toBe(false);
 		expect(operationSpan('run-b')?.ended).toBe(false);
 		expect(turnSpan('run-b')?.ended).toBe(false);
-		expect(tracer.spans.find((candidate) => candidate.attributes['flue.operation.id'] === 'op-direct')?.ended).toBe(false);
+		expect(tracer.spans.find((candidate) => candidate.attributes['bapX.operation.id'] === 'op-direct')?.ended).toBe(false);
 	});
 
 	it('suppresses framework task tool spans and correlates the task span', () => {
@@ -490,7 +490,7 @@ describe('createOpenTelemetryInstrumentation()', () => {
 		);
 		instrumentation.dispose();
 
-		const expected = exporter.getFinishedSpans().find((candidate) => candidate.attributes['flue.run.id'] === 'run-b' && candidate.name === 'execute_tool lookup');
+		const expected = exporter.getFinishedSpans().find((candidate) => candidate.attributes['bapX.run.id'] === 'run-b' && candidate.name === 'execute_tool lookup');
 		expect(activeSpanId).toBe(expected?.spanContext().spanId);
 	});
 
@@ -676,7 +676,7 @@ describe('createOpenTelemetryInstrumentation()', () => {
 			}), ctx);
 			expect(deliveries).toBe(0);
 			expect(tracer.spans[0]?.attributes).not.toHaveProperty('gen_ai.input.messages');
-			expect(tracer.spans[0]?.attributes['flue.telemetry.content.input_messages.omitted']).toBeUndefined();
+			expect(tracer.spans[0]?.attributes['bapX.telemetry.content.input_messages.omitted']).toBeUndefined();
 		}
 	});
 
@@ -730,9 +730,9 @@ describe('createOpenTelemetryInstrumentation()', () => {
 		expect(JSON.parse(tracer.spans[0]?.attributes['gen_ai.system_instructions'] as string)).toEqual([{ type: 'text', content: 'first' }]);
 		expect(JSON.parse(tracer.spans[0]?.attributes['gen_ai.tool.definitions'] as string).map((tool: { name: string }) => tool.name)).toEqual(['first']);
 		expect(tracer.spans[0]?.attributes).toMatchObject({
-			'flue.telemetry.content.input_messages.truncated': true,
-			'flue.telemetry.content.system_instructions.truncated': true,
-			'flue.telemetry.content.tool_definitions.truncated': true,
+			'bapX.telemetry.content.input_messages.truncated': true,
+			'bapX.telemetry.content.system_instructions.truncated': true,
+			'bapX.telemetry.content.tool_definitions.truncated': true,
 		});
 		expect(Object.keys(tracer.spans[0]?.attributes ?? {})).not.toEqual(
 			expect.arrayContaining([expect.stringContaining('omitted_count')]),
@@ -745,7 +745,7 @@ describe('createOpenTelemetryInstrumentation()', () => {
 			isError: false,
 		}), ctx);
 		expect(JSON.parse(tracer.spans[0]?.attributes['gen_ai.output.messages'] as string)[0].parts).toEqual([{ type: 'text', content: 'first' }]);
-		expect(tracer.spans[0]?.attributes['flue.telemetry.content.output_messages.truncated']).toBe(true);
+		expect(tracer.spans[0]?.attributes['bapX.telemetry.content.output_messages.truncated']).toBe(true);
 	});
 
 	it('supports zero structural limits and exact UTF-8 inline byte boundaries', () => {
@@ -761,7 +761,7 @@ describe('createOpenTelemetryInstrumentation()', () => {
 				type: 'turn_request', turnId: 'turn-1', purpose: 'agent',
 				request: { providerId: 'p', providerName: 'p', requestedModel: 'm', api: 'a', input: { messages: [{ role: 'user', content: 'x' }] } },
 			}), ctx);
-			expect(tracer.spans[1]?.attributes['flue.telemetry.content.input_messages.truncated']).toBe(true);
+			expect(tracer.spans[1]?.attributes['bapX.telemetry.content.input_messages.truncated']).toBe(true);
 		}
 	});
 
@@ -817,8 +817,8 @@ describe('createOpenTelemetryInstrumentation()', () => {
 		enabled.observe(observation({
 			type: 'tool', toolCallId: 'tool-0', toolName: 'lookup', origin: 'model', toolType: 'function', isError: false, result: 'plain text', durationMs: 1,
 		}), ctx);
-		expect(enabledTracer.spans[0]?.attributes['flue.tool.call.arguments']).toBe('["secret"]');
-		expect(enabledTracer.spans[0]?.attributes['flue.tool.call.result']).toBe('plain text');
+		expect(enabledTracer.spans[0]?.attributes['bapX.tool.call.arguments']).toBe('["secret"]');
+		expect(enabledTracer.spans[0]?.attributes['bapX.tool.call.result']).toBe('plain text');
 
 		for (const content of [undefined, { enabled: true, limits: { maxAttributeBytes: 3 } }] as const) {
 			const tracer = new RecordingTracer();
@@ -832,8 +832,8 @@ describe('createOpenTelemetryInstrumentation()', () => {
 
 			expect(tracer.spans[0]?.attributes).not.toHaveProperty('gen_ai.tool.call.arguments');
 			expect(tracer.spans[0]?.attributes).not.toHaveProperty('gen_ai.tool.call.result');
-			expect(tracer.spans[0]?.attributes).not.toHaveProperty('flue.tool.call.arguments');
-			expect(tracer.spans[0]?.attributes).not.toHaveProperty('flue.tool.call.result');
+			expect(tracer.spans[0]?.attributes).not.toHaveProperty('bapX.tool.call.arguments');
+			expect(tracer.spans[0]?.attributes).not.toHaveProperty('bapX.tool.call.result');
 		}
 	});
 

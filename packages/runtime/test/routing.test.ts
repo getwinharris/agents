@@ -1,29 +1,29 @@
 import { Hono } from 'hono';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createFlueContext } from '../src/client.ts';
+import { createBapxContext } from '../src/client.ts';
 import { DelegationDepthExceededError } from '../src/errors.ts';
 import { defineAgent, defineWorkflow } from '../src/index.ts';
 import { resolveModel } from '../src/internal.ts';
 import { InMemoryRunStore } from '../src/node/run-store.ts';
 import { MAX_IMAGE_DATA_LENGTH } from '../src/persisted-images.ts';
 import {
-	configureFlueRuntime,
-	createDefaultFlueApp,
-	flue,
-	resetFlueRuntimeForTests,
-} from '../src/runtime/flue-app.ts';
+	configureBapxRuntime,
+	createDefaultBapxApp,
+	bapX,
+	resetBapxRuntimeForTests,
+} from '../src/runtime/bapX-app.ts';
 import { createNoopSessionEnv } from './fixtures/session-env.ts';
 import { agentRecord, cloudflareRuntime, nodeRuntime, workflowRecord } from './helpers/runtime-config.ts';
 import { createTestEventStreamStore } from './helpers/test-event-stream-store.ts';
 
 afterEach(() => {
-	resetFlueRuntimeForTests();
+	resetBapxRuntimeForTests();
 });
 
-describe('flue()', () => {
-	it('serves a discovered channel handler beneath the flue mount prefix', async () => {
-		configureFlueRuntime(nodeRuntime({
+describe('bapX()', () => {
+	it('serves a discovered channel handler beneath the bapX mount prefix', async () => {
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			channelHandlers: {
 				slack: {
@@ -36,7 +36,7 @@ describe('flue()', () => {
 			},
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/channels/slack/events?team=T123', {
@@ -65,7 +65,7 @@ describe('flue()', () => {
 		expect(response).not.toBeInstanceOf(Response);
 		expect(Object.prototype.toString.call(response)).toBe('[object Response]');
 
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			channelHandlers: {
 				slack: {
@@ -74,7 +74,7 @@ describe('flue()', () => {
 			},
 		}));
 		const app = new Hono();
-		app.route('/', flue());
+		app.route('/', bapX());
 
 		const result = await app.fetch(
 			new Request('http://localhost/channels/slack/events', { method: 'POST' }),
@@ -85,7 +85,7 @@ describe('flue()', () => {
 	});
 
 	it('rejects a tagged object when a channel handler does not return a Fetch response', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			channelHandlers: {
 				slack: {
@@ -94,7 +94,7 @@ describe('flue()', () => {
 			},
 		}));
 		const app = new Hono();
-		app.route('/', flue());
+		app.route('/', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/channels/slack/events', { method: 'POST' }),
@@ -114,7 +114,7 @@ describe('flue()', () => {
 				headers: { 'x-endpoint-validation': 'accepted' },
 			});
 		});
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			channelHandlers: {
 				intercom: {
@@ -123,7 +123,7 @@ describe('flue()', () => {
 			},
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/channels/intercom/webhook', {
@@ -137,7 +137,7 @@ describe('flue()', () => {
 	});
 
 	it('returns method_not_allowed for a configured channel path with the wrong method', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			channelHandlers: {
 				slack: {
@@ -147,7 +147,7 @@ describe('flue()', () => {
 			},
 		}));
 		const app = new Hono();
-		app.route('/', flue());
+		app.route('/', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/channels/slack/events', { method: 'GET' }),
@@ -158,7 +158,7 @@ describe('flue()', () => {
 	});
 
 	it('serves channel route suffixes with multiple path segments', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			channelHandlers: {
 				custom: {
@@ -167,7 +167,7 @@ describe('flue()', () => {
 			},
 		}));
 		const app = new Hono();
-		app.route('/', flue());
+		app.route('/', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/channels/custom/webhooks/retries', { method: 'POST' }),
@@ -178,7 +178,7 @@ describe('flue()', () => {
 	});
 
 	it('does not serve the top-level channel namespace or an unknown suffix', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			channelHandlers: {
 				slack: {
@@ -187,7 +187,7 @@ describe('flue()', () => {
 			},
 		}));
 		const app = new Hono();
-		app.route('/', flue());
+		app.route('/', bapX());
 
 		const rootResponse = await app.fetch(
 			new Request('http://localhost/channels/slack', { method: 'POST' }),
@@ -201,9 +201,9 @@ describe('flue()', () => {
 	});
 
 	it('returns 404 when the removed public OpenAPI route is requested', async () => {
-		configureFlueRuntime(nodeRuntime({ target: 'node' }));
+		configureBapxRuntime(nodeRuntime({ target: 'node' }));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(new Request('http://localhost/api/openapi.json'));
 
@@ -211,7 +211,7 @@ describe('flue()', () => {
 	});
 
 	it('invokes an HTTP-exposed agent when the mounted app receives a valid agent POST', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			agents: [agentRecord('assistant', { route: async (_c, next) => next() })],
 			createAgentAdmission: (_agentName, _id) => async (_payload) => ({
@@ -222,7 +222,7 @@ describe('flue()', () => {
 			eventStreamStore: createTestEventStreamStore(),
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/agents/assistant/customer-123', {
@@ -247,7 +247,7 @@ describe('flue()', () => {
 
 	it('accepts attachments on the DeliveredMessage wire body', async () => {
 		let delivered: unknown;
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			agents: [agentRecord('assistant', { route: async (_c, next) => next() })],
 			createAgentAdmission: (_agentName, ) => async (message) => {
@@ -258,7 +258,7 @@ describe('flue()', () => {
 			eventStreamStore: createTestEventStreamStore(),
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 		const response = await app.fetch(
 			new Request('http://localhost/api/agents/assistant/customer-123', {
 				method: 'POST',
@@ -280,7 +280,7 @@ describe('flue()', () => {
 	});
 
 	it('rejects any wait query param with invalid_request when an agent POST is sent', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			agents: [agentRecord('assistant', { route: async (_c, next) => next() })],
 			createAgentAdmission: (_agentName, _id) => async (_payload) => ({
@@ -291,7 +291,7 @@ describe('flue()', () => {
 			eventStreamStore: createTestEventStreamStore(),
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/agents/assistant/customer-123?wait=result', {
@@ -313,9 +313,9 @@ describe('flue()', () => {
 		});
 	});
 
-	it('renders the typed error envelope when a FlueError fails an agent admission', async () => {
+	it('renders the typed error envelope when a BapxError fails an agent admission', async () => {
 		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			agents: [agentRecord('assistant', { route: async (_c, next) => next() })],
 			createAgentAdmission: (_agentName, ) => async () => {
@@ -325,7 +325,7 @@ describe('flue()', () => {
 			eventStreamStore: createTestEventStreamStore(),
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		try {
 			const response = await app.fetch(
@@ -350,7 +350,7 @@ describe('flue()', () => {
 	});
 
 	it('rejects an unknown wait value with invalid_request when a workflow POST mistypes the query', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			workflows: [
 				workflowRecord(
@@ -367,7 +367,7 @@ describe('flue()', () => {
 			eventStreamStore: createTestEventStreamStore(),
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/workflows/daily-report?wait=results', { method: 'POST' }),
@@ -381,17 +381,17 @@ describe('flue()', () => {
 
 	it("keeps the agent stream unreadable when the instance's only prompt fails admission", async () => {
 		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			agents: [agentRecord('assistant', { route: async (_c, next) => next() })],
 			createAgentAdmission: (_agentName, ) => async () => {
-					throw new Error('[flue] runtime is shutting down; new submissions are not accepted.');
+					throw new Error('[bapX] runtime is shutting down; new submissions are not accepted.');
 				},
 			createWorkflowContext: createTestContext,
 			eventStreamStore: createTestEventStreamStore(),
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		try {
 			const prompt = await app.fetch(
@@ -418,12 +418,12 @@ describe('flue()', () => {
 	});
 
 	it('rejects non-POST agent requests with a method envelope when a path targets an HTTP agent', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			agents: [agentRecord('assistant', { route: async (_c, next) => next() })],
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/agents/assistant/customer-123', { method: 'DELETE' }),
@@ -441,12 +441,12 @@ describe('flue()', () => {
 	});
 
 	it('rejects non-POST workflow requests with a method envelope when a path targets an HTTP workflow', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			workflows: [workflowRecord('daily-report', defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), run: async () => undefined }), { route: async (_c, next) => next() })],
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/workflows/daily-report', { method: 'PATCH' }),
@@ -464,13 +464,13 @@ describe('flue()', () => {
 	});
 
 	it('omits registered sibling names in production when an unknown agent is requested', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			devMode: false,
 			agents: [agentRecord('private-support', { route: async (_c, next) => next() })],
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/agents/missing/customer-123', { method: 'POST' }),
@@ -487,13 +487,13 @@ describe('flue()', () => {
 	});
 
 	it('includes developer guidance in dev mode when an unknown agent is requested', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			devMode: true,
 			agents: [agentRecord('private-support', { route: async (_c, next) => next() })],
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/agents/missing/customer-123', { method: 'POST' }),
@@ -512,7 +512,7 @@ describe('flue()', () => {
 
 	it('lets authored route middleware inspect a request when an exposed handler runs', async () => {
 		let inspected = '';
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			agents: [
 				agentRecord('assistant', {
@@ -531,7 +531,7 @@ describe('flue()', () => {
 			eventStreamStore: createTestEventStreamStore(),
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/agents/assistant/customer-123', {
@@ -561,7 +561,7 @@ describe('flue()', () => {
 		});
 		const store = createTestEventStreamStore();
 		await store.createStream('runs/run_01DAILYREPORT');
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			workflows: [workflowRecord('daily-report', defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), run: async () => undefined }), { runs: async (c) => c.json({ blocked: true }, 401) })],
 			runStore,
@@ -569,7 +569,7 @@ describe('flue()', () => {
 
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(new Request('http://localhost/api/runs/run_01DAILYREPORT'));
 
@@ -579,12 +579,12 @@ describe('flue()', () => {
 
 	it('returns run_not_found for an unknown run without invoking runs middleware', async () => {
 		const runs = vi.fn(async (_c, next) => next());
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			workflows: [workflowRecord('daily-report', defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), run: async () => undefined }), { runs })],
 			runStore: new InMemoryRunStore(),
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(new Request('http://localhost/api/runs/run_01MISSING'));
 
@@ -601,12 +601,12 @@ describe('flue()', () => {
 			startedAt: '2026-06-01T10:00:00.000Z',
 			input: {},
 		});
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			workflows: [workflowRecord('daily-report', defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), run: async () => undefined }), { route: async (_c, next) => next() })],
 			runStore,
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(new Request('http://localhost/api/runs/run_01DAILYREPORT'));
 
@@ -623,12 +623,12 @@ describe('flue()', () => {
 			input: {},
 		});
 		const runs = vi.fn(async (_c, next) => next());
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			workflows: [workflowRecord('daily-report', defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), run: async () => undefined }), { runs })],
 			runStore,
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(new Request('http://localhost/api/runs/run_01DAILYREPORT', { method: 'DELETE' }));
 
@@ -645,13 +645,13 @@ describe('flue()', () => {
 			input: {},
 		});
 		const routeRunRequest = vi.fn(async () => new Response('forwarded'));
-		configureFlueRuntime(cloudflareRuntime({
+		configureBapxRuntime(cloudflareRuntime({
 			workflows: [workflowRecord('daily-report', defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), run: async () => undefined }), { runs: async (c) => c.json({ blocked: true }, 401) })],
 			createRunIndexForRequest: () => runStore,
 			routeRunRequest,
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(new Request('http://localhost/api/runs/run_01DAILYREPORT'));
 
@@ -674,14 +674,14 @@ describe('flue()', () => {
 			isError: false,
 			result: { delivered: true },
 		});
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			workflows: [workflowRecord('daily-report', defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), run: async () => undefined }), { runs: async (_c, next) => next() })],
 			runStore,
 			eventStreamStore: createTestEventStreamStore(),
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		// Stream params are ignored on the `?meta` view.
 		const response = await app.fetch(
@@ -715,14 +715,14 @@ describe('flue()', () => {
 			startedAt: '2026-06-01T10:00:00.000Z',
 			input: {},
 		});
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			workflows: [workflowRecord('daily-report', defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), run: async () => undefined }), { runs: async (c) => c.json({ blocked: true }, 401) })],
 			runStore,
 
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/runs/run_01DAILYREPORT?meta'),
@@ -743,14 +743,14 @@ describe('flue()', () => {
 			startedAt: '2026-06-01T10:00:00.000Z',
 			input: {},
 		});
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			workflows: [workflowRecord('daily-report-v2', defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), run: async () => undefined }), { runs: async (_c, next) => next() })],
 			runStore,
 			eventStreamStore: createTestEventStreamStore(),
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const streamRead = await app.fetch(new Request('http://localhost/api/runs/run_01DAILYREPORT'));
 		expect(streamRead.status).toBe(404);
@@ -769,13 +769,13 @@ describe('flue()', () => {
 
 	it('returns an authored middleware response without invoking the handler when middleware short-circuits', async () => {
 		const handlerCalls = 0;
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			agents: [agentRecord('assistant', { route: async (c) => c.json({ blocked: true }, 401) })],
 			createWorkflowContext: createTestContext,
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/agents/assistant/customer-123', {
@@ -792,7 +792,7 @@ describe('flue()', () => {
 
 	it('reports a diagnostic error when authored middleware neither returns a response nor awaits next()', async () => {
 		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			agents: [
 				agentRecord('assistant', { route: () => Promise.resolve(undefined) }),
@@ -800,7 +800,7 @@ describe('flue()', () => {
 			createWorkflowContext: createTestContext,
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		try {
 			const response = await app.fetch(
@@ -830,7 +830,7 @@ describe('flue()', () => {
 	});
 
 	it('returns unsupported_media_type when a request sends a body with a non-JSON content type', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			agents: [agentRecord('assistant', { route: async (_c, next) => next() })],
 			createAgentAdmission: (_agentName, _id) => async (_payload) => ({
@@ -841,7 +841,7 @@ describe('flue()', () => {
 			eventStreamStore: createTestEventStreamStore(),
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/agents/assistant/customer-123', {
@@ -863,7 +863,7 @@ describe('flue()', () => {
 	});
 
 	it('returns invalid_json when an application/json request body cannot be parsed', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			agents: [agentRecord('assistant', { route: async (_c, next) => next() })],
 			createAgentAdmission: (_agentName, _id) => async (_payload) => ({
@@ -874,7 +874,7 @@ describe('flue()', () => {
 			eventStreamStore: createTestEventStreamStore(),
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/agents/assistant/customer-123', {
@@ -897,7 +897,7 @@ describe('flue()', () => {
 	});
 
 	it('treats an empty workflow POST body as an empty object when a workflow is invoked', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			workflows: [
 				workflowRecord(
@@ -914,7 +914,7 @@ describe('flue()', () => {
 			eventStreamStore: createTestEventStreamStore(),
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/workflows/daily-report?wait=result', { method: 'POST' }),
@@ -929,7 +929,7 @@ describe('flue()', () => {
 	});
 
 	it('rejects a direct agent body that is not a DeliveredMessage', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			agents: [agentRecord('assistant', { route: async (_c, next) => next() })],
 			createAgentAdmission: (_agentName, _id) => async (_payload) => ({
@@ -940,7 +940,7 @@ describe('flue()', () => {
 			eventStreamStore: createTestEventStreamStore(),
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/agents/assistant/customer-123', {
@@ -963,7 +963,7 @@ describe('flue()', () => {
 	});
 
 	it('rejects a direct agent attachment above the encoded length limit', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			agents: [agentRecord('assistant', { route: async (_c, next) => next() })],
 			createAgentAdmission: (_agentName, ) => async (_payload) => ({ submissionId: 'submission-1', offset: '-1' }),
@@ -971,7 +971,7 @@ describe('flue()', () => {
 			eventStreamStore: createTestEventStreamStore(),
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/agents/assistant/customer-123', {
@@ -1002,7 +1002,7 @@ describe('flue()', () => {
 
 	it('temporarily exposes route-free agents and workflows without authored middleware', async () => {
 		const seen: string[] = [];
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			temporaryLocalExposure: true,
 			agents: [agentRecord('assistant')],
 			workflows: [
@@ -1028,7 +1028,7 @@ describe('flue()', () => {
 			seen.push('outer');
 			await next();
 		});
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const agentResponse = await app.fetch(
 			new Request('http://localhost/api/agents/assistant/customer-123', {
@@ -1048,7 +1048,7 @@ describe('flue()', () => {
 	});
 
 	it('renders a non-HTTP workflow as workflow_not_found when probed over HTTP', async () => {
-		configureFlueRuntime(nodeRuntime({
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			workflows: [
 				workflowRecord(
@@ -1058,7 +1058,7 @@ describe('flue()', () => {
 			],
 		}));
 		const app = new Hono();
-		app.route('/api', flue());
+		app.route('/api', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/api/workflows/internal-report', { method: 'POST' }),
@@ -1077,9 +1077,9 @@ describe('flue()', () => {
 	});
 });
 
-describe('createDefaultFlueApp()', () => {
-	it('mounts Flue routes at root when the generated runtime uses default application composition', async () => {
-		configureFlueRuntime(nodeRuntime({
+describe('createDefaultBapxApp()', () => {
+	it('mounts Bapx routes at root when the generated runtime uses default application composition', async () => {
+		configureBapxRuntime(nodeRuntime({
 			target: 'node',
 			agents: [agentRecord('assistant', { route: async (_c, next) => next() })],
 			createAgentAdmission: (_agentName, _id) => async (_payload) => ({
@@ -1089,7 +1089,7 @@ describe('createDefaultFlueApp()', () => {
 			createWorkflowContext: createTestContext,
 			eventStreamStore: createTestEventStreamStore(),
 		}));
-		const app = createDefaultFlueApp();
+		const app = createDefaultBapxApp();
 
 		const response = await app.fetch(
 			new Request('http://localhost/agents/assistant/customer-123', {
@@ -1108,8 +1108,8 @@ describe('createDefaultFlueApp()', () => {
 	});
 
 	it('returns a canonical route envelope when the default application receives an unmatched path', async () => {
-		configureFlueRuntime(nodeRuntime());
-		const app = createDefaultFlueApp();
+		configureBapxRuntime(nodeRuntime());
+		const app = createDefaultBapxApp();
 
 		const response = await app.fetch(new Request('http://localhost/not-a-route'));
 
@@ -1124,11 +1124,11 @@ describe('createDefaultFlueApp()', () => {
 	});
 });
 
-describe('flue() agent attachments route', () => {
+describe('bapX() agent attachments route', () => {
 	it('returns 404 when the agent does not export an attachments middleware', async () => {
-		configureFlueRuntime(nodeRuntime({ agents: [agentRecord('assistant')] }));
+		configureBapxRuntime(nodeRuntime({ agents: [agentRecord('assistant')] }));
 		const app = new Hono();
-		app.route('/', flue());
+		app.route('/', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/agents/assistant/inst-1/attachments/att-1'),
@@ -1140,9 +1140,9 @@ describe('flue() agent attachments route', () => {
 	});
 
 	it('includes opt-in guidance in the dev error envelope', async () => {
-		configureFlueRuntime(nodeRuntime({ devMode: true, agents: [agentRecord('assistant')] }));
+		configureBapxRuntime(nodeRuntime({ devMode: true, agents: [agentRecord('assistant')] }));
 		const app = new Hono();
-		app.route('/', flue());
+		app.route('/', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/agents/assistant/inst-1/attachments/att-1'),
@@ -1154,7 +1154,7 @@ describe('flue() agent attachments route', () => {
 	});
 
 	it('runs the exposed attachments middleware before serving', async () => {
-		configureFlueRuntime(
+		configureBapxRuntime(
 			nodeRuntime({
 				agents: [
 					{
@@ -1166,7 +1166,7 @@ describe('flue() agent attachments route', () => {
 			}),
 		);
 		const app = new Hono();
-		app.route('/', flue());
+		app.route('/', bapX());
 
 		const response = await app.fetch(
 			new Request('http://localhost/agents/assistant/inst-1/attachments/att-1'),
@@ -1177,7 +1177,7 @@ describe('flue() agent attachments route', () => {
 	});
 
 	it('reaches the byte handler when the attachments middleware calls next', async () => {
-		configureFlueRuntime(
+		configureBapxRuntime(
 			nodeRuntime({
 				agents: [
 					{
@@ -1191,7 +1191,7 @@ describe('flue() agent attachments route', () => {
 			}),
 		);
 		const app = new Hono();
-		app.route('/', flue());
+		app.route('/', bapX());
 
 		// No stream exists for this instance yet, so the handler is reached and
 		// reports a missing stream — distinct from the not-exposed 404 above.
@@ -1206,7 +1206,7 @@ describe('flue() agent attachments route', () => {
 });
 
 function createTestContext({ runId, request }: { runId: string; request: Request }) {
-	return createFlueContext({
+	return createBapxContext({
 		id: runId,
 		runId,
 		env: {},

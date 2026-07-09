@@ -6,7 +6,7 @@
  * monotonically increasing integer offsets formatted as `<readSeq>_<seq>` —
  * two 16-digit zero-padded integers separated by an underscore, matching the
  * DS reference server's offset format. The first component is always `0`
- * (Flue has no file segments); the second is the sequence number.
+ * (Bapx has no file segments); the second is the sequence number.
  *
  * The interface is fully async (returns Promises) so that adapters backed by
  * async databases (Postgres, MongoDB, etc.) can implement it naturally. The
@@ -15,7 +15,7 @@
  */
 
 import { clampLimit } from '../adapter-helpers.ts';
-import { migrateFlueSqlSchema } from '../schema-version.ts';
+import { migrateBapxSqlSchema } from '../schema-version.ts';
 import type { SqlStorage } from '../sql-storage.ts';
 
 // ─── Offset utilities ───────────────────────────────────────────────────────
@@ -28,7 +28,7 @@ const ZERO_COMPONENT = '0'.repeat(COMPONENT_PAD);
  *
  * Produces `<readSeq>_<seq>` with both components zero-padded to 16 digits,
  * matching the DS reference server's offset format. The first component is
- * always `0` (Flue uses integer sequences, not segmented files).
+ * always `0` (Bapx uses integer sequences, not segmented files).
  */
 export function formatOffset(seq: number): string {
 	if (seq === -1) return '-1';
@@ -45,7 +45,7 @@ export function parseOffset(offset: string): number {
 	const match = /^\d+_(\d+)$/.exec(offset);
 	const sequence = match?.[1];
 	if (!sequence) {
-		throw new Error(`[flue] Invalid stream offset: "${offset}".`);
+		throw new Error(`[bapX] Invalid stream offset: "${offset}".`);
 	}
 	return parseInt(sequence, 10);
 }
@@ -128,14 +128,14 @@ export interface EventStreamStore {
 // ─── SQLite implementation ──────────────────────────────────────────────────
 
 const CREATE_STREAMS_TABLE = `
-CREATE TABLE IF NOT EXISTS flue_event_streams (
+CREATE TABLE IF NOT EXISTS bapX_event_streams (
   path         TEXT PRIMARY KEY,
   next_offset  INTEGER NOT NULL DEFAULT 0,
   closed       INTEGER NOT NULL DEFAULT 0
 )`;
 
 const CREATE_ENTRIES_TABLE = `
-CREATE TABLE IF NOT EXISTS flue_event_stream_entries (
+CREATE TABLE IF NOT EXISTS bapX_event_stream_entries (
   path    TEXT NOT NULL,
   seq     INTEGER NOT NULL,
   data    TEXT NOT NULL,
@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS flue_event_stream_entries (
 )`;
 
 const CREATE_EVENT_KEYS_TABLE = `
-CREATE TABLE IF NOT EXISTS flue_event_stream_keys (
+CREATE TABLE IF NOT EXISTS bapX_event_stream_keys (
   path    TEXT NOT NULL,
   key     TEXT NOT NULL,
   seq     INTEGER NOT NULL,
@@ -153,12 +153,12 @@ CREATE TABLE IF NOT EXISTS flue_event_stream_keys (
 )`;
 
 const CREATE_EVENT_KEY_TRIGGER = `
-CREATE TRIGGER IF NOT EXISTS flue_event_stream_key_append
-AFTER INSERT ON flue_event_stream_keys
+CREATE TRIGGER IF NOT EXISTS bapX_event_stream_key_append
+AFTER INSERT ON bapX_event_stream_keys
 BEGIN
-  INSERT INTO flue_event_stream_entries (path, seq, data)
+  INSERT INTO bapX_event_stream_entries (path, seq, data)
   VALUES (NEW.path, NEW.seq, NEW.data);
-  UPDATE flue_event_streams SET next_offset = next_offset + 1
+  UPDATE bapX_event_streams SET next_offset = next_offset + 1
   WHERE path = NEW.path;
 END`;
 
@@ -181,7 +181,7 @@ export class SqliteEventStreamStore implements EventStreamStore {
 	private listeners = new Map<string, Set<() => void>>();
 
 	constructor(private sql: SqlStorage) {
-		migrateFlueSqlSchema(sql, () => {
+		migrateBapxSqlSchema(sql, () => {
 			sql.exec(CREATE_STREAMS_TABLE);
 			sql.exec(CREATE_ENTRIES_TABLE);
 			sql.exec(CREATE_EVENT_KEYS_TABLE);
@@ -190,7 +190,7 @@ export class SqliteEventStreamStore implements EventStreamStore {
 	}
 
 	async createStream(path: string): Promise<void> {
-		this.sql.exec(`INSERT OR IGNORE INTO flue_event_streams (path) VALUES (?)`, path);
+		this.sql.exec(`INSERT OR IGNORE INTO bapX_event_streams (path) VALUES (?)`, path);
 	}
 
 	async appendEvent(path: string, event: unknown): Promise<string> {
@@ -200,14 +200,14 @@ export class SqliteEventStreamStore implements EventStreamStore {
 
 		// Two sequential statements: advance the write cursor, then insert
 		// the event at the old cursor position. This is safe for the
-		// single-process SQLite configurations Flue currently supports. A
+		// single-process SQLite configurations Bapx currently supports. A
 		// process crash between the two leaves a gap in the sequence,
 		// which is harmless — readEvents uses `seq > ?` and naturally
 		// skips missing numbers. Shared SQLite files across Node processes
 		// need a transactional append implementation before being supported.
 		const updated = this.sql
 			.exec(
-				`UPDATE flue_event_streams
+				`UPDATE bapX_event_streams
 				 SET next_offset = next_offset + 1
 				 WHERE path = ? AND closed = 0
 				 RETURNING next_offset`,
@@ -219,17 +219,17 @@ export class SqliteEventStreamStore implements EventStreamStore {
 			// Either the stream doesn't exist or it's closed.
 			const meta = await this.getStreamMeta(path);
 			if (!meta) {
-				throw new Error(`[flue] Event stream "${path}" does not exist.`);
+				throw new Error(`[bapX] Event stream "${path}" does not exist.`);
 			}
-			throw new Error(`[flue] Event stream "${path}" is closed.`);
+			throw new Error(`[bapX] Event stream "${path}" is closed.`);
 		}
 
 		const [updatedRow] = updated;
-		if (!updatedRow) throw new Error(`[flue] Event stream "${path}" could not be updated.`);
+		if (!updatedRow) throw new Error(`[bapX] Event stream "${path}" could not be updated.`);
 		const offset = (updatedRow.next_offset as number) - 1;
 
 		this.sql.exec(
-			`INSERT INTO flue_event_stream_entries (path, seq, data) VALUES (?, ?, ?)`,
+			`INSERT INTO bapX_event_stream_entries (path, seq, data) VALUES (?, ?, ?)`,
 			path,
 			offset,
 			data,
@@ -245,8 +245,8 @@ export class SqliteEventStreamStore implements EventStreamStore {
 		const data = JSON.stringify(event);
 		const inserted = this.sql
 			.exec(
-				`INSERT OR IGNORE INTO flue_event_stream_keys (path, key, seq, data)
-				 SELECT path, ?, next_offset, ? FROM flue_event_streams
+				`INSERT OR IGNORE INTO bapX_event_stream_keys (path, key, seq, data)
+				 SELECT path, ?, next_offset, ? FROM bapX_event_streams
 				 WHERE path = ? AND closed = 0
 				 RETURNING seq`,
 				key,
@@ -260,20 +260,20 @@ export class SqliteEventStreamStore implements EventStreamStore {
 		}
 		const existing = this.sql
 			.exec(
-				'SELECT seq, data FROM flue_event_stream_keys WHERE path = ? AND key = ?',
+				'SELECT seq, data FROM bapX_event_stream_keys WHERE path = ? AND key = ?',
 				path,
 				key,
 			)
 			.toArray()[0];
 		if (existing) {
 			if (existing.data !== data) {
-				throw new Error(`[flue] Event key "${key}" already has a conflicting payload.`);
+				throw new Error(`[bapX] Event key "${key}" already has a conflicting payload.`);
 			}
 			return formatOffset(existing.seq as number);
 		}
 		const meta = await this.getStreamMeta(path);
-		if (!meta) throw new Error(`[flue] Event stream "${path}" does not exist.`);
-		throw new Error(`[flue] Event stream "${path}" is closed.`);
+		if (!meta) throw new Error(`[bapX] Event stream "${path}" does not exist.`);
+		throw new Error(`[bapX] Event stream "${path}" is closed.`);
 	}
 
 	async readEvents(
@@ -304,7 +304,7 @@ export class SqliteEventStreamStore implements EventStreamStore {
 
 		const rows = this.sql
 			.exec(
-				`SELECT seq, data FROM flue_event_stream_entries
+				`SELECT seq, data FROM bapX_event_stream_entries
 					 WHERE path = ? AND seq > ?
 					 ORDER BY seq ASC
 					 LIMIT ?`,
@@ -335,7 +335,7 @@ export class SqliteEventStreamStore implements EventStreamStore {
 	}
 
 	async closeStream(path: string): Promise<void> {
-		this.sql.exec(`UPDATE flue_event_streams SET closed = 1 WHERE path = ?`, path);
+		this.sql.exec(`UPDATE bapX_event_streams SET closed = 1 WHERE path = ?`, path);
 		// Notify live subscribers so long-poll/SSE readers wake immediately
 		// on stream closure (DS protocol Section 5.7 MUST requirement).
 		this.notifyListeners(path);
@@ -343,7 +343,7 @@ export class SqliteEventStreamStore implements EventStreamStore {
 
 	async getStreamMeta(path: string): Promise<EventStreamMeta | null> {
 		const rows = this.sql
-			.exec(`SELECT next_offset, closed FROM flue_event_streams WHERE path = ?`, path)
+			.exec(`SELECT next_offset, closed FROM bapX_event_streams WHERE path = ?`, path)
 			.toArray();
 
 		const [row] = rows;

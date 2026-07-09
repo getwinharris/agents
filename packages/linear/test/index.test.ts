@@ -29,7 +29,7 @@ describe('createLinearChannel()', () => {
 			},
 			data: {
 				id: 'comment-violet',
-				body: '@flue-agent investigate the worker timeout',
+				body: '@bapX-agent investigate the worker timeout',
 				issueId: 'issue-amber',
 				userId: 'user-fern',
 				createdAt: '2026-06-13T17:20:00.000Z',

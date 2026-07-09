@@ -38,7 +38,7 @@ import type {
 } from '@bapX/runtime/adapter';
 import {
 	admitSubmissionWithBackend,
-	assertSupportedFlueSchemaVersion,
+	assertSupportedBapxSchemaVersion,
 	clampLimit,
 	createDispatchAgentSubmissionInput,
 	DEFAULT_LIST_LIMIT,
@@ -175,27 +175,27 @@ async function ensureTables(runner: LibsqlRunner): Promise<void> {
 		// Stamp a fresh database with the current schema version; refuse to
 		// touch a database recorded with an unknown or newer version.
 		await tx.query(`
-			CREATE TABLE IF NOT EXISTS flue_meta (
+			CREATE TABLE IF NOT EXISTS bapX_meta (
 				key TEXT PRIMARY KEY,
 				value TEXT NOT NULL
 			)
 		`);
-		const versionRows = await tx.query(`SELECT value FROM flue_meta WHERE key = 'schema_version'`);
+		const versionRows = await tx.query(`SELECT value FROM bapX_meta WHERE key = 'schema_version'`);
 		const storedVersion = versionRows[0]?.value;
 		if (storedVersion === undefined || storedVersion === null) {
 			const existing = await tx.query(
-				`SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'flue_%' AND name <> 'flue_meta' LIMIT 1`,
+				`SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'bapX_%' AND name <> 'bapX_meta' LIMIT 1`,
 			);
-			if (existing.length > 0) assertSupportedFlueSchemaVersion('unversioned');
-			await tx.query(`INSERT OR IGNORE INTO flue_meta (key, value) VALUES ('schema_version', ?)`, [
+			if (existing.length > 0) assertSupportedBapxSchemaVersion('unversioned');
+			await tx.query(`INSERT OR IGNORE INTO bapX_meta (key, value) VALUES ('schema_version', ?)`, [
 				String(FLUE_SCHEMA_VERSION),
 			]);
 		} else {
-			assertSupportedFlueSchemaVersion(String(storedVersion));
+			assertSupportedBapxSchemaVersion(String(storedVersion));
 		}
 
 		await tx.query(`
-			CREATE TABLE IF NOT EXISTS flue_image_chunks (
+			CREATE TABLE IF NOT EXISTS bapX_image_chunks (
 				owner_kind TEXT NOT NULL,
 				owner_id TEXT NOT NULL,
 				owner_part TEXT NOT NULL,
@@ -208,7 +208,7 @@ async function ensureTables(runner: LibsqlRunner): Promise<void> {
 		`);
 
 		await tx.query(`
-			CREATE TABLE IF NOT EXISTS flue_agent_submissions (
+			CREATE TABLE IF NOT EXISTS bapX_agent_submissions (
 				sequence INTEGER PRIMARY KEY AUTOINCREMENT,
 				submission_id TEXT NOT NULL UNIQUE,
 				session_key TEXT NOT NULL,
@@ -236,14 +236,14 @@ async function ensureTables(runner: LibsqlRunner): Promise<void> {
 
 
 		await tx.query(`
-			CREATE TABLE IF NOT EXISTS flue_agent_dispatch_receipts (
+			CREATE TABLE IF NOT EXISTS bapX_agent_dispatch_receipts (
 				dispatch_id TEXT PRIMARY KEY,
 				accepted_at INTEGER NOT NULL
 			)
 		`);
 
 		await tx.query(`
-			CREATE TABLE IF NOT EXISTS flue_agent_attempt_markers (
+			CREATE TABLE IF NOT EXISTS bapX_agent_attempt_markers (
 				submission_id TEXT NOT NULL,
 				attempt_id TEXT NOT NULL,
 				created_at INTEGER NOT NULL,
@@ -252,17 +252,17 @@ async function ensureTables(runner: LibsqlRunner): Promise<void> {
 		`);
 
 		await tx.query(`
-			CREATE INDEX IF NOT EXISTS flue_agent_submissions_status_sequence_idx
-			ON flue_agent_submissions (status, sequence ASC)
+			CREATE INDEX IF NOT EXISTS bapX_agent_submissions_status_sequence_idx
+			ON bapX_agent_submissions (status, sequence ASC)
 		`);
 
 		await tx.query(`
-			CREATE INDEX IF NOT EXISTS flue_agent_submissions_session_status_sequence_idx
-			ON flue_agent_submissions (session_key, status, sequence ASC)
+			CREATE INDEX IF NOT EXISTS bapX_agent_submissions_session_status_sequence_idx
+			ON bapX_agent_submissions (session_key, status, sequence ASC)
 		`);
 
 		await tx.query(`
-			CREATE TABLE IF NOT EXISTS flue_runs (
+			CREATE TABLE IF NOT EXISTS bapX_runs (
 				run_id TEXT PRIMARY KEY,
 				workflow_name TEXT NOT NULL,
 				status TEXT NOT NULL,
@@ -278,8 +278,8 @@ async function ensureTables(runner: LibsqlRunner): Promise<void> {
 			)
 		`);
 		for (const statement of [
-			`ALTER TABLE flue_runs ADD COLUMN traceparent TEXT`,
-			`ALTER TABLE flue_runs ADD COLUMN tracestate TEXT`,
+			`ALTER TABLE bapX_runs ADD COLUMN traceparent TEXT`,
+			`ALTER TABLE bapX_runs ADD COLUMN tracestate TEXT`,
 		]) {
 			try {
 				await tx.query(statement);
@@ -289,17 +289,17 @@ async function ensureTables(runner: LibsqlRunner): Promise<void> {
 		}
 
 		await tx.query(`
-			CREATE INDEX IF NOT EXISTS flue_runs_status_started_idx
-			ON flue_runs (status, started_at DESC, run_id DESC)
+			CREATE INDEX IF NOT EXISTS bapX_runs_status_started_idx
+			ON bapX_runs (status, started_at DESC, run_id DESC)
 		`);
 
 		await tx.query(`
-			CREATE INDEX IF NOT EXISTS flue_runs_workflow_started_idx
-			ON flue_runs (workflow_name, started_at DESC, run_id DESC)
+			CREATE INDEX IF NOT EXISTS bapX_runs_workflow_started_idx
+			ON bapX_runs (workflow_name, started_at DESC, run_id DESC)
 		`);
 
 		await tx.query(`
-			CREATE TABLE IF NOT EXISTS flue_event_streams (
+			CREATE TABLE IF NOT EXISTS bapX_event_streams (
 				path         TEXT PRIMARY KEY,
 				next_offset  INTEGER NOT NULL DEFAULT 0,
 				closed       INTEGER NOT NULL DEFAULT 0
@@ -307,7 +307,7 @@ async function ensureTables(runner: LibsqlRunner): Promise<void> {
 		`);
 
 		await tx.query(`
-			CREATE TABLE IF NOT EXISTS flue_event_stream_entries (
+			CREATE TABLE IF NOT EXISTS bapX_event_stream_entries (
 				path    TEXT NOT NULL,
 				seq     INTEGER NOT NULL,
 				data    TEXT NOT NULL,
@@ -315,7 +315,7 @@ async function ensureTables(runner: LibsqlRunner): Promise<void> {
 			)
 		`);
 		await tx.query(`
-			CREATE TABLE IF NOT EXISTS flue_conversation_streams (
+			CREATE TABLE IF NOT EXISTS bapX_conversation_streams (
 				path TEXT PRIMARY KEY,
 				identity_json TEXT NOT NULL,
 				next_offset INTEGER NOT NULL DEFAULT 0,
@@ -326,7 +326,7 @@ async function ensureTables(runner: LibsqlRunner): Promise<void> {
 			)
 		`);
 		await tx.query(`
-			CREATE TABLE IF NOT EXISTS flue_conversation_stream_batches (
+			CREATE TABLE IF NOT EXISTS bapX_conversation_stream_batches (
 				path TEXT NOT NULL,
 				seq INTEGER NOT NULL,
 				producer_id TEXT NOT NULL,
@@ -340,7 +340,7 @@ async function ensureTables(runner: LibsqlRunner): Promise<void> {
 			)
 		`);
 		await tx.query(`
-			CREATE TABLE IF NOT EXISTS flue_attachments (
+			CREATE TABLE IF NOT EXISTS bapX_attachments (
 				stream_path TEXT NOT NULL,
 				attachment_id TEXT NOT NULL,
 				mime_type TEXT NOT NULL,
@@ -353,17 +353,17 @@ async function ensureTables(runner: LibsqlRunner): Promise<void> {
 			)
 		`);
 		await tx.query(`
-			CREATE INDEX IF NOT EXISTS flue_attachments_conversation_idx
-			ON flue_attachments (stream_path, conversation_id, attachment_id)
+			CREATE INDEX IF NOT EXISTS bapX_attachments_conversation_idx
+			ON bapX_attachments (stream_path, conversation_id, attachment_id)
 		`);
 		try {
-			await tx.query(`ALTER TABLE flue_event_stream_entries ADD COLUMN event_key TEXT`);
+			await tx.query(`ALTER TABLE bapX_event_stream_entries ADD COLUMN event_key TEXT`);
 		} catch (error) {
 			if (!String(error).toLowerCase().includes('duplicate column')) throw error;
 		}
 		await tx.query(`
-			CREATE UNIQUE INDEX IF NOT EXISTS flue_event_stream_entries_path_event_key_idx
-			ON flue_event_stream_entries (path, event_key)
+			CREATE UNIQUE INDEX IF NOT EXISTS bapX_event_stream_entries_path_event_key_idx
+			ON bapX_event_stream_entries (path, event_key)
 			WHERE event_key IS NOT NULL
 		`);
 	});
@@ -380,7 +380,7 @@ function createLibsqlChunkStore(runner: LibsqlQueryRunner): PersistedChunkStore<
 		async read(owner) {
 			const rows = await runner.query(
 				`SELECT image_id, chunk_index, chunk_count, data
-				 FROM flue_image_chunks
+				 FROM bapX_image_chunks
 				 WHERE owner_kind = ? AND owner_id = ? AND owner_part = ?
 				 ORDER BY image_id, chunk_index`,
 				[owner.kind, owner.id, owner.part],
@@ -391,7 +391,7 @@ function createLibsqlChunkStore(runner: LibsqlQueryRunner): PersistedChunkStore<
 			await deleteLibsqlChunkOwner(runner, owner);
 			for (const chunk of chunks) {
 				await runner.query(
-					`INSERT INTO flue_image_chunks
+					`INSERT INTO bapX_image_chunks
 					 (owner_kind, owner_id, owner_part, image_id, chunk_index, chunk_count, data)
 					 VALUES (?, ?, ?, ?, ?, ?, ?)`,
 					[owner.kind, owner.id, owner.part, chunk.imageId, chunk.index, chunk.count, chunk.data],
@@ -405,7 +405,7 @@ function createLibsqlChunkStore(runner: LibsqlQueryRunner): PersistedChunkStore<
 			for (const owner of owners) await deleteLibsqlChunkOwner(runner, owner);
 		},
 		async deleteOwner(kind, id) {
-			await runner.query('DELETE FROM flue_image_chunks WHERE owner_kind = ? AND owner_id = ?', [
+			await runner.query('DELETE FROM bapX_image_chunks WHERE owner_kind = ? AND owner_id = ?', [
 				kind,
 				id,
 			]);
@@ -422,7 +422,7 @@ function parsePersistedChunkRow(row: SqlRow): PersistedChunkRow {
 		!Number.isInteger(count) ||
 		typeof row.data !== 'string'
 	) {
-		throw new Error('[flue] Persisted image chunk row is malformed.');
+		throw new Error('[bapX] Persisted image chunk row is malformed.');
 	}
 	return { imageId: row.image_id, index, count, data: row.data };
 }
@@ -432,7 +432,7 @@ async function deleteLibsqlChunkOwner(
 	owner: PersistedChunkOwner,
 ): Promise<void> {
 	await runner.query(
-		'DELETE FROM flue_image_chunks WHERE owner_kind = ? AND owner_id = ? AND owner_part = ?',
+		'DELETE FROM bapX_image_chunks WHERE owner_kind = ? AND owner_id = ? AND owner_part = ?',
 		[owner.kind, owner.id, owner.part],
 	);
 }
@@ -477,7 +477,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 	async getSubmission(submissionId: string): Promise<AgentSubmission | null> {
 		return this.runner.transaction(async (tx) => {
 			const rows = await tx.query(
-				`SELECT ${submissionColumns} FROM flue_agent_submissions WHERE submission_id = ? LIMIT 1`,
+				`SELECT ${submissionColumns} FROM bapX_agent_submissions WHERE submission_id = ? LIMIT 1`,
 				[submissionId],
 			);
 			return rows[0]
@@ -491,7 +491,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 
 	async markSubmissionCanonicalReady(submissionId: string): Promise<AgentSubmission | null> {
 		const rows = await this.runner.query(
-			`UPDATE flue_agent_submissions SET canonical_ready_at = COALESCE(canonical_ready_at, ?)
+			`UPDATE bapX_agent_submissions SET canonical_ready_at = COALESCE(canonical_ready_at, ?)
 			 WHERE submission_id = ? AND status = 'queued' RETURNING ${submissionColumns}`,
 			[Date.now(), submissionId],
 		);
@@ -500,7 +500,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 
 	async hasUnsettledSubmissions(): Promise<boolean> {
 		const rows = await this.runner.query(
-			`SELECT 1 FROM flue_agent_submissions WHERE status IN ('queued', 'running', 'terminalizing') LIMIT 1`,
+			`SELECT 1 FROM bapX_agent_submissions WHERE status IN ('queued', 'running', 'terminalizing') LIMIT 1`,
 		);
 		return rows.length > 0;
 	}
@@ -509,7 +509,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 		return this.runner.transaction(async (tx) => {
 			const rows = await tx.query(
 				`SELECT ${submissionColumns}
-				 FROM flue_agent_submissions
+				 FROM bapX_agent_submissions
 				 WHERE status = 'queued' AND canonical_ready_at IS NULL
 				 ORDER BY sequence ASC`,
 			);
@@ -521,12 +521,12 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 		return this.runner.transaction(async (tx) => {
 			const rows = await tx.query(
 				`SELECT ${prefixed('current_sub')}
-			 FROM flue_agent_submissions AS current_sub
+			 FROM bapX_agent_submissions AS current_sub
 			 WHERE current_sub.status = 'queued'
 			   AND current_sub.canonical_ready_at IS NOT NULL
 			   AND NOT EXISTS (
 			     SELECT 1
-			     FROM flue_agent_submissions AS earlier
+			     FROM bapX_agent_submissions AS earlier
 			     WHERE earlier.session_key = current_sub.session_key
 			       AND earlier.status IN ('queued', 'running', 'terminalizing')
 			       AND earlier.sequence < current_sub.sequence
@@ -541,7 +541,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 		return this.runner.transaction(async (tx) => {
 			const rows = await tx.query(
 				`SELECT ${submissionColumns}
-			 FROM flue_agent_submissions
+			 FROM bapX_agent_submissions
 			 WHERE status = 'running'
 			 ORDER BY sequence ASC`,
 			);
@@ -558,7 +558,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 			const now = Date.now();
 			const subRows = lease
 				? await tx.query(
-						`UPDATE flue_agent_submissions
+						`UPDATE bapX_agent_submissions
 					 SET attempt_id = ?, recovery_requested_at = NULL, started_at = ?, attempt_count = attempt_count + 1,
 					     owner_id = ?, lease_expires_at = ?
 					 WHERE submission_id = ? AND status = 'running' AND attempt_id = ?
@@ -573,7 +573,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 						],
 					)
 				: await tx.query(
-						`UPDATE flue_agent_submissions
+						`UPDATE bapX_agent_submissions
 					 SET attempt_id = ?, recovery_requested_at = NULL, started_at = ?, attempt_count = attempt_count + 1
 					 WHERE submission_id = ? AND status = 'running' AND attempt_id = ?
 					 RETURNING ${submissionColumns}`,
@@ -596,7 +596,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 	async admitDirect(input: AgentSubmissionInput): Promise<AgentSubmission> {
 		const admission = await this.admitSubmission(input);
 		if (admission.kind !== 'submission') {
-			throw new Error('[flue] Internal direct admission returned an unexpected result.');
+			throw new Error('[bapX] Internal direct admission returned an unexpected result.');
 		}
 		return admission.submission;
 	}
@@ -611,7 +611,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 		// NOT EXISTS subquery, so the claim is a single statement.
 		return this.runner.transaction(async (tx) => {
 			const rows = await tx.query(
-				`UPDATE flue_agent_submissions AS current
+				`UPDATE bapX_agent_submissions AS current
 			 SET status = 'running', attempt_id = ?, started_at = ?, attempt_count = attempt_count + 1,
 			     max_retry = ?, timeout_at = CASE WHEN timeout_at = 0 THEN ? ELSE timeout_at END,
 			     owner_id = ?, lease_expires_at = ?
@@ -619,7 +619,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 			   AND current.canonical_ready_at IS NOT NULL
 			   AND NOT EXISTS (
 			     SELECT 1
-			     FROM flue_agent_submissions AS earlier
+			     FROM bapX_agent_submissions AS earlier
 			     WHERE earlier.session_key = current.session_key
 			       AND earlier.status IN ('queued', 'running', 'terminalizing')
 			       AND earlier.sequence < current.sequence
@@ -650,7 +650,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 	): Promise<boolean> {
 		const now = Date.now();
 		const rows = await this.runner.query(
-			`UPDATE flue_agent_submissions
+			`UPDATE bapX_agent_submissions
 			 SET input_applied_at = COALESCE(input_applied_at, ?),
 			     max_retry = CASE WHEN input_applied_at IS NULL THEN ? ELSE max_retry END,
 			     timeout_at = CASE WHEN input_applied_at IS NULL THEN ? ELSE timeout_at END
@@ -669,7 +669,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 
 	async requestSubmissionRecovery(attempt: SubmissionAttemptRef): Promise<boolean> {
 		const rows = await this.runner.query(
-			`UPDATE flue_agent_submissions
+			`UPDATE bapX_agent_submissions
 			 SET recovery_requested_at = COALESCE(recovery_requested_at, ?)
 			 WHERE submission_id = ? AND status = 'running' AND attempt_id = ?
 			 RETURNING submission_id`,
@@ -680,7 +680,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 
 	async requestSessionAbort(sessionKey: string): Promise<string[]> {
 		const rows = await this.runner.query(
-			`UPDATE flue_agent_submissions
+			`UPDATE bapX_agent_submissions
 			 SET abort_requested_at = COALESCE(abort_requested_at, ?)
 			 WHERE session_key = ? AND status IN ('queued', 'running')
 			 RETURNING submission_id`,
@@ -691,7 +691,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 
 	async requeueSubmissionBeforeInputApplied(attempt: SubmissionAttemptRef): Promise<boolean> {
 		const rows = await this.runner.query(
-			`UPDATE flue_agent_submissions
+			`UPDATE bapX_agent_submissions
 			 SET status = 'queued', attempt_id = NULL, recovery_requested_at = NULL, started_at = NULL, owner_id = NULL, lease_expires_at = 0
 			 WHERE submission_id = ? AND status = 'running'
 			   AND attempt_id = ? AND input_applied_at IS NULL
@@ -702,24 +702,24 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 	}
 
 	async listPendingSubmissionSettlements(): Promise<import('@bapX/runtime/adapter').SubmissionSettlementObligation[]> {
-		const rows = await this.runner.query(`SELECT submission_id, session_key, attempt_id, settlement_record_id, settlement_record FROM flue_agent_submissions WHERE kind = 'direct' AND status = 'terminalizing' ORDER BY sequence ASC`);
+		const rows = await this.runner.query(`SELECT submission_id, session_key, attempt_id, settlement_record_id, settlement_record FROM bapX_agent_submissions WHERE kind = 'direct' AND status = 'terminalizing' ORDER BY sequence ASC`);
 		return rows.map((row) => ({ submissionId: String(row.submission_id), sessionKey: String(row.session_key), attemptId: String(row.attempt_id), recordId: String(row.settlement_record_id), record: JSON.parse(String(row.settlement_record)) }));
 	}
 	async reserveSubmissionSettlement(attempt: SubmissionAttemptRef, settlement: { recordId: string; record: import('@bapX/runtime/adapter').SubmissionSettledRecord }): Promise<import('@bapX/runtime/adapter').SubmissionSettlementObligation | null> {
 		if (settlement.record.id !== settlement.recordId) return null;
 		const data = JSON.stringify(settlement.record);
-		const rows = await this.runner.query(`UPDATE flue_agent_submissions SET status = 'terminalizing', settlement_record_id = ?, settlement_record = ? WHERE submission_id = ? AND kind = 'direct' AND status = 'running' AND attempt_id = ? AND owner_id IS NOT NULL AND settlement_record_id IS NULL RETURNING submission_id, session_key, attempt_id, settlement_record_id, settlement_record`, [settlement.recordId, data, attempt.submissionId, attempt.attemptId]);
-		const row = rows[0] ?? (await this.runner.query(`SELECT submission_id, session_key, attempt_id, settlement_record_id, settlement_record FROM flue_agent_submissions WHERE submission_id = ? AND status = 'terminalizing' AND attempt_id = ?`, [attempt.submissionId, attempt.attemptId]))[0];
+		const rows = await this.runner.query(`UPDATE bapX_agent_submissions SET status = 'terminalizing', settlement_record_id = ?, settlement_record = ? WHERE submission_id = ? AND kind = 'direct' AND status = 'running' AND attempt_id = ? AND owner_id IS NOT NULL AND settlement_record_id IS NULL RETURNING submission_id, session_key, attempt_id, settlement_record_id, settlement_record`, [settlement.recordId, data, attempt.submissionId, attempt.attemptId]);
+		const row = rows[0] ?? (await this.runner.query(`SELECT submission_id, session_key, attempt_id, settlement_record_id, settlement_record FROM bapX_agent_submissions WHERE submission_id = ? AND status = 'terminalizing' AND attempt_id = ?`, [attempt.submissionId, attempt.attemptId]))[0];
 		return row?.settlement_record_id === settlement.recordId && row?.settlement_record === data ? { submissionId: String(row.submission_id), sessionKey: String(row.session_key), attemptId: String(row.attempt_id), recordId: String(row.settlement_record_id), record: JSON.parse(String(row.settlement_record)) } : null;
 	}
 	async finalizeSubmissionSettlement(attempt: SubmissionAttemptRef, recordId: string): Promise<boolean> {
-		const rows = await this.runner.query(`UPDATE flue_agent_submissions SET status = 'settled', settled_at = ? WHERE submission_id = ? AND status = 'terminalizing' AND attempt_id = ? AND settlement_record_id = ? RETURNING submission_id`, [Date.now(), attempt.submissionId, attempt.attemptId, recordId]);
+		const rows = await this.runner.query(`UPDATE bapX_agent_submissions SET status = 'settled', settled_at = ? WHERE submission_id = ? AND status = 'terminalizing' AND attempt_id = ? AND settlement_record_id = ? RETURNING submission_id`, [Date.now(), attempt.submissionId, attempt.attemptId, recordId]);
 		return rows.length > 0;
 	}
 
 	async completeSubmission(attempt: SubmissionAttemptRef): Promise<boolean> {
 		const rows = await this.runner.query(
-			`UPDATE flue_agent_submissions
+			`UPDATE bapX_agent_submissions
 			 SET status = 'settled', settled_at = ?, error = NULL
 			 WHERE submission_id = ? AND status = 'running' AND attempt_id = ?
 			 RETURNING submission_id`,
@@ -730,7 +730,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 
 	async failSubmission(attempt: SubmissionAttemptRef, error: unknown): Promise<boolean> {
 		const rows = await this.runner.query(
-			`UPDATE flue_agent_submissions
+			`UPDATE bapX_agent_submissions
 			 SET status = 'settled', settled_at = ?, error = ?
 			 WHERE submission_id = ? AND status = 'running' AND attempt_id = ?
 			 RETURNING submission_id`,
@@ -748,7 +748,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 
 	async insertAttemptMarker(attempt: SubmissionAttemptRef): Promise<void> {
 		await this.runner.query(
-			`INSERT OR IGNORE INTO flue_agent_attempt_markers (submission_id, attempt_id, created_at)
+			`INSERT OR IGNORE INTO bapX_agent_attempt_markers (submission_id, attempt_id, created_at)
 			 VALUES (?, ?, ?)`,
 			[attempt.submissionId, attempt.attemptId, Date.now()],
 		);
@@ -756,14 +756,14 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 
 	async deleteAttemptMarker(attempt: SubmissionAttemptRef): Promise<void> {
 		await this.runner.query(
-			'DELETE FROM flue_agent_attempt_markers WHERE submission_id = ? AND attempt_id = ?',
+			'DELETE FROM bapX_agent_attempt_markers WHERE submission_id = ? AND attempt_id = ?',
 			[attempt.submissionId, attempt.attemptId],
 		);
 	}
 
 	async listAttemptMarkers(): Promise<AgentAttemptMarker[]> {
 		const rows = await this.runner.query(
-			'SELECT submission_id, attempt_id, created_at FROM flue_agent_attempt_markers',
+			'SELECT submission_id, attempt_id, created_at FROM bapX_agent_attempt_markers',
 		);
 		return rows.map((row) => {
 			const createdAt = Number(row.created_at);
@@ -772,7 +772,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 				typeof row.attempt_id !== 'string' ||
 				!Number.isFinite(createdAt)
 			) {
-				throw new Error('[flue] Persisted attempt marker row is malformed.');
+				throw new Error('[bapX] Persisted attempt marker row is malformed.');
 			}
 			return { submissionId: row.submission_id, attemptId: row.attempt_id, createdAt };
 		});
@@ -786,7 +786,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 		const leaseExpiresAt = now + LEASE_DURATION_MS;
 		const placeholders = submissionIds.map(() => '?').join(', ');
 		await this.runner.query(
-			`UPDATE flue_agent_submissions
+			`UPDATE bapX_agent_submissions
 			 SET lease_expires_at = ?
 			 WHERE owner_id = ? AND status = 'running'
 			   AND submission_id IN (${placeholders})`,
@@ -799,7 +799,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 		return this.runner.transaction(async (tx) => {
 			const rows = await tx.query(
 				`SELECT ${submissionColumns}
-			 FROM flue_agent_submissions
+			 FROM bapX_agent_submissions
 			 WHERE status = 'running' AND lease_expires_at > 0 AND lease_expires_at < ?
 			 ORDER BY sequence ASC`,
 				[now],
@@ -816,14 +816,14 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 			return admitSubmissionWithBackend<SqlRow>(input, {
 				getDispatchReceipt: async (submissionId) => {
 					const receiptRows = await tx.query(
-						'SELECT dispatch_id, accepted_at FROM flue_agent_dispatch_receipts WHERE dispatch_id = ? LIMIT 1',
+						'SELECT dispatch_id, accepted_at FROM bapX_agent_dispatch_receipts WHERE dispatch_id = ? LIMIT 1',
 						[submissionId],
 					);
 					return receiptRows[0] ? parseDispatchReceipt(receiptRows[0]) : null;
 				},
 				insertIfAbsent: async (row) => {
 					await tx.query(
-						`INSERT OR IGNORE INTO flue_agent_submissions
+						`INSERT OR IGNORE INTO bapX_agent_submissions
 						 (submission_id, session_key, kind, payload, status, accepted_at)
 						 VALUES (?, ?, ?, ?, 'queued', ?)`,
 						[row.submissionId, row.sessionKey, row.kind, row.payload, row.acceptedAt],
@@ -832,7 +832,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 				getExisting: async (submissionId) =>
 					(
 						await tx.query(
-							`SELECT ${submissionColumns} FROM flue_agent_submissions WHERE submission_id = ? LIMIT 1`,
+							`SELECT ${submissionColumns} FROM bapX_agent_submissions WHERE submission_id = ? LIMIT 1`,
 							[submissionId],
 						)
 					)[0],
@@ -862,7 +862,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 			} catch (error) {
 				const seq = Number(row.sequence);
 				if (!Number.isFinite(seq)) throw error;
-				console.error('[flue] Terminating malformed submission (sequence %d):', seq, error);
+				console.error('[bapX] Terminating malformed submission (sequence %d):', seq, error);
 				await this.failSubmissionSequence(seq, status, error, runner);
 			}
 		}
@@ -877,7 +877,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 	): Promise<void> {
 		const statusFilter = status === 'queued' ? "status = 'queued'" : "status = 'running'";
 		await runner.query(
-			`UPDATE flue_agent_submissions
+			`UPDATE bapX_agent_submissions
 			 SET status = 'settled', settled_at = ?, error = ?
 			 WHERE sequence = ? AND ${statusFilter}`,
 			[Date.now(), error instanceof Error ? error.message : String(error), sequence],
@@ -890,7 +890,7 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 function parseDispatchReceipt(row: SqlRow): { submissionId: string; acceptedAt: number } {
 	const acceptedAt = Number(row.accepted_at);
 	if (typeof row.dispatch_id !== 'string' || !Number.isFinite(acceptedAt)) {
-		throw new Error('[flue] Persisted dispatch receipt row is malformed.');
+		throw new Error('[bapX] Persisted dispatch receipt row is malformed.');
 	}
 	return { submissionId: row.dispatch_id, acceptedAt };
 }
@@ -938,7 +938,7 @@ function parseSubmission(row: SqlRow, chunks: readonly PersistedChunkRow[]): Age
 		!Number.isFinite(timeoutAt) ||
 		!Number.isFinite(leaseExpiresAt)
 	) {
-		throw new Error('[flue] Persisted agent submission row is malformed.');
+		throw new Error('[bapX] Persisted agent submission row is malformed.');
 	}
 
 	const parsedInput = JSON.parse(row.payload) as AgentSubmissionInput;
@@ -951,7 +951,7 @@ function parseSubmission(row: SqlRow, chunks: readonly PersistedChunkRow[]): Age
 			acceptedAt,
 		})
 	) {
-		throw new Error('[flue] Persisted agent submission payload is malformed.');
+		throw new Error('[bapX] Persisted agent submission payload is malformed.');
 	}
 
 	const error = row.error != null ? String(row.error) : undefined;
@@ -988,7 +988,7 @@ class LibsqlRunStore implements RunStore {
 		// Idempotent first-writer-wins: a replayed runId must neither raise a
 		// unique violation nor resurrect a terminal record back to 'active'.
 		await this.runner.query(
-			`INSERT OR IGNORE INTO flue_runs
+			`INSERT OR IGNORE INTO bapX_runs
 			 (run_id, workflow_name, status, started_at, payload, traceparent, tracestate)
 			 VALUES (?, ?, 'active', ?, ?, ?, ?)`,
 			[
@@ -1004,7 +1004,7 @@ class LibsqlRunStore implements RunStore {
 
 	async endRun(input: EndRunInput): Promise<void> {
 		await this.runner.query(
-			`UPDATE flue_runs
+			`UPDATE bapX_runs
 			 SET status = ?, ended_at = ?, is_error = ?, duration_ms = ?, result = ?, error = ?
 			 WHERE run_id = ?`,
 			[
@@ -1023,7 +1023,7 @@ class LibsqlRunStore implements RunStore {
 		const rows = await this.runner.query(
 			`SELECT run_id, workflow_name, status, started_at,
 			        payload, traceparent, tracestate, ended_at, is_error, duration_ms, result, error
-			 FROM flue_runs WHERE run_id = ? LIMIT 1`,
+			 FROM bapX_runs WHERE run_id = ? LIMIT 1`,
 			[runId],
 		);
 		const row = rows[0];
@@ -1053,7 +1053,7 @@ class LibsqlRunStore implements RunStore {
 	async lookupRun(runId: string): Promise<WorkflowRunPointer | null> {
 		const rows = await this.runner.query(
 			`SELECT run_id, workflow_name
-			 FROM flue_runs WHERE run_id = ? LIMIT 1`,
+			 FROM bapX_runs WHERE run_id = ? LIMIT 1`,
 			[runId],
 		);
 		const row = rows[0];
@@ -1088,7 +1088,7 @@ class LibsqlRunStore implements RunStore {
 		const rows = await this.runner.query(
 			`SELECT run_id, workflow_name, status, started_at,
 			        ended_at, duration_ms, is_error
-			 FROM flue_runs
+			 FROM bapX_runs
 			 ${where}
 			 ORDER BY started_at DESC, run_id DESC
 			 LIMIT ?`,
@@ -1107,7 +1107,7 @@ class LibsqlRunStore implements RunStore {
 function parseSqliteBoolean(value: unknown): boolean {
 	const numeric = Number(value);
 	if (numeric !== 0 && numeric !== 1) {
-		throw new Error('[flue] Persisted SQLite boolean is malformed.');
+		throw new Error('[bapX] Persisted SQLite boolean is malformed.');
 	}
 	return numeric === 1;
 }
@@ -1133,7 +1133,7 @@ class LibsqlEventStreamStore implements EventStreamStore {
 	constructor(private runner: LibsqlRunner) {}
 
 	async createStream(path: string): Promise<void> {
-		await this.runner.query(`INSERT OR IGNORE INTO flue_event_streams (path) VALUES (?)`, [path]);
+		await this.runner.query(`INSERT OR IGNORE INTO bapX_event_streams (path) VALUES (?)`, [path]);
 	}
 
 	async appendEvent(path: string, event: unknown): Promise<string> {
@@ -1142,7 +1142,7 @@ class LibsqlEventStreamStore implements EventStreamStore {
 			const data = JSON.stringify(event);
 			const offset = await this.runner.transaction(async (tx) => {
 				const updated = await tx.query(
-					`UPDATE flue_event_streams
+					`UPDATE bapX_event_streams
 					 SET next_offset = next_offset + 1
 					 WHERE path = ? AND closed = 0
 					 RETURNING next_offset`,
@@ -1152,13 +1152,13 @@ class LibsqlEventStreamStore implements EventStreamStore {
 				if (updated.length === 0) {
 					const meta = await this.getStreamMetaFromRunner(tx, path);
 					if (!meta) {
-						throw new Error(`[flue] Event stream "${path}" does not exist.`);
+						throw new Error(`[bapX] Event stream "${path}" does not exist.`);
 					}
-					throw new Error(`[flue] Event stream "${path}" is closed.`);
+					throw new Error(`[bapX] Event stream "${path}" is closed.`);
 				}
 
 				const seq = Number(updated[0]?.next_offset) - 1;
-				await tx.query(`INSERT INTO flue_event_stream_entries (path, seq, data) VALUES (?, ?, ?)`, [
+				await tx.query(`INSERT INTO bapX_event_stream_entries (path, seq, data) VALUES (?, ?, ?)`, [
 					path,
 					seq,
 					data,
@@ -1186,18 +1186,18 @@ class LibsqlEventStreamStore implements EventStreamStore {
 	async appendEventOnce(path: string, key: string, event: unknown): Promise<string> {
 		const data = JSON.stringify(event);
 		const offset = await this.runner.transaction(async (tx) => {
-			const existing = await tx.query(`SELECT seq, data FROM flue_event_stream_entries WHERE path = ? AND event_key = ? LIMIT 1`, [path, key]);
+			const existing = await tx.query(`SELECT seq, data FROM bapX_event_stream_entries WHERE path = ? AND event_key = ? LIMIT 1`, [path, key]);
 			if (existing[0]) {
 				if (existing[0].data !== data) throw new TypeError(`Event key "${key}" has a conflicting payload.`);
 				return Number(existing[0].seq);
 			}
-			const updated = await tx.query(`UPDATE flue_event_streams SET next_offset = next_offset + 1 WHERE path = ? AND closed = 0 RETURNING next_offset`, [path]);
+			const updated = await tx.query(`UPDATE bapX_event_streams SET next_offset = next_offset + 1 WHERE path = ? AND closed = 0 RETURNING next_offset`, [path]);
 			if (!updated[0]) {
 				const meta = await this.getStreamMetaFromRunner(tx, path);
 				throw new TypeError(meta ? `Event stream "${path}" is closed.` : `Event stream "${path}" does not exist.`);
 			}
 			const seq = Number(updated[0].next_offset) - 1;
-			await tx.query(`INSERT INTO flue_event_stream_entries (path, seq, data, event_key) VALUES (?, ?, ?, ?)`, [path, seq, data, key]);
+			await tx.query(`INSERT INTO bapX_event_stream_entries (path, seq, data, event_key) VALUES (?, ?, ?, ?)`, [path, seq, data, key]);
 			return seq;
 		});
 		this.notifyListeners(path);
@@ -1233,7 +1233,7 @@ class LibsqlEventStreamStore implements EventStreamStore {
 		// Fetch one extra row so an exactly-limit page at the tail still
 		// reports up-to-date (mirrors SqliteEventStreamStore).
 		const rows = await this.runner.query(
-			`SELECT seq, data FROM flue_event_stream_entries
+			`SELECT seq, data FROM bapX_event_stream_entries
 			 WHERE path = ? AND seq > ?
 			 ORDER BY seq ASC
 			 LIMIT ?`,
@@ -1260,7 +1260,7 @@ class LibsqlEventStreamStore implements EventStreamStore {
 	}
 
 	async closeStream(path: string): Promise<void> {
-		await this.runner.query(`UPDATE flue_event_streams SET closed = 1 WHERE path = ?`, [path]);
+		await this.runner.query(`UPDATE bapX_event_streams SET closed = 1 WHERE path = ?`, [path]);
 		this.notifyListeners(path);
 	}
 
@@ -1273,7 +1273,7 @@ class LibsqlEventStreamStore implements EventStreamStore {
 		path: string,
 	): Promise<EventStreamMeta | null> {
 		const rows = await runner.query(
-			`SELECT next_offset, closed FROM flue_event_streams WHERE path = ?`,
+			`SELECT next_offset, closed FROM bapX_event_streams WHERE path = ?`,
 			[path],
 		);
 
@@ -1315,5 +1315,3 @@ class LibsqlEventStreamStore implements EventStreamStore {
 		}
 	}
 }
-
-

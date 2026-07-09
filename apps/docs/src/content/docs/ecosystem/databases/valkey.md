@@ -1,6 +1,6 @@
 ---
 title: Valkey
-description: Give Flue agents and workflow runs durable, shared state with Valkey.
+description: Give Bapx agents and workflow runs durable, shared state with Valkey.
 package:
   name: '@bapX/redis'
   href: https://www.npmjs.com/package/@bapX/redis
@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add durable, shared state to an existing Flue project with the [Valkey](https://valkey.io) blueprint. Run the following command in your terminal or coding agent of choice:
+Add durable, shared state to an existing Bapx project with the [Valkey](https://valkey.io) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add database valkey
+bapX add database valkey
 ```
 
 ## Overview
@@ -22,7 +22,7 @@ project's existing secret convention for `VALKEY_URL`. It does not modify
 deployment configuration because persistence and recovery settings remain
 owned by the Valkey deployment.
 
-The primary generated adapter connects the client and translates Flue database
+The primary generated adapter connects the client and translates Bapx database
 operations into Redis-protocol commands supported by Valkey:
 
 ```ts title="src/db.ts (abridged)"
@@ -40,9 +40,9 @@ export default redis({
 ```
 
 This abridged excerpt omits the generated pipeline helper, which batches
-commands and rejects any `Error` result. Flue discovers the adapter during a
+commands and rejects any `Error` result. Bapx discovers the adapter during a
 Node build, checks and migrates its Valkey namespace at server startup, and
-persists canonical agent conversations, immutable attachments, accepted submissions, workflow runs, and event streams so that they survive Flue process restarts. Durability across Valkey server loss
+persists canonical agent conversations, immutable attachments, accepted submissions, workflow runs, and event streams so that they survive Bapx process restarts. Durability across Valkey server loss
 depends on the deployment's AOF or snapshot configuration.
 
 ## Configure
@@ -102,12 +102,12 @@ a managed single-shard provider denies both commands and you have independently
 verified the configuration.
 
 Use a dedicated Valkey database or pass a stable, unique `keyPrefix` as the
-adapter's second argument. The default is `flue`. Changing it selects a separate
+adapter's second argument. The default is `bapX`. Changing it selects a separate
 namespace; it does not move existing keys.
 
 ## Migrations and stored data
 
-Flue runs `migrate()` at startup. It initializes schema-version metadata
+Bapx runs `migrate()` at startup. It initializes schema-version metadata
 idempotently and refuses data from an unsupported newer schema; there is no
 separate migration command.
 
@@ -116,6 +116,6 @@ Valkey stores append-only canonical conversation records and compaction facts, i
 ## Verify durability
 
 Build the Node target, start it against a throwaway correctly configured Valkey,
-create state, restart Flue, and confirm the state reloads. Separately test the
-chosen AOF or snapshot recovery procedure: restarting Flue does not prove that
+create state, restart Bapx, and confirm the state reloads. Separately test the
+chosen AOF or snapshot recovery procedure: restarting Bapx does not prove that
 Valkey survives server loss.

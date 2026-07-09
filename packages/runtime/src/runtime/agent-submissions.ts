@@ -5,16 +5,16 @@ import type {
 	SubmissionAttemptRef,
 	SubmissionDurability,
 } from '../agent-execution-store.ts';
-import type { FlueContextInternal } from '../client.ts';
+import type { BapxContextInternal } from '../client.ts';
 import type { ConversationRecordWriter } from '../conversation-writer.ts';
 import {
-	FlueError,
+	BapxError,
 	SubmissionAbortedError,
 	SubmissionInterruptedError,
 	SubmissionRetryExhaustedError,
 	SubmissionTimeoutError,
 } from '../errors.ts';
-import { type FlueTraceCarrier, interceptExecution } from '../execution-interceptor.ts';
+import { type BapxTraceCarrier, interceptExecution } from '../execution-interceptor.ts';
 import { getInternalSession } from '../session.ts';
 import type { AgentDefinition, CallHandle, DeliveredMessage } from '../types.ts';
 import { type AttachmentStore, createAttachmentRef } from './attachment-store.ts';
@@ -34,7 +34,7 @@ export interface AgentSubmissionInput {
 	readonly id: string;
 	readonly message: DeliveredMessage;
 	readonly acceptedAt: string;
-	readonly traceCarrier?: FlueTraceCarrier;
+	readonly traceCarrier?: BapxTraceCarrier;
 }
 
 export interface AgentSubmissionInterruption {
@@ -104,7 +104,7 @@ interface AttachedAgentSubmissionReceipt {
 
 export type AttachedAgentSubmissionAdmission = (
 	message: DeliveredMessage,
-	traceCarrier?: FlueTraceCarrier,
+	traceCarrier?: BapxTraceCarrier,
 ) => Promise<AttachedAgentSubmissionReceipt>;
 
 export function createDispatchAgentSubmissionInput(input: DispatchInput): AgentSubmissionInput {
@@ -122,7 +122,7 @@ export function createDirectAgentSubmissionInput(options: {
 	agent: string;
 	id: string;
 	message: DeliveredMessage;
-	traceCarrier?: FlueTraceCarrier;
+	traceCarrier?: BapxTraceCarrier;
 }): AgentSubmissionInput {
 	return {
 		kind: 'direct',
@@ -141,7 +141,7 @@ export function createDirectAgentSubmissionInput(options: {
  * the submission arrived as a direct HTTP prompt or a `dispatch()` call.
  */
 export async function materializeAgentSubmissionSession(
-	ctx: FlueContextInternal,
+	ctx: BapxContextInternal,
 	agent: AgentDefinition,
 	input: AgentSubmissionInput,
 	attachmentStore?: AttachmentStore,
@@ -173,7 +173,7 @@ export function createAgentSubmissionSessionHandler(
 	agent: AgentDefinition,
 	input: AgentSubmissionInput,
 	execute: (session: AgentSubmissionSession) => Promise<unknown> | unknown,
-): (ctx: FlueContextInternal) => Promise<unknown> {
+): (ctx: BapxContextInternal) => Promise<unknown> {
 	return async (ctx) => {
 		const session = await openAgentSubmissionSession(ctx, agent, input);
 		return execute(session);
@@ -195,7 +195,7 @@ export function agentSubmissionDispatchId(input: AgentSubmissionInput): string |
  * because all durable side effects have already been applied inside this
  * function and the coordinator needs no further action.
  *
- * The `createContext` callback builds a `FlueContextInternal` for handler
+ * The `createContext` callback builds a `BapxContextInternal` for handler
  * execution. Submission input is delivered through the session handler rather
  * than context construction.
  */
@@ -203,7 +203,7 @@ export async function reconcileInterruptedSubmission(
 	submissions: AgentSubmissionStore,
 	submission: AgentSubmission,
 	agent: AgentDefinition,
-	createContext: (dispatchId: string | undefined) => FlueContextInternal,
+	createContext: (dispatchId: string | undefined) => BapxContextInternal,
 	lease?: { ownerId: string; leaseExpiresAt: number },
 	conversationWriter?: ConversationRecordWriter,
 ): Promise<AgentSubmission | undefined> {
@@ -407,11 +407,11 @@ export async function reconcileInterruptedSubmission(
 export function submissionSyntheticRequest(input: AgentSubmissionInput): Request {
 	if (input.kind === 'direct') {
 		return new Request(
-			`https://flue.invalid/agents/${encodeURIComponent(input.agent)}/${encodeURIComponent(input.id)}`,
+			`https://bapX.invalid/agents/${encodeURIComponent(input.agent)}/${encodeURIComponent(input.id)}`,
 			{ method: 'POST' },
 		);
 	}
-	return new Request('https://flue.invalid/_dispatch', { method: 'POST' });
+	return new Request('https://bapX.invalid/_dispatch', { method: 'POST' });
 }
 
 // ─── Shared submission processing ────────────────────────────────────────────
@@ -424,7 +424,7 @@ export interface ProcessSubmissionOptions {
 	/** Resolve an agent definition by name. Must throw if absent. */
 	resolveAgent: (name: string) => AgentDefinition;
 	/** Build a context for this submission. */
-	createContext: (dispatchId: string | undefined) => FlueContextInternal;
+	createContext: (dispatchId: string | undefined) => BapxContextInternal;
 	conversationWriter?: ConversationRecordWriter;
 	onInteractionStart?: (interaction: {
 		agentName: string;
@@ -477,7 +477,7 @@ export async function processSubmission(opts: ProcessSubmissionOptions): Promise
 				dispatchId: agentSubmissionDispatchId(input),
 			});
 		} catch (error) {
-			console.error('[flue:submission-processing] interaction start callback failed:', error);
+			console.error('[bapX:submission-processing] interaction start callback failed:', error);
 		}
 	}
 
@@ -494,7 +494,7 @@ export async function processSubmission(opts: ProcessSubmissionOptions): Promise
 				onInputApplied: async (durability: SubmissionDurability) => {
 					if (!(await submissions.markSubmissionInputApplied(attempt, durability))) {
 						throw new Error(
-							'[flue] Agent submission attempt lost ownership before input application.',
+							'[bapX] Agent submission attempt lost ownership before input application.',
 						);
 					}
 					if (submission.kind === 'direct') {
@@ -502,7 +502,7 @@ export async function processSubmission(opts: ProcessSubmissionOptions): Promise
 							await ctx.flushEventCallbacks();
 						} catch (callbackError) {
 							console.error(
-								'[flue:event-stream] Direct user event persistence failed before provider execution:',
+								'[bapX:event-stream] Direct user event persistence failed before provider execution:',
 								callbackError,
 							);
 						}
@@ -626,7 +626,7 @@ async function failInterruptedSubmission(
 	agent: AgentDefinition,
 	reason: AgentSubmissionInterruption['reason'],
 	createError: (interruptedTools?: ReadonlyArray<InterruptedToolCallRef>) => Error,
-	createContext: (dispatchId: string | undefined) => FlueContextInternal,
+	createContext: (dispatchId: string | undefined) => BapxContextInternal,
 	conversationWriter?: ConversationRecordWriter,
 ): Promise<void> {
 	const { input } = submission;
@@ -652,7 +652,7 @@ async function failInterruptedSubmission(
 		)(ctx) as ReadonlyArray<InterruptedToolCallRef>;
 	} catch (terminalError) {
 		console.error(
-			'[flue:submission-reconciliation] Failed to record terminal message for submission',
+			'[bapX:submission-reconciliation] Failed to record terminal message for submission',
 			submission.submissionId,
 			terminalError,
 		);
@@ -689,7 +689,7 @@ async function settleAbortedWithContext(
 	submission: AgentSubmission,
 	attempt: SubmissionAttemptRef,
 	agent: AgentDefinition,
-	ctx: FlueContextInternal,
+	ctx: BapxContextInternal,
 	conversationWriter?: ConversationRecordWriter,
 ): Promise<void> {
 	const error = new SubmissionAbortedError();
@@ -705,7 +705,7 @@ async function settleAbortedWithContext(
 		)(ctx);
 	} catch (advisoryError) {
 		console.error(
-			'[flue:submission-abort] Failed to record abort advisory for submission',
+			'[bapX:submission-abort] Failed to record abort advisory for submission',
 			submission.submissionId,
 			advisoryError,
 		);
@@ -727,7 +727,7 @@ async function settleAbortedWithContext(
 async function settleDirectSubmission(
 	submissions: AgentSubmissionStore,
 	attempt: SubmissionAttemptRef,
-	ctx: FlueContextInternal,
+	ctx: BapxContextInternal,
 	outcome: 'completed' | 'failed' | 'aborted',
 	error?: unknown,
 	conversationWriter?: ConversationRecordWriter,
@@ -786,7 +786,7 @@ async function settleDirectSubmission(
 		// refusing would wedge reconciliation in an unterminable loop. Surface it
 		// loudly for diagnosis instead of swallowing it.
 		console.error(
-			'[flue:submission-settlement] Canonical settlement conflict; the existing durable record is authoritative.',
+			'[bapX:submission-settlement] Canonical settlement conflict; the existing durable record is authoritative.',
 			{ submissionId: attempt.submissionId, recordId: eventKey },
 		);
 	}
@@ -794,7 +794,7 @@ async function settleDirectSubmission(
 	try {
 		await ctx.flushEventCallbacks();
 	} catch (callbackError) {
-		console.error('[flue:subscriber] Terminal event subscriber failed:', callbackError);
+		console.error('[bapX:subscriber] Terminal event subscriber failed:', callbackError);
 	}
 	await submissions.finalizeSubmissionSettlement(attempt, eventKey);
 }
@@ -812,7 +812,7 @@ function serializeSubmissionError(error: unknown): {
 	dev?: string;
 	meta?: Record<string, unknown>;
 } {
-	if (error instanceof FlueError) {
+	if (error instanceof BapxError) {
 		return {
 			name: error.name,
 			message: error.message,
@@ -835,13 +835,13 @@ function submissionAttemptRef(submission: AgentSubmission): SubmissionAttemptRef
 }
 
 async function openAgentSubmissionSession(
-	ctx: FlueContextInternal,
+	ctx: BapxContextInternal,
 	agent: AgentDefinition,
 	_input: AgentSubmissionInput,
 ): Promise<AgentSubmissionSession> {
 	const harness = await ctx.initializeRootHarness(agent);
 	// External submissions always target the default session of the default
-	// harness. `harness.session()` hands out the public FlueSession facade;
+	// harness. `harness.session()` hands out the public BapxSession facade;
 	// unwrap it to reach the internal durable submission executor surface.
 	// Non-facade objects (test fakes injected through this seam) are used
 	// directly via the same structural contract.

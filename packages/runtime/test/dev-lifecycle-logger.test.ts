@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { createFlueContext, installDevLifecycleLogger, resolveModel } from '../src/internal.ts';
+import { createBapxContext, installDevLifecycleLogger, resolveModel } from '../src/internal.ts';
 
 function createContext(runId: string) {
-	return createFlueContext({
+	return createBapxContext({
 		id: runId,
 		runId,
 		env: {},

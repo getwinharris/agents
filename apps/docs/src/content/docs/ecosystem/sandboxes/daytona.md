@@ -1,17 +1,17 @@
 ---
 title: Daytona
-description: Connect a Flue agent to an application-owned Daytona sandbox.
+description: Connect a Bapx agent to an application-owned Daytona sandbox.
 lastReviewedAt: 2026-06-01
 ---
 
-The Daytona adapter adapts an already-initialized Daytona sandbox from `@daytona/sdk` into Flue's sandbox interface. Use it when a Node-hosted application needs a provider-managed Linux environment with filesystem and shell operations.
+The Daytona adapter adapts an already-initialized Daytona sandbox from `@daytona/sdk` into Bapx's sandbox interface. Use it when a Node-hosted application needs a provider-managed Linux environment with filesystem and shell operations.
 
 ## Quickstart
 
-Add provider-managed Linux sandbox capability to an existing Flue project with the [Daytona](https://daytona.io) blueprint. Run the following command in your terminal or coding agent of choice:
+Add provider-managed Linux sandbox capability to an existing Bapx project with the [Daytona](https://daytona.io) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```bash
-flue add sandbox daytona
+bapX add sandbox daytona
 ```
 
 ## Overview
@@ -19,7 +19,7 @@ flue add sandbox daytona
 The blueprint installs `@daytona/sdk` when needed and creates `sandboxes/daytona.ts` in your source-root. That file adapts a Daytona sandbox that your application has already created; it does not choose its image, identity, retention, or cleanup policy.
 
 ```ts title="<source-root>/sandboxes/daytona.ts (abridged)"
-// flue-blueprint: sandbox/daytona@1
+// bapX-blueprint: sandbox/daytona@1
 import { createSandboxSessionEnv } from '@bapX/runtime';
 import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 import type { Sandbox as DaytonaSandbox } from '@daytona/sdk';
@@ -45,7 +45,7 @@ export function daytona(sandbox: DaytonaSandbox): SandboxFactory {
 }
 ```
 
-Pass an initialized Daytona `Sandbox` to `daytona(...)`, then assign the returned factory to an agent's `sandbox` property. Flue uses the provider's working directory as the workspace root, exposes Daytona filesystem and process operations through the session, preserves Daytona's available file metadata, and rounds millisecond command deadlines up to the SDK's whole-second timeout. Daytona supports recursive deletion but not force semantics, so the adapter rejects `force` before deletion. Your application remains responsible for sandbox creation and lifecycle.
+Pass an initialized Daytona `Sandbox` to `daytona(...)`, then assign the returned factory to an agent's `sandbox` property. Bapx uses the provider's working directory as the workspace root, exposes Daytona filesystem and process operations through the session, preserves Daytona's available file metadata, and rounds millisecond command deadlines up to the SDK's whole-second timeout. Daytona supports recursive deletion but not force semantics, so the adapter rejects `force` before deletion. Your application remains responsible for sandbox creation and lifecycle.
 
 ## Configure
 
@@ -55,7 +55,7 @@ Pass an initialized Daytona `Sandbox` to `daytona(...)`, then assign the returne
 
 | Requirement                 | Purpose                                                                                         |
 | --------------------------- | ----------------------------------------------------------------------------------------------- |
-| `@daytona/sdk` package      | **Required** — Creates the Daytona sandbox adapted by Flue.                                     |
+| `@daytona/sdk` package      | **Required** — Creates the Daytona sandbox adapted by Bapx.                                     |
 | Application-owned lifecycle | **Required** — Creates, retains, and deletes the sandbox, then passes it to `daytona(sandbox)`. |
 
 The generated adapter expects your application to create and own the Daytona sandbox. It does not decide sandbox identity, retention, or cleanup for you.
@@ -75,6 +75,6 @@ const agent = defineAgent(() => ({
 }));
 ```
 
-Configure images, snapshots, regions, environment variables, and volumes through the Daytona SDK before passing the sandbox to `daytona(...)`. For a narrower working directory, configure `cwd` on the agent definition; Flue resolves it once against the adapter's provider-owned base directory during `init()`.
+Configure images, snapshots, regions, environment variables, and volumes through the Daytona SDK before passing the sandbox to `daytona(...)`. For a narrower working directory, configure `cwd` on the agent definition; Bapx resolves it once against the adapter's provider-owned base directory during `init()`.
 
 See [Sandboxes](/docs/guide/sandboxes/#remote-sandboxes), [Sandbox Adapter API](/docs/api/sandbox-api/), and [Daytona's TypeScript SDK reference](https://www.daytona.io/docs/en/typescript-sdk/daytona/).

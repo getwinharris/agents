@@ -8,7 +8,7 @@ import {
 } from '../src/index.ts';
 
 const encoder = new TextEncoder();
-const WEBHOOK_SECRET = `whsec_${base64(encoder.encode('flue-resend-webhook-test-secret'))}`;
+const WEBHOOK_SECRET = `whsec_${base64(encoder.encode('bapX-resend-webhook-test-secret'))}`;
 
 describe('createResendChannel()', () => {
 	it('delivers a verified received-email event when exact bytes match', async () => {
@@ -180,7 +180,7 @@ describe('createResendChannel()', () => {
 			},
 			delivery: { id: 'msg_future' },
 		});
-		// No Flue-owned reshape: native field names are preserved verbatim.
+		// No Bapx-owned reshape: native field names are preserved verbatim.
 		const forwarded = webhook.mock.calls[0]?.[0].event as Record<string, unknown>;
 		expect(forwarded).not.toHaveProperty('eventType');
 		expect(forwarded).not.toHaveProperty('createdAt');
@@ -196,7 +196,7 @@ describe('createResendChannel()', () => {
 				webhook,
 			}),
 		);
-		// A body the official verifier accepts but that the previous Flue schema
+		// A body the official verifier accepts but that the previous Bapx schema
 		// validators rejected. The channel must no longer drop it: shape policy
 		// belongs to the application, not channel ingress.
 		const received = JSON.stringify({
@@ -488,7 +488,7 @@ async function signedHeaders(
 	options: { id: string; timestamp?: number },
 ): Promise<Record<string, string>> {
 	const timestamp = options.timestamp ?? Math.floor(Date.now() / 1000);
-	const secret = encoder.encode('flue-resend-webhook-test-secret');
+	const secret = encoder.encode('bapX-resend-webhook-test-secret');
 	const key = await crypto.subtle.importKey(
 		'raw',
 		secret,

@@ -39,7 +39,7 @@ export function buildPackagedSkill(input: SkillPackageInput): PackagedSkillDirec
 
 export function createSkillReference(directory: PackagedSkillDirectory): SkillReference {
 	const reference: SkillReference = {
-		__flueSkillReference: true,
+		__bapXSkillReference: true,
 		id: directory.id,
 		name: directory.name,
 		description: directory.description,

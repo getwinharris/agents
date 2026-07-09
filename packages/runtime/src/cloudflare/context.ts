@@ -13,13 +13,13 @@ export interface CloudflareContext {
 	storage: {
 		sql: SqlStorage;
 	};
-	durableObjectIdentity?: FlueDurableObjectIdentity;
+	durableObjectIdentity?: BapxDurableObjectIdentity;
 }
 
-export interface FlueDurableObjectIdentity {
+export interface BapxDurableObjectIdentity {
 	/** Wrangler binding name, e.g. "FLUE_DRAFT_WORKFLOW". */
 	bindingName: string;
-	/** Durable Object class name, e.g. "FlueDraftWorkflow". */
+	/** Durable Object class name, e.g. "BapxDraftWorkflow". */
 	className: string;
 	/** Instance name passed to idFromName/getAgentByName. */
 	name: string;
@@ -37,17 +37,17 @@ export function getCloudflareContext(): CloudflareContext {
 	const ctx = contextStorage.getStore();
 	if (!ctx) {
 		throw new Error(
-			'[flue] Not running in a Cloudflare context. ' +
+			'[bapX] Not running in a Cloudflare context. ' +
 				'This function can only be called inside a Cloudflare Worker or Durable Object.',
 		);
 	}
 	return ctx;
 }
 
-export function getDurableObjectIdentity(): FlueDurableObjectIdentity {
+export function getDurableObjectIdentity(): BapxDurableObjectIdentity {
 	const ctx = getCloudflareContext();
 	if (!ctx.durableObjectIdentity) {
-		throw new Error('[flue] Durable Object identity is not available in this Cloudflare context.');
+		throw new Error('[bapX] Durable Object identity is not available in this Cloudflare context.');
 	}
 	return ctx.durableObjectIdentity;
 }

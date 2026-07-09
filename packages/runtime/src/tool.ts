@@ -38,7 +38,7 @@ export function assertToolDefinition(
 	label: string,
 ): asserts value is ToolDefinition {
 	if (!value || typeof value !== 'object' || Array.isArray(value)) {
-		throw new Error(`[flue] ${label} requires a tool definition object.`);
+		throw new Error(`[bapX] ${label} requires a tool definition object.`);
 	}
 	const legacyFields = ['parameters', 'execute'].filter((field) => Object.hasOwn(value, field));
 	if (legacyFields.length > 0) throw new ToolLegacyDefinitionError({ fields: legacyFields });
@@ -47,17 +47,17 @@ export function assertToolDefinition(
 	assertNonEmptyString(tool.description, `${label} description`);
 	if (tool.input !== undefined) {
 		if (!isValibotSchema(tool.input)) {
-			throw new Error(`[flue] ${label} input must be a Valibot schema.`);
+			throw new Error(`[bapX] ${label} input must be a Valibot schema.`);
 		}
 		if (!isTopLevelObjectSchema(tool.input)) {
-			throw new Error(`[flue] ${label} input must be a top-level object schema.`);
+			throw new Error(`[bapX] ${label} input must be a top-level object schema.`);
 		}
 	}
 	if (tool.output !== undefined && !isValibotSchema(tool.output)) {
-		throw new Error(`[flue] ${label} output must be a Valibot schema.`);
+		throw new Error(`[bapX] ${label} output must be a Valibot schema.`);
 	}
 	if (typeof tool.run !== 'function') {
-		throw new Error(`[flue] ${label} run must be a function.`);
+		throw new Error(`[bapX] ${label} run must be a function.`);
 	}
 }
 
@@ -110,6 +110,6 @@ export async function validateAndRunTool<TTool extends ToolDefinition>(
 
 function assertNonEmptyString(value: unknown, label: string): asserts value is string {
 	if (typeof value !== 'string' || value.trim().length === 0) {
-		throw new Error(`[flue] ${label} must be a non-empty string.`);
+		throw new Error(`[bapX] ${label} must be a non-empty string.`);
 	}
 }

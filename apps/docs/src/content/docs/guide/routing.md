@@ -10,10 +10,10 @@ It is an ordinary [Hono](https://hono.dev/) application, so you can compose bapX
 
 ## `app.ts`
 
-Without `src/app.ts`, bapX generates an application that mounts its public routes at `/`. When you add `src/app.ts`, export a Hono application and mount `flue()` explicitly:
+Without `src/app.ts`, bapX generates an application that mounts its public routes at `/`. When you add `src/app.ts`, export a Hono application and mount `bapX()` explicitly:
 
 ```ts title="src/app.ts"
-import { flue } from '@bapX/runtime/routing';
+import { bapX } from '@bapX/runtime/routing';
 import { Hono, type MiddlewareHandler } from 'hono';
 import { authenticate } from './auth.ts';
 
@@ -34,12 +34,12 @@ app.get('/health', (c) => c.json({ ok: true }));
 app.use('/agents/*', requireUser);
 app.use('/workflows/*', requireUser);
 app.use('/channels/*', requireUser);
-app.route('/', flue());
+app.route('/', bapX());
 
 export default app;
 ```
 
-In this application, `/health` is application-owned, while `flue()` serves exposed agents, workflow invocation routes, and discovered channels. Workflow modules authorize their own optional run resources with `runs` middleware.
+In this application, `/health` is application-owned, while `bapX()` serves exposed agents, workflow invocation routes, and discovered channels. Workflow modules authorize their own optional run resources with `runs` middleware.
 
 Use broader middleware for requirements shared by a group of routes, such as requiring an authenticated user. When access depends on a specific selected resource, apply that check as well: for example, an agent route should verify that the caller may access the agent instance named by its `id`, and an application that publishes workflow run reads should authorize access to the selected run.
 
@@ -51,7 +51,7 @@ A custom application can serve any route your service needs. It can also accept 
 
 ```ts title="src/app.ts"
 import { dispatch } from '@bapX/runtime';
-import { flue } from '@bapX/runtime/routing';
+import { bapX } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 import supportAssistant from './agents/support-assistant.ts';
 import { parseVerifiedSupportComment } from './support-webhooks.ts';
@@ -73,7 +73,7 @@ app.post('/webhooks/support-comments', async (c) => {
   return c.json(receipt, 202);
 });
 
-app.route('/', flue());
+app.route('/', bapX());
 
 export default app;
 ```
@@ -82,34 +82,34 @@ Here, the webhook route belongs to your application: it determines which request
 
 ## Customized routing
 
-For most applications, mount bapX at the root with `app.route('/', flue())`. You can instead mount it beneath a prefix when bapX is one part of a larger API:
+For most applications, mount bapX at the root with `app.route('/', bapX())`. You can instead mount it beneath a prefix when bapX is one part of a larger API:
 
 ```ts title="src/app.ts"
-import { flue } from '@bapX/runtime/routing';
+import { bapX } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 const app = new Hono();
 
 app.get('/health', (c) => c.json({ ok: true }));
-app.route('/api', flue());
+app.route('/api', bapX());
 
 export default app;
 ```
 
-With this mount, an exposed `support-assistant` agent is available beneath `/api/agents/support-assistant/:id`, an exposed `summarize-ticket` workflow is available beneath `/api/workflows/summarize-ticket`, and `channels/github.ts` publishes its webhook beneath `/api/channels/github/webhook`. Optional workflow run resources use the same prefix. SDK consumers should include the mount pathname in `baseUrl`, such as `createFlueClient({ baseUrl: 'https://example.com/api' })`.
+With this mount, an exposed `support-assistant` agent is available beneath `/api/agents/support-assistant/:id`, an exposed `summarize-ticket` workflow is available beneath `/api/workflows/summarize-ticket`, and `channels/github.ts` publishes its webhook beneath `/api/channels/github/webhook`. Optional workflow run resources use the same prefix. SDK consumers should include the mount pathname in `baseUrl`, such as `createBapxClient({ baseUrl: 'https://example.com/api' })`.
 
 Apply application-wide middleware to the mounted paths you publish. Per-workflow `runs` middleware remains responsible for exposing and authorizing each run resource.
 
 Discovered channel filenames and provider route suffixes are fixed beneath the
-`flue()` mount. An authored `app.ts` can prefix all Flue routes but cannot
+`bapX()` mount. An authored `app.ts` can prefix all Bapx routes but cannot
 relocate one channel independently. Use an ordinary application-owned route
 outside `channels/` when you need complete path control.
 
 ## Exposing agents and workflows
 
-Mounting `flue()` does not make every discovered agent or workflow directly invocable. Each module opts into its public transports:
+Mounting `bapX()` does not make every discovered agent or workflow directly invocable. Each module opts into its public transports:
 
-| Module export     | Available through the mounted Flue application                                                                  |
+| Module export     | Available through the mounted Bapx application                                                                  |
 | ----------------- | --------------------------------------------------------------------------------------------------------------- |
 | Agent `route`     | HTTP prompts at `POST /agents/:name/:id` and event streaming at `GET /agents/:name/:id` beneath the mount path. |
 | Workflow `route`  | HTTP invocation at `POST /workflows/:name` beneath the mount path.                                              |
@@ -132,7 +132,7 @@ export const runs: WorkflowRunsHandler = async (c, next) => {
 };
 ```
 
-`runs` receives an ordinary Hono context and may deny or call `next()`. It applies to `GET`, `HEAD`, `?meta`, unsupported methods, and future run methods. Without it, existing runs return the same generic `404` as unknown or removed runs. A request reaches `405` for an unsupported method only after the run is exposed and authorized. These exports do not affect ambient `invoke()`, `listRuns()`, `getRun()`, or schedules. A temporary local `flue run` process additionally exposes route-free resources and run reads through an existing authored `flue()` mount; an absolute `--server` attachment uses only the server's authored exposure.
+`runs` receives an ordinary Hono context and may deny or call `next()`. It applies to `GET`, `HEAD`, `?meta`, unsupported methods, and future run methods. Without it, existing runs return the same generic `404` as unknown or removed runs. A request reaches `405` for an unsupported method only after the run is exposed and authorized. These exports do not affect ambient `invoke()`, `listRuns()`, `getRun()`, or schedules. A temporary local `bapX run` process additionally exposes route-free resources and run reads through an existing authored `bapX()` mount; an absolute `--server` attachment uses only the server's authored exposure.
 
 An agent used only through application-owned `dispatch(...)` calls does not need a public transport export.
 

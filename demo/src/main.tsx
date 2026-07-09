@@ -1,4 +1,4 @@
-import { FlueProvider } from '@bapX/react'
+import { BapxProvider } from '@bapX/react'
 import { RouterProvider } from '@tanstack/react-router'
 import { StrictMode, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -20,21 +20,21 @@ function applyTheme() {
 applyTheme()
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme)
 
-function FlueClientBridge({ children }: { children: ReactNode }) {
+function BapxClientBridge({ children }: { children: ReactNode }) {
   const { client } = useSettings()
-  return <FlueProvider client={client}>{children}</FlueProvider>
+  return <BapxProvider client={client}>{children}</BapxProvider>
 }
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SettingsProvider>
-      <FlueClientBridge>
+      <BapxClientBridge>
         <ConversationsProvider>
           <PreferencesProvider>
             <RouterProvider router={router} />
           </PreferencesProvider>
         </ConversationsProvider>
-      </FlueClientBridge>
+      </BapxClientBridge>
     </SettingsProvider>
   </StrictMode>,
 )

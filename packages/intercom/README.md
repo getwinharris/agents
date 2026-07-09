@@ -1,6 +1,6 @@
 # `@bapX/intercom`
 
-Verified Intercom webhook ingress for Flue channels.
+Verified Intercom webhook ingress for Bapx channels.
 
 ```ts
 import { createIntercomChannel } from '@bapX/intercom';

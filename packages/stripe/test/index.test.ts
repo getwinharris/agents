@@ -50,7 +50,7 @@ describe('createStripeChannel()', () => {
 		});
 	});
 
-	it('forwards verified future snapshot event types without a Flue allowlist', async () => {
+	it('forwards verified future snapshot event types without a Bapx allowlist', async () => {
 		const seen: string[] = [];
 		const stripe = createStripeChannel({
 			client: stripeClient(),

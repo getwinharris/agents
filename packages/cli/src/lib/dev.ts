@@ -1,9 +1,9 @@
 /**
- * Flue dev server.
+ * Bapx dev server.
  *
  * Watches the project root, rebuilds on file changes, and reloads the
- * underlying server. Distinct from `flue run`: dev is the long-running,
- * edit-and-iterate command, while `flue run` is the one-shot
+ * underlying server. Distinct from `bapX run`: dev is the long-running,
+ * edit-and-iterate command, while `bapX run` is the one-shot
  * production-style invoker (build → run → exit).
  *
  * # Watching
@@ -24,9 +24,9 @@ import { createNodeLocalRuntime, type NodeLocalRuntime } from './node-local-runt
 import { devLog, devServerBanner, error, note } from './terminal.ts';
 import type { BuildOptions } from './types.ts';
 
-const debugDev = createDebug('flue:dev');
-const debugWatch = createDebug('flue:dev:watch');
-const debugServer = createDebug('flue:dev:server');
+const debugDev = createDebug('bapX:dev');
+const debugWatch = createDebug('bapX:dev:watch');
+const debugServer = createDebug('bapX:dev:server');
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -51,7 +51,7 @@ export interface DevOptions {
 	onReady?: () => void;
 }
 
-/** Default port for `flue dev`. F=3, L=5, U=8, E=3 on a phone keypad. */
+/** Default port for `bapX dev`. F=3, L=5, U=8, E=3 on a phone keypad. */
 export const DEFAULT_DEV_PORT = 3583;
 
 /**
@@ -88,7 +88,7 @@ interface DevReloader {
 // ─── Public entry point ─────────────────────────────────────────────────────
 
 /**
- * Start a Flue dev server. Resolves only when the server is shut down (e.g.
+ * Start a Bapx dev server. Resolves only when the server is shut down (e.g.
  * via SIGINT). Errors during the initial build/start are thrown synchronously;
  * errors during subsequent rebuilds are logged but do NOT exit the dev server
  * — the user is editing code, after all, and we want to recover when they fix it.
@@ -332,14 +332,14 @@ class NodeReloader implements DevReloader {
 		debugServer('starting node module runtime port=%d', this.port);
 		// Back the dev conversation store with an on-disk SQLite file so history
 		// survives HMR reloads within a session. Reset it on each cold start so a
-		// fresh `flue dev` begins empty (WAL mode adds the -wal/-shm sidecars).
-		const devDbPath = path.join(this.root, 'node_modules', '.cache', 'flue', 'dev.db');
+		// fresh `bapX dev` begins empty (WAL mode adds the -wal/-shm sidecars).
+		const devDbPath = path.join(this.root, 'node_modules', '.cache', 'bapX', 'dev.db');
 		for (const suffix of ['', '-wal', '-shm']) fs.rmSync(devDbPath + suffix, { force: true });
 		this.runtime = await createNodeLocalRuntime({
 			root: this.root,
 			sourceRoot: this.sourceRoot,
 			port: this.port,
-			// `flue dev` mirrors production routing (only resources that export a
+			// `bapX dev` mirrors production routing (only resources that export a
 			// `route` are served), but enables CORS so a separate-origin SPA can
 			// call the dev server during local development.
 			temporaryLocalExposure: false,
@@ -376,9 +376,9 @@ class NodeReloader implements DevReloader {
 	private renderLine(line: string): void {
 		if (!line.trim()) return;
 		if (
-			line.includes('[flue] Server listening') ||
-			line.includes('[flue] Agents:') ||
-			line.includes('[flue] Mode: local')
+			line.includes('[bapX] Server listening') ||
+			line.includes('[bapX] Agents:') ||
+			line.includes('[bapX] Mode: local')
 		) {
 			return;
 		}

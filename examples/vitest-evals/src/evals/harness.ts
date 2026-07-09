@@ -1,8 +1,8 @@
-// flue-blueprint: tooling/vitest-evals@1
-import { createFlueClient, type FlueConversationMessage } from '@bapX/sdk';
+// bapX-blueprint: tooling/vitest-evals@1
+import { createBapxClient, type BapxConversationMessage } from '@bapX/sdk';
 import { createHarness, type SimpleToolCallRecord } from 'vitest-evals';
 
-export interface FlueAgentHarnessOptions {
+export interface BapxAgentHarnessOptions {
 	agentName: string;
 	baseUrl?: string;
 	token?: string;
@@ -10,12 +10,12 @@ export interface FlueAgentHarnessOptions {
 }
 
 function lastAssistantMessage(
-	messages: FlueConversationMessage[],
-): FlueConversationMessage | undefined {
+	messages: BapxConversationMessage[],
+): BapxConversationMessage | undefined {
 	return messages.findLast((entry) => entry.role === 'assistant');
 }
 
-function messageText(message: FlueConversationMessage | undefined): string {
+function messageText(message: BapxConversationMessage | undefined): string {
 	if (!message) return '';
 	return message.parts
 		.filter((part) => part.type === 'text')
@@ -23,7 +23,7 @@ function messageText(message: FlueConversationMessage | undefined): string {
 		.join('');
 }
 
-function collectToolCalls(messages: FlueConversationMessage[]): SimpleToolCallRecord[] {
+function collectToolCalls(messages: BapxConversationMessage[]): SimpleToolCallRecord[] {
 	return messages.flatMap((message) =>
 		message.parts.flatMap((part) => {
 			if (part.type !== 'dynamic-tool') return [];
@@ -43,15 +43,15 @@ function collectToolCalls(messages: FlueConversationMessage[]): SimpleToolCallRe
 	);
 }
 
-export function createFlueAgentHarness(options: FlueAgentHarnessOptions) {
-	const client = createFlueClient({
+export function createBapxAgentHarness(options: BapxAgentHarnessOptions) {
+	const client = createBapxClient({
 		baseUrl: options.baseUrl ?? process.env.FLUE_BASE_URL ?? 'http://127.0.0.1:3583',
 		token: options.token,
 		headers: options.headers,
 	});
 
 	return createHarness<string, string>({
-		name: `flue-${options.agentName}-agent`,
+		name: `bapX-${options.agentName}-agent`,
 		run: async ({ input, signal }) => {
 			const instanceId = `eval-${crypto.randomUUID()}`;
 			const admission = await client.agents.send(options.agentName, instanceId, {

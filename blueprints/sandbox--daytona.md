@@ -7,21 +7,21 @@
 }
 ---
 
-# Add a Flue Sandbox Adapter: Daytona
+# Add a Bapx Sandbox Adapter: Daytona
 
 You are an AI coding agent installing the Daytona sandbox adapter for a
-Flue project. Follow these instructions exactly. Confirm with the user only
+Bapx project. Follow these instructions exactly. Confirm with the user only
 when something is genuinely ambiguous (e.g. an unusual project layout).
 
 ## What this adapter does
 
 Wraps an already-initialized Daytona sandbox (created with the user's own
-`@daytona/sdk` client) into Flue's `SandboxFactory` interface. The user owns
+`@daytona/sdk` client) into Bapx's `SandboxFactory` interface. The user owns
 the Daytona client lifecycle; this adapter just adapts the sandbox.
 
 ## Where to write the file
 
-Select the first existing source directory: `<root>/.flue/`, then `<root>/src/`,
+Select the first existing source directory: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Write the adapter to `<source-dir>/sandboxes/daytona.ts`.
 
 If neither feels right (uncommon layout, multiple workspaces, etc.), ask the
@@ -35,13 +35,13 @@ Write this file verbatim. Do not "improve" it — it conforms to the published
 `SandboxApi` contract.
 
 ```ts
-// flue-blueprint: sandbox/daytona@1
+// bapX-blueprint: sandbox/daytona@1
 /**
- * Daytona adapter for Flue.
+ * Daytona adapter for Bapx.
  *
- * Wraps an already-initialized Daytona sandbox into Flue's SandboxFactory
+ * Wraps an already-initialized Daytona sandbox into Bapx's SandboxFactory
  * interface. The user creates and configures the sandbox using the Daytona
- * SDK directly — Flue just adapts it.
+ * SDK directly — Bapx just adapts it.
  *
  * @example
  * ```typescript
@@ -152,8 +152,8 @@ class DaytonaSandboxApi implements SandboxApi {
 }
 
 /**
- * Create a Flue sandbox factory from an initialized Daytona sandbox.
- * The user owns the sandbox lifecycle; Flue wraps it into a SessionEnv
+ * Create a Bapx sandbox factory from an initialized Daytona sandbox.
+ * The user owns the sandbox lifecycle; Bapx wraps it into a SessionEnv
  * for agent use.
  */
 export function daytona(sandbox: DaytonaSandbox): SandboxFactory {
@@ -190,12 +190,12 @@ Use your judgment for where it should live. The project's conventions, an
 CI vars, etc.) will usually tell you the right answer. If nothing in the
 project gives you a clear signal, ask the user instead of guessing.
 
-For reference: `flue dev --env <file>` and `flue run --env <file>` load
+For reference: `bapX dev --env <file>` and `bapX run --env <file>` load
 any `.env`-format file the user points them at.
 
 ## Wiring it into an agent
 
-Here's what using this adapter looks like inside a Flue agent. If the
+Here's what using this adapter looks like inside a Bapx agent. If the
 user is already working on an agent that this adapter is meant to plug
 into, you can finish that work by wiring the adapter into it. Otherwise,
 share this snippet so they can wire it up themselves.
@@ -233,8 +233,8 @@ export default defineWorkflow({
    actually wrote the file.
 3. Tell the user the next steps: install `@daytona/sdk` (if you didn't),
    make sure `DAYTONA_API_KEY` is available at runtime (per the
-   Authentication section above), and run `flue dev` (or
-   `flue run <workflow>`) to try it.
+   Authentication section above), and run `bapX dev` (or
+   `bapX run <workflow>`) to try it.
 
 When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
 

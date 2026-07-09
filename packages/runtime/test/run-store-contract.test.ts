@@ -3,7 +3,7 @@
  *
  *   - the in-memory store used by explicitly non-durable setups,
  *   - the SQL store behind the Node `sqlite()` persistence adapter,
- *   - the Cloudflare composite (per-workflow-DO records + FlueRegistry
+ *   - the Cloudflare composite (per-workflow-DO records + BapxRegistry
  *     index DO), exercised through the real registry ops and router.
  *
  * The Postgres adapter runs the same suite from its own package.

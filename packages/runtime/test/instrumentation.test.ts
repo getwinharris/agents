@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { InstrumentationAlreadyInstalledError } from '../src/errors.ts';
-import type { FlueExecutionInterceptor } from '../src/execution-interceptor.ts';
+import type { BapxExecutionInterceptor } from '../src/execution-interceptor.ts';
 import {
 	createInstrumentationOwner,
 	instrument,
@@ -13,7 +13,7 @@ function instrumentation(key = OWNER) {
 	return {
 		key,
 		observe() {},
-		interceptor: ((_operation, _context, next) => next()) as FlueExecutionInterceptor,
+		interceptor: ((_operation, _context, next) => next()) as BapxExecutionInterceptor,
 		dispose() {},
 	};
 }

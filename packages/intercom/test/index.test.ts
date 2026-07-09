@@ -9,7 +9,7 @@ import {
 } from '../src/index.ts';
 
 const encoder = new TextEncoder();
-const CLIENT_SECRET = 'flue-intercom-client-secret';
+const CLIENT_SECRET = 'bapX-intercom-client-secret';
 
 describe('createIntercomChannel()', () => {
 	it('delivers the typed event when exact signed bytes match', async () => {

@@ -14,7 +14,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { defineAgent, connectMcpServer } from '../src/index.ts';
-import { createFlueContext } from '../src/internal.ts';
+import { createBapxContext } from '../src/internal.ts';
 import { connectMcpServerWithClient } from '../src/mcp.ts';
 import { getPreparedToolAdapter } from '../src/tool-adapter.ts';
 import { createNoopSessionEnv } from './fixtures/session-env.ts';
@@ -63,7 +63,7 @@ beforeEach(() => {
 });
 
 describe('connectMcpServerWithClient()', () => {
-	it('exposes listed MCP tools as Flue tools when a server connection succeeds', async () => {
+	it('exposes listed MCP tools as Bapx tools when a server connection succeeds', async () => {
 		mcp.listToolsResult = {
 			tools: [
 				{
@@ -156,7 +156,7 @@ describe('connectMcpServerWithClient()', () => {
 		};
 
 		await expect(connectMcpServerWithClient('catalog', mcp.client, transport)).rejects.toThrow(
-			'[flue] MCP server "catalog" repeated tools/list cursor "catalog-page-2" during tool discovery.',
+			'[bapX] MCP server "catalog" repeated tools/list cursor "catalog-page-2" during tool discovery.',
 		);
 		expect(mcp.client.close).toHaveBeenCalledOnce();
 	});
@@ -198,7 +198,7 @@ describe('connectMcpServerWithClient()', () => {
 		];
 
 		await expect(connectMcpServerWithClient('catalog', mcp.client, transport)).rejects.toThrow(
-			'[flue] MCP tools from server "catalog" produced duplicate tool name "mcp__catalog__read_value".',
+			'[bapX] MCP tools from server "catalog" produced duplicate tool name "mcp__catalog__read_value".',
 		);
 		expect(mcp.client.close).toHaveBeenCalledOnce();
 	});
@@ -239,12 +239,12 @@ describe('connectMcpServerWithClient()', () => {
 		const controller = new AbortController();
 		const connection = await connectMcpServerWithClient('catalog', mcp.client, transport);
 
-		await firstPreparedTool(connection.tools).execute({ query: 'flue' }, controller.signal);
+		await firstPreparedTool(connection.tools).execute({ query: 'bapX' }, controller.signal);
 
 		expect(mcp.client.callTool).toHaveBeenCalledWith(
 			{
 				name: 'lookup',
-				arguments: { query: 'flue' },
+				arguments: { query: 'bapX' },
 			},
 			undefined,
 			{ signal: controller.signal },
@@ -311,7 +311,7 @@ describe('connectMcpServerWithClient()', () => {
 					(tool) => tool.name === 'mcp__catalog__lookup',
 				)?.parameters;
 				return fauxAssistantMessage(
-					fauxToolCall('mcp__catalog__lookup', { query: 'flue' }),
+					fauxToolCall('mcp__catalog__lookup', { query: 'bapX' }),
 					{ stopReason: 'toolUse' },
 				);
 			},
@@ -321,7 +321,7 @@ describe('connectMcpServerWithClient()', () => {
 			},
 		]);
 		try {
-			const context = createFlueContext({
+			const context = createBapxContext({
 				id: 'mcp-test-instance',
 				env: {},
 				agentConfig: { resolveModel: () => provider.getModel() },
@@ -334,7 +334,7 @@ describe('connectMcpServerWithClient()', () => {
 				})),
 			);
 
-			await (await harness.session()).prompt('Look up flue.');
+			await (await harness.session()).prompt('Look up bapX.');
 
 			expect(providerSchema).toEqual(mcp.listToolsResult.tools[0]?.inputSchema);
 			expect(Object.keys(decoratedTool)).toEqual(['name', 'description', 'input', 'output', 'run']);

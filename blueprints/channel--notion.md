@@ -6,15 +6,15 @@
 }
 ---
 
-# Add a Notion Channel to Flue
+# Add a Notion Channel to Bapx
 
 You are an AI coding agent adding verified Notion webhook ingress and
-application-owned Notion API behavior to a Flue project.
+application-owned Notion API behavior to a Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.flue/`, then `<root>/src/`, then
+first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 which Notion page or comment events the application needs.
 
@@ -25,7 +25,7 @@ uses Fetch. Add it as a development dependency when the package manager does
 not install required peers automatically. If the project's `tsconfig.json`
 limits `compilerOptions.types`, include `"node"` there.
 
-Flue owns exact-body signature verification and typed ingress. The project
+Bapx owns exact-body signature verification and typed ingress. The project
 owns the official client, OAuth and installation lifecycle, webhook
 subscription creation, token storage, event selection, deduplication,
 ordering, resource-fetching policy, and every outbound tool.
@@ -36,7 +36,7 @@ Create `<source-dir>/channels/notion.ts`. Adapt the imported agent, dispatched
 message, page identity, and tool to the application:
 
 ```ts
-// flue-blueprint: channel/notion@1
+// bapX-blueprint: channel/notion@1
 import { Client } from '@notionhq/client';
 import { createNotionChannel } from '@bapX/notion';
 import { defineTool, dispatch } from '@bapX/runtime';
@@ -176,7 +176,7 @@ Configure the exact webhook URL:
 https://example.com/channels/notion/webhook
 ```
 
-If `flue()` is mounted beneath an outer prefix, include it.
+If `bapX()` is mounted beneath an outer prefix, include it.
 
 Notion first sends one unsigned JSON object containing `verification_token`.
 This request is setup traffic, not authenticated application ingress. To
@@ -207,7 +207,7 @@ client selection remain application concerns.
 ## Runtime and delivery behavior
 
 Ordinary `@notionhq/client` API calls use the injected Fetch implementation and
-execute in workerd with Flue's required `nodejs_compat` configuration. OAuth is
+execute in workerd with Bapx's required `nodejs_compat` configuration. OAuth is
 outside this blueprint; validate any additional SDK operations the application
 chooses to ship.
 

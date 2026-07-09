@@ -1,6 +1,6 @@
 ---
 title: Node.js
-description: Understand the Node.js-specific runtime behavior and APIs for Flue applications.
+description: Understand the Node.js-specific runtime behavior and APIs for Bapx applications.
 ---
 
 The Node.js target builds your agents and workflows as a standard Node.js server. The generated server runs anywhere Node runs: a local machine, a container, a VM, a CI runner, or a managed hosting service. Node is also the target where agents can operate directly on the host filesystem and shell through `local()`.
@@ -9,16 +9,16 @@ For a deployment walkthrough, see [Deploy Agents on Node.js](/docs/ecosystem/dep
 
 ## Generated server
 
-Flue discovers agents from `src/agents/` and workflows from `src/workflows/` and generates a single server entry at `dist/server.mjs`. See [Project Layout](/docs/guide/project-layout/) for supported source directories.
+Bapx discovers agents from `src/agents/` and workflows from `src/workflows/` and generates a single server entry at `dist/server.mjs`. See [Project Layout](/docs/guide/project-layout/) for supported source directories.
 
 The server owns HTTP, agent dispatch, workflow admission, and event streaming routes. Build and start it with:
 
 ```bash
-npx flue build --target node
+npx bapX build --target node
 node dist/server.mjs
 ```
 
-The server listens on port `3000` by default. Set `PORT` to change it. `flue dev --target node` uses port `3583` and reloads on changes.
+The server listens on port `3000` by default. Set `PORT` to change it. `bapX dev --target node` uses port `3583` and reloads on changes.
 
 The build externalizes your application dependencies rather than bundling them. Deploy the built artifact alongside its `node_modules`, or package it inside a container that installs dependencies first.
 
@@ -73,13 +73,13 @@ See the Ecosystem [Sandboxes](/docs/ecosystem/#sandboxes) catalog for available 
 
 ## Environment and secrets
 
-Flue CLI commands load project-root `.env` values before configuration. Use `--env <path>` to select one alternate file.
+Bapx CLI commands load project-root `.env` values before configuration. Use `--env <path>` to select one alternate file.
 
 The built server itself does not load `.env`. It reads only the environment supplied when it starts:
 
 ```bash
 # Development
-npx flue dev --target node
+npx bapX dev --target node
 
 # Production
 set -a; source .env; set +a

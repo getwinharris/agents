@@ -1,6 +1,6 @@
 ---
 title: libSQL
-description: Give Flue agents and workflow runs durable state with libSQL — a local SQLite file, a self-hosted libSQL server, or an embedded replica.
+description: Give Bapx agents and workflow runs durable state with libSQL — a local SQLite file, a self-hosted libSQL server, or an embedded replica.
 package:
   name: '@bapX/libsql'
   href: https://www.npmjs.com/package/@bapX/libsql
@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add durable libSQL persistence to an existing Flue project with the [libSQL](https://github.com/tursodatabase/libsql) blueprint. Run the following command in your terminal or coding agent of choice:
+Add durable libSQL persistence to an existing Bapx project with the [libSQL](https://github.com/tursodatabase/libsql) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add database libsql
+bapX add database libsql
 ```
 
 ## Overview
@@ -37,22 +37,22 @@ export default libsql({
 });
 ```
 
-Flue discovers the adapter at build time and wires it into the generated Node server. On startup, it creates or verifies the required `flue_*` tables. Canonical agent conversations, immutable attachments, accepted submissions, and workflow history then persist in a local SQLite file or self-hosted libSQL server according to `LIBSQL_URL`; application business data remains application-owned. Embedded replicas require additional `syncUrl` client configuration. The blueprint applies only to Node targets because Cloudflare deployments use Durable Object SQLite instead.
+Bapx discovers the adapter at build time and wires it into the generated Node server. On startup, it creates or verifies the required `bapX_*` tables. Canonical agent conversations, immutable attachments, accepted submissions, and workflow history then persist in a local SQLite file or self-hosted libSQL server according to `LIBSQL_URL`; application business data remains application-owned. Embedded replicas require additional `syncUrl` client configuration. The blueprint applies only to Node targets because Cloudflare deployments use Durable Object SQLite instead.
 
 ## Configure
 
 | Variable     | Purpose                                                                                      |
 | ------------ | -------------------------------------------------------------------------------------------- |
-| `LIBSQL_URL` | **Required** — A local file (`file:./data/flue.db`) or a libSQL server (`http://host:8080`). |
+| `LIBSQL_URL` | **Required** — A local file (`file:./data/bapX.db`) or a libSQL server (`http://host:8080`). |
 
 `createClient` reads this at runtime — it is not baked into the build. For local
-development, `flue dev --env <file>` and `flue run --env <file>` load any
+development, `bapX dev --env <file>` and `bapX run --env <file>` load any
 `.env`-format file. In production, supply it from your platform's secret store.
 
 The blueprint installs `@bapX/libsql` and the official `@libsql/client`, and
-writes a source-root `db.ts` that wraps the client. Flue discovers `db.ts` at
+writes a source-root `db.ts` that wraps the client. Bapx discovers `db.ts` at
 build time and wires it into the generated Node server. For hosted Turso, use
-[`flue add database turso`](/docs/ecosystem/databases/turso/) instead — it is the same
+[`bapX add database turso`](/docs/ecosystem/databases/turso/) instead — it is the same
 adapter with a Turso client configuration.
 
 `@bapX/libsql` is a **Node.js** adapter. The Cloudflare target uses Durable
@@ -120,7 +120,7 @@ of them:
 
 | Target                                           | `createClient(...)`                                     |
 | ------------------------------------------------ | ------------------------------------------------------- |
-| Local SQLite file                                | `{ url: 'file:./data/flue.db' }`                        |
+| Local SQLite file                                | `{ url: 'file:./data/bapX.db' }`                        |
 | Self-hosted libSQL server (`sqld`)               | `{ url: 'http://127.0.0.1:8080' }`                      |
 | Embedded replica (local file synced to a remote) | `{ url: 'file:local.db', syncUrl, authToken }`          |
 | Hosted Turso                                     | see the [Turso guide](/docs/ecosystem/databases/turso/) |
@@ -129,23 +129,23 @@ of them:
 
 When `LIBSQL_URL` is a local `file:` database, asynchronous writes can overlap
 and surface `SQLITE_BUSY`. The runner above serializes all operations from one
-process so its transactions do not contend with top-level queries. Flue does
+process so its transactions do not contend with top-level queries. Bapx does
 not promise multi-process or multi-tenant writes to one embedded file. A
 self-hosted libSQL server and hosted Turso serialize writes server-side.
 
 ## Migrations
 
 The adapter's `migrate()` hook runs automatically when the generated Node
-server starts. It creates Flue's `flue_*` tables idempotently and stamps a
+server starts. It creates Bapx's `bapX_*` tables idempotently and stamps a
 schema version, so a fresh database is provisioned on first boot and an existing
 one is reused on restart. There is no separate migration command to run, and a
-database written by a newer Flue refuses to start rather than corrupting state.
+database written by a newer Bapx refuses to start rather than corrupting state.
 
 ## What gets stored
 
-A Flue database stores runtime state, not your whole application.
+A Bapx database stores runtime state, not your whole application.
 
-| Stored by Flue                                                   | Not stored by Flue                                             |
+| Stored by Bapx                                                   | Not stored by Bapx                                             |
 | ---------------------------------------------------------------- | -------------------------------------------------------------- |
 | Canonical agent conversation streams and compaction records       | Sandbox files and installed dependencies                       |
 | Immutable attachment payloads                                    | External API side effects                                      |

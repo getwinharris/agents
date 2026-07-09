@@ -1,5 +1,5 @@
-import type { FlueTraceCarrier } from '../execution-interceptor.ts';
-import type { FlueEvent } from '../types.ts';
+import type { BapxTraceCarrier } from '../execution-interceptor.ts';
+import type { BapxEvent } from '../types.ts';
 
 export type RunStatus = 'active' | 'completed' | 'errored';
 
@@ -9,7 +9,7 @@ export interface RunRecord {
 	status: RunStatus;
 	startedAt: string;
 	input?: unknown;
-	traceCarrier?: FlueTraceCarrier;
+	traceCarrier?: BapxTraceCarrier;
 	endedAt?: string;
 	isError?: boolean;
 	durationMs?: number;
@@ -40,7 +40,7 @@ export interface CreateRunInput {
 	workflowName: string;
 	startedAt: string;
 	input: unknown;
-	traceCarrier?: FlueTraceCarrier;
+	traceCarrier?: BapxTraceCarrier;
 }
 
 export interface EndRunInput {
@@ -137,14 +137,14 @@ export interface RunStore {
  * These events are flushed at most once per interval (~3 s) to avoid
  * starting one storage write per streamed chunk during generation.
  */
-const BUFFERED_RUN_EVENT_TYPES: ReadonlySet<FlueEvent['type']> = new Set([
+const BUFFERED_RUN_EVENT_TYPES: ReadonlySet<BapxEvent['type']> = new Set([
 	'text_delta',
 	'thinking_start',
 	'thinking_delta',
 	'thinking_end',
 ]);
 
-export function isBufferedRunEvent(event: FlueEvent): boolean {
+export function isBufferedRunEvent(event: BapxEvent): boolean {
 	return BUFFERED_RUN_EVENT_TYPES.has(event.type);
 }
 
@@ -160,8 +160,8 @@ export function isBufferedRunEvent(event: FlueEvent): boolean {
  * prompts to every stream reader. Production prompt forensics belongs to an
  * exporter-side content-export opt-in, not the primary database.
  */
-const STREAM_EXCLUDED_EVENT_TYPES: ReadonlySet<FlueEvent['type']> = new Set(['turn_request']);
+const STREAM_EXCLUDED_EVENT_TYPES: ReadonlySet<BapxEvent['type']> = new Set(['turn_request']);
 
-export function isStreamExcludedEvent(event: FlueEvent): boolean {
+export function isStreamExcludedEvent(event: BapxEvent): boolean {
 	return STREAM_EXCLUDED_EVENT_TYPES.has(event.type);
 }

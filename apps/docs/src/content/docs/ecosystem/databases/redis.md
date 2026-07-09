@@ -1,6 +1,6 @@
 ---
 title: Redis
-description: Give Flue agents and workflow runs durable, shared state with Redis.
+description: Give Bapx agents and workflow runs durable, shared state with Redis.
 package:
   name: '@bapX/redis'
   href: https://www.npmjs.com/package/@bapX/redis
@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add durable, shared state to an existing Flue project with the [Redis](https://redis.io) blueprint. Run the following command in your terminal or coding agent of choice:
+Add durable, shared state to an existing Bapx project with the [Redis](https://redis.io) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add database redis
+bapX add database redis
 ```
 
 ## Overview
@@ -22,7 +22,7 @@ existing secret convention for `REDIS_URL`. It does not modify deployment
 configuration because persistence and recovery settings remain owned by the
 Redis deployment.
 
-The primary generated adapter connects the client and translates Flue database
+The primary generated adapter connects the client and translates Bapx database
 operations into Redis commands:
 
 ```ts title="src/db.ts (abridged)"
@@ -40,9 +40,9 @@ export default redis({
 ```
 
 This abridged excerpt omits the generated pipeline helper, which batches
-commands and rejects any `Error` result. Flue discovers the adapter during a
+commands and rejects any `Error` result. Bapx discovers the adapter during a
 Node build, checks and migrates its Redis namespace at server startup, and
-persists canonical agent conversations, immutable attachments, accepted submissions, workflow runs, and event streams so that they survive Flue process restarts. Durability across Redis server loss
+persists canonical agent conversations, immutable attachments, accepted submissions, workflow runs, and event streams so that they survive Bapx process restarts. Durability across Redis server loss
 depends on the deployment's AOF or snapshot configuration.
 
 ## Configure
@@ -98,12 +98,12 @@ a managed single-shard provider denies both commands and you have independently
 verified the configuration.
 
 Use a dedicated Redis database or pass a stable, unique `keyPrefix` as the
-adapter's second argument. The default is `flue`. Changing it selects a separate
+adapter's second argument. The default is `bapX`. Changing it selects a separate
 namespace; it does not move existing keys.
 
 ## Migrations and stored data
 
-Flue runs `migrate()` at startup. It initializes schema-version metadata
+Bapx runs `migrate()` at startup. It initializes schema-version metadata
 idempotently and refuses data from an unsupported newer schema; there is no
 separate migration command.
 
@@ -112,6 +112,6 @@ Redis stores append-only canonical conversation records and compaction facts, im
 ## Verify durability
 
 Build the Node target, start it against a throwaway correctly configured Redis,
-create state, restart Flue, and confirm the state reloads. Separately test the
-chosen AOF or snapshot recovery procedure: restarting Flue does not prove that
+create state, restart Bapx, and confirm the state reloads. Separately test the
+chosen AOF or snapshot recovery procedure: restarting Bapx does not prove that
 Redis survives server loss.

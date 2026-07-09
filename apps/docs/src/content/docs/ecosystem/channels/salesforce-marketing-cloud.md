@@ -8,10 +8,10 @@ package:
 
 ## Quickstart
 
-Add verified Event Notification Service ingress and application-owned REST behavior to an existing Flue project with the [Salesforce Marketing Cloud Engagement](https://developer.salesforce.com/docs/marketing/marketing-cloud/guide/ens.html) blueprint. Run the following command in your terminal or coding agent of choice:
+Add verified Event Notification Service ingress and application-owned REST behavior to an existing Bapx project with the [Salesforce Marketing Cloud Engagement](https://developer.salesforce.com/docs/marketing/marketing-cloud/guide/ens.html) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```sh
-flue add channel salesforce-marketing-cloud
+bapX add channel salesforce-marketing-cloud
 ```
 
 ## Overview
@@ -338,7 +338,7 @@ Unsigned setup requests are accepted only when the channel has a
 `POST /platform/v1/ens-verify` from application code, and disable the handler
 after setup. Without the handler, unsigned requests receive `401`.
 
-Flue validates the shape and returns the required empty `200` after the
+Bapx validates the shape and returns the required empty `200` after the
 handler completes. It does not register callbacks, obtain tokens, or call the
 verification API automatically. Keep this setup call separate from the
 GET-only client above unless the application explicitly needs it.
@@ -386,7 +386,7 @@ ENS acknowledges only statuses `200` through `204`. Channel failures and
 unsupported (non-serializable) return values produce `500`. A custom `Response`
 outside the acknowledgment range is passed through and can cause redelivery.
 
-Flue imposes no route timeout. The handler is awaited and its result serialized.
+Bapx imposes no route timeout. The handler is awaited and its result serialized.
 The only ENS deadline is at setup: the unsigned verification POST must be
 answered `200` within 30 seconds, or callback creation fails. Steady-state
 deliveries have no per-request deadline, but ENS retries any batch it does not
@@ -401,7 +401,7 @@ family-appropriate key before non-idempotent work.
 ## Cloudflare Workers
 
 Ingress and the project-owned client use standards-based Fetch, URL, and Web
-Crypto APIs. They execute in workerd under Flue's canonical `nodejs_compat`
+Crypto APIs. They execute in workerd under Bapx's canonical `nodejs_compat`
 configuration; package workerd tests exercise exact-body HMAC verification.
 
 Use original synthetic event batches and local keys for tests. Test the real

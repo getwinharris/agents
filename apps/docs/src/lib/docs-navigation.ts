@@ -130,13 +130,13 @@ export const docsSections: DocsSection[] = [
 				items: [
 					{ title: 'Overview', slug: 'sdk/overview' },
 					{
-						title: 'createFlueClient(...)',
+						title: 'createBapxClient(...)',
 						slug: 'sdk/client',
 						items: [
 							{
-								title: 'CreateFlueClientOptions',
+								title: 'CreateBapxClientOptions',
 								slug: 'sdk/client',
-								anchor: 'createflueclientoptions',
+								anchor: 'createbapXclientoptions',
 							},
 							{ title: 'RequestHeaders', slug: 'sdk/client', anchor: 'requestheaders' },
 						],

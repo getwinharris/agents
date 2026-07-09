@@ -18,7 +18,7 @@ export {
 	ActionOutputValidationError,
 	AttachmentNotAvailableError,
 	DelegationDepthExceededError,
-	FlueError,
+	BapxError,
 	InstrumentationAlreadyInstalledError,
 	OperationFailedError,
 	ProductEventVersionError,
@@ -50,18 +50,18 @@ export {
 } from './errors.ts';
 export { IMAGE_DATA_OMITTED } from './event-redaction.ts';
 export type {
-	FlueExecutionContext,
-	FlueExecutionInterceptor,
-	FlueExecutionOperation,
+	BapxExecutionContext,
+	BapxExecutionInterceptor,
+	BapxExecutionOperation,
 } from './execution-interceptor.ts';
-export { type FlueInstrumentation, instrument } from './instrumentation.ts';
+export { type BapxInstrumentation, instrument } from './instrumentation.ts';
 export type { McpServerConnection, McpServerOptions, McpTransport } from './mcp.ts';
 export { connectMcpServer } from './mcp.ts';
-export type { FlueObservationSubscriber } from './observation.ts';
+export type { BapxObservationSubscriber } from './observation.ts';
 export { ResultUnavailableError } from './result.ts';
-export { type FlueEventSubscriber, observe } from './runtime/events.ts';
-export type { AgentManifestEntry } from './runtime/flue-app.ts';
-export { dispatch, invoke } from './runtime/flue-app.ts';
+export { type BapxEventSubscriber, observe } from './runtime/events.ts';
+export type { AgentManifestEntry } from './runtime/bapX-app.ts';
+export { dispatch, invoke } from './runtime/bapX-app.ts';
 export { getRun, listAgents, listRuns } from './runtime/inspect.ts';
 export type { WorkflowInvocationReceipt, WorkflowInvokeRequest } from './runtime/invoke.ts';
 export {
@@ -98,14 +98,14 @@ export type {
 	DispatchReceipt,
 	DurabilityConfig,
 	FileStat,
-	FlueEvent,
-	FlueEventContext,
-	FlueFs,
-	FlueHarness,
-	FlueLogger,
-	FlueObservation,
-	FlueSession,
-	FlueSessions,
+	BapxEvent,
+	BapxEventContext,
+	BapxFs,
+	BapxHarness,
+	BapxLogger,
+	BapxObservation,
+	BapxSession,
+	BapxSessions,
 	LlmAssistantMessage,
 	LlmImageContent,
 	LlmMessage,
@@ -153,12 +153,12 @@ export { FLUE_EVENT_SCHEMA_REVISION } from './types.ts';
 export type { WorkflowDefinition } from './workflow-definition.ts';
 export { defineWorkflow } from './workflow-definition.ts';
 
-// Note: the public Hono sub-app `flue()` and the `Fetchable` interface
+// Note: the public Hono sub-app `bapX()` and the `Fetchable` interface
 // for user-authored `app.ts` entries live at `@bapX/runtime/routing`, not on
 // the root barrel.
 //
-// Note: createFlueContext, bashFactoryToSessionEnv, and the
-// FlueContextConfig/FlueContextInternal types are intentionally NOT re-exported
+// Note: createBapxContext, bashFactoryToSessionEnv, and the
+// BapxContextConfig/BapxContextInternal types are intentionally NOT re-exported
 // here. They are internal runtime helpers consumed exclusively by the generated
 // server entry point — see `@bapX/runtime/internal`. User agent code should not
 // need to import any of them directly.

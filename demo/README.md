@@ -1,7 +1,7 @@
-# Flue Demo Chat
+# Bapx Demo Chat
 
 A standalone **Vite + React** single-page chat client that connects to **any running
-Flue example dev server**. It's a real-world manual-testing harness, a proof-of-concept
+Bapx example dev server**. It's a real-world manual-testing harness, a proof-of-concept
 for new runtime features, and a reference application showing how to build a chat UI on
 top of `@bapX/sdk` and `@bapX/react`.
 
@@ -33,11 +33,11 @@ Vite, React 19, TypeScript, Tailwind v4, shadcn/ui, TanStack Router, `streamdown
 
 ## Running it
 
-You need two processes: a Flue dev server (the backend) and this SPA.
+You need two processes: a Bapx dev server (the backend) and this SPA.
 
-### 1. Start a Flue example dev server
+### 1. Start a Bapx example dev server
 
-CORS is required because the SPA runs on a different origin. `flue dev` enables a
+CORS is required because the SPA runs on a different origin. `bapX dev` enables a
 dev-only CORS layer automatically.
 
 The richest target is the `react-chat` example's `helper` agent, a real Anthropic model
@@ -46,10 +46,10 @@ with a tool, reasoning, and a subagent. It needs `ANTHROPIC_API_KEY`:
 ```sh
 # from the repo root, with ANTHROPIC_API_KEY in ./.env
 cd examples/react-chat
-node ../../packages/cli/bin/flue.mjs dev --target node --port 3583 --env ../../.env
+node ../../packages/cli/bin/bapX.mjs dev --target node --port 3583 --env ../../.env
 ```
 
-`flue dev` loads `<exampleDir>/.env` by default, so pass `--env` to use the repo-root key.
+`bapX dev` loads `<exampleDir>/.env` by default, so pass `--env` to use the repo-root key.
 
 For a **credential-free** target, the same example exposes a faux echo `assistant`
 agent, and `hello-world` exposes `session-test`.
@@ -57,7 +57,7 @@ agent, and `hello-world` exposes `session-test`.
 ### 2. Start the SPA
 
 ```sh
-pnpm --filter flue-demo dev
+pnpm --filter bapX-demo dev
 # or, from this directory:
 pnpm dev
 ```
@@ -80,13 +80,13 @@ and holds an optional **bearer token** for agents behind a `route` auth check.
 
 ## How it connects
 
-- `src/lib/flue-client.ts` parses the agent URL into the SDK `baseUrl` and agent name
-  (`<baseUrl>/agents/<name>/<id>`) and creates a `FlueClient` per connection.
-- `src/components/chat/chat-view.tsx` uses `useFlueAgent({ name, id, live })`, with the
+- `src/lib/bapX-client.ts` parses the agent URL into the SDK `baseUrl` and agent name
+  (`<baseUrl>/agents/<name>/<id>`) and creates a `BapxClient` per connection.
+- `src/components/chat/chat-view.tsx` uses `useBapxAgent({ name, id, live })`, with the
   transport coming from settings. The conversation `id` is the agent instance id, which is
   also the local conversation id. The same view calls `client.agents.abort(name, id)` to
   stop in-flight or queued work for that agent instance.
-- `src/components/chat/message-parts.tsx` renders each `FlueConversationPart`
+- `src/components/chat/message-parts.tsx` renders each `BapxConversationPart`
   (`text` | `reasoning` | `file` | `dynamic-tool`); `tool-display.tsx` maps tool calls to
   their one-line summaries.
 

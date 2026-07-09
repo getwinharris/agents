@@ -60,7 +60,7 @@ export function createIntercomWebhookHandler<E extends Env>(
 }
 
 /**
- * Validates only the common notification envelope Flue owns to route ingress.
+ * Validates only the common notification envelope Bapx owns to route ingress.
  * The full provider object is returned with Intercom's own field names; the
  * `data.item` payload and any unmodeled top-level fields are forwarded
  * unchanged for the application to interpret.

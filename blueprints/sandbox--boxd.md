@@ -7,16 +7,16 @@
 }
 ---
 
-# Add a Flue Sandbox Adapter: boxd
+# Add a Bapx Sandbox Adapter: boxd
 
 You are an AI coding agent installing the boxd sandbox adapter for a
-Flue project. Follow these instructions exactly. Confirm with the user only
+Bapx project. Follow these instructions exactly. Confirm with the user only
 when something is genuinely ambiguous (e.g. an unusual project layout).
 
 ## What this adapter does
 
 Wraps an already-initialized boxd VM (created with the user's own
-`@boxd-sh/sdk` `Compute` client) into Flue's `SandboxFactory` interface. The
+`@boxd-sh/sdk` `Compute` client) into Bapx's `SandboxFactory` interface. The
 user owns the boxd VM lifecycle; this adapter just adapts the VM.
 
 boxd ships microVMs, so each `Box` is a full Linux VM with persistent disk,
@@ -25,7 +25,7 @@ which makes it a good fit for per-session agents that want a real OS.
 
 ## Where to write the file
 
-Select the first existing source directory: `<root>/.flue/`, then `<root>/src/`,
+Select the first existing source directory: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Write the adapter to `<source-dir>/sandboxes/boxd.ts`.
 
 If neither feels right (uncommon layout, multiple workspaces, etc.), ask the
@@ -39,13 +39,13 @@ Write this file verbatim. Do not "improve" it — it conforms to the published
 `SandboxApi` contract.
 
 ```ts
-// flue-blueprint: sandbox/boxd@1
+// bapX-blueprint: sandbox/boxd@1
 /**
- * boxd adapter for Flue.
+ * boxd adapter for Bapx.
  *
  * Wraps an already-initialized boxd VM (a `Box` from `@boxd-sh/sdk`) into
- * Flue's SandboxFactory interface. The user creates and configures the VM
- * using the boxd SDK directly — Flue just adapts it.
+ * Bapx's SandboxFactory interface. The user creates and configures the VM
+ * using the boxd SDK directly — Bapx just adapts it.
  *
  * @example
  * ```typescript
@@ -100,7 +100,7 @@ async function waitForReady(box: BoxdBox, timeoutMs: number): Promise<void> {
 		await new Promise((r) => setTimeout(r, 500));
 	}
 	throw new Error(
-		`[flue:boxd] VM ${box.name} did not become ready within ${timeoutMs}ms` +
+		`[bapX:boxd] VM ${box.name} did not become ready within ${timeoutMs}ms` +
 			(lastErr ? `: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}` : ''),
 	);
 }
@@ -144,7 +144,7 @@ class BoxdSandboxApi implements SandboxApi {
 			`stat -c '%F|%s|%Y' ${shellQuote(path)}`,
 		);
 		if (result.exitCode !== 0) {
-			throw new Error(`[flue:boxd] stat failed for ${path}: ${result.stdout || result.stderr}`);
+			throw new Error(`[bapX:boxd] stat failed for ${path}: ${result.stdout || result.stderr}`);
 		}
 		const fields = result.stdout.trim().split('|');
 		const [type, sizeStr, mtimeStr] = fields;
@@ -160,7 +160,7 @@ class BoxdSandboxApi implements SandboxApi {
 			!Number.isSafeInteger(mtimeSecs) ||
 			!Number.isFinite(mtime.getTime())
 		) {
-			throw new Error(`[flue:boxd] malformed stat output for ${path}`);
+			throw new Error(`[bapX:boxd] malformed stat output for ${path}`);
 		}
 		return {
 			isFile: type === 'regular file' || type === 'regular empty file',
@@ -177,7 +177,7 @@ class BoxdSandboxApi implements SandboxApi {
 		const result = await this.runShell(`ls -A1 ${shellQuote(path)}`);
 		if (result.exitCode !== 0) {
 			throw new Error(
-				`[flue:boxd] readdir failed for ${path}: ${result.stdout || result.stderr}`,
+				`[bapX:boxd] readdir failed for ${path}: ${result.stdout || result.stderr}`,
 			);
 		}
 		return result.stdout.split('\n').filter((line) => line.length > 0);
@@ -194,7 +194,7 @@ class BoxdSandboxApi implements SandboxApi {
 			: `mkdir ${shellQuote(path)}`;
 		const result = await this.runShell(cmd);
 		if (result.exitCode !== 0) {
-			throw new Error(`[flue:boxd] mkdir failed for ${path}: ${result.stdout || result.stderr}`);
+			throw new Error(`[bapX:boxd] mkdir failed for ${path}: ${result.stdout || result.stderr}`);
 		}
 	}
 
@@ -203,7 +203,7 @@ class BoxdSandboxApi implements SandboxApi {
 		const flagArg = flags ? `-${flags} ` : '';
 		const result = await this.runShell(`rm ${flagArg}${shellQuote(path)}`);
 		if (result.exitCode !== 0) {
-			throw new Error(`[flue:boxd] rm failed for ${path}: ${result.stdout || result.stderr}`);
+			throw new Error(`[bapX:boxd] rm failed for ${path}: ${result.stdout || result.stderr}`);
 		}
 	}
 
@@ -231,7 +231,7 @@ class BoxdSandboxApi implements SandboxApi {
 		const wrapped = options?.cwd
 			? `cd ${shellQuote(options.cwd)} && ${command}`
 			: command;
-		// Flue and boxd both express command timeouts in milliseconds.
+		// Bapx and boxd both express command timeouts in milliseconds.
 		const result = await this.box.exec(['bash', '-lc', wrapped], {
 			env: options?.env,
 			timeoutMs: options?.timeoutMs,
@@ -245,8 +245,8 @@ class BoxdSandboxApi implements SandboxApi {
 }
 
 /**
- * Create a Flue sandbox factory from an initialized boxd VM.
- * The user owns the VM lifecycle; Flue wraps it into a SessionEnv
+ * Create a Bapx sandbox factory from an initialized boxd VM.
+ * The user owns the VM lifecycle; Bapx wraps it into a SessionEnv
  * for agent use.
  */
 export function boxd(box: BoxdBox, options?: BoxdAdapterOptions): SandboxFactory {
@@ -292,12 +292,12 @@ secret manager, CI vars, etc.) will usually tell you the right answer. If
 nothing in the project gives you a clear signal, ask the user instead of
 guessing.
 
-For reference: `flue dev --env <file>` and `flue run --env <file>` load
+For reference: `bapX dev --env <file>` and `bapX run --env <file>` load
 any `.env`-format file the user points them at.
 
 ## Wiring it into an agent
 
-Here's what using this adapter looks like inside a Flue agent. If the
+Here's what using this adapter looks like inside a Bapx agent. If the
 user is already working on an agent that this adapter is meant to plug
 into, you can finish that work by wiring the adapter into it. Otherwise,
 share this snippet so they can wire it up themselves.
@@ -344,8 +344,8 @@ VM once.
    actually wrote the file.
 3. Tell the user the next steps: install `@boxd-sh/sdk` (if you didn't),
    make sure `BOXD_API_KEY` is available at runtime (per the
-   Authentication section above), and run `flue dev` (or
-    `flue run <workflow>`) to try it.
+   Authentication section above), and run `bapX dev` (or
+    `bapX run <workflow>`) to try it.
 
 When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change while preserving customizations, and then add or update the marker in the primary marked file. This comparison is required when the marker is missing.
 

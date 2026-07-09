@@ -6,19 +6,19 @@
 }
 ---
 
-# Add a Facebook Messenger Channel to Flue
+# Add a Facebook Messenger Channel to Bapx
 
 You are an AI coding agent adding verified Facebook Messenger Page webhook
-ingress and project-owned outbound Graph API access to a Flue project.
+ingress and project-owned outbound Graph API access to a Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.flue/`, then `<root>/src/`, then
+first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 the Facebook Page the application owns.
 
-Install `@bapX/messenger`. Flue owns GET verification, exact-body
+Install `@bapX/messenger`. Bapx owns GET verification, exact-body
 `X-Hub-Signature-256` validation, fixed Page identity, the provider-native
 payload, and canonical conversation keys. The project owns Page access tokens,
 outbound Graph API behavior, tools, dispatch policy, and durable duplicate
@@ -63,7 +63,7 @@ Create `<source-dir>/channels/messenger.ts`. Adapt the imported agent,
 dispatched message, and tool:
 
 ```ts
-// flue-blueprint: channel/messenger@1
+// bapX-blueprint: channel/messenger@1
 import {
   createMessengerChannel,
   type MessengerConversationRef,

@@ -1,7 +1,7 @@
 /**
  * Internal session implementation. Not exported publicly — user code receives
  * the facade from `createPublicSession()`, which exposes exactly the
- * `FlueSession` contract.
+ * `BapxSession` contract.
  */
 
 import type {
@@ -88,7 +88,7 @@ import {
 	redactEventImages,
 	redactObservationDetailImages,
 } from './event-redaction.ts';
-import { type FlueExecutionContext, interceptExecution } from './execution-interceptor.ts';
+import { type BapxExecutionContext, interceptExecution } from './execution-interceptor.ts';
 import { renderSignalMessage } from './message-rendering.ts';
 import { assertImagesWithinLimit } from './persisted-images.ts';
 import {
@@ -119,7 +119,7 @@ import {
 	getRegisteredApiKey,
 	getRegisteredStoreResponses,
 } from './runtime/providers.ts';
-import { createFlueFs } from './sandbox.ts';
+import { createBapxFs } from './sandbox.ts';
 import { valibotToJsonSchema } from './schema.ts';
 import { execShellWithEvents, getErrorMessage } from './shell.ts';
 import { getSkillReferenceDirectory } from './skill-package.ts';
@@ -134,13 +134,13 @@ import type {
 	AgentConfig,
 	AgentProfile,
 	CallHandle,
-	FlueEvent,
-	FlueEventInput,
-	FlueEventInputCallback,
-	FlueFs,
-	FlueHarness,
-	FlueObservationDetail,
-	FlueSession,
+	BapxEvent,
+	BapxEventInput,
+	BapxEventInputCallback,
+	BapxFs,
+	BapxHarness,
+	BapxObservationDetail,
+	BapxSession,
 	ModelRequestInfo,
 	PackagedSkillDirectory,
 	PromptImage,
@@ -165,11 +165,11 @@ const MAX_DELEGATION_DEPTH = 4;
 const MAX_TRANSIENT_MODEL_RETRIES = 3;
 const TRANSIENT_MODEL_RETRY_BASE_DELAY_MS = 2_000;
 
-type TurnInputMessage = Extract<FlueEvent, { type: 'turn_request' }>['request']['input']['messages'][number];
+type TurnInputMessage = Extract<BapxEvent, { type: 'turn_request' }>['request']['input']['messages'][number];
 type TurnInputTool = NonNullable<
-	Extract<FlueEvent, { type: 'turn_request' }>['request']['input']['tools']
+	Extract<BapxEvent, { type: 'turn_request' }>['request']['input']['tools']
 >[number];
-type TurnOutput = NonNullable<Extract<FlueEvent, { type: 'turn' }>['response']['output']>;
+type TurnOutput = NonNullable<Extract<BapxEvent, { type: 'turn' }>['response']['output']>;
 type ModelToolSource = 'builtin' | 'adapter' | 'framework' | 'custom' | 'action' | 'result';
 type ModelToolGroup = { source: ModelToolSource; tools: AgentTool<any>[] };
 type ToolTelemetry = {
@@ -242,7 +242,7 @@ function toTurnMessage(message: AgentMessage): TurnInputMessage {
 			isError: message.isError,
 		};
 	}
-	throw new Error(`[flue] Unsupported message role in turn context: ${message.role}`);
+	throw new Error(`[bapX] Unsupported message role in turn context: ${message.role}`);
 }
 
 function toTurnContent(block: ProviderContentBlock): TurnContent {
@@ -304,8 +304,8 @@ interface CreateActionHarnessOptions {
 	parentConversationId: string;
 	depth: number;
 	signal?: AbortSignal;
-	executionContext: FlueExecutionContext;
-	eventCallback?: FlueEventInputCallback;
+	executionContext: BapxExecutionContext;
+	eventCallback?: BapxEventInputCallback;
 	config: AgentConfig;
 	env: SessionEnv;
 	tools: ToolDefinition[];
@@ -317,7 +317,7 @@ interface CreateActionHarnessOptions {
 	): Promise<void>;
 }
 
-export interface ActionHarness extends FlueHarness {
+export interface ActionHarness extends BapxHarness {
 	close(): Promise<void>;
 }
 
@@ -330,7 +330,7 @@ interface SessionInitOptions {
 	conversation: ReducedConversationState;
 	config: AgentConfig;
 	env: SessionEnv;
-	onAgentEvent?: FlueEventInputCallback;
+	onAgentEvent?: BapxEventInputCallback;
 	agentTools?: ToolDefinition[];
 	toolFactory?: SessionToolFactory;
 	delegationDepth?: number;
@@ -341,7 +341,7 @@ interface SessionInitOptions {
 	onClose?: () => void;
 	conversationWriter: ConversationRecordWriter;
 	attachmentStore: AttachmentStore;
-	executionContext?: FlueExecutionContext;
+	executionContext?: BapxExecutionContext;
 }
 
 interface CallOverrides {
@@ -378,7 +378,7 @@ function getRegisteredPackagedSkills(
 ): Record<string, PackagedSkillDirectory> {
 	const registered: Record<string, PackagedSkillDirectory> = {};
 	for (const skill of Object.values(skills)) {
-		if (!('__flueSkillReference' in skill)) continue;
+		if (!('__bapXSkillReference' in skill)) continue;
 		const packaged = getSkillReferenceDirectory(skill);
 		if (packaged) registered[skill.id] = packaged;
 	}
@@ -388,7 +388,7 @@ function getRegisteredPackagedSkills(
 function wrapProviderStream<T extends AsyncIterable<unknown> & { result(): Promise<unknown> }>(
 	stream: T,
 	operation: { type: 'model'; turnId: string },
-	executionContext: FlueExecutionContext,
+	executionContext: BapxExecutionContext,
 ): T {
 	return {
 		[Symbol.asyncIterator]() {
@@ -465,10 +465,10 @@ function sleepUntilRetry(delayMs: number, signal: AbortSignal): Promise<void> {
 	});
 }
 
-export class Session implements FlueSession, AgentSubmissionSession {
+export class Session implements BapxSession, AgentSubmissionSession {
 	readonly name: string;
 	readonly conversationId: string;
-	readonly fs: FlueFs;
+	readonly fs: BapxFs;
 
 	private agentLoop: Agent;
 	private affinityKey: string;
@@ -476,13 +476,13 @@ export class Session implements FlueSession, AgentSubmissionSession {
 	private env: SessionEnv;
 	private compactionAbortController: AbortController | undefined;
 	private modelRetryAbortController: AbortController | undefined;
-	private eventCallback: FlueEventInputCallback | undefined;
+	private eventCallback: BapxEventInputCallback | undefined;
 	private agentTools: ToolDefinition[];
 	private toolFactory: SessionToolFactory | undefined;
 	private closed = false;
 	private activeOperation: OperationKind | undefined;
 	private activeOperationId: string | undefined;
-	private activeAgentInput: FlueObservationDetail['agentInput'];
+	private activeAgentInput: BapxObservationDetail['agentInput'];
 	private activeOperationSettlement: Promise<void> = Promise.resolve();
 	private resolveActiveOperationSettlement: (() => void) | undefined;
 	private closePromise: Promise<void> | undefined;
@@ -515,7 +515,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 	private canonicalToolResultParentId: string | undefined;
 	private pendingCanonicalWrites = new Set<Promise<void>>();
 	private pendingToolPublications = new Map<string, () => void>();
-	private executionIdentity: FlueExecutionContext;
+	private executionIdentity: BapxExecutionContext;
 
 	private emitTurnRequestAndStream: StreamFn = async (model, context, options) => {
 		if (this.activeTurnId === undefined) this.activeTurnId = generateTurnId();
@@ -658,7 +658,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 		this.affinityKey = options.conversation.affinityKey;
 		this.config = options.config;
 		this.env = options.env;
-		this.fs = createFlueFs(options.env);
+		this.fs = createBapxFs(options.env);
 		this.agentTools = options.agentTools ?? [];
 		this.toolFactory = options.toolFactory;
 		this.delegationDepth = options.delegationDepth ?? 0;
@@ -1602,7 +1602,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 				let activePackagedSkills: Record<string, PackagedSkillDirectory> | undefined;
 				if (typeof skill === 'string') {
 					const registered = this.config.skills[skill];
-					if (registered && '__flueSkillReference' in registered) {
+					if (registered && '__bapXSkillReference' in registered) {
 						const packaged = this.resolvePackagedSkill(registered);
 						promptText = buildPackagedSkillPrompt(registered, packaged, options?.args, schema);
 						activePackagedSkills = { [registered.id]: packaged };
@@ -1718,7 +1718,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 	private resolveModelForCall(modelSpecifier: string | undefined): Model<any> {
 		if (!modelSpecifier) return this.config.model;
 		const model = this.config.resolveModel(modelSpecifier);
-		if (!model) throw new Error(`[flue] Model "${modelSpecifier}" could not be resolved.`);
+		if (!model) throw new Error(`[bapX] Model "${modelSpecifier}" could not be resolved.`);
 		return model;
 	}
 
@@ -1750,7 +1750,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 		const packaged = getSkillReferenceDirectory(reference);
 		if (!packaged)
 			throw new Error(
-				`[flue] Packaged skill "${reference.name}" is unavailable for this application build.`,
+				`[bapX] Packaged skill "${reference.name}" is unavailable for this application build.`,
 			);
 		return packaged;
 	}
@@ -1758,7 +1758,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 	private async activateSkillForTool(name: string): Promise<string> {
 		const registered = this.config.skills[name];
 		if (!registered) this.throwMissingSkill(name);
-		if ('__flueSkillReference' in registered) {
+		if ('__bapXSkillReference' in registered) {
 			return buildPackagedSkillPrompt(registered, this.resolvePackagedSkill(registered));
 		}
 		if (isWorkspaceSkill(registered)) {
@@ -2140,7 +2140,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 												? params.path
 												: undefined;
 										return typeof resourcePath === 'string' &&
-											resourcePath.startsWith('/.flue/packaged-skills/')
+											resourcePath.startsWith('/.bapX/packaged-skills/')
 											? packagedRead.execute(
 													id,
 													params as { path: string; offset?: number; limit?: number },
@@ -2486,7 +2486,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 		}
 	}
 
-	private executionContext(overrides: Partial<FlueExecutionContext> = {}): FlueExecutionContext {
+	private executionContext(overrides: Partial<BapxExecutionContext> = {}): BapxExecutionContext {
 		return {
 			...this.executionIdentity,
 			conversationId: this.conversationId,
@@ -2497,7 +2497,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 		};
 	}
 
-	private emit(event: FlueEventInput, observation?: FlueObservationDetail): void {
+	private emit(event: BapxEventInput, observation?: BapxObservationDetail): void {
 		const decorated = {
 			...redactEventImages(event),
 			conversationId: event.conversationId ?? this.conversationId,
@@ -2606,7 +2606,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 					type: 'assistant_message_started',
 					messageId: assistantMessageId,
 					parentId: userMessageId,
-					modelInfo: { api: 'flue-shell', provider: 'flue', model: '' },
+					modelInfo: { api: 'bapX-shell', provider: 'bapX', model: '' },
 				},
 				{
 					...this.canonicalEnvelope('assistant_tool_call'),
@@ -2755,7 +2755,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 
 			if (overflow && assistant !== undefined) {
 				overflowRecoveryAttempted = true;
-				this.internalLog('info', '[flue:compaction] Overflow detected, compacting and retrying...');
+				this.internalLog('info', '[bapX:compaction] Overflow detected, compacting and retrying...');
 				await this.rebuildCanonicalContext();
 				if (!(await this.runCompaction('overflow'))) {
 					if (!turnCompleted && options.resume) {
@@ -2766,7 +2766,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 					}
 					return;
 				}
-				this.internalLog('info', '[flue:compaction] Retrying after overflow recovery...');
+				this.internalLog('info', '[bapX:compaction] Retrying after overflow recovery...');
 				start = () => this.agentLoop.continue();
 			} else if (retryable && assistant !== undefined) {
 				// Count trailing consecutive errors from durable history (the error
@@ -2815,7 +2815,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 		attempt: number,
 	): Promise<boolean> {
 		if (attempt > MAX_TRANSIENT_MODEL_RETRIES) {
-			this.internalLog('warn', '[flue:model-retry] Transient model error retries exhausted', {
+			this.internalLog('warn', '[bapX:model-retry] Transient model error retries exhausted', {
 				attempts: attempt - 1,
 				error: assistant.errorMessage,
 			});
@@ -2825,7 +2825,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 		const delayMs = modelRetryDelayMs(attempt);
 		await this.rebuildCanonicalContext();
 		this.modelRetryAbortController = new AbortController();
-		this.internalLog('warn', '[flue:model-retry] Retrying transient model error', {
+		this.internalLog('warn', '[bapX:model-retry] Retrying transient model error', {
 			attempt,
 			maxRetries: MAX_TRANSIENT_MODEL_RETRIES,
 			delayMs,
@@ -2852,7 +2852,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 		if (shouldCompact(contextTokens, contextWindow, settings)) {
 			this.internalLog(
 				'info',
-				`[flue:compaction] Threshold reached — ${contextTokens} tokens used, ` +
+				`[bapX:compaction] Threshold reached — ${contextTokens} tokens used, ` +
 					`window ${contextWindow}, reserve ${settings.reserveTokens}, ` +
 					'triggering compaction',
 			);
@@ -2910,21 +2910,21 @@ export class Session implements FlueSession, AgentSubmissionSession {
 					: undefined,
 			);
 			if (!preparation) {
-				this.internalLog('info', '[flue:compaction] Nothing to compact (no valid cut point found)');
+				this.internalLog('info', '[bapX:compaction] Nothing to compact (no valid cut point found)');
 				return false;
 			}
 			const firstKeptEntry = contextEntries[preparation.firstKeptIndex]?.sourceEntry;
 			if (!firstKeptEntry || firstKeptEntry.type !== 'message') {
 				this.internalLog(
 					'info',
-					'[flue:compaction] Nothing to compact (first kept message has no entry)',
+					'[bapX:compaction] Nothing to compact (first kept message has no entry)',
 				);
 				return false;
 			}
 
 			this.internalLog(
 				'info',
-				`[flue:compaction] Summarizing ${preparation.messagesToSummarize.length} messages` +
+				`[bapX:compaction] Summarizing ${preparation.messagesToSummarize.length} messages` +
 					(preparation.isSplitTurn
 						? ` (split turn: ${preparation.turnPrefixMessages.length} prefix messages)`
 						: '') +
@@ -2954,7 +2954,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 						),
 					end: (purpose, handle, _model, response, error): void => {
 						const request = this.modelRequests.get(handle.turnId);
-						if (!request) throw new Error(`[flue] Missing model request telemetry for turn "${handle.turnId}".`);
+						if (!request) throw new Error(`[bapX] Missing model request telemetry for turn "${handle.turnId}".`);
 						this.emitTurn(handle.turnId, purpose, response, request, error);
 						this.modelRequests.delete(handle.turnId);
 						this.modelRequestStartTimes.delete(handle.turnId);
@@ -2999,7 +2999,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 			const messagesAfter = this.agentLoop.state.messages.length;
 			this.internalLog(
 				'info',
-				`[flue:compaction] Complete — messages: ${messagesBefore} → ${messagesAfter}, ` +
+				`[bapX:compaction] Complete — messages: ${messagesBefore} → ${messagesAfter}, ` +
 					`tokens before: ${result.tokensBefore}`,
 			);
 
@@ -3016,7 +3016,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 			return true;
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error);
-			this.internalLog('error', `[flue:compaction] Failed: ${errorMessage}`, { error });
+			this.internalLog('error', `[bapX:compaction] Failed: ${errorMessage}`, { error });
 			if (terminalPending) {
 				this.emit({
 					type: 'compaction',
@@ -3069,7 +3069,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 		return aggregateConversationUsageSince(await this.requireConversation(), beforeLeafId) ?? emptyUsage();
 	}
 
-	private agentInvocationOutput(result: unknown): FlueObservationDetail['agentOutput'] {
+	private agentInvocationOutput(result: unknown): BapxObservationDetail['agentOutput'] {
 		if (typeof result !== 'object' || result === null) return undefined;
 		if ('data' in result) return { type: 'data', data: result.data };
 		if ('text' in result && typeof result.text === 'string') {
@@ -3571,27 +3571,27 @@ export class Session implements FlueSession, AgentSubmissionSession {
 
 // ─── Public facade ──────────────────────────────────────────────────────────
 
-const publicSessionsBySession = new WeakMap<Session, FlueSession>();
-const internalSessionsByFacade = new WeakMap<FlueSession, Session>();
+const publicSessionsBySession = new WeakMap<Session, BapxSession>();
+const internalSessionsByFacade = new WeakMap<BapxSession, Session>();
 
 /**
- * Wrap an internal Session in a facade exposing exactly the {@link FlueSession}
+ * Wrap an internal Session in a facade exposing exactly the {@link BapxSession}
  * contract. Session instances carry internal runtime surface (the durable
  * submission executor, `abort()`/`close()`, load-bearing `metadata`) that must
  * not leak to user code at runtime. Repeated calls for the same Session return
  * the same facade.
  */
-export function createPublicSession(session: Session): FlueSession {
+export function createPublicSession(session: Session): BapxSession {
 	const existing = publicSessionsBySession.get(session);
 	if (existing) return existing;
-	const facade: FlueSession = {
+	const facade: BapxSession = {
 		name: session.name,
 		conversationId: session.conversationId,
 		fs: session.fs,
-		prompt: session.prompt.bind(session) as FlueSession['prompt'],
+		prompt: session.prompt.bind(session) as BapxSession['prompt'],
 		shell: session.shell.bind(session),
-		skill: session.skill.bind(session) as FlueSession['skill'],
-		task: session.task.bind(session) as FlueSession['task'],
+		skill: session.skill.bind(session) as BapxSession['skill'],
+		task: session.task.bind(session) as BapxSession['task'],
 		compact: session.compact.bind(session),
 	};
 	publicSessionsBySession.set(session, facade);
@@ -3605,7 +3605,7 @@ export function createPublicSession(session: Session): FlueSession {
  * registered facade (e.g. a test fake injected through a harness seam).
  * Runtime-internal use only (durable submission processing).
  */
-export function getInternalSession(session: FlueSession): Session | undefined {
+export function getInternalSession(session: BapxSession): Session | undefined {
 	return internalSessionsByFacade.get(session);
 }
 

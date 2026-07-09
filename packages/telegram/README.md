@@ -1,6 +1,6 @@
 # @bapX/telegram
 
-Verified Telegram Bot API webhook ingress for Flue channels.
+Verified Telegram Bot API webhook ingress for Bapx channels.
 
 ```ts
 import { createTelegramChannel } from '@bapX/telegram';

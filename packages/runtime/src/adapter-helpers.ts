@@ -218,7 +218,7 @@ export function admitSubmissionWithBackend<Row extends SubmissionAdmissionRow>(
 		chain(backend.insertIfAbsent({ submissionId, sessionKey, kind, payload, acceptedAt }), () =>
 			chain(backend.getExisting(submissionId), (row) => {
 				if (!row) {
-					throw new Error(`[flue] Durable ${kind} admission did not create a submission row.`);
+					throw new Error(`[bapX] Durable ${kind} admission did not create a submission row.`);
 				}
 				return adopt(row);
 			}),
@@ -234,12 +234,12 @@ export function admitSubmissionWithBackend<Row extends SubmissionAdmissionRow>(
 
 /**
  * Parse an ISO timestamp string into epoch milliseconds.
- * Throws with a `[flue]` error if the value is not a finite number.
+ * Throws with a `[bapX]` error if the value is not a finite number.
  */
 export function parseAcceptedAt(value: string, label: string): number {
 	const acceptedAt = Date.parse(value);
 	if (!Number.isFinite(acceptedAt)) {
-		throw new Error(`[flue] Internal ${label} received an invalid acceptedAt timestamp.`);
+		throw new Error(`[bapX] Internal ${label} received an invalid acceptedAt timestamp.`);
 	}
 	return acceptedAt;
 }

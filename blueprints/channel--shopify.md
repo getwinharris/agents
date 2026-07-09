@@ -6,15 +6,15 @@
 }
 ---
 
-# Add a Shopify Channel to Flue
+# Add a Shopify Channel to Bapx
 
 You are an AI coding agent adding verified Shopify webhook ingress and
-application-owned Admin GraphQL behavior to a Flue project.
+application-owned Admin GraphQL behavior to a Bapx project.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.flue/`, then `<root>/src/`, then
+first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions,
 Shopify installation storage, and which webhook topics the application needs.
 
@@ -28,7 +28,7 @@ Do not install the full `@shopify/shopify-api` SDK for this blueprint. The
 lightweight Admin client supplies the required outbound GraphQL path, while
 `@bapX/shopify` verifies ingress directly with Web Crypto.
 
-Flue owns exact-body HMAC verification, body limits, and verified ingress that
+Bapx owns exact-body HMAC verification, body limits, and verified ingress that
 forwards Shopify's native JSON payload and delivery headers unchanged. The
 project owns app installation and OAuth, token lookup and rotation, webhook
 registration, subscription filters, API-version upgrades, deduplication,
@@ -41,7 +41,7 @@ order fields to the application. Keep the Admin client bound to one trusted
 shop domain, API version, and access token:
 
 ```ts
-// flue-blueprint: channel/shopify@1
+// bapX-blueprint: channel/shopify@1
 import {
   type ClientResponse,
   createAdminApiClient,
@@ -271,7 +271,7 @@ Configure a JSON webhook subscription with this URL:
 https://example.com/channels/shopify/webhook
 ```
 
-If `flue()` is mounted beneath an outer prefix, include it. Use JSON delivery;
+If `bapX()` is mounted beneath an outer prefix, include it. Use JSON delivery;
 the first-party channel intentionally rejects XML.
 
 `SHOPIFY_CLIENT_SECRET` verifies inbound webhook bodies.
@@ -356,7 +356,7 @@ transport must reject every unexpected host or path and assert the GraphQL
 method, access-token header, API version, variables, and response handling.
 Execute ingress and this client request in Node and workerd.
 
-The verified Fetch client path runs in workerd with Flue's required
+The verified Fetch client path runs in workerd with Bapx's required
 `nodejs_compat` configuration. This is not a blanket guarantee for the full
 Shopify SDK or every Admin client operation. Cloudflare projects may use
 `process.env` or typed bindings according to their credential convention and

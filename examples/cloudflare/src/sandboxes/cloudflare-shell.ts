@@ -53,7 +53,7 @@ export async function hydrateFromBucket(
 
 		if (!listing.truncated) break;
 		if (!listing.cursor) {
-			throw new Error('[flue] R2 listing was truncated but did not include a cursor.');
+			throw new Error('[bapX] R2 listing was truncated but did not include a cursor.');
 		}
 		cursor = listing.cursor;
 	}
@@ -71,13 +71,13 @@ function absolutize(key: string): string {
 export function getShellSandbox(options: GetShellSandboxOptions): SandboxFactory {
 	if (!options?.workspace) {
 		throw new Error(
-			'[flue] getShellSandbox requires a workspace. Pass `getDefaultWorkspace()` for the common case, ' +
+			'[bapX] getShellSandbox requires a workspace. Pass `getDefaultWorkspace()` for the common case, ' +
 				'or construct your own with `new Workspace({ sql: ctx.storage.sql, ... })`.',
 		);
 	}
 	if (!options.loader) {
 		throw new Error(
-			'[flue] getShellSandbox requires a WorkerLoader binding. Add this to your wrangler.jsonc:\n' +
+			'[bapX] getShellSandbox requires a WorkerLoader binding. Add this to your wrangler.jsonc:\n' +
 				'  { "worker_loaders": [{ "binding": "LOADER" }] }\n' +
 				'Then pass `loader: env.LOADER` to getShellSandbox(). Worker Loader is currently in beta — ' +
 				'see https://developers.cloudflare.com/workers/runtime-apis/bindings/worker-loader/.',
@@ -172,7 +172,7 @@ function createWorkspaceSessionEnv(
 }
 
 const EXEC_NOT_SUPPORTED_MESSAGE =
-	"[flue] The cf-shell sandbox does not support exec(). The agent's `code` tool runs JavaScript " +
+	"[bapX] The cf-shell sandbox does not support exec(). The agent's `code` tool runs JavaScript " +
 	'in an isolated Worker against the workspace; from your own code, use `session.fs` / `harness.fs` ' +
 	'(readFile, writeFile, stat, readdir, etc.) — they route through the same Workspace. If you ' +
 	'specifically need bash/grep/find or a real Linux environment, use `@cloudflare/sandbox` ' +

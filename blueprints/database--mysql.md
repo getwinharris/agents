@@ -2,9 +2,9 @@
 { "kind": "database", "version": 1, "website": "https://www.mysql.com" }
 ---
 
-# Add a MySQL Database to Flue
+# Add a MySQL Database to Bapx
 
-You are an AI coding agent configuring MySQL-backed persistence for a Flue
+You are an AI coding agent configuring MySQL-backed persistence for a Bapx
 project using the first-party `@bapX/mysql` adapter. This adapter supports
 MySQL 8 with InnoDB tables.
 
@@ -22,7 +22,7 @@ project targets Cloudflare, stop and tell the user — there is nothing to add.
 ## Inspect the project
 
 Read local instructions (`AGENTS.md` and similar), detect the package manager,
-and select the first existing source root: `<root>/.flue/`, then `<root>/src/`,
+and select the first existing source root: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Check for an existing `db.ts` in that root — if one is present,
 the project already has an adapter; confirm with the user before replacing it.
 Inspect how the project reads secrets so the connection string follows the same
@@ -42,7 +42,7 @@ connection until commit or rollback completes, then release it. Convert
 `mysql2` result rows to plain objects before returning them.
 
 ```ts title="src/db.ts"
-// flue-blueprint: database/mysql@1
+// bapX-blueprint: database/mysql@1
 import { mysql, type MysqlQuery } from '@bapX/mysql';
 import mysql2 from 'mysql2/promise';
 
@@ -84,7 +84,7 @@ transaction callback. A transaction must remain on one checked-out connection.
 Do not hardcode or invent a connection string; `MYSQL_URL` (or the project's
 existing equivalent) is supplied by the environment.
 
-Flue discovers `db.ts` at build time and wires the default export into the
+Bapx discovers `db.ts` at build time and wires the default export into the
 generated Node server. The adapter's `migrate()` hook runs automatically at
 startup. It creates and verifies the complete InnoDB schema before stamping its
 version, so there is no separate migration command. Do not add an `app.ts`
@@ -92,10 +92,10 @@ solely to register the database.
 
 ## Credentials and deployment
 
-Use MySQL 8 with InnoDB for every Flue table. Supply `MYSQL_URL` through the
+Use MySQL 8 with InnoDB for every Bapx table. Supply `MYSQL_URL` through the
 project's existing secret system and configure TLS in `mysql2` as required by
 the database provider. Never commit a real connection string. For local
-development, `flue dev --env <file>` and `flue run --env <file>` load any
+development, `bapX dev --env <file>` and `bapX run --env <file>` load any
 `.env`-format file.
 
 ## Verify
@@ -103,7 +103,7 @@ development, `flue dev --env <file>` and `flue run --env <file>` load any
 1. Typecheck the project (`npx tsc --noEmit` is safe).
 2. Build the configured Node target and confirm the adapter is discovered.
 3. Point `MYSQL_URL` at a throwaway MySQL 8 database whose tables use InnoDB.
-4. Start the server and confirm `migrate()` creates the `flue_*` tables. Restart
+4. Start the server and confirm `migrate()` creates the `bapX_*` tables. Restart
    it and confirm existing state is reloaded.
 5. Do not point the adapter at a production database to test.
 

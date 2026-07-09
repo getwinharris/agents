@@ -37,5 +37,5 @@ http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': contentType });
   res.end(content);
 }).listen(port, () => {
-  console.log(`flue-docs serving dist/ on :${port}`);
+  console.log(`bapX-docs serving dist/ on :${port}`);
 });

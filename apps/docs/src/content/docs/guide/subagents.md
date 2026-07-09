@@ -34,7 +34,7 @@ The profile's `description` is shown to the parent model alongside the subagent'
 
 ## Delegate work
 
-An agent with configured subagents can decide to delegate while answering a prompt. Flue gives the agent a built-in `task` capability that starts a child session for the selected subagent and returns that child's answer to the parent agent.
+An agent with configured subagents can decide to delegate while answering a prompt. Bapx gives the agent a built-in `task` capability that starts a child session for the selected subagent and returns that child's answer to the parent agent.
 
 The child session receives the delegated request and its own configured context, not the parent's existing conversation transcript. When persistence is configured, its retained history remains owned by the parent session rather than becoming an ordinary named session. See [Database](/docs/guide/database/) for persistence setup. When a subagent works in a configured sandbox, it uses that same sandbox boundary as its parent. See [Sandboxes](/docs/guide/sandboxes/) for controlling workspace and command access.
 

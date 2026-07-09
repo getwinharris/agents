@@ -1,11 +1,11 @@
 ---
 title: Build Agents for GitHub Actions
-description: Build and run Flue agents in GitHub Actions.
+description: Build and run Bapx agents in GitHub Actions.
 ---
 
-Build and run Flue agents in GitHub Actions. This guide walks you through creating your first agent, running it locally with the CLI, and wiring it into a CI workflow.
+Build and run Bapx agents in GitHub Actions. This guide walks you through creating your first agent, running it locally with the CLI, and wiring it into a CI workflow.
 
-By the end, you will have a Flue agent running inside GitHub Actions, and you will know how to use local sandbox context, external CLIs, subagents, skills, and typed results to build CI workflows.
+By the end, you will have a Bapx agent running inside GitHub Actions, and you will know how to use local sandbox context, external CLIs, subagents, skills, and typed results to build CI workflows.
 
 ## Hello World
 
@@ -14,7 +14,7 @@ A minimal agent that runs in CI whenever an issue is opened.
 ### 1. Set up your project
 
 ```bash
-mkdir my-flue-project && cd my-flue-project
+mkdir my-bapX-project && cd my-bapX-project
 npm init -y
 npm install @bapX/runtime valibot
 npm install -D @bapX/cli
@@ -22,7 +22,7 @@ npm install -D @bapX/cli
 
 ### 2. Create your first agent
 
-`.flue/workflows/hello.ts`:
+`.bapX/workflows/hello.ts`:
 
 ```typescript
 import { defineAgent, defineWorkflow } from '@bapX/runtime';
@@ -54,23 +54,23 @@ A few things to note:
 - This workflow omits a public `route` handler, so it is internal-only and designed to be run from the CLI, which is perfect for CI.
 - **`model`** — The workflow's required agent provides the model and sandbox policy used to initialize each run.
 - **`local()`** — The `local()` sandbox runs the agent directly against the host filesystem and shell. In CI, that's the checked-out repo plus whatever binaries are on `$PATH` (`gh`, `git`, `npm`, etc.). Skills and `AGENTS.md` are discovered automatically from the project root. By default only shell-essential env vars (`PATH`, `HOME`, locale, etc.) are inherited from `process.env` — pass `local({ env: { GH_TOKEN: process.env.GH_TOKEN } })` to expose more. Use `local()` only when the runner itself provides the isolation boundary.
-- **Schemas** — The [Valibot](https://valibot.dev) schema defines the expected output shape. Flue parses the agent's response and returns it on `response.data`, fully typed.
+- **Schemas** — The [Valibot](https://valibot.dev) schema defines the expected output shape. Bapx parses the agent's response and returns it on `response.data`, fully typed.
 
 ### 3. Test it locally
 
 ```bash
-npx flue run hello --target node \
+npx bapX run hello --target node \
   --input '{"name": "World"}'
 ```
 
-`flue run` starts the configured application temporarily, invokes the workflow through its existing `flue()` mount, streams progress to stderr, and prints the final result as JSON to stdout. Normal `app.ts` and middleware execute. The workflow does not need authored HTTP exposure because this local runtime temporarily exposes route-free resources.
+`bapX run` starts the configured application temporarily, invokes the workflow through its existing `bapX()` mount, streams progress to stderr, and prints the final result as JSON to stdout. Normal `app.ts` and middleware execute. The workflow does not need authored HTTP exposure because this local runtime temporarily exposes route-free resources.
 
 ### 4. Wire it into GitHub Actions
 
 `.github/workflows/hello.yml`:
 
 ```yaml
-name: Hello Flue
+name: Hello Bapx
 
 on:
   issues:
@@ -91,7 +91,7 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          npx flue run hello --target node \
+          npx bapX run hello --target node \
             --input '{"name": "${{ github.event.issue.user.login }}"}'
 ```
 
@@ -99,7 +99,7 @@ Add `ANTHROPIC_API_KEY` as a repository secret (**Settings > Secrets and variabl
 
 ## Building a real agent
 
-Now let's build something useful — an issue triage agent that analyzes an issue and reports back. This is where Flue's agent features start to shine.
+Now let's build something useful — an issue triage agent that analyzes an issue and reports back. This is where Bapx's agent features start to shine.
 
 ### The agent handler
 
@@ -111,7 +111,7 @@ Once you have a session, you have three core methods:
 - **`session.prompt(text, opts)`** — Send a prompt to the agent and get back a result.
 - **`session.skill(name, opts)`** — Run a named skill — a reusable agent task defined by a markdown instruction file.
 
-Both `prompt()` and `skill()` accept a `result` option — a [Valibot](https://valibot.dev) schema that defines the expected output shape. Flue parses the agent's response and returns it on `response.data`, fully typed:
+Both `prompt()` and `skill()` accept a `result` option — a [Valibot](https://valibot.dev) schema that defines the expected output shape. Bapx parses the agent's response and returns it on `response.data`, fully typed:
 
 ```typescript
 import * as v from 'valibot';
@@ -135,9 +135,9 @@ const { data: diagnosis } = await session.skill('triage', {
 
 Your agent often needs to interact with tools like `gh`, `npm`, or `git`. With `local()`, the agent's bash tool runs against the host shell directly — anything on `$PATH` is reachable. Host env vars are opt-in: only shell essentials (`PATH`, `HOME`, locale, etc.) are inherited by default, so you pass the specific vars your CLIs need via `local({ env: { ... } })`.
 
-In GitHub Actions, this means you set the secrets you want the agent's CLIs to see in the workflow `env:` block, then forward them explicitly into the sandbox. The runner is your isolation boundary; flue makes the inner boundary (host → spawned shell) explicit.
+In GitHub Actions, this means you set the secrets you want the agent's CLIs to see in the workflow `env:` block, then forward them explicitly into the sandbox. The runner is your isolation boundary; bapX makes the inner boundary (host → spawned shell) explicit.
 
-`.flue/workflows/triage.ts`:
+`.bapX/workflows/triage.ts`:
 
 ```typescript
 import { defineAgent, defineWorkflow } from '@bapX/runtime';
@@ -263,7 +263,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npx flue run triage --target node \
+          npx bapX run triage --target node \
             --input '{"issueNumber": ${{ github.event.issue.number }}}'
 ```
 
@@ -310,15 +310,15 @@ This pattern — prompt or skill call, check the result, decide what to do next 
 
 ## Running workflows locally
 
-During development, `flue run` starts the configured application temporarily and runs the workflow in one step:
+During development, `bapX run` starts the configured application temporarily and runs the workflow in one step:
 
 ```bash
 # Run with input
-npx flue run triage --target node \
+npx bapX run triage --target node \
   --input '{"issueNumber": 42}'
 
 # Pipe the result to jq
-npx flue run triage --target node \
+npx bapX run triage --target node \
   --input '{"issueNumber": 42}' | jq '.severity'
 ```
 

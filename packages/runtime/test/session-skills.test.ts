@@ -6,7 +6,7 @@ import {
 } from '@earendil-works/pi-ai/compat';
 import { afterEach, describe, expect, it } from 'vitest';
 import { defineAgent, SkillNotRegisteredError } from '../src/index.ts';
-import { createFlueContext } from '../src/internal.ts';
+import { createBapxContext } from '../src/internal.ts';
 import type { SessionEnv } from '../src/types.ts';
 
 const providers: FauxProviderRegistration[] = [];
@@ -93,7 +93,7 @@ describe('session.skill()', () => {
 				return fauxAssistantMessage('Workspace review complete.');
 			},
 		]);
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'workspace-skill-instance',
 			env: {},
 			agentConfig: {
@@ -124,7 +124,7 @@ describe('session.skill()', () => {
 	it('skips a malformed workspace skill when another valid skill is discovered alongside it', async () => {
 		const provider = createProvider();
 		provider.setResponses([fauxAssistantMessage('Workspace review complete.')]);
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'malformed-skill-instance',
 			env: {},
 			agentConfig: {
@@ -152,7 +152,7 @@ describe('session.skill()', () => {
 
 	it('rejects an unknown skill when the requested name is not registered', async () => {
 		const provider = createProvider();
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'unknown-skill-instance',
 			env: {},
 			agentConfig: {
@@ -170,7 +170,7 @@ describe('session.skill()', () => {
 
 	it('rejects duplicate skill names when workspace discovery conflicts with an agent definition', async () => {
 		const provider = createProvider();
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'duplicate-skill-instance',
 			env: {},
 			agentConfig: {
@@ -193,7 +193,7 @@ describe('session.skill()', () => {
 				})),
 			),
 		).rejects.toThrow(
-			'[flue] Skill name "review" appears in both agent definition and workspace discovery.',
+			'[bapX] Skill name "review" appears in both agent definition and workspace discovery.',
 		);
 	});
 
@@ -206,7 +206,7 @@ describe('session.skill()', () => {
 				return fauxAssistantMessage('No skills available.');
 			},
 		]);
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'no-autonomous-skills-instance',
 			env: {},
 			agentConfig: {
@@ -245,7 +245,7 @@ describe('session.skill()', () => {
 				return fauxAssistantMessage('Workspace skill loaded.');
 			},
 		]);
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'autonomous-workspace-skill-instance',
 			env: {},
 			agentConfig: {
@@ -300,7 +300,7 @@ describe('session.skill()', () => {
 				return fauxAssistantMessage('Metadata-only skill activated.');
 			},
 		]);
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: 'autonomous-metadata-skill-instance',
 			env: {},
 			agentConfig: {

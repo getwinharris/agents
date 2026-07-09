@@ -6,7 +6,7 @@ const payload = {
 	action: 'created',
 	comment: {
 		id: 99,
-		body: '@flue-bot please reply',
+		body: '@bapX-bot please reply',
 		created_at: '2026-05-25T00:00:00.000Z',
 		updated_at: '2026-05-25T00:00:00.000Z',
 		user: { id: 2, login: 'octocat', type: 'User' },
@@ -26,7 +26,7 @@ const comments = await waitForOutboundComment();
 assert.deepEqual(comments, [
 	{
 		issueNumber: 42,
-		body: 'Reply from a Flue agent through Chat SDK.',
+		body: 'Reply from a Bapx agent through Chat SDK.',
 	},
 ]);
 
@@ -47,7 +47,7 @@ async function sendWebhookWhenReady() {
 			await new Promise((resolve) => setTimeout(resolve, 100));
 		}
 	}
-	throw new Error('Timed out waiting for the Flue server.');
+	throw new Error('Timed out waiting for the Bapx server.');
 }
 
 async function waitForOutboundComment() {

@@ -1,12 +1,12 @@
 ---
 name: channel-conformance
-description: Research, implement, review, and validate one first-party Flue HTTP channel across its package, example, channel blueprint, documentation, Node runtime, Cloudflare Workers runtime, and publish artifact. Use when adding a provider channel, expanding an existing channel's verified HTTP surface, auditing channel conformance, or evaluating whether a provider is eligible for the stateless webhook model.
+description: Research, implement, review, and validate one first-party Bapx HTTP channel across its package, example, channel blueprint, documentation, Node runtime, Cloudflare Workers runtime, and publish artifact. Use when adding a provider channel, expanding an existing channel's verified HTTP surface, auditing channel conformance, or evaluating whether a provider is eligible for the stateless webhook model.
 ---
 
 # Channel Conformance
 
 Build one provider channel to a release-ready state without releasing it. Treat
-each provider as a test of Flue's channel foundation: preserve provider-native
+each provider as a test of Bapx's channel foundation: preserve provider-native
 semantics, compare the result with existing channels, and improve shared
 machinery only when concrete cross-provider evidence justifies it.
 
@@ -16,7 +16,7 @@ package or declaring it complete.
 
 ## Preserve The Product Boundary
 
-Flue owns:
+Bapx owns:
 
 - authenticated, verified HTTP ingress;
 - fixed discovered routes beneath `channels/<name>.ts`;
@@ -42,17 +42,17 @@ Provider-native payloads are the default channel contract. Before defining any
 event, interaction, command, or webhook types, look for an authoritative
 provider-maintained type package, provider SDK export, generated schema, or
 well-maintained DefinitelyTyped package. Prefer re-exporting those types over
-creating a parallel Flue model.
+creating a parallel Bapx model.
 
 Pass the provider's parsed wire object through without renaming fields, moving
 properties, filtering valid deliveries, or replacing provider discriminants
-with Flue discriminants. Name the callback property for the provider surface,
+with Bapx discriminants. Name the callback property for the provider surface,
 such as `payload`, `interaction`, `command`, or another provider-native term;
 there is no universal requirement to call it `event`. When the useful provider
 object is an outer delivery envelope, prefer one unduplicated argument such as
 `{ c, payload }` and let users access its nested fields directly.
 
-Validate only what Flue needs to own the ingress boundary:
+Validate only what Bapx needs to own the ingress boundary:
 
 - authentication and replay protection;
 - body and transport encoding;
@@ -71,7 +71,7 @@ and installation policy also remain application concerns unless they are an
 explicit part of the channel's necessary verification contract.
 
 Define local wire-shaped types only when no suitable authoritative type exists,
-or when a narrow Flue-owned transport wrapper has no provider type. Keep field
+or when a narrow Bapx-owned transport wrapper has no provider type. Keep field
 names and nesting faithful to the provider. Do not add `unknown` variants,
 normalized unions, or camel-cased mirrors merely to create consistency across
 channels.
@@ -100,7 +100,7 @@ Establish:
 - an outbound SDK or narrow Fetch client suitable for the editable example.
 
 Defer the provider when useful ingress requires a long-lived process, a
-provider-managed service inside Flue, unverifiable inbound requests, or a
+provider-managed service inside Bapx, unverifiable inbound requests, or a
 Node-only canonical path with no defensible Workers alternative. Record the
 evidence and blocker rather than weakening the gate.
 
@@ -214,7 +214,7 @@ Prove:
 - Node and Cloudflare example builds.
 
 Do not claim Cloudflare support from bundling alone. Execute the verification
-path and canonical example client in workerd with Flue's required
+path and canonical example client in workerd with Bapx's required
 `nodejs_compat` configuration. Node API usage is acceptable when Cloudflare
 implements the required behavior, but imports backed only by non-functional
 compatibility stubs are not. Actual workerd execution remains the gate.
@@ -224,7 +224,7 @@ compatibility stubs are not. Actual workerd execution remains the gate.
 Run focused package and example checks during implementation, then the relevant
 repository-wide gates. Prepare and pack the package, inspect the tarball, and
 compile a clean strict consumer from packed artifacts. Exercise the named
-blueprint through the real built `flue add` path and build the documentation and
+blueprint through the real built `bapX add` path and build the documentation and
 blueprint registry.
 
 Run a built-example webhook smoke test with locally generated valid and invalid
@@ -237,7 +237,7 @@ provider protocol assertions outside provider-owned suites.
 ## Run A Scope And Simplicity Audit
 
 Before final review, examine every public option, type, validation branch,
-helper, response path, and test for whether its value justifies making Flue
+helper, response path, and test for whether its value justifies making Bapx
 responsible for it. Prefer deletion and standard platform behavior when the
 provider contract does not require custom machinery.
 

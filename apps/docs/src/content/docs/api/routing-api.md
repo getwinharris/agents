@@ -1,6 +1,6 @@
 ---
 title: Routing API
-description: Compose Flue routes in an authored application entrypoint.
+description: Compose Bapx routes in an authored application entrypoint.
 lastReviewedAt: 2026-06-20
 ---
 
@@ -8,14 +8,14 @@ Import application composition APIs from `@bapX/runtime/routing`.
 
 ## `app.ts`
 
-`app.ts` is an optional authored application entrypoint. Without it, Flue generates an application that mounts `flue()` at `/`. When `app.ts` exists, its default export owns the request pipeline and must mount `flue()` explicitly to publish Flue routes.
+`app.ts` is an optional authored application entrypoint. Without it, Bapx generates an application that mounts `bapX()` at `/`. When `app.ts` exists, its default export owns the request pipeline and must mount `bapX()` explicitly to publish Bapx routes.
 
 ```ts title="src/app.ts"
-import { flue } from '@bapX/runtime/routing';
+import { bapX } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 const app = new Hono();
-app.route('/', flue());
+app.route('/', bapX());
 export default app;
 ```
 
@@ -33,13 +33,13 @@ Structural contract for the default export of an authored `app.ts` entry. Any ob
 
 On Cloudflare, `env` contains bindings and `ctx` is the `ExecutionContext`. On Node, `env` contains Hono's Node adapter bindings for the incoming and outgoing messages, and `ctx` is `undefined`.
 
-## `flue()`
+## `bapX()`
 
 ```ts
-function flue(): Hono;
+function bapX(): Hono;
 ```
 
-Creates a mountable Hono sub-app for Flue's public HTTP API. Routes are relative to the application-chosen mount prefix.
+Creates a mountable Hono sub-app for Bapx's public HTTP API. Routes are relative to the application-chosen mount prefix.
 
 | Route                          | Purpose                                                                                  |
 | ------------------------------ | ---------------------------------------------------------------------------------------- |
@@ -72,20 +72,20 @@ curl -X POST http://localhost:3583/agents/assistant/main \
 
 `GET /runs/:runId?meta` selects the persisted run-record view (`runId`, `workflowName`, `status`, timestamps, `input`, `result`, `error`) as plain JSON. The `?meta` response carries no Durable Streams headers, and stream parameters (`offset`, `live`) are ignored.
 
-For an existing run, Flue invokes its owning workflow's `runs` middleware with an ordinary Hono context before handling `GET`, `HEAD`, `?meta`, unsupported methods, or future run methods. Middleware may deny the request or call `next()`. If the workflow has no `runs` export, Flue returns a generic `404` indistinguishable from an unknown or removed run. Unsupported methods become `405` only after the run is exposed and authorized.
+For an existing run, Bapx invokes its owning workflow's `runs` middleware with an ordinary Hono context before handling `GET`, `HEAD`, `?meta`, unsupported methods, or future run methods. Middleware may deny the request or call `next()`. If the workflow has no `runs` export, Bapx returns a generic `404` indistinguishable from an unknown or removed run. Unsupported methods become `405` only after the run is exposed and authorized.
 
 ## Compose your own admin endpoints
 
-Flue ships no admin HTTP surface. Build deployment-inspection endpoints from the server-side primitives exported by `@bapX/runtime` — [`listRuns()`, `getRun()`, and `listAgents()`](/docs/api/data-persistence-api/#inspection-primitives) — behind your own authorization:
+Bapx ships no admin HTTP surface. Build deployment-inspection endpoints from the server-side primitives exported by `@bapX/runtime` — [`listRuns()`, `getRun()`, and `listAgents()`](/docs/api/data-persistence-api/#inspection-primitives) — behind your own authorization:
 
 ```ts title="src/app.ts"
 import { listAgents, listRuns } from '@bapX/runtime';
-import { flue } from '@bapX/runtime/routing';
+import { bapX } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 import { requireOperator } from './auth.ts';
 
 const app = new Hono();
-app.route('/', flue());
+app.route('/', bapX());
 app.use('/admin/*', requireOperator);
 app.get('/admin/agents', async (c) => c.json(await listAgents()));
 app.get('/admin/runs', async (c) => c.json(await listRuns({ limit: 100 })));

@@ -1,16 +1,16 @@
-import type { FlueObservation } from '@bapX/runtime';
+import type { BapxObservation } from '@bapX/runtime';
 import { context, propagation, trace } from '@opentelemetry/api';
 import * as Sentry from '@sentry/node';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createOpenTelemetryInstrumentation } from '../src/index.ts';
 
-function observation(value: Record<string, unknown>): FlueObservation {
+function observation(value: Record<string, unknown>): BapxObservation {
 	return {
 		...value,
 		v: 3,
 		eventIndex: value.eventIndex ?? 0,
 		timestamp: value.timestamp ?? '2026-06-22T00:00:00.000Z',
-	} as unknown as FlueObservation;
+	} as unknown as BapxObservation;
 }
 
 const ctx = { id: 'instance-1', agentName: 'assistant', env: {}, req: undefined } as never;
@@ -24,7 +24,7 @@ afterEach(async () => {
 });
 
 describe('Sentry OpenTelemetry compatibility', () => {
-	it('preserves Flue GenAI attributes through the Sentry span processor', async () => {
+	it('preserves Bapx GenAI attributes through the Sentry span processor', async () => {
 		const spans: Array<Record<string, any>> = [];
 		Sentry.init({
 			dsn: 'https://public@example.invalid/1',
@@ -94,7 +94,7 @@ describe('Sentry OpenTelemetry compatibility', () => {
 				'gen_ai.response.model': 'model-actual',
 				'gen_ai.usage.input_tokens': 5,
 				'gen_ai.usage.output_tokens': 2,
-				'flue.turn.purpose': 'agent',
+				'bapX.turn.purpose': 'agent',
 			},
 		});
 		expect(spans[0]?.trace_id).toMatch(/^[0-9a-f]{32}$/);

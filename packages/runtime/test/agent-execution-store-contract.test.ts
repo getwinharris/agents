@@ -108,14 +108,14 @@ describe('sqlite() PersistenceAdapter', () => {
 	});
 
 	function createTempDir(): string {
-		const dir = mkdtempSync(join(tmpdir(), 'flue-sqlite-adapter-'));
+		const dir = mkdtempSync(join(tmpdir(), 'bapX-sqlite-adapter-'));
 		tempDirs.push(dir);
 		return dir;
 	}
 
 	it('creates the parent directory when it does not exist', async () => {
 		const dir = createTempDir();
-		const nested = join(dir, 'nested', 'deep', 'flue.db');
+		const nested = join(dir, 'nested', 'deep', 'bapX.db');
 		const adapter = sqlite(nested);
 		await adapter.migrate?.();
 		await adapter.connect();
@@ -242,7 +242,7 @@ describe('sqlite() PersistenceAdapter', () => {
 		await adapter.close?.();
 
 		const db = new DatabaseSync(dbPath);
-		const rows = db.prepare(`SELECT value FROM flue_meta WHERE key = 'schema_version'`).all() as {
+		const rows = db.prepare(`SELECT value FROM bapX_meta WHERE key = 'schema_version'`).all() as {
 			value: string;
 		}[];
 		expect(rows).toEqual([{ value: '5' }]);
@@ -254,9 +254,9 @@ describe('sqlite() PersistenceAdapter', () => {
 		const dbPath = join(dir, 'migration-test.db');
 		const db = new DatabaseSync(dbPath);
 		db.exec(`
-			CREATE TABLE flue_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
-			INSERT INTO flue_meta (key, value) VALUES ('schema_version', '1');
-			CREATE TABLE flue_agent_submissions (
+			CREATE TABLE bapX_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+			INSERT INTO bapX_meta (key, value) VALUES ('schema_version', '1');
+			CREATE TABLE bapX_agent_submissions (
 				sequence INTEGER PRIMARY KEY AUTOINCREMENT,
 				submission_id TEXT NOT NULL UNIQUE,
 				session_key TEXT NOT NULL,
@@ -265,7 +265,7 @@ describe('sqlite() PersistenceAdapter', () => {
 				status TEXT NOT NULL,
 				accepted_at INTEGER NOT NULL
 			);
-			CREATE TABLE flue_runs (
+			CREATE TABLE bapX_runs (
 				run_id TEXT PRIMARY KEY,
 				workflow_name TEXT,
 				status TEXT NOT NULL,
@@ -277,11 +277,11 @@ describe('sqlite() PersistenceAdapter', () => {
 		const adapter = sqlite(dbPath);
 		expect(() => adapter.migrate?.()).toThrow('supports version 5');
 		const unchanged = new DatabaseSync(dbPath);
-		const columns = unchanged.prepare('PRAGMA table_info(flue_agent_submissions)').all() as Array<{
+		const columns = unchanged.prepare('PRAGMA table_info(bapX_agent_submissions)').all() as Array<{
 			name: string;
 		}>;
 		expect(columns.map((column) => column.name)).not.toContain('terminal_event_key');
-		expect(unchanged.prepare(`SELECT value FROM flue_meta WHERE key = 'schema_version'`).get()).toEqual({ value: '1' });
+		expect(unchanged.prepare(`SELECT value FROM bapX_meta WHERE key = 'schema_version'`).get()).toEqual({ value: '1' });
 		unchanged.close();
 	});
 
@@ -290,9 +290,9 @@ describe('sqlite() PersistenceAdapter', () => {
 		const dbPath = join(dir, 'partial-current-test.db');
 		const db = new DatabaseSync(dbPath);
 		db.exec(`
-			CREATE TABLE flue_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
-			INSERT INTO flue_meta (key, value) VALUES ('schema_version', '3');
-			CREATE TABLE flue_agent_submissions (
+			CREATE TABLE bapX_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+			INSERT INTO bapX_meta (key, value) VALUES ('schema_version', '3');
+			CREATE TABLE bapX_agent_submissions (
 				sequence INTEGER PRIMARY KEY AUTOINCREMENT,
 				submission_id TEXT NOT NULL UNIQUE,
 				session_key TEXT NOT NULL,
@@ -302,7 +302,7 @@ describe('sqlite() PersistenceAdapter', () => {
 				accepted_at INTEGER NOT NULL,
 				terminal_event_key TEXT
 			);
-			CREATE TABLE flue_runs (
+			CREATE TABLE bapX_runs (
 				run_id TEXT PRIMARY KEY,
 				workflow_name TEXT,
 				status TEXT NOT NULL,
@@ -315,8 +315,8 @@ describe('sqlite() PersistenceAdapter', () => {
 		const adapter = sqlite(dbPath);
 		expect(() => adapter.migrate?.()).toThrow('supports version 5');
 		const unchanged = new DatabaseSync(dbPath);
-		const submissionColumns = unchanged.prepare('PRAGMA table_info(flue_agent_submissions)').all() as Array<{ name: string }>;
-		const runColumns = unchanged.prepare('PRAGMA table_info(flue_runs)').all() as Array<{ name: string }>;
+		const submissionColumns = unchanged.prepare('PRAGMA table_info(bapX_agent_submissions)').all() as Array<{ name: string }>;
+		const runColumns = unchanged.prepare('PRAGMA table_info(bapX_runs)').all() as Array<{ name: string }>;
 		expect(submissionColumns.map((column) => column.name)).not.toContain('terminal_event_json');
 		expect(runColumns.map((column) => column.name)).not.toContain('tracestate');
 		unchanged.close();
@@ -330,7 +330,7 @@ describe('sqlite() PersistenceAdapter', () => {
 		await adapter.close?.();
 
 		const db = new DatabaseSync(dbPath);
-		db.prepare(`UPDATE flue_meta SET value = '999' WHERE key = 'schema_version'`).run();
+		db.prepare(`UPDATE bapX_meta SET value = '999' WHERE key = 'schema_version'`).run();
 		db.close();
 
 		const reopened = sqlite(dbPath);

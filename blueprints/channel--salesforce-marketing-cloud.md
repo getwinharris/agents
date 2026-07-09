@@ -6,16 +6,16 @@
 }
 ---
 
-# Add a Salesforce Marketing Cloud Engagement Channel to Flue
+# Add a Salesforce Marketing Cloud Engagement Channel to Bapx
 
 You are an AI coding agent adding Salesforce Marketing Cloud Engagement Event
 Notification Service (ENS) ingress and a narrow application-owned REST client
-to a Flue project. This is not a generic Salesforce integration.
+to a Bapx project. This is not a generic Salesforce integration.
 
 ## Inspect the project
 
 Read local instructions, detect the package manager and deployment target, and
-select the first existing source root: `<root>/.flue/`, then `<root>/src/`,
+select the first existing source root: `<root>/.bapX/`, then `<root>/src/`,
 then `<root>/`. Inspect existing agents, environment types, secret
 conventions, Marketing Cloud tenant configuration, and the ENS event families
 the application subscribes to.
@@ -24,7 +24,7 @@ Install `@bapX/salesforce`. Do not install
 `@salesforce/core`: ingress and the narrow REST operation in this blueprint use
 standard Fetch and Web Crypto in Node and Cloudflare Workers.
 
-Flue owns exact-body signature verification, body and batch limits, minimal
+Bapx owns exact-body signature verification, body and batch limits, minimal
 common-field validation, and response serialization. The project owns callback
 registration, `/platform/v1/ens-verify`, OAuth,
 token storage and refresh, subscription lifecycle, event-family validation,
@@ -189,7 +189,7 @@ Create `<source-dir>/channels/salesforce-marketing-cloud.ts`. Adapt environment
 access, the selected event families, and the dispatched message to the project:
 
 ```ts
-// flue-blueprint: channel/salesforce-marketing-cloud@1
+// bapX-blueprint: channel/salesforce-marketing-cloud@1
 import {
   createSalesforceMarketingCloudChannel,
   type SalesforceMarketingCloudEvent,
@@ -313,7 +313,7 @@ handler is present. The body must contain exactly:
 
 Enable the handler only for the setup workflow that owns the callback, check
 the configured `callbackId`, call `/platform/v1/ens-verify` from application
-code, and then disable unsigned verification. Flue does not perform callback
+code, and then disable unsigned verification. Bapx does not perform callback
 registration, OAuth, or verification API calls automatically.
 
 Do not add `verification` to the ordinary event-serving configuration above.
@@ -375,7 +375,7 @@ Register the complete HTTPS callback URL in Marketing Cloud Engagement:
 https://example.com/channels/salesforce-marketing-cloud/events
 ```
 
-If `flue()` has an outer mount prefix, include it.
+If `bapX()` has an outer mount prefix, include it.
 
 Marketing Cloud sends signed notification batches with:
 
@@ -413,7 +413,7 @@ Marketing Cloud expects a prompt acknowledgement: it fails callback creation
 if the verification POST is not answered with `200` within 30 seconds, and it
 retries deliveries that are not acknowledged quickly. Admit durable work fast —
 dispatch to an agent or enqueue, then return — instead of blocking on slow
-operations before responding. Flue does not impose its own route timeout.
+operations before responding. Bapx does not impose its own route timeout.
 
 ENS delivery is at least once and retries can continue for up to seven days.
 The channel does not deduplicate. Persist a family-appropriate application key
@@ -422,7 +422,7 @@ before performing non-idempotent work.
 ## Test without Salesforce
 
 Run the project's strict typecheck, Node build, Cloudflare build, and actual
-workerd tests. Flue's canonical Cloudflare environment enables
+workerd tests. Bapx's canonical Cloudflare environment enables
 `nodejs_compat`, while this ingress and client use standard Fetch, URL, and Web
 Crypto APIs.
 

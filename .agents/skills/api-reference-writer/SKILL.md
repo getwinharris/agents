@@ -1,11 +1,11 @@
 ---
 name: api-reference-writer
-description: Creates and rewrites Flue API reference documentation from package-visible TypeScript exports and audited source-adjacent JSDoc. Use when authoring concise reference pages under apps/docs/src/content/docs/api/ or reference pages such as reference/configuration.md. Do not use for narrative guides, tutorials, or automated maintenance checks.
+description: Creates and rewrites Bapx API reference documentation from package-visible TypeScript exports and audited source-adjacent JSDoc. Use when authoring concise reference pages under apps/docs/src/content/docs/api/ or reference pages such as reference/configuration.md. Do not use for narrative guides, tutorials, or automated maintenance checks.
 ---
 
-# Flue API Reference Writer
+# Bapx API Reference Writer
 
-Create concise, lookup-oriented Flue reference documentation from the supported public TypeScript interface. Treat source-adjacent JSDoc as the canonical home for public reference material and Markdown pages as a faithful editorial projection of that material.
+Create concise, lookup-oriented Bapx reference documentation from the supported public TypeScript interface. Treat source-adjacent JSDoc as the canonical home for public reference material and Markdown pages as a faithful editorial projection of that material.
 
 This skill covers the initial documentation pass. Do not design a generator, manifest, CI check, or automated maintenance workflow unless the user explicitly asks for one.
 
@@ -117,7 +117,7 @@ Avoid:
 Example:
 
 ```ts
-export interface UserFlueConfig {
+export interface UserBapxConfig {
   /**
    * Build and development target. Required unless `--target` is passed to the
    * CLI.
@@ -126,7 +126,7 @@ export interface UserFlueConfig {
 
   /**
    * Project root. Relative paths resolve from the directory containing the
-   * selected `flue.config.*` file. Defaults to that directory.
+   * selected `bapX.config.*` file. Defaults to that directory.
    */
   root?: string;
 }
@@ -142,7 +142,7 @@ A typical configuration option should look like:
 ## root
 
 - **Type:** `string`
-- **Default:** directory containing the selected `flue.config.*` file
+- **Default:** directory containing the selected `bapX.config.*` file
 
 Project root. Relative paths resolve from the directory containing the selected
 configuration file.
@@ -154,10 +154,10 @@ A typical exported function should look like:
 ## `defineConfig()`
 
 ```ts
-function defineConfig(config: UserFlueConfig): UserFlueConfig;
+function defineConfig(config: UserBapxConfig): UserBapxConfig;
 ```
 
-Provides type checking and editor completion for `flue.config.ts`. Returns the
+Provides type checking and editor completion for `bapX.config.ts`. Returns the
 configuration unchanged.
 ````
 
@@ -201,7 +201,7 @@ Avoid introducing a separate manifest during the initial pass. For now:
 - source-adjacent audited JSDoc owns reference facts;
 - Markdown pages and navigation own reader-facing grouping and ordering.
 
-## Flue-specific boundaries
+## Bapx-specific boundaries
 
 Use these distinctions while auditing:
 
@@ -209,7 +209,7 @@ Use these distinctions while auditing:
 - Agents have names; agent instances have ids; harnesses and sessions have names; operations have generated ids.
 - `@bapX/runtime/internal` is generated-server plumbing, not supported user API.
 - Compatibility subpaths should not be presented as ordinary supported surfaces.
-- For `@bapX/cli/config`, distinguish authored configuration such as `UserFlueConfig` from resolved internal shapes such as `FlueConfig`.
+- For `@bapX/cli/config`, distinguish authored configuration such as `UserBapxConfig` from resolved internal shapes such as `BapxConfig`.
 
 ## Completion handoff
 

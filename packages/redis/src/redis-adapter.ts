@@ -23,7 +23,7 @@ import type {
 	SubmissionClaimRef,
 } from '@bapX/runtime/adapter';
 import {
-	assertSupportedFlueSchemaVersion,
+	assertSupportedBapxSchemaVersion,
 	clampLimit,
 	createDispatchAgentSubmissionInput,
 	createSessionStorageKey,
@@ -185,13 +185,13 @@ export function redis(runner: RedisRunner, options: RedisOptions = {}): Persiste
 					const keys = strings(page[1]);
 					if (keys.some((key) => key !== backend.keys.meta())) existing = true;
 				} while (cursor !== '0' && !existing);
-				if (existing) assertSupportedFlueSchemaVersion('unversioned');
+				if (existing) assertSupportedBapxSchemaVersion('unversioned');
 				await backend.command('HSETNX', [
 					backend.keys.meta(),
 					'schemaVersion',
 					FLUE_SCHEMA_VERSION,
 				]);
-			} else assertSupportedFlueSchemaVersion(String(stored));
+			} else assertSupportedBapxSchemaVersion(String(stored));
 		},
 		connect() {
 			return {

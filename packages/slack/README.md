@@ -1,6 +1,6 @@
 # `@bapX/slack`
 
-Verified Slack Events API, interactivity, and slash-command ingress for Flue
+Verified Slack Events API, interactivity, and slash-command ingress for Bapx
 applications.
 
 ```ts
@@ -37,14 +37,14 @@ export const channel = createSlackChannel({
 });
 ```
 
-Place the named `channel` export in `channels/slack.ts`. Flue serves configured
+Place the named `channel` export in `channels/slack.ts`. Bapx serves configured
 surfaces at:
 
 - `POST /channels/slack/events`
 - `POST /channels/slack/interactions`
 - `POST /channels/slack/commands`
 
-Paths are relative to the `flue()` mount. Omitting a callback omits its route;
+Paths are relative to the `bapX()` mount. Omitting a callback omits its route;
 at least one callback is required.
 
 The package verifies Slack signatures over exact request bytes, enforces the
@@ -59,7 +59,7 @@ responses, and ordinary Hono or Fetch `Response` values pass through. Callback
 errors flow through normal Hono error handling.
 
 This package does not include an outbound Slack client or model tools. Run
-`flue add channel slack` for editable project code using the official
+`bapX add channel slack` for editable project code using the official
 `@slack/web-api` client. Conversation keys are stable thread identifiers, not
 authorization capabilities. The package is stateless and does not deduplicate
 Events API retries.

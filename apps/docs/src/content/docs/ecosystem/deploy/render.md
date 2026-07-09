@@ -1,24 +1,24 @@
 ---
 title: Deploy Agents on Render
-description: Run the Flue Node server as a long-running Render web service.
+description: Run the Bapx Node server as a long-running Render web service.
 lastReviewedAt: 2026-06-20
 ---
 
-Flue's Node target is a long-running HTTP server, not a serverless function, so it deploys to Render as a web service that stays up between requests. This guide covers the Render-specific setup; the build itself is the same `node` target described in [Deploy Agents on Node.js](/docs/ecosystem/deploy/node/) — `npx flue build --target node` produces `dist/server.mjs`, which you start with `node dist/server.mjs`.
+Bapx's Node target is a long-running HTTP server, not a serverless function, so it deploys to Render as a web service that stays up between requests. This guide covers the Render-specific setup; the build itself is the same `node` target described in [Deploy Agents on Node.js](/docs/ecosystem/deploy/node/) — `npx bapX build --target node` produces `dist/server.mjs`, which you start with `node dist/server.mjs`.
 
-The fastest start is the [Flue template](https://render.com/templates/flue): a one-click Blueprint that provisions a Node web service running the translation and assistant agents. The [Flue + Postgres template](https://render.com/templates/flue-with-postgresql) is the same service with a Render Postgres database wired in. Both render the rest of this guide as the explanation of what they set up.
+The fastest start is the [Bapx template](https://render.com/templates/bapX): a one-click Blueprint that provisions a Node web service running the translation and assistant agents. The [Bapx + Postgres template](https://render.com/templates/bapX-with-postgresql) is the same service with a Render Postgres database wired in. Both render the rest of this guide as the explanation of what they set up.
 
 ## Deploy
 
-Render reads a Blueprint — a `render.yaml` at the repo root — to provision the service as code. A Flue web service is a Node runtime with the build and start commands from the Node guide:
+Render reads a Blueprint — a `render.yaml` at the repo root — to provision the service as code. A Bapx web service is a Node runtime with the build and start commands from the Node guide:
 
 ```yaml title="render.yaml"
 services:
   - type: web
-    name: flue-agents
+    name: bapX-agents
     runtime: node
     plan: free
-    buildCommand: npm ci && npx flue build --target node
+    buildCommand: npm ci && npx bapX build --target node
     startCommand: node dist/server.mjs
     healthCheckPath: /health
     envVars:
@@ -26,7 +26,7 @@ services:
         sync: false
 ```
 
-- `buildCommand` compiles the Flue Node target. The build externalizes your dependencies rather than bundling them, so `node_modules` must be present at runtime — `npm ci` installs them, and `@bapX/cli` must be available to the build command.
+- `buildCommand` compiles the Bapx Node target. The build externalizes your dependencies rather than bundling them, so `node_modules` must be present at runtime — `npm ci` installs them, and `@bapX/cli` must be available to the build command.
 - `startCommand` runs the generated server, which binds the `PORT` Render injects and serves agents at `/agents/<name>/<id>` and workflows at `/workflows/<name>`.
 - `healthCheckPath` lets Render verify each deploy before shifting traffic to it — but only if your application defines that route (see [Health and streaming](#health-and-streaming)).
 
@@ -36,7 +36,7 @@ The template uses `plan: free`, so first deploys cost nothing. Free web services
 
 ## Environment and secrets
 
-The built server reads only the environment present when it starts — it does not load `.env` — so configuration lives in Render environment variables, set in the Dashboard or declared in `render.yaml`. Flue needs the API key for your model provider, plus an optional model specifier:
+The built server reads only the environment present when it starts — it does not load `.env` — so configuration lives in Render environment variables, set in the Dashboard or declared in `render.yaml`. Bapx needs the API key for your model provider, plus an optional model specifier:
 
 | Variable                               | Purpose                                                                                                 |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------- |
@@ -63,21 +63,21 @@ For durable process or host replacement, add a Render Postgres database to the B
 
 ```yaml title="render.yaml"
 databases:
-  - name: flue-db
+  - name: bapX-db
     plan: basic-256mb
 
 services:
   - type: web
-    name: flue-agents
+    name: bapX-agents
     runtime: node
     plan: free
-    buildCommand: npm ci && npx flue build --target node
+    buildCommand: npm ci && npx bapX build --target node
     startCommand: node dist/server.mjs
     healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: flue-db
+          name: bapX-db
           property: connectionString
       - key: ANTHROPIC_API_KEY
         sync: false
@@ -89,23 +89,23 @@ services:
 npm install @bapX/postgres
 ```
 
-```typescript title=".flue/db.ts"
+```typescript title=".bapX/db.ts"
 import { postgres } from '@bapX/postgres';
 
 export default postgres(process.env.DATABASE_URL!);
 ```
 
-Flue discovers `db.ts` at build time and wires it into the generated server — schema creation, canonical conversation streams, immutable attachments, durable submission state, and workflow history are handled by the adapter. See [Database](/docs/guide/database/) for the adapter contract and alternatives. Note that a `free` Postgres database expires 30 days after creation; use a `basic-256mb` or larger plan for anything you intend to keep.
+Bapx discovers `db.ts` at build time and wires it into the generated server — schema creation, canonical conversation streams, immutable attachments, durable submission state, and workflow history are handled by the adapter. See [Database](/docs/guide/database/) for the adapter contract and alternatives. Note that a `free` Postgres database expires 30 days after creation; use a `basic-256mb` or larger plan for anything you intend to keep.
 
 ## Health and streaming
 
-Flue does not generate a `/health` route. If you set `healthCheckPath`, define the matching route in `app.ts` — otherwise the check never passes and Render holds the deploy back. Drop `healthCheckPath` if you don't want a health gate.
+Bapx does not generate a `/health` route. If you set `healthCheckPath`, define the matching route in `app.ts` — otherwise the check never passes and Render holds the deploy back. Drop `healthCheckPath` if you don't want a health gate.
 
 Exposed workflow runs are served through long-lived `GET /runs/:runId` reads (long-poll/SSE). Render imposes no fixed idle timeout and allows a request to run up to 100 minutes. Instance replacement can still close connections, so retain the invocation's `runId` and resume the run stream rather than relying on one blocking `?wait=result` request. The server's `SIGTERM` shutdown delay (default 30s, up to 300s via `maxShutdownDelaySeconds`) governs graceful shutdown. See [Workflow HTTP exports](/docs/api/workflow-api/#http-exports).
 
 ## Going further
 
-- **Scheduled workflows.** Model periodic tasks as a Render cron job that calls the deployed application's authenticated workflow endpoint, or set its command to `npx flue run workflow:<name> --server https://<host>/<flue-mount>`. Remote attachment avoids rebuilding and starting a second application runtime for every fire. Render runs at most one instance of a given cron job at a time and stops a run after 12 hours.
+- **Scheduled workflows.** Model periodic tasks as a Render cron job that calls the deployed application's authenticated workflow endpoint, or set its command to `npx bapX run workflow:<name> --server https://<host>/<bapX-mount>`. Remote attachment avoids rebuilding and starting a second application runtime for every fire. Render runs at most one instance of a given cron job at a time and stops a run after 12 hours.
 - **Background workers.** For continuous, queue-driven delivery, add a `type: worker` service. A worker has no public port; it runs `node dist/server.mjs` (or a custom entry), makes attached agent requests and waits for results, or has application code call `dispatch(...)` for asynchronous delivery identified by `dispatchId`.
 
 ## References

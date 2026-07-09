@@ -1,6 +1,6 @@
 # `@bapX/github`
 
-Verified GitHub webhook ingress for Flue applications.
+Verified GitHub webhook ingress for Bapx applications.
 
 ```ts
 import { createGitHubChannel } from '@bapX/github';
@@ -19,8 +19,8 @@ export const channel = createGitHubChannel({
 });
 ```
 
-Place this export in `channels/github.ts`. Flue discovers it and serves
-`POST /channels/github/webhook` relative to the `flue()` mount.
+Place this export in `channels/github.ts`. Bapx discovers it and serves
+`POST /channels/github/webhook` relative to the `bapX()` mount.
 
 The package verifies exact request bytes before parsing and acknowledges GitHub
 `ping` internally. Ingress is JSON-only. Every verified non-ping delivery is
@@ -30,7 +30,7 @@ forwarded with its native `@octokit/webhooks-types` payload, discriminated by
 an empty `200`; JSON values and ordinary Hono responses are also supported.
 
 This package does not include an outbound GitHub client or model tools. Run
-`flue add channel github` to generate editable project code using the official
+`bapX add channel github` to generate editable project code using the official
 `@octokit/rest` SDK and application-owned `defineTool(...)` values.
 
 Conversation keys are stable issue or pull-request identifiers, not

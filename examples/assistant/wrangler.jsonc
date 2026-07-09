@@ -1,5 +1,5 @@
 {
-	// User-owned wrangler config for this Flue app. Flue reads this file,
+	// User-owned wrangler config for this Bapx app. Bapx reads this file,
 	// merges its own contributions into an ignored Vite input config, and the
 	// official Cloudflare Vite integration emits the deployable Worker output.
 	// src/cloudflare.ts explicitly exports the Sandbox class from @cloudflare/sandbox.
@@ -25,12 +25,12 @@
 			"new_sqlite_classes": ["Assistant"]
 		},
 		{
-			"tag": "bapX-class-FlueRegistry",
-			"new_sqlite_classes": ["FlueRegistry"]
+			"tag": "bapX-class-BapxRegistry",
+			"new_sqlite_classes": ["BapxRegistry"]
 		},
 		{
 			"tag": "bapX-rename-generated-classes",
-			"renamed_classes": [{ "from": "Assistant", "to": "FlueAssistantAgent" }]
+			"renamed_classes": [{ "from": "Assistant", "to": "BapxAssistantAgent" }]
 		}
 	],
 	"containers": [

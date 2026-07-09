@@ -1,21 +1,21 @@
 ---
 title: Cloudflare Sandbox
-description: Run Flue agent work inside Cloudflare container-backed sandboxes.
+description: Run Bapx agent work inside Cloudflare container-backed sandboxes.
 ---
 
-Cloudflare Sandbox uses `@cloudflare/sandbox` to provide a container-backed Linux environment to a Flue application deployed on Cloudflare. This integration is platform-native: it is not an adapter module for a Node-target application.
+Cloudflare Sandbox uses `@cloudflare/sandbox` to provide a container-backed Linux environment to a Bapx application deployed on Cloudflare. This integration is platform-native: it is not an adapter module for a Node-target application.
 
 ## Quickstart
 
-Add container-backed Linux sandbox capability to an existing Flue project with the [Cloudflare Sandbox](https://developers.cloudflare.com/sandbox) blueprint. Run the following command in your terminal or coding agent of choice:
+Add container-backed Linux sandbox capability to an existing Bapx project with the [Cloudflare Sandbox](https://developers.cloudflare.com/sandbox) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```bash
-flue add sandbox cloudflare
+bapX add sandbox cloudflare
 ```
 
 ## Overview
 
-Cloudflare Sandbox is a Cloudflare target integration rather than a generated adapter. In a Cloudflare-targeted project, the blueprint installs `@cloudflare/sandbox`; a workflow obtains the bound Durable Object with `getSandbox(...)`, wraps it with Flue's `cloudflareSandbox(...)`, and passes that sandbox factory to an agent definition.
+Cloudflare Sandbox is a Cloudflare target integration rather than a generated adapter. In a Cloudflare-targeted project, the blueprint installs `@cloudflare/sandbox`; a workflow obtains the bound Durable Object with `getSandbox(...)`, wraps it with Bapx's `cloudflareSandbox(...)`, and passes that sandbox factory to an agent definition.
 
 ```ts title="<source-root>/workflows/coding-agent.ts (excerpt)"
 import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';

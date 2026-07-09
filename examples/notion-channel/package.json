@@ -3,8 +3,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "flue build --target node",
-		"build:cloudflare": "flue build --target cloudflare",
+		"build": "bapX build --target node",
+		"build:cloudflare": "bapX build --target cloudflare",
 		"check:types": "tsc --noEmit",
 		"test": "vitest run --config vitest.config.ts && vitest run --config vitest.workerd.config.ts"
 	},

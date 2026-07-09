@@ -49,14 +49,14 @@ describe('Cloudflare context', () => {
 
 	it('rejects context access when code runs outside a Cloudflare context', () => {
 		expect(() => getCloudflareContext()).toThrow(
-			'[flue] Not running in a Cloudflare context. This function can only be called inside a Cloudflare Worker or Durable Object.',
+			'[bapX] Not running in a Cloudflare context. This function can only be called inside a Cloudflare Worker or Durable Object.',
 		);
 	});
 
 	it('returns Durable Object identity when the current context supplies identity', () => {
 		const durableObjectIdentity = {
 			bindingName: 'FLUE_ASSISTANT_AGENT',
-			className: 'FlueAssistantAgent',
+			className: 'BapxAssistantAgent',
 			name: 'customer-123',
 			id: 'durable-object-id',
 		};
@@ -78,7 +78,7 @@ describe('Cloudflare context', () => {
 		};
 
 		expect(() => runWithCloudflareContext(context, () => getDurableObjectIdentity())).toThrow(
-			'[flue] Durable Object identity is not available in this Cloudflare context.',
+			'[bapX] Durable Object identity is not available in this Cloudflare context.',
 		);
 	});
 });

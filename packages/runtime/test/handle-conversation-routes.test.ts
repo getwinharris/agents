@@ -79,7 +79,7 @@ describe('handleAgentConversationRead()', () => {
 		const response = await handleAgentConversationRead({
 			store: stores.conversationStreamStore,
 			path,
-			request: new Request('https://flue.test/agents/assistant/instance-1?view=history'),
+			request: new Request('https://bapX.test/agents/assistant/instance-1?view=history'),
 		});
 		const snapshot = await response.json();
 
@@ -119,7 +119,7 @@ describe('handleAgentConversationRead()', () => {
 			store: stores.conversationStreamStore,
 			path,
 			request: new Request(
-				`https://flue.test/agents/assistant/instance-1?view=updates&offset=${encodeURIComponent(start)}`,
+				`https://bapX.test/agents/assistant/instance-1?view=updates&offset=${encodeURIComponent(start)}`,
 			),
 		});
 		const updates = (await response.json()) as Array<{ position: unknown }>;
@@ -177,7 +177,7 @@ describe('handleAgentConversationRead()', () => {
 			store,
 			path,
 			request: new Request(
-				`https://flue.test/agents/assistant/instance-1?view=updates&offset=${encodeURIComponent(start)}&live=long-poll`,
+				`https://bapX.test/agents/assistant/instance-1?view=updates&offset=${encodeURIComponent(start)}&live=long-poll`,
 			),
 		});
 		const updates = await response.json();
@@ -197,7 +197,7 @@ describe('handleAgentConversationRead()', () => {
 			store: stores.conversationStreamStore,
 			path,
 			request: new Request(
-				'https://flue.test/agents/assistant/instance-1?view=history&tail=100',
+				'https://bapX.test/agents/assistant/instance-1?view=history&tail=100',
 			),
 		});
 		expect(response.status).toBe(400);

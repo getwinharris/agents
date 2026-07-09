@@ -1,7 +1,7 @@
 import type {
 	DeliveredAttachment,
-	FlueConversationMessage,
-	FlueConversationState,
+	BapxConversationMessage,
+	BapxConversationState,
 } from '@bapX/sdk';
 
 export type AgentStatus = 'idle' | 'connecting' | 'submitted' | 'streaming' | 'error';
@@ -16,7 +16,7 @@ export interface FailedSend {
 }
 
 export interface AgentSnapshot {
-	messages: FlueConversationMessage[];
+	messages: BapxConversationMessage[];
 	status: AgentStatus;
 	historyReady: boolean;
 	error: Error | undefined;
@@ -31,14 +31,14 @@ export interface AgentSnapshot {
 interface PendingSend {
 	localId: string;
 	submissionId?: string;
-	optimistic: FlueConversationMessage;
+	optimistic: BapxConversationMessage;
 }
 
 export interface AgentState extends AgentSnapshot {
-	conversation: FlueConversationState | undefined;
+	conversation: BapxConversationState | undefined;
 	pendingSends: PendingSend[];
 	/** Optimistic messages for failed sends, retained so they stay rendered. */
-	failedOptimistic: FlueConversationMessage[];
+	failedOptimistic: BapxConversationMessage[];
 	/**
 	 * Maps a submission id to the local id its optimistic message used. The
 	 * canonical user message that later arrives is re-keyed to this local id so
@@ -70,7 +70,7 @@ export type AgentReducerEvent =
 	| { type: 'local_send_failed'; localId: string; error: Error }
 	| {
 			type: 'local_observation';
-			conversation: FlueConversationState | undefined;
+			conversation: BapxConversationState | undefined;
 			phase: 'loading' | 'connecting' | 'live' | 'absent' | 'error' | 'closed';
 			error?: Error;
 	  };
@@ -176,7 +176,7 @@ function converge(state: AgentState): AgentState {
 	// Keep showing an optimistic echo until its canonical copy (or settlement)
 	// arrives; once it does, the re-keyed canonical message takes its place.
 	const pendingSends: PendingSend[] = [];
-	const pendingEchoes: FlueConversationMessage[] = [];
+	const pendingEchoes: BapxConversationMessage[] = [];
 	for (const pending of state.pendingSends) {
 		const confirmed = pending.submissionId
 			? canonicalSubmissionIds.has(pending.submissionId) || settledIds.has(pending.submissionId)
@@ -230,7 +230,7 @@ function converge(state: AgentState): AgentState {
 
 function optimisticMessage(
 	event: Extract<AgentReducerEvent, { type: 'local_send_submitted' }>,
-): FlueConversationMessage {
+): BapxConversationMessage {
 	return {
 		id: event.localId,
 		role: 'user',
@@ -257,7 +257,7 @@ function optimisticMessage(
 	};
 }
 
-function messageText(message: FlueConversationMessage): string {
+function messageText(message: BapxConversationMessage): string {
 	const part = message.parts.find((value) => value.type === 'text');
 	return part && part.type === 'text' ? part.text : '';
 }

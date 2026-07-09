@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { ConversationRecordWriter } from '../src/conversation-writer.ts';
 import { defineAgent, defineTool } from '../src/index.ts';
 import {
-	createFlueContext,
+	createBapxContext,
 	InMemoryAttachmentStore,
 	InMemoryConversationStreamStore,
 } from '../src/internal.ts';
@@ -74,7 +74,7 @@ async function makeHarness(
 	attachmentStore: InMemoryAttachmentStore,
 	agent: ReturnType<typeof defineAgent>,
 ) {
-	const ctx = createFlueContext({
+	const ctx = createBapxContext({
 		id: INSTANCE,
 		env: {},
 		agentConfig: {
@@ -452,7 +452,7 @@ describe('subagent task recovery', () => {
 				delta: 'Partial child output',
 			},
 		]);
-		const ctx = createFlueContext({
+		const ctx = createBapxContext({
 			id: INSTANCE,
 			env: {},
 			agentConfig: { resolveModel: () => provider.getModel('reviewer') },

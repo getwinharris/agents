@@ -20,11 +20,11 @@ describe('Cloudflare deployment extensions', () => {
 			const child = spawn(
 				process.execPath,
 				[
-					path.resolve(process.cwd(), 'bin/flue.mjs'),
+					path.resolve(process.cwd(), 'bin/bapX.mjs'),
 					'run',
 					'checkpoint',
 					'--server',
-					'/internal/flue',
+					'/internal/bapX',
 					'--header',
 					'x-checkpoint: observed',
 				],
@@ -107,7 +107,7 @@ export default {
 		try {
 			const entry = fs.readFileSync(path.join(viteInputDir(root), '_entry.ts'), 'utf8');
 			expect(entry).toContain(
-				`throw new Error('[flue] cloudflare.ts default export must be an object containing non-HTTP Worker handlers.');`,
+				`throw new Error('[bapX] cloudflare.ts default export must be an object containing non-HTTP Worker handlers.');`,
 			);
 		} finally {
 			removeFixture(root);
@@ -116,8 +116,8 @@ export default {
 
 	it('rejects authored exports that conflict with generated Worker exports', async () => {
 		await expectRuntimeFailure(
-			`export class FlueAssistantAgent {}\n`,
-			'cloudflare.ts export "FlueAssistantAgent" conflicts with a Flue-generated Worker export.',
+			`export class BapxAssistantAgent {}\n`,
+			'cloudflare.ts export "BapxAssistantAgent" conflicts with a Bapx-generated Worker export.',
 		);
 	}, 90000);
 
@@ -125,7 +125,7 @@ export default {
 		const root = await createGeneratedFixture(`export const marker = true;\n`, {
 			durable_objects: { bindings: [{ name: 'Sandbox', class_name: 'Sandbox' }] },
 			migrations: [
-				{ tag: 'v1', new_sqlite_classes: ['FlueAssistantAgent', 'FlueRegistry'] },
+				{ tag: 'v1', new_sqlite_classes: ['BapxAssistantAgent', 'BapxRegistry'] },
 				{ tag: 'v2', new_sqlite_classes: ['Sandbox'] },
 			],
 		});
@@ -143,7 +143,7 @@ export default {
 				durable_objects: { bindings: [{ name: 'FLUE_ASSISTANT_AGENT', class_name: 'Counter' }] },
 			}),
 		).rejects.toThrow(
-			'wrangler.jsonc durable object binding "FLUE_ASSISTANT_AGENT" is reserved by Flue. Expected a local class_name "FlueAssistantAgent" binding without script_name or environment.',
+			'wrangler.jsonc durable object binding "FLUE_ASSISTANT_AGENT" is reserved by Bapx. Expected a local class_name "BapxAssistantAgent" binding without script_name or environment.',
 		);
 	}, 90000);
 
@@ -154,14 +154,14 @@ export default {
 					bindings: [
 						{
 							name: 'FLUE_ASSISTANT_AGENT',
-							class_name: 'FlueAssistantAgent',
+							class_name: 'BapxAssistantAgent',
 							script_name: 'other-worker',
 						},
 					],
 				},
 			}),
 		).rejects.toThrow(
-			'wrangler.jsonc durable object binding "FLUE_ASSISTANT_AGENT" is reserved by Flue. Expected a local class_name "FlueAssistantAgent" binding without script_name or environment.',
+			'wrangler.jsonc durable object binding "FLUE_ASSISTANT_AGENT" is reserved by Bapx. Expected a local class_name "BapxAssistantAgent" binding without script_name or environment.',
 		);
 	}, 90000);
 
@@ -190,7 +190,7 @@ export default {
 					target: 'cloudflare',
 					mode: 'development',
 				}),
-			).rejects.toThrow('durable object binding "FLUE_ASSISTANT_AGENT" is reserved by Flue');
+			).rejects.toThrow('durable object binding "FLUE_ASSISTANT_AGENT" is reserved by Bapx');
 			expect(fs.readFileSync(entryPath, 'utf8')).toBe(entry);
 		} finally {
 			removeFixture(root);
@@ -199,9 +199,9 @@ export default {
 });
 
 function createRunFixture(): string {
-	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'flue-cloudflare-run-'));
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapX-cloudflare-run-'));
 	fs.mkdirSync(path.join(root, 'node_modules', '@earendil-works'), { recursive: true });
-	fs.mkdirSync(path.join(root, 'node_modules', '@flue'), { recursive: true });
+	fs.mkdirSync(path.join(root, 'node_modules', '@bapX'), { recursive: true });
 	fs.symlinkSync(
 		path.resolve(process.cwd(), '../runtime/node_modules/@earendil-works/pi-ai'),
 		path.join(root, 'node_modules', '@earendil-works', 'pi-ai'),
@@ -209,7 +209,7 @@ function createRunFixture(): string {
 	);
 	fs.symlinkSync(
 		path.resolve(process.cwd(), '../runtime'),
-		path.join(root, 'node_modules', '@flue', 'runtime'),
+		path.join(root, 'node_modules', '@bapX', 'runtime'),
 		'dir',
 	);
 	fs.symlinkSync(
@@ -222,7 +222,7 @@ function createRunFixture(): string {
 		path.join(root, 'node_modules', 'hono'),
 		'dir',
 	);
-	fs.writeFileSync(path.join(root, 'flue.config.mjs'), `export default { target: 'cloudflare' };\n`);
+	fs.writeFileSync(path.join(root, 'bapX.config.mjs'), `export default { target: 'cloudflare' };\n`);
 	fs.writeFileSync(
 		path.join(root, 'wrangler.jsonc'),
 		JSON.stringify({
@@ -230,8 +230,8 @@ function createRunFixture(): string {
 			compatibility_date: '2026-06-01',
 			compatibility_flags: ['nodejs_compat'],
 			migrations: [
-				{ tag: 'v1', new_sqlite_classes: ['FlueRegistry'] },
-				{ tag: 'v2', new_sqlite_classes: ['FlueCheckpointWorkflow'] },
+				{ tag: 'v1', new_sqlite_classes: ['BapxRegistry'] },
+				{ tag: 'v2', new_sqlite_classes: ['BapxCheckpointWorkflow'] },
 			],
 		}),
 	);
@@ -242,7 +242,7 @@ function createRunFixture(): string {
 	);
 	fs.writeFileSync(
 		path.join(root, 'app.mjs'),
-		`import { flue } from '@bapX/runtime/routing';\nimport { Hono } from 'hono';\nconst app = new Hono();\napp.use('*', async (c, next) => { if (c.req.header('x-checkpoint') !== 'observed') return c.text('missing checkpoint header', 400); await next(); c.header('x-outer-middleware', 'observed'); });\napp.route('/internal/flue', flue());\nexport default app;\n`,
+		`import { bapX } from '@bapX/runtime/routing';\nimport { Hono } from 'hono';\nconst app = new Hono();\napp.use('*', async (c, next) => { if (c.req.header('x-checkpoint') !== 'observed') return c.text('missing checkpoint header', 400); await next(); c.header('x-outer-middleware', 'observed'); });\napp.route('/internal/bapX', bapX());\nexport default app;\n`,
 	);
 	return root;
 }
@@ -264,10 +264,10 @@ async function createGeneratedFixture(
 	cloudflareSource: string,
 	wranglerOverrides: Record<string, unknown> = {},
 ): Promise<string> {
-	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'flue-cloudflare-deployment-extension-'));
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapX-cloudflare-deployment-extension-'));
 	const output = path.join(root, 'generated');
 	fs.mkdirSync(path.join(root, 'node_modules', '@earendil-works'), { recursive: true });
-	fs.mkdirSync(path.join(root, 'node_modules', '@flue'), { recursive: true });
+	fs.mkdirSync(path.join(root, 'node_modules', '@bapX'), { recursive: true });
 	fs.symlinkSync(
 		path.resolve(process.cwd(), '../runtime/node_modules/@earendil-works/pi-ai'),
 		path.join(root, 'node_modules', '@earendil-works', 'pi-ai'),
@@ -275,7 +275,7 @@ async function createGeneratedFixture(
 	);
 	fs.symlinkSync(
 		path.resolve(process.cwd(), '../runtime'),
-		path.join(root, 'node_modules', '@flue', 'runtime'),
+		path.join(root, 'node_modules', '@bapX', 'runtime'),
 		'dir',
 	);
 	fs.symlinkSync(
@@ -292,7 +292,7 @@ async function createGeneratedFixture(
 			compatibility_flags: ['nodejs_compat'],
 			durable_objects: { bindings: [{ name: 'Counter', class_name: 'Counter' }] },
 			migrations: [
-				{ tag: 'v1', new_sqlite_classes: ['FlueAssistantAgent', 'FlueRegistry'] },
+				{ tag: 'v1', new_sqlite_classes: ['BapxAssistantAgent', 'BapxRegistry'] },
 				{ tag: 'v2', new_sqlite_classes: ['Counter'] },
 			],
 			...wranglerOverrides,

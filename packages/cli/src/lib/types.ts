@@ -1,5 +1,5 @@
 /**
- * Build-time types consumed by Flue's build pipeline.
+ * Build-time types consumed by Bapx's build pipeline.
  *
  * These types describe the inputs and outputs of `build()` and the plugin
  * surface that targets (Node, Cloudflare) implement. They are not part of
@@ -35,8 +35,8 @@ export interface BuildContext {
 	 *
 	 * Note that this is the literal output directory — `server.mjs` and
 	 * other artifacts are written directly inside it. Cloudflare's
-	 * generated Vite inputs (`<root>/.flue-vite/` and the composed
-	 * `<root>/.flue-vite.wrangler.jsonc`) always anchor on `root`,
+	 * generated Vite inputs (`<root>/.bapX-vite/` and the composed
+	 * `<root>/.bapX-vite.wrangler.jsonc`) always anchor on `root`,
 	 * regardless of this value.
 	 */
 	output: string;
@@ -46,7 +46,7 @@ export interface BuildContext {
 	 * imports the user's app and dispatches all requests through its
 	 * `fetch` method instead of constructing a default Hono app. When
 	 * undefined, the generated entry falls back to a default Hono app
-	 * with Flue's built-in routes mounted via `flue()`.
+	 * with Bapx's built-in routes mounted via `bapX()`.
 	 *
 	 * Discovery follows the same extension priority as agents:
 	 * `app.ts` > `app.mts` > `app.js` > `app.mjs`.
@@ -87,7 +87,7 @@ export interface BuildPlugin {
 	generateEntryPoint(ctx: BuildContext): string | Promise<string>;
 	/**
 	 * Bundling strategy:
-	 *   - `'vite'`: build a Node `server.mjs` artifact through Flue's shared
+	 *   - `'vite'`: build a Node `server.mjs` artifact through Bapx's shared
 	 *     Vite authored-module graph.
 	 *   - `'vite-cloudflare'`: write the Cloudflare source entry used by the
 	 *     official Cloudflare Vite integration.
@@ -118,19 +118,19 @@ export interface BuildPlugin {
 export interface ViteCloudflareInputs {
 	/**
 	 * Composed wrangler config contents, written to
-	 * `<root>/.flue-vite.wrangler.jsonc` at the project root so official
+	 * `<root>/.bapX-vite.wrangler.jsonc` at the project root so official
 	 * local variable discovery continues to find `.dev.vars` and `.env`.
 	 */
 	wranglerConfig: string;
 	/**
-	 * Extra files written next to the generated entry in `<root>/.flue-vite/`.
+	 * Extra files written next to the generated entry in `<root>/.bapX-vite/`.
 	 * Keys are filenames relative to that directory.
 	 */
 	entryDirFiles?: Record<string, string>;
 }
 
 export interface BuildOptions {
-	/** The project root — typically the cwd of the `flue` invocation. */
+	/** The project root — typically the cwd of the `bapX` invocation. */
 	root: string;
 	sourceRoot: string;
 	/**

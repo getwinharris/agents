@@ -1,20 +1,20 @@
 ---
 title: Deploy Agents on Node.js
-description: Build and deploy Flue agents as a Node.js server.
+description: Build and deploy Bapx agents as a Node.js server.
 lastReviewedAt: 2026-06-20
 ---
 
-Build and deploy Flue agents as a Node.js server. This guide walks you through creating your first agent, running it locally, and deploying it anywhere you can run Node.js — a VPS, Docker, Railway, Fly.io, or any cloud platform.
+Build and deploy Bapx agents as a Node.js server. This guide walks you through creating your first agent, running it locally, and deploying it anywhere you can run Node.js — a VPS, Docker, Railway, Fly.io, or any cloud platform.
 
-By the end, you will have a Flue agent running as a Node.js server, and you will know how to add subagents, sandbox context, external CLIs, remote sandboxes, and durable session storage when your agent needs them.
+By the end, you will have a Bapx agent running as a Node.js server, and you will know how to add subagents, sandbox context, external CLIs, remote sandboxes, and durable session storage when your agent needs them.
 
 This guide focuses on deploying the generated Node server. First review the [CLI overview](/docs/cli/overview/) for the development lifecycle and build output, then see [Routing](/docs/guide/routing/) for direct HTTP agent delivery, workflow endpoints, and asynchronous `dispatch(...)` from application-owned routes. To package the server as a container image, see [Deploy Agents with Docker](/docs/ecosystem/deploy/docker/).
 
 ## Project layout
 
-The project root is your project directory. Flue selects authored source from `.flue/`, then `src/`, then the project root. The first matching directory wins, and layouts never mix. See [Project Layout](/docs/guide/project-layout/) for the full convention.
+The project root is your project directory. Bapx selects authored source from `.bapX/`, then `src/`, then the project root. The first matching directory wins, and layouts never mix. See [Project Layout](/docs/guide/project-layout/) for the full convention.
 
-By default `flue build` writes to `./dist/` at the project root; pass `--output <path>` to redirect the build elsewhere. Examples in this guide use the `./.flue/` layout.
+By default `bapX build` writes to `./dist/` at the project root; pass `--output <path>` to redirect the build elsewhere. Examples in this guide use the `./.bapX/` layout.
 
 ## Hello World
 
@@ -23,7 +23,7 @@ The simplest agent — no container, no storage, just a prompt and a typed resul
 ### 1. Set up your project
 
 ```bash
-mkdir my-flue-server && cd my-flue-server
+mkdir my-bapX-server && cd my-bapX-server
 npm init -y
 npm install @bapX/runtime valibot
 npm install -D @bapX/cli
@@ -31,7 +31,7 @@ npm install -D @bapX/cli
 
 ### 2. Create your first agent
 
-`.flue/workflows/translate.ts`:
+`.bapX/workflows/translate.ts`:
 
 ```typescript
 import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
@@ -62,8 +62,8 @@ export default defineWorkflow({
 A few things to note:
 
 - **`route`** — Export Hono middleware to expose this workflow via HTTP. It may perform authentication before calling `next()`.
-- **`defineAgent(...)` + `defineWorkflow(...)`** — The required workflow agent declares model and sandbox policy. Flue initializes its harness for each run. By default, it receives a virtual sandbox powered by [just-bash](https://github.com/vercel-labs/just-bash). No container needed.
-- **Schemas** — The [Valibot](https://valibot.dev) schema defines the expected output shape. Flue parses the agent's response and returns it on `response.data`, fully typed.
+- **`defineAgent(...)` + `defineWorkflow(...)`** — The required workflow agent declares model and sandbox policy. Bapx initializes its harness for each run. By default, it receives a virtual sandbox powered by [just-bash](https://github.com/vercel-labs/just-bash). No container needed.
+- **Schemas** — The [Valibot](https://valibot.dev) schema defines the expected output shape. Bapx parses the agent's response and returns it on `response.data`, fully typed.
 
 ### 3. Add your API key
 
@@ -81,10 +81,10 @@ Use the env var name your provider expects — `OPENAI_API_KEY` for OpenAI, `ANT
 
 ### 4. Build and run
 
-For local development, `flue dev --target node` is the fastest path. It loads project-root `.env` before configuration, builds your project, starts the server on port 3583, and reloads local runtime environment values when `.env` is created, edited, deleted, or recreated.
+For local development, `bapX dev --target node` is the fastest path. It loads project-root `.env` before configuration, builds your project, starts the server on port 3583, and reloads local runtime environment values when `.env` is created, edited, deleted, or recreated.
 
 ```bash
-npx flue dev --target node
+npx bapX dev --target node
 ```
 
 Test it:
@@ -97,22 +97,22 @@ curl 'http://localhost:3583/workflows/translate?wait=result' \
 
 The `?wait=result` mode keeps this request attached until the workflow completes and returns its result. Without it, an admitted HTTP workflow responds immediately with `202` and a `runId` for later inspection.
 
-Every workflow that exports `route` gets an HTTP endpoint automatically. The middleware may authenticate the request and call `next()` to admit it. The route follows the pattern `/workflows/<name>` — for example, `.flue/workflows/translate.ts` becomes `/workflows/translate`.
+Every workflow that exports `route` gets an HTTP endpoint automatically. The middleware may authenticate the request and call `next()` to admit it. The route follows the pattern `/workflows/<name>` — for example, `.bapX/workflows/translate.ts` becomes `/workflows/translate`.
 
-For a production-style server, build and then start the generated artifact. `flue build` loads `.env` for configuration and build-time evaluation, while the built server reads only the environment supplied when you start it:
+For a production-style server, build and then start the generated artifact. `bapX build` loads `.env` for configuration and build-time evaluation, while the built server reads only the environment supplied when you start it:
 
 ```bash
-npx flue build --target node
+npx bapX build --target node
 set -a; source .env; set +a
 node dist/server.mjs
 ```
 
-`flue build --target node` compiles your project into a `./dist` directory without packaging `.env` credentials into the server. The built server uses [Hono](https://hono.dev/) under the hood and listens on port 3000 by default (configurable via `PORT`). Your project's `node_modules` are still needed at runtime — the build externalizes your dependencies rather than bundling them.
+`bapX build --target node` compiles your project into a `./dist` directory without packaging `.env` credentials into the server. The built server uses [Hono](https://hono.dev/) under the hood and listens on port 3000 by default (configurable via `PORT`). Your project's `node_modules` are still needed at runtime — the build externalizes your dependencies rather than bundling them.
 
-You can also invoke an agent or workflow through a temporary local server. `flue run` executes the normal `app.ts` and middleware, temporarily exposes route-free resources through an existing authored `flue()` mount, and loads project-root `.env` automatically; pass `--env` only to select one alternate file:
+You can also invoke an agent or workflow through a temporary local server. `bapX run` executes the normal `app.ts` and middleware, temporarily exposes route-free resources through an existing authored `bapX()` mount, and loads project-root `.env` automatically; pass `--env` only to select one alternate file:
 
 ```bash
-npx flue run translate --target node \
+npx bapX run translate --target node \
   --input '{"text": "Hello world", "language": "French"}'
 ```
 
@@ -176,11 +176,11 @@ const { data } = await session.skill('summarize', {
 
 `local()` is where Node really shines compared to other targets. The agent runs directly against the host filesystem and shell — `cwd` is `process.cwd()`, shell commands go through `child_process`, and `AGENTS.md` and skills are discovered from the project root.
 
-Run flue itself inside an isolation boundary you trust — a CI runner, a container, a sandbox VM. There is no second layer of isolation between the agent and the host.
+Run bapX itself inside an isolation boundary you trust — a CI runner, a container, a sandbox VM. There is no second layer of isolation between the agent and the host.
 
 Env exposure is opt-in. By default only shell essentials (`PATH`, `HOME`, locale, etc.) are inherited from `process.env`; anything else — API keys, tokens, deploy credentials — has to be passed explicitly via `local({ env: { ... } })`. That keeps the model's `bash` tool from seeing host secrets by accident.
 
-`.flue/workflows/reviewer.ts`:
+`.bapX/workflows/reviewer.ts`:
 
 ```typescript
 import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
@@ -231,7 +231,7 @@ No container startup, real project context, fast iteration. If you need a tighte
 
 The examples above use either the default virtual sandbox or the local sandbox. When you need full isolation per session — each user gets their own Linux environment with git, Node.js, Python, etc. — you want a remote sandbox.
 
-Flue connects to remote sandboxes through project-owned sandbox adapters installed from `flue add` blueprints. Run `flue add` with no arguments to see what's currently supported, or `flue add sandbox <url>` to have your coding agent build an adapter for an unsupported provider against the [Sandbox Adapter API](/docs/api/sandbox-api/).
+Bapx connects to remote sandboxes through project-owned sandbox adapters installed from `bapX add` blueprints. Run `bapX add` with no arguments to see what's currently supported, or `bapX add sandbox <url>` to have your coding agent build an adapter for an unsupported provider against the [Sandbox Adapter API](/docs/api/sandbox-api/).
 
 The Ecosystem catalog lists available provider integrations, including [Daytona](/docs/ecosystem/sandboxes/daytona/), [E2B](/docs/ecosystem/sandboxes/e2b/), [Modal](/docs/ecosystem/sandboxes/modal/), and [Vercel Sandbox](/docs/ecosystem/sandboxes/vercel/). Other adapters follow the same application-owned lifecycle shape.
 
@@ -254,11 +254,11 @@ See [Database](/docs/guide/database/) for `db.ts`, SQLite, Postgres, and custom 
 
 ## Building and deploying
 
-Flue compiles your project into a Node.js server:
+Bapx compiles your project into a Node.js server:
 
 ```bash
 # Build
-npx flue build --target node
+npx bapX build --target node
 
 # Run locally
 node dist/server.mjs
@@ -267,16 +267,16 @@ node dist/server.mjs
 PORT=8080 node dist/server.mjs
 ```
 
-The `FLUE_MODE`, `FLUE_CLI_*`, and `FLUE_INTERNAL_CLI_IPC` environment variables are reserved by the Flue CLI — do not set them when starting the built server. In particular, `FLUE_MODE=local` in production includes developer guidance in error envelopes.
+The `FLUE_MODE`, `FLUE_CLI_*`, and `FLUE_INTERNAL_CLI_IPC` environment variables are reserved by the Bapx CLI — do not set them when starting the built server. In particular, `FLUE_MODE=local` in production includes developer guidance in error envelopes.
 
-The default root-mounted Flue application can expose:
+The default root-mounted Bapx application can expose:
 
 - `POST /agents/:name/:id` — send an attached prompt to an agent module that exports `route`;
 - `GET /agents/:name/:id` — stream agent events via the Durable Streams protocol;
 - `POST /workflows/:name` — invoke a workflow module that exports `route`;
 - `GET /runs/:runId` — stream or inspect runs whose owning workflow exports `runs` middleware (`?meta` reads the run record).
 
-Flue does not add a health endpoint or deployment-wide inspection routes by default. Define a host-required health route in `app.ts`, expose per-workflow run resources with `runs` middleware, and [compose your own admin endpoints](/docs/api/routing-api/#compose-your-own-admin-endpoints) behind operator authorization when listing is required. Agent prompt routes advance sessions without creating runs.
+Bapx does not add a health endpoint or deployment-wide inspection routes by default. Define a host-required health route in `app.ts`, expose per-workflow run resources with `runs` middleware, and [compose your own admin endpoints](/docs/api/routing-api/#compose-your-own-admin-endpoints) behind operator authorization when listing is required. Agent prompt routes advance sessions without creating runs.
 
 ### Choosing a sandbox strategy
 

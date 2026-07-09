@@ -1,6 +1,6 @@
 # @bapX/whatsapp
 
-Verified WhatsApp Business Cloud webhook ingress for Flue channels.
+Verified WhatsApp Business Cloud webhook ingress for Bapx channels.
 
 ```ts
 import { createWhatsAppChannel } from '@bapX/whatsapp';

@@ -1,6 +1,6 @@
 ---
 title: LLM (Models & Providers)
-description: Select models, configure providers, and tune reasoning behavior in Flue agents.
+description: Select models, configure providers, and tune reasoning behavior in Bapx agents.
 lastReviewedAt: 2026-05-29
 ---
 
@@ -10,7 +10,7 @@ This guide covers model selection and provider setup. For configuring addressabl
 
 ## Model specifier
 
-A model specifier is the unique string Flue uses to refer to a specific model across providers. It combines a provider ID, such as `anthropic`, `cloudflare`, `openai`, or `openrouter`, with a model ID recognized by that provider:
+A model specifier is the unique string Bapx uses to refer to a specific model across providers. It combines a provider ID, such as `anthropic`, `cloudflare`, `openai`, or `openrouter`, with a model ID recognized by that provider:
 
 | Model specifier                       | Provider ID  | Model ID                   |
 | ------------------------------------- | ------------ | -------------------------- |
@@ -34,14 +34,14 @@ Model specifiers can also be supplied by reusable profiles and subagents, or use
 
 ## Model reasoning effort
 
-Reasoning effort controls how much additional reasoning Flue requests from a model. Set it with `thinkingLevel`, using one of the supported levels:
+Reasoning effort controls how much additional reasoning Bapx requests from a model. Set it with `thinkingLevel`, using one of the supported levels:
 
 | Value       | Intent                                                     |
 | ----------- | ---------------------------------------------------------- |
 | `'off'`     | Do not request additional reasoning.                       |
 | `'minimal'` | Request the smallest reasoning effort.                     |
 | `'low'`     | Favor lower reasoning cost or latency.                     |
-| `'medium'`  | Balance reasoning effort and cost. This is Flue's default. |
+| `'medium'`  | Balance reasoning effort and cost. This is Bapx's default. |
 | `'high'`    | Favor more careful reasoning.                              |
 | `'xhigh'`   | Request the highest exposed effort tier.                   |
 
@@ -56,17 +56,17 @@ export default defineAgent(() => ({
 }));
 ```
 
-Like a model specifier, `thinkingLevel` can be supplied by a reusable profile or overridden for an individual prompt, skill, or task operation. If no level is configured, Flue uses `'medium'`.
+Like a model specifier, `thinkingLevel` can be supplied by a reusable profile or overridden for an individual prompt, skill, or task operation. If no level is configured, Bapx uses `'medium'`.
 
-Reasoning support depends on both the selected model and its provider integration. When that path supports `thinkingLevel`, Flue passes your selected level through; unsupported paths ignore the setting, as noted for Workers AI bindings below.
+Reasoning support depends on both the selected model and its provider integration. When that path supports `thinkingLevel`, Bapx passes your selected level through; unsupported paths ignore the setting, as noted for Workers AI bindings below.
 
 ## Providers
 
-A provider is the service through which Flue reaches a model. A model may be available from more than one provider: for example, an Anthropic model may be accessed through Anthropic itself or through a gateway such as OpenRouter. The provider ID in a model specifier identifies that connection path, including its available models, authentication, billing, and transport behavior. Flue preserves this selected provider ID when reporting the model used for an operation.
+A provider is the service through which Bapx reaches a model. A model may be available from more than one provider: for example, an Anthropic model may be accessed through Anthropic itself or through a gateway such as OpenRouter. The provider ID in a model specifier identifies that connection path, including its available models, authentication, billing, and transport behavior. Bapx preserves this selected provider ID when reporting the model used for an operation.
 
 ### Authentication
 
-Most hosted providers require credentials before they will accept model requests. Flue uses the provider integrations from [Pi](https://pi.dev/docs/latest/providers), including their standard environment-variable conventions. For built-in providers, making the expected credential available to your running application is normally all that is required:
+Most hosted providers require credentials before they will accept model requests. Bapx uses the provider integrations from [Pi](https://pi.dev/docs/latest/providers), including their standard environment-variable conventions. For built-in providers, making the expected credential available to your running application is normally all that is required:
 
 | Provider ID  | Environment variable |
 | ------------ | -------------------- |
@@ -74,21 +74,21 @@ Most hosted providers require credentials before they will accept model requests
 | `openai`     | `OPENAI_API_KEY`     |
 | `openrouter` | `OPENROUTER_API_KEY` |
 
-Keep credential values out of agent modules and committed configuration files. `flue build`, `flue dev`, and `flue run` load project-root `.env` before configuration, with `--env` available to select one alternate file. During Cloudflare development, Worker runtime variables continue to use `.env` or `.dev.vars` through Workers tooling. See [Configuration](/docs/reference/configuration/) for details.
+Keep credential values out of agent modules and committed configuration files. `bapX build`, `bapX dev`, and `bapX run` load project-root `.env` before configuration, with `--env` available to select one alternate file. During Cloudflare development, Worker runtime variables continue to use `.env` or `.dev.vars` through Workers tooling. See [Configuration](/docs/reference/configuration/) for details.
 
 Some provider paths authenticate through their platform integration instead of a model-provider API key. In particular, the binding-backed `cloudflare/...` provider uses your Worker's `AI` binding, as described in [Cloudflare Workers AI](#cloudflare-workers-ai-cloudflare-only).
 
 ### Built-in providers
 
-Flue includes Pi's catalog-backed providers and models. To use a built-in provider, choose one of its supported model specifiers and make its required credentials available at runtime; you do not need to register the provider in application code.
+Bapx includes Pi's catalog-backed providers and models. To use a built-in provider, choose one of its supported model specifiers and make its required credentials available at runtime; you do not need to register the provider in application code.
 
 See Pi's [provider documentation](https://pi.dev/docs/latest/providers) for the built-in providers, their supported authentication variables, and their model catalog.
 
 ### Cloudflare providers
 
-Cloudflare provides several ways to reach models from a Flue application. Choose the provider ID that matches how you want calls to be executed:
+Cloudflare provides several ways to reach models from a Bapx application. Choose the provider ID that matches how you want calls to be executed:
 
-- `cloudflare/...` uses Flue's Workers AI binding integration. It requires the Cloudflare target and an `AI` binding, and is covered in [Cloudflare Workers AI](#cloudflare-workers-ai-cloudflare-only) below.
+- `cloudflare/...` uses Bapx's Workers AI binding integration. It requires the Cloudflare target and an `AI` binding, and is covered in [Cloudflare Workers AI](#cloudflare-workers-ai-cloudflare-only) below.
 - `cloudflare-workers-ai/...` uses URL-backed [Workers AI](https://developers.cloudflare.com/workers-ai/) access through the Cloudflare API. It can be used from Node.js or Cloudflare applications with the applicable credentials.
 - `cloudflare-ai-gateway/...` uses URL-backed [Cloudflare AI Gateway](https://developers.cloudflare.com/ai-gateway/) access. It can be used from Node.js or Cloudflare applications when you want gateway-managed observability and controls.
 
@@ -98,7 +98,7 @@ Use `registerProvider(...)` in `src/app.ts` when a built-in provider should reta
 
 ```ts title="src/app.ts"
 import { registerProvider } from '@bapX/runtime';
-import { flue } from '@bapX/runtime/routing';
+import { bapX } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 if (process.env.ANTHROPIC_GATEWAY_URL) {
@@ -109,7 +109,7 @@ if (process.env.ANTHROPIC_GATEWAY_URL) {
 }
 
 const app = new Hono();
-app.route('/', flue());
+app.route('/', bapX());
 
 export default app;
 ```
@@ -118,13 +118,13 @@ A provider override can change its endpoint, API key, or headers without changin
 
 ### Custom providers
 
-Use `registerProvider(...)` in `src/app.ts` when you want to connect Flue to a model provider that is not built in. Registering a provider assigns it a provider ID, which you can then use in model specifiers throughout your application. Provider IDs outside the built-in catalog must supply `api` and `baseUrl`.
+Use `registerProvider(...)` in `src/app.ts` when you want to connect Bapx to a model provider that is not built in. Registering a provider assigns it a provider ID, which you can then use in model specifiers throughout your application. Provider IDs outside the built-in catalog must supply `api` and `baseUrl`.
 
 For example, you can register a local Ollama server through its OpenAI-compatible endpoint:
 
 ```ts title="src/app.ts"
 import { registerProvider } from '@bapX/runtime';
-import { flue } from '@bapX/runtime/routing';
+import { bapX } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 registerProvider('ollama', {
@@ -133,7 +133,7 @@ registerProvider('ollama', {
 });
 
 const app = new Hono();
-app.route('/', flue());
+app.route('/', bapX());
 
 export default app;
 ```
@@ -150,13 +150,13 @@ export default defineAgent(() => ({
 
 A provider registration can also supply authentication, headers, and model metadata when your endpoint requires them. Most OpenAI-compatible services can use the built-in `openai-completions` protocol shown above. For an endpoint with a different wire protocol, advanced integrations can import `registerApiProvider(...)` from `@bapX/runtime` and use it to register that protocol before registering a provider ID for it.
 
-Choose a new provider ID unless you intend to override a built-in connection path. For example, registering `cloudflare` yourself takes precedence over Flue's generated `cloudflare/...` binding default, which is how the customization below takes effect.
+Choose a new provider ID unless you intend to override a built-in connection path. For example, registering `cloudflare` yourself takes precedence over Bapx's generated `cloudflare/...` binding default, which is how the customization below takes effect.
 
 ## Cloudflare Workers AI (Cloudflare only)
 
-For applications built with `--target cloudflare`, Flue provides the `cloudflare/...` provider ID for running model calls through a [Workers AI](https://developers.cloudflare.com/workers-ai/) binding. This path uses the binding attached to your Worker rather than URL-backed provider credentials.
+For applications built with `--target cloudflare`, Bapx provides the `cloudflare/...` provider ID for running model calls through a [Workers AI](https://developers.cloudflare.com/workers-ai/) binding. This path uses the binding attached to your Worker rather than URL-backed provider credentials.
 
-Everything after `cloudflare/` is passed as the model ID to `env.AI.run(...)`. Use Workers AI model IDs such as `@cf/moonshotai/kimi-k2.6`, or a binding-supported AI Gateway model ID such as `openai/gpt-5.5` when your Worker should reach that model through Cloudflare's binding and gateway path. Use `openai/gpt-5.5` without the `cloudflare/` prefix only when you intend to use Flue's direct OpenAI provider and its credentials.
+Everything after `cloudflare/` is passed as the model ID to `env.AI.run(...)`. Use Workers AI model IDs such as `@cf/moonshotai/kimi-k2.6`, or a binding-supported AI Gateway model ID such as `openai/gpt-5.5` when your Worker should reach that model through Cloudflare's binding and gateway path. Use `openai/gpt-5.5` without the `cloudflare/` prefix only when you intend to use Bapx's direct OpenAI provider and its credentials.
 
 ```ts title="src/agents/assistant.ts"
 import { defineAgent } from '@bapX/runtime';
@@ -181,12 +181,12 @@ A `cloudflare/...` model call does not need an API key in your application envir
 
 ### Advanced: Customize AI Gateway behavior
 
-By default, Flue routes `cloudflare/...` binding calls through Cloudflare AI Gateway with gateway ID `default`. To choose a named gateway, set cache or logging options, or bypass the gateway option, register the `cloudflare` provider ID yourself in `src/app.ts`:
+By default, Bapx routes `cloudflare/...` binding calls through Cloudflare AI Gateway with gateway ID `default`. To choose a named gateway, set cache or logging options, or bypass the gateway option, register the `cloudflare` provider ID yourself in `src/app.ts`:
 
 ```ts title="src/app.ts"
 import { env } from 'cloudflare:workers';
 import { registerProvider } from '@bapX/runtime';
-import { flue } from '@bapX/runtime/routing';
+import { bapX } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 registerProvider('cloudflare', {
@@ -201,9 +201,9 @@ registerProvider('cloudflare', {
 });
 
 const app = new Hono();
-app.route('/', flue());
+app.route('/', bapX());
 
 export default app;
 ```
 
-Set `gateway: false` in that registration when you do not want Flue to pass a gateway option. See Cloudflare's [Workers bindings documentation](https://developers.cloudflare.com/ai-gateway/integrations/worker-binding-methods/) for gateway behavior and supported options.
+Set `gateway: false` in that registration when you do not want Bapx to pass a gateway option. See Cloudflare's [Workers bindings documentation](https://developers.cloudflare.com/ai-gateway/integrations/worker-binding-methods/) for gateway behavior and supported options.

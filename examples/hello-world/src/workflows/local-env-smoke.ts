@@ -16,7 +16,7 @@ export default defineWorkflow({
 		try {
 			const session = await harness.session();
 			const results: Record<string, boolean> = {};
-			const tmpDir = `/tmp/flue-local-env-smoke-${Date.now()}`;
+			const tmpDir = `/tmp/bapX-local-env-smoke-${Date.now()}`;
 			results['shell pwd matches process.cwd()'] =
 				(await session.shell('pwd')).stdout.trim() === process.cwd();
 			await session.shell(`mkdir -p ${tmpDir}`);
