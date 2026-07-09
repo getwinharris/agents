@@ -5,7 +5,7 @@
 # Add MongoDB to Flue
 
 You are an AI coding agent configuring MongoDB-backed persistence for a Flue
-project using the first-party `@flue/mongodb` adapter and the official `mongodb`
+project using the first-party `@bapX/mongodb` adapter and the official `mongodb`
 driver.
 
 This stores canonical agent conversation streams, immutable attachments,
@@ -35,7 +35,7 @@ and select the first existing source root: `<root>/.flue/`, then `<root>/src/`,
 then `<root>/`. Check for an existing `db.ts`; if one is present, confirm with
 the user before replacing it. Inspect the project's secret conventions.
 
-Install `@flue/mongodb` and the official `mongodb@^6.17.0` driver with the project's
+Install `@bapX/mongodb` and the official `mongodb@^6.17.0` driver with the project's
 package manager. The adapter does not bundle a production driver; the project
 owns credentials, TLS, pooling, timeouts, and client lifecycle.
 
@@ -52,7 +52,7 @@ import {
   type MongoCollection,
   type MongoOperations,
   type MongoRunner,
-} from '@flue/mongodb';
+} from '@bapX/mongodb';
 import { MongoClient } from 'mongodb';
 
 const client = new MongoClient(process.env.MONGODB_URL!);

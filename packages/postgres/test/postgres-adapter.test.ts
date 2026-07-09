@@ -2,19 +2,19 @@
  * Contract tests for the Postgres persistence adapter.
  *
  * Uses PGlite (embedded Postgres in WASM) so no external server is needed.
- * Uses the shared contract test runner from @flue/runtime for behavioral
+ * Uses the shared contract test runner from @bapX/runtime for behavioral
  * assertions, plus adapter-specific factory tests.
  */
 
 import { PGlite } from '@electric-sql/pglite';
-import { PersistedSchemaVersionError } from '@flue/runtime/adapter';
+import { PersistedSchemaVersionError } from '@bapX/runtime/adapter';
 import {
 	defineAttachmentStoreContractTests,
 	defineConversationStreamStoreContractTests,
 	defineEventStreamStoreContractTests,
 	defineRunStoreContractTests,
 	defineStoreContractTests,
-} from '@flue/runtime/test-utils';
+} from '@bapX/runtime/test-utils';
 import { describe, expect, it } from 'vitest';
 import {
 	type PostgresParameter,

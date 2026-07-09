@@ -7,7 +7,7 @@ import type {
 	DispatchInput,
 	SubmissionAttemptRef,
 	SubmissionClaimRef,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import {
 	createDispatchAgentSubmissionInput,
 	createSessionStorageKey,
@@ -21,7 +21,7 @@ import {
 	prepareSubmissionAttachments,
 	SUBMISSION_HARNESS_NAME,
 	SUBMISSION_SESSION_NAME,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import { publishChunks, stageChunks } from './chunk-store.ts';
 import type { MongoDocument, MongoRunner } from './mongodb-runner.ts';
 import { collectionName } from './schema.ts';
@@ -216,17 +216,17 @@ export class MongoSubmissionStore implements AgentSubmissionStore {
 		return rows.map((row) => String(row.submissionId));
 	}
 
-	async listPendingSubmissionSettlements(): Promise<import('@flue/runtime/adapter').SubmissionSettlementObligation[]> {
-		return (await this.c('submissions').find({ kind: 'direct', status: 'terminalizing' }, { sort: { sequence: 1 } })).map((row) => ({ submissionId: String(row.submissionId), sessionKey: String(row.sessionKey), attemptId: String(row.attemptId), recordId: String(row.settlementRecordId), record: row.settlementRecord as import('@flue/runtime/adapter').SubmissionSettledRecord }));
+	async listPendingSubmissionSettlements(): Promise<import('@bapX/runtime/adapter').SubmissionSettlementObligation[]> {
+		return (await this.c('submissions').find({ kind: 'direct', status: 'terminalizing' }, { sort: { sequence: 1 } })).map((row) => ({ submissionId: String(row.submissionId), sessionKey: String(row.sessionKey), attemptId: String(row.attemptId), recordId: String(row.settlementRecordId), record: row.settlementRecord as import('@bapX/runtime/adapter').SubmissionSettledRecord }));
 	}
-	async reserveSubmissionSettlement(attempt: SubmissionAttemptRef, settlement: { recordId: string; record: import('@flue/runtime/adapter').SubmissionSettledRecord }): Promise<import('@flue/runtime/adapter').SubmissionSettlementObligation | null> {
+	async reserveSubmissionSettlement(attempt: SubmissionAttemptRef, settlement: { recordId: string; record: import('@bapX/runtime/adapter').SubmissionSettledRecord }): Promise<import('@bapX/runtime/adapter').SubmissionSettlementObligation | null> {
 		if (settlement.record.id !== settlement.recordId) return null;
 		const row = await this.c('submissions').findOneAndUpdate(
 			{ submissionId: attempt.submissionId, kind: 'direct', status: 'running', attemptId: attempt.attemptId, ownerId: { $ne: null }, settlementRecordId: null },
 			{ $set: { status: 'terminalizing', settlementRecordId: settlement.recordId, settlementRecord: settlement.record } }, { returnDocument: 'after' });
 		const current = row ?? await this.c('submissions').findOne({ submissionId: attempt.submissionId, status: 'terminalizing', attemptId: attempt.attemptId });
 		if (!current || current.settlementRecordId !== settlement.recordId || JSON.stringify(current.settlementRecord) !== JSON.stringify(settlement.record)) return null;
-		return { submissionId: String(current.submissionId), sessionKey: String(current.sessionKey), attemptId: String(current.attemptId), recordId: String(current.settlementRecordId), record: current.settlementRecord as import('@flue/runtime/adapter').SubmissionSettledRecord };
+		return { submissionId: String(current.submissionId), sessionKey: String(current.sessionKey), attemptId: String(current.attemptId), recordId: String(current.settlementRecordId), record: current.settlementRecord as import('@bapX/runtime/adapter').SubmissionSettledRecord };
 	}
 	async finalizeSubmissionSettlement(attempt: SubmissionAttemptRef, recordId: string): Promise<boolean> {
 		const result = await this.c('submissions').updateOne({ submissionId: attempt.submissionId, kind: 'direct', status: 'terminalizing', attemptId: attempt.attemptId, settlementRecordId: recordId }, { $set: { status: 'settled', settledAt: Date.now() } });

@@ -2,8 +2,8 @@
 title: Stripe
 description: Receive verified Stripe webhooks and use the official SDK from application-owned tools.
 package:
-  name: '@flue/stripe'
-  href: https://www.npmjs.com/package/@flue/stripe
+  name: '@bapX/stripe'
+  href: https://www.npmjs.com/package/@bapX/stripe
 ---
 
 ## Quickstart
@@ -16,7 +16,7 @@ flue add channel stripe
 
 ## Overview
 
-The blueprint installs `@flue/stripe`, Stripe's official `stripe` SDK, and its
+The blueprint installs `@bapX/stripe`, Stripe's official `stripe` SDK, and its
 required TypeScript peer when needed. It creates
 `<source-root>/channels/stripe.ts`, where the named `channel` export verifies
 snapshot webhook events by default and the project-owned `client` handles
@@ -25,8 +25,8 @@ application.
 
 ```ts title="src/channels/stripe.ts (abridged)"
 import Stripe from 'stripe';
-import { createStripeChannel } from '@flue/stripe';
-import { dispatch } from '@flue/runtime';
+import { createStripeChannel } from '@bapX/stripe';
+import { dispatch } from '@bapX/runtime';
 import billing from '../agents/billing.ts';
 
 export const client = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -76,7 +76,7 @@ and Web Crypto implementation.
 | `STRIPE_WEBHOOK_SECRET` | **Required** — Verifies inbound deliveries.      |
 | `STRIPE_SECRET_KEY`     | **Required** — Authenticates outbound SDK calls. |
 
-It installs `@flue/stripe` and Stripe's official `stripe` SDK. The SDK verifies
+It installs `@bapX/stripe` and Stripe's official `stripe` SDK. The SDK verifies
 inbound payloads and remains the project-owned client for outbound API calls.
 The blueprint creates `src/channels/stripe.ts` with named `channel` and `client`
 exports.
@@ -97,8 +97,8 @@ Snapshot events are the default:
 
 ```ts title="src/channels/stripe.ts"
 import Stripe from 'stripe';
-import { createStripeChannel } from '@flue/stripe';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createStripeChannel } from '@bapX/stripe';
+import { defineTool, dispatch } from '@bapX/runtime';
 import billing from '../agents/billing.ts';
 
 export const client = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -159,7 +159,7 @@ export function retrieveCustomer(customerId: string) {
 }
 ```
 
-`@flue/stripe` gives Stripe's SDK the exact request bytes and
+`@bapX/stripe` gives Stripe's SDK the exact request bytes and
 `Stripe-Signature` header before invoking `webhook`. Returning nothing produces
 an empty `200`. A JSON-compatible value becomes the response body, and a normal
 Hono or Fetch `Response` passes through unchanged.
@@ -174,7 +174,7 @@ namespaces require it.
 ## Bind the tool
 
 ```ts title="src/agents/billing.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { retrieveCustomer } from '../channels/stripe.ts';
 
 export default defineAgent(({ id: customerId }) => ({
@@ -246,4 +246,4 @@ generic Stripe tools. It also does not claim support for specialized
 latency-sensitive workflows such as synchronous real-time Issuing
 authorization decisions.
 
-See the [`@flue/stripe` README](https://github.com/withastro/flue/tree/main/packages/stripe#readme).
+See the [`@bapX/stripe` README](https://github.com/getwinharris/agents/tree/main/packages/stripe#readme).

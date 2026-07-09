@@ -26,7 +26,7 @@ perform startup `auth.test` network calls.
 
 The channel module exports both the ingress `channel` and the project-owned
 `WebClient`. The reply tool is deliberately narrow application policy, not a
-generic tool supplied by `@flue/slack`.
+generic tool supplied by `@bapX/slack`.
 
 Interactions and slash commands preserve Slack's native snake_case fields.
 Values such as `trigger_id`, `response_url`, and view `response_urls` are

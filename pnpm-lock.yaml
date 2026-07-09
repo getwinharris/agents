@@ -15,12 +15,12 @@ importers:
         specifier: ^1.1.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
+      '@bapX/runtime':
+        specifier: workspace:*
+        version: link:packages/runtime
       '@biomejs/biome':
         specifier: ^2.2.0
         version: 2.4.15
-      '@flue/runtime':
-        specifier: workspace:*
-        version: link:packages/runtime
       '@types/node':
         specifier: ^22.10.10
         version: 22.19.19
@@ -107,10 +107,10 @@ importers:
 
   demo:
     dependencies:
-      '@flue/react':
+      '@bapX/react':
         specifier: workspace:*
         version: link:../packages/react
-      '@flue/sdk':
+      '@bapX/sdk':
         specifier: workspace:*
         version: link:../packages/sdk
       '@shadcn/react':
@@ -183,23 +183,23 @@ importers:
 
   examples/assistant:
     dependencies:
+      '@bapX/runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@cloudflare/sandbox':
         specifier: '*'
         version: 0.12.1
-      '@flue/runtime':
-        specifier: workspace:*
-        version: link:../../packages/runtime
       agents:
         specifier: ^0.14.2
         version: 0.14.5(@babel/core@7.29.0)(@babel/runtime@7.29.7)(@cloudflare/workers-types@4.20260602.1)(ai@6.0.191(zod@4.4.3))(chat@4.30.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3))(react@19.2.7)(rolldown@1.1.3)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(zod@4.4.3)
     devDependencies:
-      '@flue/cli':
+      '@bapX/cli':
         specifier: workspace:*
         version: link:../../packages/cli
 
   examples/braintrust:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
       braintrust:
@@ -212,12 +212,15 @@ importers:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
-      '@flue/cli':
+      '@bapX/cli':
         specifier: workspace:*
         version: link:../../packages/cli
 
   examples/chat-sdk:
     dependencies:
+      '@bapX/runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@chat-adapter/github':
         specifier: '*'
         version: 4.30.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3)
@@ -227,9 +230,6 @@ importers:
       '@earendil-works/pi-ai':
         specifier: ^0.80.2
         version: 0.80.2(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3))(ws@8.21.0)(zod@4.4.3)
-      '@flue/runtime':
-        specifier: workspace:*
-        version: link:../../packages/runtime
       agents:
         specifier: ^0.14.2
         version: 0.14.5(@babel/core@7.29.0)(@babel/runtime@7.29.7)(@cloudflare/workers-types@4.20260602.1)(ai@6.0.191(zod@4.4.3))(chat@4.30.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3))(react@19.2.7)(rolldown@1.1.3)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(zod@4.4.3)
@@ -246,27 +246,27 @@ importers:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/workers-types':
         specifier: ^4.20260602.1
         version: 4.20260602.1
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       wrangler:
         specifier: ^4.97.0
         version: 4.97.0(@cloudflare/workers-types@4.20260602.1)
 
   examples/cloudflare:
     dependencies:
+      '@bapX/runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@cloudflare/codemode':
         specifier: '*'
         version: 0.4.0(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3))(ai@6.0.191(zod@4.4.3))(zod@4.4.3)
       '@cloudflare/shell':
         specifier: '*'
         version: 0.4.0(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3))(ai@6.0.191(zod@4.4.3))(zod@4.4.3)
-      '@flue/runtime':
-        specifier: workspace:*
-        version: link:../../packages/runtime
       agents:
         specifier: ^0.14.2
         version: 0.14.5(@babel/core@7.29.0)(@babel/runtime@7.29.7)(@cloudflare/workers-types@4.20260602.1)(ai@6.0.191(zod@4.4.3))(chat@4.30.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3))(react@19.2.7)(rolldown@1.1.3)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(zod@4.4.3)
@@ -277,37 +277,37 @@ importers:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/workers-types':
         specifier: ^4.20260602.1
         version: 4.20260602.1
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       wrangler:
         specifier: ^4.97.0
         version: 4.97.0(@cloudflare/workers-types@4.20260602.1)
 
   examples/discord-channel:
     dependencies:
+      '@bapX/discord':
+        specifier: workspace:*
+        version: link:../../packages/discord
+      '@bapX/runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@discordjs/rest':
         specifier: '*'
         version: 2.6.1
-      '@flue/discord':
-        specifier: workspace:*
-        version: link:../../packages/discord
-      '@flue/runtime':
-        specifier: workspace:*
-        version: link:../../packages/runtime
       valibot:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@26.0.0)(happy-dom@18.0.1)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       agents:
         specifier: ^0.14.2
         version: 0.14.5(@babel/core@7.29.0)(@babel/runtime@7.29.7)(@cloudflare/workers-types@4.20260602.1)(ai@6.0.191(zod@4.4.3))(chat@4.30.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3))(react@19.2.7)(rolldown@1.1.3)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(zod@4.4.3)
@@ -320,10 +320,10 @@ importers:
 
   examples/github-channel:
     dependencies:
-      '@flue/github':
+      '@bapX/github':
         specifier: workspace:*
         version: link:../../packages/github
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
       '@octokit/rest':
@@ -333,12 +333,12 @@ importers:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@26.0.0)(happy-dom@18.0.1)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       agents:
         specifier: ^0.14.2
         version: 0.14.5(@babel/core@7.29.0)(@babel/runtime@7.29.7)(@cloudflare/workers-types@4.20260602.1)(ai@6.0.191(zod@4.4.3))(chat@4.30.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3))(react@19.2.7)(rolldown@1.1.3)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(zod@4.4.3)
@@ -351,10 +351,10 @@ importers:
 
   examples/google-chat-channel:
     dependencies:
-      '@flue/google-chat':
+      '@bapX/google-chat':
         specifier: workspace:*
         version: link:../../packages/google-chat
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
       jose:
@@ -364,12 +364,12 @@ importers:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@26.0.0)(happy-dom@18.0.1)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       agents:
         specifier: ^0.14.2
         version: 0.14.5(@babel/core@7.29.0)(@babel/runtime@7.29.7)(@cloudflare/workers-types@4.20260602.1)(ai@6.0.191(zod@4.4.3))(chat@4.30.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3))(react@19.2.7)(rolldown@1.1.3)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(zod@4.4.3)
@@ -382,12 +382,12 @@ importers:
 
   examples/hello-world:
     dependencies:
+      '@bapX/runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@daytona/sdk':
         specifier: '*'
         version: 0.179.0(ws@8.21.0)
-      '@flue/runtime':
-        specifier: workspace:*
-        version: link:../../packages/runtime
       agents:
         specifier: ^0.14.2
         version: 0.14.5(@babel/core@7.29.0)(@babel/runtime@7.29.7)(@cloudflare/workers-types@4.20260602.1)(ai@6.0.191(zod@4.4.3))(chat@4.30.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3))(react@19.2.7)(rolldown@1.1.3)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(zod@4.4.3)
@@ -401,13 +401,13 @@ importers:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
-      '@flue/cli':
+      '@bapX/cli':
         specifier: workspace:*
         version: link:../../packages/cli
 
   examples/imported-skill:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
       agents:
@@ -417,7 +417,7 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
     devDependencies:
-      '@flue/cli':
+      '@bapX/cli':
         specifier: workspace:*
         version: link:../../packages/cli
       wrangler:
@@ -426,22 +426,22 @@ importers:
 
   examples/intercom-channel:
     dependencies:
-      '@flue/intercom':
+      '@bapX/intercom':
         specifier: workspace:*
         version: link:../../packages/intercom
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
       intercom-client:
         specifier: '*'
         version: 7.0.3
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@22.19.19)(happy-dom@18.0.1)(vite@8.1.0(@types/node@22.19.19)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       '@types/node':
         specifier: ^22.10.10
         version: 22.19.19
@@ -457,10 +457,10 @@ importers:
 
   examples/linear-channel:
     dependencies:
-      '@flue/linear':
+      '@bapX/linear':
         specifier: workspace:*
         version: link:../../packages/linear
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
       '@linear/sdk':
@@ -470,12 +470,12 @@ importers:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@26.0.0)(happy-dom@18.0.1)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       agents:
         specifier: ^0.14.2
         version: 0.14.5(@babel/core@7.29.0)(@babel/runtime@7.29.7)(@cloudflare/workers-types@4.20260602.1)(ai@6.0.191(zod@4.4.3))(chat@4.30.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3))(react@19.2.7)(rolldown@1.1.3)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(zod@4.4.3)
@@ -488,22 +488,22 @@ importers:
 
   examples/messenger-channel:
     dependencies:
-      '@flue/messenger':
+      '@bapX/messenger':
         specifier: workspace:*
         version: link:../../packages/messenger
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
       valibot:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@26.0.0)(happy-dom@18.0.1)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       agents:
         specifier: ^0.14.2
         version: 0.14.5(@babel/core@7.29.0)(@babel/runtime@7.29.7)(@cloudflare/workers-types@4.20260602.1)(ai@6.0.191(zod@4.4.3))(chat@4.30.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3))(react@19.2.7)(rolldown@1.1.3)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(zod@4.4.3)
@@ -516,7 +516,7 @@ importers:
 
   examples/node-schedules:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
       croner:
@@ -529,28 +529,28 @@ importers:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
-      '@flue/cli':
+      '@bapX/cli':
         specifier: workspace:*
         version: link:../../packages/cli
 
   examples/notion-channel:
     dependencies:
-      '@flue/notion':
+      '@bapX/notion':
         specifier: workspace:*
         version: link:../../packages/notion
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
       '@notionhq/client':
         specifier: '*'
         version: 5.22.0
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@22.19.19)(happy-dom@18.0.1)(vite@8.1.0(@types/node@22.19.19)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       '@types/node':
         specifier: ^22.10.10
         version: 22.19.19
@@ -566,18 +566,18 @@ importers:
 
   examples/react-chat:
     dependencies:
+      '@bapX/react':
+        specifier: workspace:*
+        version: link:../../packages/react
+      '@bapX/runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
+      '@bapX/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
       '@earendil-works/pi-ai':
         specifier: ^0.80.2
         version: 0.80.2(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3))(ws@8.21.0)(zod@4.4.3)
-      '@flue/react':
-        specifier: workspace:*
-        version: link:../../packages/react
-      '@flue/runtime':
-        specifier: workspace:*
-        version: link:../../packages/runtime
-      '@flue/sdk':
-        specifier: workspace:*
-        version: link:../../packages/sdk
       '@hono/node-server':
         specifier: ^2.0.3
         version: 2.0.3(hono@4.12.22)
@@ -594,7 +594,7 @@ importers:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
-      '@flue/cli':
+      '@bapX/cli':
         specifier: workspace:*
         version: link:../../packages/cli
       '@types/node':
@@ -615,22 +615,22 @@ importers:
 
   examples/resend-channel:
     dependencies:
-      '@flue/resend':
+      '@bapX/resend':
         specifier: workspace:*
         version: link:../../packages/resend
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
       resend:
         specifier: '*'
         version: 6.12.4
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@22.19.19)(happy-dom@18.0.1)(vite@8.1.0(@types/node@22.19.19)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       '@types/node':
         specifier: ^22.10.10
         version: 22.19.19
@@ -649,19 +649,19 @@ importers:
 
   examples/salesforce-marketing-cloud-channel:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
-      '@flue/salesforce':
+      '@bapX/salesforce':
         specifier: workspace:*
         version: link:../../packages/salesforce-marketing-cloud
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@22.19.19)(happy-dom@18.0.1)(vite@8.1.0(@types/node@22.19.19)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       '@types/node':
         specifier: ^22.10.10
         version: 22.19.19
@@ -677,7 +677,7 @@ importers:
 
   examples/sentry:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
       '@sentry/node':
@@ -687,28 +687,28 @@ importers:
         specifier: ^4.7.0
         version: 4.12.22
     devDependencies:
-      '@flue/cli':
+      '@bapX/cli':
         specifier: workspace:*
         version: link:../../packages/cli
 
   examples/shopify-channel:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
-      '@flue/shopify':
+      '@bapX/shopify':
         specifier: workspace:*
         version: link:../../packages/shopify
       '@shopify/admin-api-client':
         specifier: '*'
         version: 1.1.2
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@22.19.19)(happy-dom@18.0.1)(vite@8.1.0(@types/node@22.19.19)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       '@types/node':
         specifier: ^22.10.10
         version: 22.19.19
@@ -724,10 +724,10 @@ importers:
 
   examples/slack-channel:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
-      '@flue/slack':
+      '@bapX/slack':
         specifier: workspace:*
         version: link:../../packages/slack
       '@slack/web-api':
@@ -737,12 +737,12 @@ importers:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@26.0.0)(happy-dom@18.0.1)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       agents:
         specifier: ^0.14.2
         version: 0.14.5(@babel/core@7.29.0)(@babel/runtime@7.29.7)(@cloudflare/workers-types@4.20260602.1)(ai@6.0.191(zod@4.4.3))(chat@4.30.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3))(react@19.2.7)(rolldown@1.1.3)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(zod@4.4.3)
@@ -755,22 +755,22 @@ importers:
 
   examples/stripe-channel:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
-      '@flue/stripe':
+      '@bapX/stripe':
         specifier: workspace:*
         version: link:../../packages/stripe
       stripe:
         specifier: '*'
         version: 22.2.1(@types/node@22.19.19)
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@22.19.19)(happy-dom@18.0.1)(vite@8.1.0(@types/node@22.19.19)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       '@types/node':
         specifier: ^22.10.10
         version: 22.19.19
@@ -786,22 +786,22 @@ importers:
 
   examples/teams-channel:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
-      '@flue/teams':
+      '@bapX/teams':
         specifier: workspace:*
         version: link:../../packages/teams
       valibot:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@26.0.0)(happy-dom@18.0.1)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       agents:
         specifier: ^0.14.2
         version: 0.14.5(@babel/core@7.29.0)(@babel/runtime@7.29.7)(@cloudflare/workers-types@4.20260602.1)(ai@6.0.191(zod@4.4.3))(chat@4.30.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3))(react@19.2.7)(rolldown@1.1.3)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(zod@4.4.3)
@@ -814,10 +814,10 @@ importers:
 
   examples/telegram-channel:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
-      '@flue/telegram':
+      '@bapX/telegram':
         specifier: workspace:*
         version: link:../../packages/telegram
       grammy:
@@ -827,12 +827,12 @@ importers:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@26.0.0)(happy-dom@18.0.1)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       agents:
         specifier: ^0.14.2
         version: 0.14.5(@babel/core@7.29.0)(@babel/runtime@7.29.7)(@cloudflare/workers-types@4.20260602.1)(ai@6.0.191(zod@4.4.3))(chat@4.30.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3))(react@19.2.7)(rolldown@1.1.3)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(zod@4.4.3)
@@ -845,22 +845,22 @@ importers:
 
   examples/twilio-channel:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
-      '@flue/twilio':
+      '@bapX/twilio':
         specifier: workspace:*
         version: link:../../packages/twilio
       valibot:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@26.0.0)(happy-dom@18.0.1)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       agents:
         specifier: ^0.14.2
         version: 0.14.5(@babel/core@7.29.0)(@babel/runtime@7.29.7)(@cloudflare/workers-types@4.20260602.1)(ai@6.0.191(zod@4.4.3))(chat@4.30.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3))(react@19.2.7)(rolldown@1.1.3)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(zod@4.4.3)
@@ -873,17 +873,17 @@ importers:
 
   examples/vitest-evals:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
       valibot:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
-      '@flue/cli':
+      '@bapX/cli':
         specifier: workspace:*
         version: link:../../packages/cli
-      '@flue/sdk':
+      '@bapX/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
       typescript:
@@ -898,10 +898,10 @@ importers:
 
   examples/whatsapp-channel:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
-      '@flue/whatsapp':
+      '@bapX/whatsapp':
         specifier: workspace:*
         version: link:../../packages/whatsapp
       '@kapso/whatsapp-cloud-api':
@@ -911,12 +911,12 @@ importers:
         specifier: ^1.0.0
         version: 1.4.0(typescript@6.0.3)
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@26.0.0)(happy-dom@18.0.1)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       agents:
         specifier: ^0.14.2
         version: 0.14.5(@babel/core@7.29.0)(@babel/runtime@7.29.7)(@cloudflare/workers-types@4.20260602.1)(ai@6.0.191(zod@4.4.3))(chat@4.30.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3))(react@19.2.7)(rolldown@1.1.3)(vite@8.1.0(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(zod@4.4.3)
@@ -929,22 +929,22 @@ importers:
 
   examples/zendesk-channel:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
-      '@flue/zendesk':
+      '@bapX/zendesk':
         specifier: workspace:*
         version: link:../../packages/zendesk
       lossless-json:
         specifier: '*'
         version: 4.3.0
     devDependencies:
+      '@bapX/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@cloudflare/vitest-pool-workers':
         specifier: 0.16.15
         version: 0.16.15(@cloudflare/workers-types@4.20260602.1)(@vitest/runner@4.1.7)(@vitest/snapshot@4.1.7)(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@22.19.19)(happy-dom@18.0.1)(vite@8.1.0(@types/node@22.19.19)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@flue/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       '@types/node':
         specifier: ^22.10.10
         version: 22.19.19
@@ -960,15 +960,15 @@ importers:
 
   packages/cli:
     dependencies:
+      '@bapX/runtime':
+        specifier: workspace:*
+        version: link:../runtime
+      '@bapX/sdk':
+        specifier: workspace:*
+        version: link:../sdk
       '@cloudflare/vite-plugin':
         specifier: ^1.39.2
         version: 1.39.2(vite@8.0.14(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(workerd@1.20260611.1)(wrangler@4.100.0)
-      '@flue/runtime':
-        specifier: workspace:*
-        version: link:../runtime
-      '@flue/sdk':
-        specifier: workspace:*
-        version: link:../sdk
       '@hono/node-server':
         specifier: ^2.0.3
         version: 2.0.3(hono@4.12.22)
@@ -1015,7 +1015,7 @@ importers:
 
   packages/dev-console:
     dependencies:
-      '@flue/sdk':
+      '@bapX/sdk':
         specifier: workspace:*
         version: link:../sdk
       ink:
@@ -1128,7 +1128,7 @@ importers:
 
   packages/libsql:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../runtime
     devDependencies:
@@ -1188,7 +1188,7 @@ importers:
 
   packages/mongodb:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../runtime
     devDependencies:
@@ -1207,7 +1207,7 @@ importers:
 
   packages/mysql:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../runtime
     devDependencies:
@@ -1251,7 +1251,7 @@ importers:
 
   packages/opentelemetry:
     devDependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../runtime
       '@opentelemetry/api':
@@ -1281,7 +1281,7 @@ importers:
 
   packages/postgres:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../runtime
     devDependencies:
@@ -1300,7 +1300,7 @@ importers:
 
   packages/react:
     devDependencies:
-      '@flue/sdk':
+      '@bapX/sdk':
         specifier: workspace:*
         version: link:../sdk
       '@testing-library/react':
@@ -1330,7 +1330,7 @@ importers:
 
   packages/redis:
     dependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../runtime
     devDependencies:
@@ -1470,7 +1470,7 @@ importers:
         specifier: ^0.2.6
         version: 0.2.6
     devDependencies:
-      '@flue/runtime':
+      '@bapX/runtime':
         specifier: workspace:*
         version: link:../runtime
       tsdown:

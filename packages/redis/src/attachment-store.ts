@@ -9,7 +9,7 @@ import {
 	type StoredAttachment,
 	sameAttachmentRef,
 	verifyAttachmentBytes,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import type { RedisKeys } from './redis-keys.ts';
 import type { RedisRunner } from './redis-runner.ts';
 

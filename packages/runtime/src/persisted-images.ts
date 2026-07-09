@@ -125,11 +125,11 @@ function assertExactImageGroups(
 ): void {
 	const markers = new Set(markerImageIds);
 	if (markers.size !== markerImageIds.length || markers.size !== imageData.size) {
-		throw new Error('[flue] Persisted image chunks do not match persisted image markers.');
+		throw new Error('[bapX] Persisted image chunks do not match persisted image markers.');
 	}
 	for (const imageId of imageData.keys()) {
 		if (!markers.has(imageId)) {
-			throw new Error('[flue] Persisted image chunks do not match persisted image markers.');
+			throw new Error('[bapX] Persisted image chunks do not match persisted image markers.');
 		}
 	}
 }
@@ -138,7 +138,7 @@ function hydrateImageArray<T>(blocks: T[], imageData: ReadonlyMap<string, string
 	return blocks.map((block) => {
 		if (!isImageBlock(block) || !block.data.startsWith(markerPrefix)) return block;
 		const data = imageData.get(block.data.slice(markerPrefix.length));
-		if (data === undefined) throw new Error('[flue] Persisted image chunks are missing.');
+		if (data === undefined) throw new Error('[bapX] Persisted image chunks are missing.');
 		return { ...block, data };
 	}) as T[];
 }

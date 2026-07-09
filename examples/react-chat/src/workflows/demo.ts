@@ -3,7 +3,7 @@ import {
 	defineWorkflow,
 	type WorkflowRouteHandler,
 	type WorkflowRunsHandler,
-} from '@flue/runtime';
+} from '@bapX/runtime';
 import * as v from 'valibot';
 
 export const route: WorkflowRouteHandler = async (_c, next) => next();

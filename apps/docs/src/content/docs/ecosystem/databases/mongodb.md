@@ -2,8 +2,8 @@
 title: MongoDB
 description: Give Flue agents and workflow runs durable, shared state with MongoDB.
 package:
-  name: '@flue/mongodb'
-  href: https://www.npmjs.com/package/@flue/mongodb
+  name: '@bapX/mongodb'
+  href: https://www.npmjs.com/package/@bapX/mongodb
 ---
 
 ## Quickstart
@@ -16,14 +16,14 @@ flue add database mongodb
 
 ## Overview
 
-The MongoDB blueprint installs `@flue/mongodb` and the official `mongodb`
+The MongoDB blueprint installs `@bapX/mongodb` and the official `mongodb`
 driver, creates a complete `db.ts` runner in the project's source-root, and
 follows the project's existing secret convention for `MONGODB_URL` and
 `MONGODB_DATABASE`. The generated adapter connects the driver, selects the
 database, and passes a project-owned runner to `mongodb()`:
 
 ```ts title="src/db.ts (abridged)"
-import { mongodb, type MongoOperations, type MongoRunner } from '@flue/mongodb';
+import { mongodb, type MongoOperations, type MongoRunner } from '@bapX/mongodb';
 import { MongoClient } from 'mongodb';
 
 const client = new MongoClient(process.env.MONGODB_URL!);
@@ -59,7 +59,7 @@ ambiguous deployment. Prefer a dedicated database. If Flue must share one, pass
 a stable unique `collectionPrefix` to `mongodb()`; changing it selects a new
 namespace rather than moving existing data.
 
-The blueprint installs `@flue/mongodb` and the official `mongodb` driver, then
+The blueprint installs `@bapX/mongodb` and the official `mongodb` driver, then
 writes a complete source-root `db.ts` runner. Flue discovers the file at build
 time and wires the adapter into the generated Node server.
 
@@ -88,7 +88,7 @@ set.
 
 ## Transactions and the driver runner
 
-`@flue/mongodb` exposes a small driver seam rather than bundling a production
+`@bapX/mongodb` exposes a small driver seam rather than bundling a production
 client. The generated `db.ts` wraps the official driver with all collection
 operations, topology inspection, collection and index management, transactions,
 and `close()`.

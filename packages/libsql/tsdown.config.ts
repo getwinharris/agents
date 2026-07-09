@@ -5,5 +5,5 @@ export default defineConfig({
 	format: ['esm'],
 	dts: true,
 	clean: true,
-	deps: { neverBundle: ['@flue/runtime', '@libsql/client'] },
+	deps: { neverBundle: ['@bapX/runtime', '@libsql/client'] },
 });

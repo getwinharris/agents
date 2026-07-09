@@ -19,8 +19,8 @@ then `<root>/`. Inspect existing agents, environment types, secret conventions,
 Intercom installation storage, region selection, and the webhook topics the
 application needs.
 
-Install `@flue/intercom` and the official `intercom-client@^7.0.3` with the
-project's package manager. Keep the SDK in project code; `@flue/intercom`
+Install `@bapX/intercom` and the official `intercom-client@^7.0.3` with the
+project's package manager. Keep the SDK in project code; `@bapX/intercom`
 verifies ingress directly with Web Crypto and does not depend on the provider
 client.
 
@@ -91,8 +91,8 @@ import {
   createIntercomChannel,
   type IntercomConversationRef,
   type JsonValue,
-} from '@flue/intercom';
-import { defineTool, dispatch } from '@flue/runtime';
+} from '@bapX/intercom';
+import { defineTool, dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 import { createIntercomClient, type IntercomRegion } from '../intercom-client.ts';
 
@@ -201,7 +201,7 @@ of being rejected by a closed union.
 Bind the verified workspace and conversation selected by trusted code:
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, retrieveConversation } from '../channels/intercom.ts';
 
 export default defineAgent(({ id }) => {

@@ -3,19 +3,19 @@ title: React
 description: Build React interfaces for live agent conversations and workflow runs.
 ---
 
-`@flue/react` turns Flue's durable event streams into live React state. Use `useFlueAgent()` for a continuing conversation with an agent instance and `useFlueWorkflow()` to observe a finite workflow run. HTTP requests, authentication, and stream transport remain in `@flue/sdk`.
+`@bapX/react` turns Flue's durable event streams into live React state. Use `useFlueAgent()` for a continuing conversation with an agent instance and `useFlueWorkflow()` to observe a finite workflow run. HTTP requests, authentication, and stream transport remain in `@bapX/sdk`.
 
 ## Set up React
 
 Install both packages, create one SDK client, and provide it to your application:
 
 ```sh
-pnpm add @flue/react @flue/sdk
+pnpm add @bapX/react @bapX/sdk
 ```
 
 ```tsx title="src/main.tsx"
-import { FlueProvider } from '@flue/react';
-import { createFlueClient } from '@flue/sdk';
+import { FlueProvider } from '@bapX/react';
+import { createFlueClient } from '@bapX/sdk';
 import { createRoot } from 'react-dom/client';
 import { App } from './App.tsx';
 
@@ -35,7 +35,7 @@ Configure authentication, headers, and custom `fetch` behavior on the client. Th
 An agent instance is identified by its agent name and instance ID. The hook reconstructs its transcript from durable events, then follows new events:
 
 ```tsx title="src/Chat.tsx"
-import { useFlueAgent } from '@flue/react';
+import { useFlueAgent } from '@bapX/react';
 import { useState } from 'react';
 
 export function Chat({ conversationId }: { conversationId: string }) {
@@ -80,7 +80,7 @@ export function Chat({ conversationId }: { conversationId: string }) {
 
 `sendMessage()` adds the user message immediately and resolves when the server admits the prompt, not when generation finishes. The stream then reconciles that optimistic message with its durable copy without changing its transcript position. Use `status` to distinguish connection, submission, streaming, and error states. `historyReady` becomes `true` once the requested durable history has loaded as one coherent snapshot; it remains `true` through later live reconnects.
 
-Messages are Flue-owned `FlueConversationMessage` values with a parts-based shape: `text`, `reasoning`, `dynamic-tool`, and `file`. Validated structured tool output is preserved on the `dynamic-tool` part's `output`, so applications can render custom tool interfaces without a separate data-event channel. These are Flue's own types — they are not AI SDK types, and `@flue/react` neither depends on `ai` at runtime nor implements its transport protocol. Durable file attachments project as `file` parts carrying media type only; historical bytes are not served, so render uploads optimistically from local data.
+Messages are Flue-owned `FlueConversationMessage` values with a parts-based shape: `text`, `reasoning`, `dynamic-tool`, and `file`. Validated structured tool output is preserved on the `dynamic-tool` part's `output`, so applications can render custom tool interfaces without a separate data-event channel. These are Flue's own types — they are not AI SDK types, and `@bapX/react` neither depends on `ai` at runtime nor implements its transport protocol. Durable file attachments project as `file` parts carrying media type only; historical bytes are not served, so render uploads optimistically from local data.
 
 The hook uses the SDK's materialized `agents.observe()` layer: it loads the complete canonical snapshot, publishes it atomically in durable order, and continues from that exact checkpoint through reconnects and canonical resets. Consumers do not need to coordinate the snapshot and live updates or sort `messages`. Observation follows live updates with Durable Streams long-polling. For a single point-in-time read with no live updates, call `client.agents.history()` directly instead. Partial text and reasoning are best-effort while streaming; the completed canonical assistant message is authoritative.
 
@@ -91,7 +91,7 @@ To observe a conversation that may be created out-of-band after mount — by a s
 Workflow invocation and observation are separate. Invoke the workflow with the SDK, retain its `runId`, and pass that ID to `useFlueWorkflow()`:
 
 ```tsx title="src/Report.tsx"
-import { useFlueClient, useFlueWorkflow } from '@flue/react';
+import { useFlueClient, useFlueWorkflow } from '@bapX/react';
 import { useState } from 'react';
 
 export function Report() {
@@ -130,4 +130,4 @@ During server rendering, both hooks return empty, idle state and open no connect
 
 ## API reference
 
-See the [`@flue/react` package README](https://github.com/withastro/flue/tree/main/packages/react#readme) for complete options, result types, statuses, and message-part types.
+See the [`@bapX/react` package README](https://github.com/getwinharris/agents/tree/main/packages/react#readme) for complete options, result types, statuses, and message-part types.

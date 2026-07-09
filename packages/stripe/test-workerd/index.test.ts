@@ -5,7 +5,7 @@ import { createStripeChannel, type StripeChannel } from '../src/index.ts';
 
 const encoder = new TextEncoder();
 
-describe('@flue/stripe workerd ingress', () => {
+describe('@bapX/stripe workerd ingress', () => {
 	it('executes official snapshot verification over exact bytes in workerd', async () => {
 		const webhook = vi.fn();
 		const stripe = createStripeChannel({

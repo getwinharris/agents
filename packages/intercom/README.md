@@ -1,9 +1,9 @@
-# `@flue/intercom`
+# `@bapX/intercom`
 
 Verified Intercom webhook ingress for Flue channels.
 
 ```ts
-import { createIntercomChannel } from '@flue/intercom';
+import { createIntercomChannel } from '@bapX/intercom';
 
 export const channel = createIntercomChannel({
   clientSecret: process.env.INTERCOM_CLIENT_SECRET,

@@ -1,4 +1,4 @@
-import type { FlueClient } from '@flue/sdk';
+import type { FlueClient } from '@bapX/sdk';
 import { createContext, createElement, type ReactNode, useContext } from 'react';
 
 const FlueContext = createContext<FlueClient | undefined>(undefined);

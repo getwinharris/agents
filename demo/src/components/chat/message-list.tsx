@@ -1,4 +1,4 @@
-import type { AgentStatus, FailedSend, FlueConversationMessage } from '@flue/react'
+import type { AgentStatus, FailedSend, FlueConversationMessage } from '@bapX/react'
 import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/marker'
 import {
   MessageScroller,

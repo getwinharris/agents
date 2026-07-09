@@ -1,5 +1,5 @@
-import { createResendChannel } from '@flue/resend';
-import { defineTool, dispatch, type JsonValue } from '@flue/runtime';
+import { createResendChannel } from '@bapX/resend';
+import { defineTool, dispatch, type JsonValue } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 import { createResendClient } from '../resend-client.ts';
 

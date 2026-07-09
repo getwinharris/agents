@@ -7,21 +7,21 @@
  * inside `client.transaction(...)` are invisible to top-level `client.execute`
  * — a per-test temp file is the smallest backing store that shares state across
  * the transaction and non-transaction connections.) Uses the shared contract
- * test runner from @flue/runtime for behavioral assertions, plus
+ * test runner from @bapX/runtime for behavioral assertions, plus
  * adapter-specific factory tests.
  */
 
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { ConversationStreamStoreError, PersistedSchemaVersionError } from '@flue/runtime/adapter';
+import { ConversationStreamStoreError, PersistedSchemaVersionError } from '@bapX/runtime/adapter';
 import {
 	defineAttachmentStoreContractTests,
 	defineConversationStreamStoreContractTests,
 	defineEventStreamStoreContractTests,
 	defineRunStoreContractTests,
 	defineStoreContractTests,
-} from '@flue/runtime/test-utils';
+} from '@bapX/runtime/test-utils';
 import { createClient } from '@libsql/client';
 import { describe, expect, it } from 'vitest';
 import {

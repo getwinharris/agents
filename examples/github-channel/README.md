@@ -18,7 +18,7 @@ can be inspected and manually redelivered with the same delivery id.
 
 The channel module exports both the ingress `channel` and the project-owned
 Octokit `client`. The comment tool is deliberately narrow application policy,
-not a generic tool supplied by `@flue/github`.
+not a generic tool supplied by `@bapX/github`.
 
 For inline review comments the handler derives the top-level thread comment id
 from the native `comment.in_reply_to_id` field, but this example deliberately

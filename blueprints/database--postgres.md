@@ -5,7 +5,7 @@
 # Add a Postgres Database to Flue
 
 You are an AI coding agent configuring Postgres-backed persistence for a Flue
-project using the first-party `@flue/postgres` adapter.
+project using the first-party `@bapX/postgres` adapter.
 
 This persists canonical agent conversation streams, immutable attachments,
 accepted submissions, workflow-run records, and event
@@ -29,11 +29,11 @@ convention.
 
 ## Choose and install a driver
 
-`@flue/postgres` does **not** bundle a database driver. It runs against a small
+`@bapX/postgres` does **not** bundle a database driver. It runs against a small
 runner you wrap around the Postgres driver the project chooses, so the project
 owns driver selection, pooling, TLS, and every connection option.
 
-Install `@flue/postgres` plus one Postgres driver. If the project already
+Install `@bapX/postgres` plus one Postgres driver. If the project already
 depends on a Postgres driver, reuse it. Otherwise use
 [`pg@^8.21.0`](https://node-postgres.com/) (node-postgres) and install the matching
 `@types/pg@^8.20.0` development dependency. Ask the user before choosing a different
@@ -53,7 +53,7 @@ across arbitrary connections:
 
 ```ts title="src/db.ts"
 // flue-blueprint: database/postgres@1
-import { postgres } from '@flue/postgres';
+import { postgres } from '@bapX/postgres';
 import { Pool } from 'pg';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });

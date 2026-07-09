@@ -6,8 +6,8 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
-// The config resolver is internal to the CLI (the public `@flue/cli/config`
-// subpath exposes only the `flue.config.ts` authoring API), so test it at the
+// The config resolver is internal to the CLI (the public `@bapX/cli/config`
+// subpath exposes only the `bapX.config.ts` authoring API), so test it at the
 // source boundary the CLI consumes.
 import { resolveConfig } from '../src/lib/config.ts';
 import { sanitizedChildEnv } from './child-env.mjs';
@@ -181,7 +181,7 @@ describe('flue run', () => {
 		fs.mkdirSync(path.join(root, 'agents'));
 		fs.writeFileSync(
 			path.join(root, 'agents', 'assistant.mjs'),
-			`import { defineAgent } from '@flue/runtime';\n` +
+			`import { defineAgent } from '@bapX/runtime';\n` +
 				`export default defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n`,
 		);
 		const child = spawn(
@@ -307,13 +307,13 @@ describe('flue build', () => {
 		fs.mkdirSync(path.join(root, '.flue', 'workflows'), { recursive: true });
 		fs.writeFileSync(
 			path.join(root, '.flue', 'agents', 'helper.mjs'),
-			`import { defineAgent, defineAgentProfile } from '@flue/runtime';\n` +
+			`import { defineAgent, defineAgentProfile } from '@bapX/runtime';\n` +
 				`const profile = defineAgentProfile({ instructions: 'helper' });\n` +
 				`export default defineAgent(() => ({ profile }));\n`,
 		);
 		fs.writeFileSync(
 			path.join(root, '.flue', 'workflows', 'inner.mjs'),
-			`import { defineAgent, defineWorkflow } from '@flue/runtime';\n` +
+			`import { defineAgent, defineWorkflow } from '@bapX/runtime';\n` +
 				`const agent = defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n` +
 				`export default defineWorkflow({ agent, async run() { return { ok: true }; } });\n`,
 		);
@@ -323,13 +323,13 @@ describe('flue build', () => {
 		fs.mkdirSync(path.join(root, 'workflows'));
 		fs.writeFileSync(
 			path.join(root, 'agents', 'stray.mjs'),
-			`import { defineAgent, defineAgentProfile } from '@flue/runtime';\n` +
+			`import { defineAgent, defineAgentProfile } from '@bapX/runtime';\n` +
 				`const profile = defineAgentProfile({ instructions: 'stray' });\n` +
 				`export default defineAgent(() => ({ profile }));\n`,
 		);
 		fs.writeFileSync(
 			path.join(root, 'workflows', 'outer.mjs'),
-			`import { defineAgent, defineWorkflow } from '@flue/runtime';\n` +
+			`import { defineAgent, defineWorkflow } from '@bapX/runtime';\n` +
 				`const agent = defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n` +
 				`export default defineWorkflow({ agent, async run() { return { ok: true }; } });\n`,
 		);
@@ -371,7 +371,7 @@ function createNoInputWorkflowFixture() {
 	fs.mkdirSync(path.join(root, 'workflows'));
 	fs.writeFileSync(
 		path.join(root, 'workflows', 'no-input.mjs'),
-		`import { defineAgent, defineWorkflow } from '@flue/runtime';\n` +
+		`import { defineAgent, defineWorkflow } from '@bapX/runtime';\n` +
 			`const agent = defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n` +
 			`export default defineWorkflow({ agent, async run() { return { ok: true }; } });\n`,
 	);
@@ -386,7 +386,7 @@ function createWorkflowFixture(optionalInput = false) {
 	fs.writeFileSync(
 		path.join(root, 'workflows', 'inspect-input.mjs'),
 		`import * as v from 'valibot';\n` +
-			`import { defineAgent, defineWorkflow } from '@flue/runtime';\n` +
+			`import { defineAgent, defineWorkflow } from '@bapX/runtime';\n` +
 			`console.log('authored module log');\n` +
 			`const agent = defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n` +
 			`export default defineWorkflow({\n` +

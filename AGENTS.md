@@ -1,6 +1,25 @@
-# Flue
+# agents Repository Instructions
 
-Framework where projects containing agents and workflows are compiled into deployable server artifacts.
+## Scope
+
+This repository is the bapX agent harness for `agents.bapx.in`. It owns the primary agent
+harness and `@bapX/agent` package (forked from Flue):
+
+- **Product surface**: `agents.bapx.in`
+- **Primary package**: `@bapX/agent`
+- **GitHub source**: `getwinharris/agents`
+- **Gateway**: `api.bapx.in/mcp`
+- **Pricing**: $5/mo (5GB workspace), $1/GB scaling
+
+Agents are TypeScript modules (`agents/<name>.ts`). Build agents that can spawn sub-agents,
+use skills (search, deploy, browser), and collaborate via built-in team features.
+
+---
+
+## Framework
+
+The underlying framework (forked from Flue) compiles agent and workflow projects
+into deployable server artifacts.
 
 ## Terminology
 
@@ -25,8 +44,8 @@ A blueprint is a Markdown implementation guide returned by `flue add`; its kind 
 
 ## Project Structure
 
-- `packages/runtime/` — Runtime library (`@flue/runtime`): sessions, agent harnesses, tools, and sandbox plumbing.
-- `packages/cli/` — CLI and build/dev tooling (`@flue/cli`): Vite build graph, target integration, discovery, and configuration.
+- `packages/runtime/` — Runtime library (`@bapX/runtime`): sessions, agent harnesses, tools, and sandbox plumbing.
+- `packages/cli/` — CLI and build/dev tooling (`@bapX/cli`): Vite build graph, target integration, discovery, and configuration.
 - `examples/hello-world/` — General runtime integration fixture.
 - `examples/cloudflare/` — Cloudflare integration fixture.
 - `examples/imported-skill/` — Packaged skill and release fixture.

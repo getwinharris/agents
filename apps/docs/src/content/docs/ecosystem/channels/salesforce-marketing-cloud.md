@@ -2,8 +2,8 @@
 title: Salesforce Marketing Cloud
 description: Receive verified Marketing Cloud Engagement ENS batches and compose a tenant-bound Fetch client.
 package:
-  name: '@flue/salesforce'
-  href: https://www.npmjs.com/package/@flue/salesforce
+  name: '@bapX/salesforce'
+  href: https://www.npmjs.com/package/@bapX/salesforce
 ---
 
 ## Quickstart
@@ -16,7 +16,7 @@ flue add channel salesforce-marketing-cloud
 
 ## Overview
 
-The blueprint installs `@flue/salesforce`. It creates a narrow
+The blueprint installs `@bapX/salesforce`. It creates a narrow
 Fetch client at `<source-root>/salesforce-marketing-cloud-client.ts`, family
 identity helpers at `<source-root>/salesforce-marketing-cloud-email.ts`, and
 `<source-root>/channels/salesforce-marketing-cloud.ts` with named `channel` and
@@ -25,8 +25,8 @@ callback lookup tool to validated email-event identity. This integration is for
 Marketing Cloud Engagement ENS, not generic Salesforce APIs.
 
 ```ts title="src/channels/salesforce-marketing-cloud.ts (abridged)"
-import { createSalesforceMarketingCloudChannel } from '@flue/salesforce';
-import { dispatch } from '@flue/runtime';
+import { createSalesforceMarketingCloudChannel } from '@bapX/salesforce';
+import { dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 import { createSalesforceMarketingCloudClient } from '../salesforce-marketing-cloud-client.ts';
 import { emailEventInstanceId, emailRefFromEvent } from '../salesforce-marketing-cloud-email.ts';
@@ -93,7 +93,7 @@ Node and Cloudflare targets use the same Fetch and Web Crypto implementation.
 | `SALESFORCE_MARKETING_CLOUD_REST_BASE_URL` | **Required** — Selects the tenant-specific Marketing Cloud REST origin. |
 | `SALESFORCE_MARKETING_CLOUD_ACCESS_TOKEN`  | **Required** — Authenticates application-owned REST requests.           |
 
-It installs `@flue/salesforce` and creates named `channel` and
+It installs `@bapX/salesforce` and creates named `channel` and
 project-owned `client` exports. The integration targets Marketing Cloud
 Engagement Event Notification Service (ENS), not generic Salesforce APIs.
 
@@ -113,8 +113,8 @@ application-owned.
 import {
   createSalesforceMarketingCloudChannel,
   type SalesforceMarketingCloudEvent,
-} from '@flue/salesforce';
-import { defineTool, dispatch } from '@flue/runtime';
+} from '@bapX/salesforce';
+import { defineTool, dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 import { createSalesforceMarketingCloudClient } from '../salesforce-marketing-cloud-client.ts';
 import {
@@ -304,7 +304,7 @@ remain application-owned.
 ## Bind the agent
 
 ```ts title="src/agents/assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { retrieveCallback } from '../channels/salesforce-marketing-cloud.ts';
 import { parseEmailEventInstanceId } from '../salesforce-marketing-cloud-email.ts';
 
@@ -410,4 +410,4 @@ tenant host, callback path, method, and Bearer header. Never register a live
 callback, perform OAuth, call `/ens-verify`, or contact Salesforce from tests.
 
 See the
-[`@flue/salesforce` README](https://github.com/withastro/flue/tree/main/packages/salesforce-marketing-cloud#readme).
+[`@bapX/salesforce` README](https://github.com/getwinharris/agents/tree/main/packages/salesforce-marketing-cloud#readme).

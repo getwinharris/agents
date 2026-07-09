@@ -33,10 +33,10 @@ export const docsSections: DocsSection[] = [
 				title: 'Introduction',
 				items: [
 					{ title: 'Getting Started', slug: 'getting-started/quickstart' },
-					{ title: 'Why Flue?', slug: 'introduction/why-flue' },
+					{ title: 'Why bapX?', slug: 'introduction/why-bapX' },
 					{ title: 'What is an agent?', slug: 'concepts/agents' },
 					{ title: 'Durable Agents', slug: 'concepts/durable-execution' },
-					{ title: 'Changelog', href: 'https://github.com/withastro/flue/blob/main/CHANGELOG.md' },
+					{ title: 'Changelog', href: 'https://github.com/getwinharris/agents/blob/main/CHANGELOG.md' },
 				],
 			},
 			{

@@ -10,14 +10,14 @@
 		"test:workerd": "vitest run --config vitest.workerd.config.ts"
 	},
 	"dependencies": {
-		"@flue/runtime": "workspace:*",
-		"@flue/whatsapp": "workspace:*",
+		"@bapX/runtime": "workspace:*",
+		"@bapX/whatsapp": "workspace:*",
 		"@kapso/whatsapp-cloud-api": "*",
 		"valibot": "^1.0.0"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "0.16.15",
-		"@flue/cli": "workspace:*",
+		"@bapX/cli": "workspace:*",
 		"agents": "^0.14.2",
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.6"

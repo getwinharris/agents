@@ -1,5 +1,5 @@
-import type { ConversationStreamStore } from '@flue/runtime/adapter';
-import { defineSqlConversationStreamStore } from '@flue/runtime/adapter';
+import type { ConversationStreamStore } from '@bapX/runtime/adapter';
+import { defineSqlConversationStreamStore } from '@bapX/runtime/adapter';
 import type { LibsqlParameter, LibsqlRunner } from './libsql-adapter.ts';
 
 export function createLibsqlConversationStreamStore(runner: LibsqlRunner): ConversationStreamStore {

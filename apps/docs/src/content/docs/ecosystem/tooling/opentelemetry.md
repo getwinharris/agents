@@ -2,11 +2,11 @@
 title: OpenTelemetry
 description: Export Flue workflows, agents, model calls, and tools with OpenTelemetry GenAI semantics.
 package:
-  name: '@flue/opentelemetry'
-  href: https://www.npmjs.com/package/@flue/opentelemetry
+  name: '@bapX/opentelemetry'
+  href: https://www.npmjs.com/package/@bapX/opentelemetry
 ---
 
-`@flue/opentelemetry` projects Flue's live runtime observations into standard OpenTelemetry GenAI spans and metrics. It does not configure an SDK, exporter, sampling, credentials, or deployment-specific flushing.
+`@bapX/opentelemetry` projects Flue's live runtime observations into standard OpenTelemetry GenAI spans and metrics. It does not configure an SDK, exporter, sampling, credentials, or deployment-specific flushing.
 
 The package implements the Development GenAI conventions pinned at commit `4c8addb53718b544134be47e256237026fe88875`. Its Flue-to-GenAI projection revision is `5` and its Flue extension revision is `3`; the GenAI semantic-convention revision and schema remain unchanged. Updating any revision requires an explicit compatibility review.
 
@@ -15,14 +15,14 @@ The package implements the Development GenAI conventions pinned at commit `4c8ad
 Install the adapter and OpenTelemetry API alongside an SDK and exporter compatible with your deployment target:
 
 ```sh
-pnpm add @flue/opentelemetry @opentelemetry/api
+pnpm add @bapX/opentelemetry @opentelemetry/api
 ```
 
 Configure the SDK first, then register one instrumentation instance:
 
 ```ts title="src/app.ts (abridged)"
-import { createOpenTelemetryInstrumentation } from '@flue/opentelemetry';
-import { instrument } from '@flue/runtime';
+import { createOpenTelemetryInstrumentation } from '@bapX/opentelemetry';
+import { instrument } from '@bapX/runtime';
 
 const instrumentation = createOpenTelemetryInstrumentation();
 const disposeInstrumentation = instrument(instrumentation);

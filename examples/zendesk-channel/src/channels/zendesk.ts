@@ -1,5 +1,5 @@
-import { defineTool, dispatch } from '@flue/runtime';
-import { createZendeskChannel, type JsonValue, type ZendeskTicketRef } from '@flue/zendesk';
+import { defineTool, dispatch } from '@bapX/runtime';
+import { createZendeskChannel, type JsonValue, type ZendeskTicketRef } from '@bapX/zendesk';
 import assistant from '../agents/assistant.ts';
 import { createZendeskClient } from '../zendesk-client.ts';
 

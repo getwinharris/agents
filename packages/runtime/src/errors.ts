@@ -1205,7 +1205,7 @@ function formatForLog(prefix: string, err: unknown): string {
 
 const flueLog = {
 	error(err: unknown): void {
-		console.error(formatForLog('[flue]', err));
+		console.error(formatForLog('[bapX]', err));
 	},
 };
 

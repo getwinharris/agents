@@ -6,7 +6,7 @@ export interface SkillPackageInput {
 	files: ReadonlyArray<{ path: string; content: Uint8Array }>;
 }
 
-const directoryKey = Symbol.for('@flue/runtime/packaged-skill/v1');
+const directoryKey = Symbol.for('@bapX/runtime/packaged-skill/v1');
 const encoder = new TextEncoder();
 
 export function buildPackagedSkill(input: SkillPackageInput): PackagedSkillDirectory {

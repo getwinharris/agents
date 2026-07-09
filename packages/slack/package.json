@@ -1,12 +1,12 @@
 {
-	"name": "@flue/slack",
+	"name": "@bapX/slack",
 	"version": "1.0.0-beta.1",
 	"type": "module",
 	"license": "Apache-2.0",
-	"homepage": "https://flueframework.com/",
+	"homepage": "https://bapx.in/",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/withastro/flue",
+		"url": "https://github.com/getwinharris/agents",
 		"directory": "packages/slack"
 	},
 	"exports": {

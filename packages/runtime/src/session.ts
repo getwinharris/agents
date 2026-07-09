@@ -570,7 +570,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 	}
 
 	private modelRequestInfo(model: Model<any> | undefined, options?: SimpleStreamOptions): ModelRequestInfo {
-		if (!model) throw new Error('[flue] Missing configured model for turn telemetry.');
+		if (!model) throw new Error('[bapX] Missing configured model for turn telemetry.');
 		const providerTelemetry = getProviderTelemetry(model.provider);
 		const parsedEndpoint = parseProviderEndpoint(model.baseUrl);
 		return {
@@ -739,14 +739,14 @@ export class Session implements FlueSession, AgentSubmissionSession {
 						}]);
 					} else if (assistant && aEvent.type === 'text_delta') {
 						const block = assistant.blocks.get(aEvent.contentIndex);
-						if (!block || block.type !== 'text') throw new Error('[flue] Canonical text delta has no started block.');
+						if (!block || block.type !== 'text') throw new Error('[bapX] Canonical text delta has no started block.');
 						this.enqueueCanonical([{
 							...this.canonicalEnvelope('assistant_text_delta'), type: 'assistant_text_delta',
 							messageId: assistant.messageId, blockId: block.id, sequence: block.deltaCount++, delta: aEvent.delta,
 						}], () => this.emit({ type: 'text_delta', text: aEvent.delta }));
 					} else if (assistant && aEvent.type === 'text_end') {
 						const block = assistant.blocks.get(aEvent.contentIndex);
-						if (!block || block.type !== 'text') throw new Error('[flue] Canonical text completion has no started block.');
+						if (!block || block.type !== 'text') throw new Error('[bapX] Canonical text completion has no started block.');
 						const content = aEvent.partial.content[aEvent.contentIndex];
 						await this.flushCanonical();
 						await this.appendCanonical([{
@@ -765,14 +765,14 @@ export class Session implements FlueSession, AgentSubmissionSession {
 						this.emit({ type: 'thinking_start', contentIndex: aEvent.contentIndex });
 					} else if (assistant && aEvent.type === 'thinking_delta') {
 						const block = assistant.blocks.get(aEvent.contentIndex);
-						if (!block || block.type !== 'reasoning') throw new Error('[flue] Canonical reasoning delta has no started block.');
+						if (!block || block.type !== 'reasoning') throw new Error('[bapX] Canonical reasoning delta has no started block.');
 						this.enqueueCanonical([{
 							...this.canonicalEnvelope('assistant_reasoning_delta'), type: 'assistant_reasoning_delta',
 							messageId: assistant.messageId, blockId: block.id, sequence: block.deltaCount++, delta: aEvent.delta,
 						}], () => this.emit({ type: 'thinking_delta', contentIndex: aEvent.contentIndex, delta: aEvent.delta }));
 					} else if (assistant && aEvent.type === 'thinking_end') {
 						const block = assistant.blocks.get(aEvent.contentIndex);
-						if (!block || block.type !== 'reasoning') throw new Error('[flue] Canonical reasoning completion has no started block.');
+						if (!block || block.type !== 'reasoning') throw new Error('[bapX] Canonical reasoning completion has no started block.');
 						const content = aEvent.partial.content[aEvent.contentIndex];
 						await this.flushCanonical();
 						await this.appendCanonical([{
@@ -866,7 +866,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 					};
 					const assistantMessageId = this.canonicalToolRequestMessageId;
 					if (!assistantMessageId) {
-						throw new Error('[flue] Canonical tool outcome has no assistant request.');
+						throw new Error('[bapX] Canonical tool outcome has no assistant request.');
 					}
 					const outcomeKey = `${encodeCanonicalId(assistantMessageId)}_${encodeCanonicalId(event.toolCallId)}`;
 					const messageId = `entry_tool_outcome_${outcomeKey}`;
@@ -894,7 +894,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 						content: result.content.map((content) => {
 							if (content.type === 'text') return { type: 'text' as const, text: content.text };
 							const attachment = refs[imageIndex++];
-							if (!attachment) throw new Error('[flue] Canonical tool outcome attachment is missing.');
+							if (!attachment) throw new Error('[bapX] Canonical tool outcome attachment is missing.');
 							return { type: 'attachment' as const, attachment };
 						}),
 						...(hasStructuredOutput ? { output: details?.output } : {}),
@@ -935,13 +935,13 @@ export class Session implements FlueSession, AgentSubmissionSession {
 					const committedToolResults = event.toolResults.length > 0;
 					if (committedToolResults) {
 						const parentId = this.canonicalToolResultParentId ?? await this.conversationWriter.getConversationLeaf(this.conversationId);
-						if (!parentId) throw new Error('[flue] Canonical tool results have no assistant parent.');
+						if (!parentId) throw new Error('[bapX] Canonical tool results have no assistant parent.');
 						const assistantMessageId = this.canonicalToolRequestMessageId;
-						if (!assistantMessageId) throw new Error('[flue] Canonical tool results have no assistant request.');
+						if (!assistantMessageId) throw new Error('[bapX] Canonical tool results have no assistant request.');
 						const conversation = await this.requireConversation();
 						const outcomeIds = event.toolResults.map((toolResult) => {
 							const outcome = conversation.toolOutcomes.get(toolOutcomeKey(assistantMessageId, toolResult.toolCallId));
-							if (!outcome) throw new Error('[flue] Canonical tool result has no durable outcome.');
+							if (!outcome) throw new Error('[bapX] Canonical tool result has no durable outcome.');
 							return outcome.recordId;
 						});
 						await this.appendCanonical([{
@@ -1132,7 +1132,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 		signal: AbortSignal,
 	): Promise<ConversationRecord> {
 		if (!this.createTaskSession) {
-			throw new Error('[flue] This session cannot resume task sessions.');
+			throw new Error('[bapX] This session cannot resume task sessions.');
 		}
 		const toolCallBlock = assistant.content.find(
 			(block): block is Extract<typeof block, { type: 'toolCall' }> =>
@@ -1950,7 +1950,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 		parsedInput: ReturnType<typeof parseActionInput>,
 		signal?: AbortSignal,
 	): Promise<AgentToolResult<any>> {
-		if (!this.createActionHarness) throw new Error('[flue] This session cannot execute Actions.');
+		if (!this.createActionHarness) throw new Error('[bapX] This session cannot execute Actions.');
 		if (this.delegationDepth >= MAX_DELEGATION_DEPTH) {
 			throw new DelegationDepthExceededError({ maxDepth: MAX_DELEGATION_DEPTH });
 		}
@@ -2267,7 +2267,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 	> {
 		this.assertActive();
 		if (!this.createTaskSession) {
-			throw new Error('[flue] This session cannot create task sessions.');
+			throw new Error('[bapX] This session cannot create task sessions.');
 		}
 		if (this.delegationDepth >= MAX_DELEGATION_DEPTH) {
 			throw new DelegationDepthExceededError({ maxDepth: MAX_DELEGATION_DEPTH });
@@ -2590,7 +2590,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 		let imageIndex = 0;
 		const attachmentContent = () => {
 			const attachment = refs[imageIndex++];
-			if (!attachment) throw new Error('[flue] Canonical shell attachment is missing.');
+			if (!attachment) throw new Error('[bapX] Canonical shell attachment is missing.');
 			return { type: 'attachment' as const, attachment };
 		};
 		await this.appendCanonical([
@@ -2649,7 +2649,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 
 	private async requireConversation(): Promise<ReducedConversationState> {
 		const conversation = await this.conversationWriter.getConversation(this.conversationId);
-		if (!conversation) throw new Error('[flue] Canonical conversation is missing.');
+		if (!conversation) throw new Error('[bapX] Canonical conversation is missing.');
 		return conversation;
 	}
 
@@ -2980,7 +2980,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 			{
 				const conversation = await this.requireConversation();
 				const sourceLeafId = conversation.activeLeafId;
-				if (!sourceLeafId) throw new Error('[flue] Canonical compaction has no source leaf.');
+				if (!sourceLeafId) throw new Error('[bapX] Canonical compaction has no source leaf.');
 				await this.appendCanonical([{
 					...this.canonicalEnvelope('compaction'),
 					type: 'compaction',
@@ -3337,7 +3337,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 								(entry) => entry.type === 'message' && entry.message.role === 'user',
 							);
 							if (!inputEntry) {
-								throw new Error('[flue] Resumed task conversation has no durable input.');
+								throw new Error('[bapX] Resumed task conversation has no durable input.');
 							}
 							await this.resumeConversationToCompletion({
 								inputEntryId: inputEntry.id,
@@ -3480,7 +3480,7 @@ export class Session implements FlueSession, AgentSubmissionSession {
 				await this.rebuildCanonicalContext();
 				const projectedPrompt = this.agentLoop.state.messages.pop();
 				if (projectedPrompt?.role !== 'user') {
-					throw new Error('[flue] Canonical prompt projection is missing its user message.');
+					throw new Error('[bapX] Canonical prompt projection is missing its user message.');
 				}
 				const projectedContent = Array.isArray(projectedPrompt.content)
 					? projectedPrompt.content

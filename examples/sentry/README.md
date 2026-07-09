@@ -53,7 +53,7 @@ example fits your needs:
 
 ```
 examples/sentry/
-├── flue.config.ts            ← build-time config (target, paths)
+├── bapX.config.ts            ← build-time config (target, paths)
 ├── package.json
 ├── tsconfig.json
 ├── AGENTS.md                 ← system prompt for any agent that calls init()
@@ -76,14 +76,14 @@ Flue emits a structured event for every meaningful boundary in a workflow run �
 `run_start`, `operation`, `turn_request`, `turn`, `tool`, `log`, `run_end`,
 and others. Events emitted in that workflow run carry its correlation tree
 (`runId`, `harness`, `session`, `operationId`, `turnId`, `taskId`) so any
-consumer can reconstruct what happened. See [Observability](https://flueframework.com/docs/guide/observability/)
+consumer can reconstruct what happened. See [Observability](https://bapx.in/docs/guide/observability/)
 for the vendor-neutral event contract and its sensitive-content guidance.
 
-The `@flue/runtime` package exposes a single function for tapping that
+The `@bapX/runtime` package exposes a single function for tapping that
 stream globally:
 
 ```ts
-import { observe } from '@flue/runtime';
+import { observe } from '@bapX/runtime';
 
 observe((event, ctx) => {
   // event is a fully decorated FlueEvent
@@ -141,7 +141,7 @@ From the repo root:
 pnpm install
 ```
 
-This example declares `@flue/runtime` as a workspace dependency and
+This example declares `@bapX/runtime` as a workspace dependency and
 `@sentry/node` as a regular npm dependency. The workspace install picks
 up both.
 

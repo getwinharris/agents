@@ -13,7 +13,7 @@ A subagent is an [agent profile](/docs/guide/building-agents/#agent-profiles) de
 Create a named profile with `defineAgentProfile(...)`, then provide it through an agent's `subagents` configuration:
 
 ```ts title="src/agents/support-assistant.ts"
-import { defineAgent, defineAgentProfile } from '@flue/runtime';
+import { defineAgent, defineAgentProfile } from '@bapX/runtime';
 
 const issueClassifier = defineAgentProfile({
   name: 'issue_classifier',
@@ -55,7 +55,7 @@ A `task()` call without an `agent` name is not a subagent delegation: the child 
 A workflow can choose delegation directly when application logic requires work from a particular subagent. Call `session.task(...)` with the name of a declared subagent, and provide `result` when the workflow needs validated data:
 
 ```ts title="src/workflows/review-change.ts"
-import { defineAgent, defineWorkflow, defineAgentProfile } from '@flue/runtime';
+import { defineAgent, defineWorkflow, defineAgentProfile } from '@bapX/runtime';
 import * as v from 'valibot';
 
 const reviewer = defineAgentProfile({

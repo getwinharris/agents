@@ -1,18 +1,18 @@
-# `@flue/react`
+# `@bapX/react`
 
-React hooks for live Flue agent conversations and workflow runs. `@flue/react` manages UI state; `@flue/sdk` handles HTTP and Durable Streams transport.
+React hooks for live Flue agent conversations and workflow runs. `@bapX/react` manages UI state; `@bapX/sdk` handles HTTP and Durable Streams transport.
 
 ```sh
-pnpm add @flue/react @flue/sdk
+pnpm add @bapX/react @bapX/sdk
 ```
 
-Requires React 18 or later. For examples, see the [React guide](https://flueframework.com/docs/guide/react/). Relative `baseUrl` values such as `/api` require a browser; use an absolute URL when creating the client during SSR.
+Requires React 18 or later. For examples, see the [React guide](https://bapx.in/docs/guide/react/). Relative `baseUrl` values such as `/api` require a browser; use an absolute URL when creating the client during SSR.
 
 ## Setup
 
 ```tsx
-import { FlueProvider } from '@flue/react';
-import { createFlueClient } from '@flue/sdk';
+import { FlueProvider } from '@bapX/react';
+import { createFlueClient } from '@bapX/sdk';
 
 const client = createFlueClient({ baseUrl: '/api' });
 
@@ -207,7 +207,7 @@ Changing the client, agent name, agent ID, history, live stream mode, or workflo
 
 ## Re-exported types
 
-`@flue/react` re-exports these SDK types:
+`@bapX/react` re-exports these SDK types:
 
 - `AgentPromptImage`
 - `AttachedAgentEvent`

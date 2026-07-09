@@ -1,10 +1,10 @@
-# `@flue/google-chat`
+# `@bapX/google-chat`
 
 Authenticated Google Chat interaction and Workspace Event ingress for Flue
 applications.
 
 ```ts
-import { createGoogleChatChannel } from '@flue/google-chat';
+import { createGoogleChatChannel } from '@bapX/google-chat';
 
 export const channel = createGoogleChatChannel({
   interactions: {

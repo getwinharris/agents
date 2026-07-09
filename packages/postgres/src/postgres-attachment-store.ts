@@ -9,7 +9,7 @@ import {
 	type StoredAttachment,
 	sameAttachmentRef,
 	verifyAttachmentBytes,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import type { PostgresQuery, PostgresRunner } from './postgres-adapter.ts';
 
 interface AttachmentRecord extends StoredAttachment {

@@ -88,10 +88,10 @@ test.
 Typical focused commands:
 
 ```sh
-pnpm --filter @flue/<provider> run build
-pnpm --filter @flue/<provider> run check:types
-pnpm --filter @flue/<provider> run test
-pnpm --filter @flue/<provider> run test:workerd
+pnpm --filter @bapX/<provider> run build
+pnpm --filter @bapX/<provider> run check:types
+pnpm --filter @bapX/<provider> run test
+pnpm --filter @bapX/<provider> run test:workerd
 ```
 
 Adapt to the package's actual scripts.
@@ -160,7 +160,7 @@ equivalent. Follow the repository's dependency build order.
   strict consumer without requiring an unrelated provider framework.
 - Install the tarball into a clean strict TypeScript consumer.
 - Typecheck a custom Hono environment and import the constructor at runtime.
-- Confirm no accidental `@flue/runtime` or provider SDK runtime dependency.
+- Confirm no accidental `@bapX/runtime` or provider SDK runtime dependency.
 - Confirm every declared runtime dependency executes under Flue's required
   Workers `nodejs_compat` configuration and does not call unsupported stubs.
 

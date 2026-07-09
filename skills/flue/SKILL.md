@@ -5,7 +5,7 @@ description: Use when building, debugging, reviewing, or documenting Flue agents
 
 # Flue
 
-Use `flue docs` to read the documentation bundled with the installed `@flue/cli` version. Choose relevant paths from the catalog below and run `flue docs read <path>`. If no catalog entry matches your task, run `flue docs search <query>`, then read the most relevant result with `flue docs read <path>`.
+Use `flue docs` to read the documentation bundled with the installed `@bapX/cli` version. Choose relevant paths from the catalog below and run `flue docs read <path>`. If no catalog entry matches your task, run `flue docs search <query>`, then read the most relevant result with `flue docs read <path>`.
 
 For example, `flue docs search "durable execution"` searches with the query `durable execution`. If it returns the path `concepts/durable-execution`, run `flue docs read concepts/durable-execution` to read that page.
 
@@ -15,9 +15,9 @@ For example, `flue docs search "durable execution"` searches with the query `dur
 
 ```text
 api/action-api -- Action API
-  Reference for defining reusable finite Actions with @flue/runtime.
+  Reference for defining reusable finite Actions with @bapX/runtime.
 api/agent-api -- Agent API
-  Reference for defining agents and running agent operations with @flue/runtime.
+  Reference for defining agents and running agent operations with @bapX/runtime.
 api/data-persistence-api -- Data Persistence API
   Reference for Flue persistence adapters and stores.
 api/errors-reference -- Errors Reference
@@ -33,7 +33,7 @@ api/sandbox-api -- Sandbox Adapter API
 api/streaming-protocol -- Streaming Protocol
   Reference for reading Flue agent conversations and workflow events over Durable Streams.
 api/workflow-api -- Workflow API
-  Reference for creating and invoking workflows with @flue/runtime.
+  Reference for creating and invoking workflows with @bapX/runtime.
 cli/add -- flue add
   Reference for discovering and applying Flue implementation blueprints.
 cli/build -- flue build
@@ -141,10 +141,10 @@ guide/tools -- Tools
   Give agents application capabilities through custom tools and MCP servers.
 guide/workflows -- Workflows
   Create, invoke, and expose finite agent-backed operations.
-introduction/why-flue -- Why Flue?
+introduction/why-bapX -- Why bapX?
   Build autonomous AI agents and powerful workflows with a programmable TypeScript harness, and run them anywhere.
 reference/configuration -- Configuration
-  Reference for flue.config.ts options.
+  Reference for bapX.config.ts options.
 sdk/agents -- client.agents
   Invoke persistent agent instances and read their conversations.
 sdk/client -- createFlueClient(...)
@@ -154,7 +154,7 @@ sdk/errors -- Errors
 sdk/events -- Events and records
   SDK event, workflow-run record, and normalized model-turn types.
 sdk/overview -- SDK overview
-  Reference for consuming deployed Flue agents and workflows with @flue/sdk.
+  Reference for consuming deployed Flue agents and workflows with @bapX/sdk.
 sdk/runs -- client.runs
   Inspect and stream HTTP-exposed workflow runs.
 sdk/workflows -- client.workflows

@@ -4,20 +4,20 @@
 
 ### Breaking Changes
 
-- **`dispatch()` takes a structured `message`, not an opaque `input`.** `AgentDispatchRequest.input: unknown` is replaced by `message: DeliveredMessage`, the same unified shape a direct HTTP prompt uses internally: `{ kind: 'user', body: string, attachments?: DeliveredAttachment[] }` for a real chat turn, or `{ kind: 'signal', type: string, body: string, attributes?: Record<string, string>, tagName?: string }` for a structured event/webhook payload. `body` is always a string — JSON-stringify structured payloads yourself. `dispatch()` can now deliver a `kind: 'user'` message with image attachments, the same way a direct HTTP prompt does (attachments on `kind: 'signal'` are not supported). `message` is validated the same way as a direct prompt's body (a malformed `message` throws `InvalidRequestError`) instead of being forwarded unchecked. On the adapter surface, the submission input types collapse into one `AgentSubmissionInput` interface (`{ kind: 'dispatch' | 'direct', submissionId, agent, id, message, acceptedAt }`) — `DispatchAgentSubmissionInput` and `DirectAgentSubmissionInput` are removed, a dispatched submission's persisted input no longer duplicates `dispatchId` (it always equaled `submissionId`; the public `DispatchReceipt.dispatchId` is unchanged), and the persisted-attachment helpers exported from `@flue/runtime/adapter` are renamed: `prepareDirectSubmission` → `prepareSubmissionAttachments`, `hydratePersistedDirectSubmission` → `hydratePersistedSubmissionAttachments`, `matchesPersistedDirectSubmission` → `matchesPersistedSubmissionAttachments`. Every first-party channel example and blueprint is updated to the new shape, following one convention: `body` carries the message itself and structured metadata (sender identity, ids, titles) goes in `attributes` as flat strings.
-- **The direct agent HTTP wire body is a `DeliveredMessage`.** `POST /agents/:name/:id` now accepts the same validated `DeliveredMessage` shape `dispatch()` admits — `{ "kind": "user", "body": "...", "attachments"?: [...] }` for a chat turn (or a `kind: 'signal'` event) — replacing the `{ message, images? }` wire body and the internal mapping layer behind it. `@flue/sdk`'s `AgentPromptOptions.message` is now a `DeliveredMessage` (was `string`; the `images` option folds into `attachments`), and `AgentPromptImage` is renamed `DeliveredAttachment` in `@flue/sdk` and `@flue/react`. The `DirectAgentPayload` type is removed from `@flue/runtime`. `flue run --input '{"message": "..."}'` is unchanged — the CLI delivers it as a `kind: 'user'` message.
+- **`dispatch()` takes a structured `message`, not an opaque `input`.** `AgentDispatchRequest.input: unknown` is replaced by `message: DeliveredMessage`, the same unified shape a direct HTTP prompt uses internally: `{ kind: 'user', body: string, attachments?: DeliveredAttachment[] }` for a real chat turn, or `{ kind: 'signal', type: string, body: string, attributes?: Record<string, string>, tagName?: string }` for a structured event/webhook payload. `body` is always a string — JSON-stringify structured payloads yourself. `dispatch()` can now deliver a `kind: 'user'` message with image attachments, the same way a direct HTTP prompt does (attachments on `kind: 'signal'` are not supported). `message` is validated the same way as a direct prompt's body (a malformed `message` throws `InvalidRequestError`) instead of being forwarded unchecked. On the adapter surface, the submission input types collapse into one `AgentSubmissionInput` interface (`{ kind: 'dispatch' | 'direct', submissionId, agent, id, message, acceptedAt }`) — `DispatchAgentSubmissionInput` and `DirectAgentSubmissionInput` are removed, a dispatched submission's persisted input no longer duplicates `dispatchId` (it always equaled `submissionId`; the public `DispatchReceipt.dispatchId` is unchanged), and the persisted-attachment helpers exported from `@bapX/runtime/adapter` are renamed: `prepareDirectSubmission` → `prepareSubmissionAttachments`, `hydratePersistedDirectSubmission` → `hydratePersistedSubmissionAttachments`, `matchesPersistedDirectSubmission` → `matchesPersistedSubmissionAttachments`. Every first-party channel example and blueprint is updated to the new shape, following one convention: `body` carries the message itself and structured metadata (sender identity, ids, titles) goes in `attributes` as flat strings.
+- **The direct agent HTTP wire body is a `DeliveredMessage`.** `POST /agents/:name/:id` now accepts the same validated `DeliveredMessage` shape `dispatch()` admits — `{ "kind": "user", "body": "...", "attachments"?: [...] }` for a chat turn (or a `kind: 'signal'` event) — replacing the `{ message, images? }` wire body and the internal mapping layer behind it. `@bapX/sdk`'s `AgentPromptOptions.message` is now a `DeliveredMessage` (was `string`; the `images` option folds into `attachments`), and `AgentPromptImage` is renamed `DeliveredAttachment` in `@bapX/sdk` and `@bapX/react`. The `DirectAgentPayload` type is removed from `@bapX/runtime`. `flue run --input '{"message": "..."}'` is unchanged — the CLI delivers it as a `kind: 'user'` message.
 - **Persisted storage is reset-only schema v5.** The persisted agent-submission payload changed shape (both transports now persist one unified `message` input; direct rows previously persisted `payload`, dispatch rows `input`), so stores written by earlier versions are rejected at open with `PersistedSchemaVersionError` and must be cleared. There is no migration, consistent with the pre-1.0 reset-only policy.
 - **Signal `tagName` must be a valid XML tag name.** The optional `tagName` on a `kind: 'signal'` message is rendered as the signal's XML envelope in model context, so it is now validated (letters, digits, `_`, `-`, `.`; must not start with a digit, `-`, or `.`, and must be non-empty) and a malformed value throws `InvalidRequestError` at admission instead of injecting markup past the body/attribute escaping.
 - **Direct agent prompts are fire-and-forget only.** The `?wait=result` synchronous mode on agent HTTP POSTs is removed; agent prompts always return a 202 admission. The in-process observer registry (`createAgentSubmissionObserverRegistry`, `AgentSubmissionObserver`, `AgentSubmissionObserverRegistry`), the `DirectAttachedOptions`/`invokeDirectAttached`/`runDirectSyncMode` admission path, and the `result` field on `SubmissionSettledRecord`, `AgentConversationSettlement`, `AgentSubmissionSettledEvent`, and the `submission_settled` FlueEvent variant are all removed. Callers that need the actual assistant reply should read it from the conversation transcript via `client.agents.history()` or the live conversation stream.
-- **`client.agents.prompt()` is removed.** Use `client.agents.send()` (fire-and-forget) plus `client.agents.wait()` (completion-await, now `Promise<void>`) plus `client.agents.history()` (to read the reply). `AgentPromptResult` and `AgentPromptResponse` types are removed from `@flue/sdk`.
+- **`client.agents.prompt()` is removed.** Use `client.agents.send()` (fire-and-forget) plus `client.agents.wait()` (completion-await, now `Promise<void>`) plus `client.agents.history()` (to read the reply). `AgentPromptResult` and `AgentPromptResponse` types are removed from `@bapX/sdk`.
 - **`client.agents.wait()` no longer resolves with a result.** It resolves `void` on completion and throws `FlueExecutionError` on failure or abort. A remote abort is now distinguishable from a real failure: `FlueExecutionError.failure` is `'aborted'` for an aborted settlement (previously both classified as `'failed'`).
-- **`AttachedAgentEventCallback` type removed from `@flue/runtime`.** The `onEvent` callback parameter on admission no longer exists.
+- **`AttachedAgentEventCallback` type removed from `@bapX/runtime`.** The `onEvent` callback parameter on admission no longer exists.
 - **`reconcileInterruptedSubmission` return type simplified.** Returns `AgentSubmission | undefined` (the replacement submission, or `undefined`) instead of the 5-variant `ReconciliationResult` discriminated union. Custom coordinator implementations that inspected `.disposition` should branch on truthiness instead.
 
 ### New Features
 
-- Public conversation messages now expose typed `purpose` (`user`, `assistant`, `dispatch`, or `advisory`) and `display` (`visible`, `hidden`, or `diagnostic`), plus optional `turnId` grouping and a `signal` descriptor, so clients can distinguish public chat from internal, control, and advisory activity without parsing message text, timestamps, or ordering. The classification is applied identically across `client.agents.history()` snapshots and live updates, and `@flue/sdk` / `@flue/react` shapes are updated in lockstep (#404).
-- `@flue/react`'s `useFlueAgent()` now exposes `refresh()`, so apps observing an agent conversation that may be created out-of-band (a server-side wakeup, queue worker, or webhook) can re-check on their own schedule instead of faking an empty history snapshot. Retry policy stays in userland (#403).
+- Public conversation messages now expose typed `purpose` (`user`, `assistant`, `dispatch`, or `advisory`) and `display` (`visible`, `hidden`, or `diagnostic`), plus optional `turnId` grouping and a `signal` descriptor, so clients can distinguish public chat from internal, control, and advisory activity without parsing message text, timestamps, or ordering. The classification is applied identically across `client.agents.history()` snapshots and live updates, and `@bapX/sdk` / `@bapX/react` shapes are updated in lockstep (#404).
+- `@bapX/react`'s `useFlueAgent()` now exposes `refresh()`, so apps observing an agent conversation that may be created out-of-band (a server-side wakeup, queue worker, or webhook) can re-check on their own schedule instead of faking an empty history snapshot. Retry policy stays in userland (#403).
 
 ### Fixes & Other Changes
 
@@ -25,8 +25,8 @@
 - MCP tool connections no longer crash on Cloudflare Workers when a connected server advertises a tool `outputSchema`. JSON Schema validation now uses a codegen-free strategy compatible with the workerd runtime instead of runtime code generation (#400).
 - Completed assistant messages now preserve their `submissionId` in `client.agents.history()` snapshots, so clients that group a user turn with its assistant answer by submission id keep that grouping after reload (#402).
 - Tool-call duration is now durably recorded and surfaced as `durationMs` on the resolved `dynamic-tool` part in both history snapshots and live updates, instead of being available only on the ephemeral live event (#407).
-- The Cloudflare extension's `base` and `wrap` callbacks are now typed against the concrete generated Durable Object constructor (`GeneratedDurableObjectClass<TBase, TEnv>`, a constructor producing `TBase & DurableObject<TEnv>`), replacing the unreleased generic type-preserving `wrap` signature. Every class Flue passes in really is a branded Durable Object, so brand-checked platform instrumentation such as `@sentry/cloudflare`'s `instrumentDurableObjectWithSentry` now accepts the class straight through — no generics, unsafe casts, or runtime constructability assertions, and no need for your own base type to extend `DurableObject`. `extend()` gains an optional second `TEnv` type parameter for typing the environment your instrumentation reads. The `@flue/runtime/cloudflare` types now reference `cloudflare:workers` type-only (its runtime import graph is unchanged); projects without Cloudflare workers types configured degrade to `any` under `skipLibCheck` (#410).
-- Documented the supported pattern for reaching a private Flue agent over a Cloudflare service binding: point the `@flue/sdk` client's `fetch` option at the binding, since the `baseUrl` host is never dialed and only the pathname and query drive routing (#408).
+- The Cloudflare extension's `base` and `wrap` callbacks are now typed against the concrete generated Durable Object constructor (`GeneratedDurableObjectClass<TBase, TEnv>`, a constructor producing `TBase & DurableObject<TEnv>`), replacing the unreleased generic type-preserving `wrap` signature. Every class Flue passes in really is a branded Durable Object, so brand-checked platform instrumentation such as `@sentry/cloudflare`'s `instrumentDurableObjectWithSentry` now accepts the class straight through — no generics, unsafe casts, or runtime constructability assertions, and no need for your own base type to extend `DurableObject`. `extend()` gains an optional second `TEnv` type parameter for typing the environment your instrumentation reads. The `@bapX/runtime/cloudflare` types now reference `cloudflare:workers` type-only (its runtime import graph is unchanged); projects without Cloudflare workers types configured degrade to `any` under `skipLibCheck` (#410).
+- Documented the supported pattern for reaching a private Flue agent over a Cloudflare service binding: point the `@bapX/sdk` client's `fetch` option at the binding, since the `baseUrl` host is never dialed and only the pathname and query drive routing (#408).
 - Documented the `kind: 'user'` vs `kind: 'signal'` convention: `user` is a direct user talking to the assistant (a 1:1 chat surface); `signal` models everything beyond that — including most channels, where a Slack thread or GitHub issue is a multi-user conversation the agent participates in as one member, with sender identity carried in `attributes`.
 - Channel examples no longer drop sender identity and event metadata during dispatch: GitHub (`sender`, issue ref, `title`, `installationId` — restoring the self-reply-loop guard), Teams, Google Chat, Linear, Telegram, Twilio, and Messenger regain the fields the `DeliveredMessage` migration lost, as flat `attributes`. Telegram media-only updates now dispatch a `'[photo message]'`-style placeholder body instead of an empty string.
 - Removed dead per-submission result computation left behind by the result-await removal (each settled submission no longer builds a response text and full-conversation usage aggregate that nothing reads), the never-populated `interruptedTools` field on `SubmissionInterruptedError` meta and the terminal-advisory renderer, and the unused `AttachedAgentEventCallback`-era boolean returns on internal settlement helpers.
@@ -37,19 +37,19 @@
 
 - Conversation message projections now include server-authored timestamps, and SDK/React clients preserve those timestamps while maintaining optimistic send state.
 - Cloudflare Durable Object agent execution now establishes the instance context at agent entry boundaries, fixing runtime paths that needed the active instance during direct prompt handling.
-- Released the database adapter packages (`@flue/libsql`, `@flue/mongodb`, `@flue/mysql`, `@flue/postgres`, and `@flue/redis`) on the current beta line.
+- Released the database adapter packages (`@bapX/libsql`, `@bapX/mongodb`, `@bapX/mysql`, `@bapX/postgres`, and `@bapX/redis`) on the current beta line.
 
 ## 1.0.0-beta.8 - 2026-06-29
 
-This pre-1.0 release reworks how an agent's conversation is durably recorded and communicated to clients, replacing the beta session-store model with one append-only canonical stream per instance behind a single client-facing protocol. The breaking surface is concentrated in this conversation layer; agent execution, models, tools, and workflows are unchanged. Because the persisted format changed, stores are reset-only (schema v4) with no migration from beta formats, so existing data must be cleared before upgrading. For guides and API reference, see the [documentation](https://flueframework.com/docs/).
+This pre-1.0 release reworks how an agent's conversation is durably recorded and communicated to clients, replacing the beta session-store model with one append-only canonical stream per instance behind a single client-facing protocol. The breaking surface is concentrated in this conversation layer; agent execution, models, tools, and workflows are unchanged. Because the persisted format changed, stores are reset-only (schema v4) with no migration from beta formats, so existing data must be cleared before upgrading. For guides and API reference, see the [documentation](https://bapx.in/docs/).
 
 ### Breaking Changes
 
 - **Persisted storage is reset-only schema v4.** Pre-1.0 persisted stores from any other schema version are rejected and must be cleared; there is no migration from the beta session-store formats. Custom `PersistenceAdapter` implementations must provide `conversationStreamStore` and `attachmentStore` alongside execution, run, and event-stream stores, and custom `AgentSubmissionStore` implementations must add `requestSessionAbort()` and persist an `abortRequestedAt` signal for the new agent abort path. `SessionStore` and session-transcript adapter contracts are removed.
 - **Agent conversations use one append-only canonical stream per agent instance.** Session history, compaction, child topology, tool outcomes, settlement, and recovery are canonical records in that stream; operational submission rows and observable event streams are not transcripts. Sessions append for the instance lifetime, per-session deletion is removed, and retained Action or Task conversations are no longer recursively deleted. Workflow-local canonical conversation state is scoped to one workflow execution rather than shared across runs.
-- **Agent conversation reads expose one materialized projection, not canonical records.** `client.agents.history()` returns a `FlueConversationSnapshot` and `client.agents.observe()` maintains a live `FlueConversationState`; both are built from a single, strictly-validated UI chunk protocol (`ConversationStreamChunk`) that the runtime projects from its private canonical log. The canonical record schema, the client-side reducer, `agents.updates()`, and replay/offset bookkeeping (`AgentConversationDeltaState`, `recordIds`) are no longer public. `@flue/react` consumes the SDK projection directly: its message types are renamed `FlueConversationMessage` / `FlueConversationPart` (no AI SDK compatibility is claimed), tool parts are `dynamic-tool`, and attachments and optimistic uploads share one `file` part.
+- **Agent conversation reads expose one materialized projection, not canonical records.** `client.agents.history()` returns a `FlueConversationSnapshot` and `client.agents.observe()` maintains a live `FlueConversationState`; both are built from a single, strictly-validated UI chunk protocol (`ConversationStreamChunk`) that the runtime projects from its private canonical log. The canonical record schema, the client-side reducer, `agents.updates()`, and replay/offset bookkeeping (`AgentConversationDeltaState`, `recordIds`) are no longer public. `@bapX/react` consumes the SDK projection directly: its message types are renamed `FlueConversationMessage` / `FlueConversationPart` (no AI SDK compatibility is claimed), tool parts are `dynamic-tool`, and attachments and optimistic uploads share one `file` part.
 - **Conversation reads address the agent instance's default conversation only.** The `conversationId`, `harness`, and `session` selectors are removed from the SDK, the HTTP conversation route, and `useFlueAgent`; the vestigial React `history: 'all'` option is removed.
-- **Attachments are separate immutable payloads with an opt-in byte route.** Canonical records carry opaque references resolved through the required `AttachmentStore`. The public conversation projects them as `file` parts carrying `{ mediaType, id?, size?, filename?, url? }`. Bytes are served from a new `GET /agents/:name/:id/attachments/:attachmentId` route that is **opt-in per agent**: it returns 404 unless the agent module exports an `attachments` Hono middleware (which authorizes and scopes access). `@flue/sdk` resolves a ready-to-use `url` onto durably-recorded `file` parts (and exposes `client.agents.attachmentUrl(name, id, attachmentId)`); a local optimistic echo instead carries a `data:` URL preview of the bytes being uploaded.
+- **Attachments are separate immutable payloads with an opt-in byte route.** Canonical records carry opaque references resolved through the required `AttachmentStore`. The public conversation projects them as `file` parts carrying `{ mediaType, id?, size?, filename?, url? }`. Bytes are served from a new `GET /agents/:name/:id/attachments/:attachmentId` route that is **opt-in per agent**: it returns 404 unless the agent module exports an `attachments` Hono middleware (which authorizes and scopes access). `@bapX/sdk` resolves a ready-to-use `url` onto durably-recorded `file` parts (and exposes `client.agents.attachmentUrl(name, id, attachmentId)`); a local optimistic echo instead carries a `data:` URL preview of the bytes being uploaded.
 - **Free-floating conversation data events are removed.** `emitData()` and standalone `data-*` message parts are removed from runtime, tool, Action, SDK, and React APIs. Structured tool output remains available on the owning tool part; workflow Actions continue to return validated structured output.
 - **The `model: false` agent configuration is removed.** Every agent definition and profile must declare a concrete default model string; per-call `model` overrides still apply. The `ModelConfig` type and `ModelNotConfiguredError` are removed.
 
@@ -63,32 +63,32 @@ This pre-1.0 release reworks how an agent's conversation is durably recorded and
 - Canonical tool outcomes are now durably recorded before one atomic commit publishes a complete tool-result batch. Recovery reuses known outcomes and materializes unknown interrupted outcomes without exposing partial tool-result prefixes.
 - Recovery now resumes an in-flight, model-invoked `task()` subagent in-process from its durable conversation and resolves the parent's tool call from the resumed result, instead of leaving a generic interrupted marker (#378).
 - Direct agent prompts now record the user message in the canonical conversation (with its submission id) on both the Node and Cloudflare runtimes, so a page refresh reconstructs the full transcript — including the user's prompt — from `client.agents.history()` / `observe()` instead of dropping it.
-- `@flue/react` keeps a stable message id across the optimistic→confirmed transition (the canonical user message is re-keyed to the optimistic id), so keyed/virtualized transcripts no longer see a remove+add that breaks auto-scroll. Failed sends are retained in the transcript and surfaced via a new `failedSends` snapshot field for retry affordances instead of silently disappearing. Optimistic image sends render an instant local preview.
+- `@bapX/react` keeps a stable message id across the optimistic→confirmed transition (the canonical user message is re-keyed to the optimistic id), so keyed/virtualized transcripts no longer see a remove+add that breaks auto-scroll. Failed sends are retained in the transcript and surfaced via a new `failedSends` snapshot field for retry affordances instead of silently disappearing. Optimistic image sends render an instant local preview.
 - `flue dev` now serves permissive, credential-safe CORS (reflecting the request `Origin`, answering preflight with 204, and exposing the `Stream-Next-Offset`, `Stream-Up-To-Date`, and `Location` headers) so a separate-origin SPA can call the dev server and advance its durable-stream resume offset without configuration. Deployed Node servers are unchanged; CORS there remains an application concern.
-- `@flue/sdk` binds its default `fetch` to `globalThis`, fixing a `TypeError: Illegal invocation` when calling the client from a browser without a pre-bound `fetch`.
+- `@bapX/sdk` binds its default `fetch` to `globalThis`, fixing a `TypeError: Illegal invocation` when calling the client from a browser without a pre-bound `fetch`.
 - JSON output snapshots now drop `undefined`-valued object properties to match `JSON.stringify`, so Actions, tools, and workflows can return idiomatic unset optional fields (#364).
 - `flue dev` now rebuilds on source edits on Windows, where path-separator differences previously made edits look like output-directory changes and skipped the rebuild (#377).
 - Updated `@earendil-works/pi-ai` and `@earendil-works/pi-agent-core` to 0.80.2.
 
-## @flue/runtime, @flue/cli, @flue/sdk, and @flue/react 1.0.0-beta.7 - 2026-06-25
+## @bapX/runtime, @bapX/cli, @bapX/sdk, and @bapX/react 1.0.0-beta.7 - 2026-06-25
 
 ### New Features
 
-- Added durable structured data parts. Workflows, custom tools, and model-invoked Actions can emit validated JSON activity with `emitData()`, while `@flue/react` exposes AI SDK-compatible `data-*` message parts and reconciles lifecycle updates by name and id.
+- Added durable structured data parts. Workflows, custom tools, and model-invoked Actions can emit validated JSON activity with `emitData()`, while `@bapX/react` exposes AI SDK-compatible `data-*` message parts and reconciles lifecycle updates by name and id.
 
 ### Fixes & Other Changes
 
-- Direct prompts now emit their persisted user message before model output so `@flue/react` can reconstruct it after refresh.
+- Direct prompts now emit their persisted user message before model output so `@bapX/react` can reconstruct it after refresh.
 
-## @flue/runtime, @flue/cli, @flue/sdk, and @flue/react 1.0.0-beta.6 - 2026-06-25
+## @bapX/runtime, @bapX/cli, @bapX/sdk, and @bapX/react 1.0.0-beta.6 - 2026-06-25
 
 ### Fixes & Other Changes
 
 - Packaged Agent Skill resources now remain available when a sandbox adapter does not provide a filesystem `read` tool.
 - Interrupted stream recovery now persists compact, linearly growing segments, omits streamed tool-call arguments, and rejects segments larger than the persistence-safe 1.9 MB limit.
-- `@flue/react` now accepts compatible `@flue/sdk` prereleases instead of requiring one exact prerelease.
+- `@bapX/react` now accepts compatible `@bapX/sdk` prereleases instead of requiring one exact prerelease.
 
-## @flue/runtime, @flue/cli, and @flue/sdk 1.0.0-beta.5 - 2026-06-23
+## @bapX/runtime, @bapX/cli, and @bapX/sdk 1.0.0-beta.5 - 2026-06-23
 
 ### Fixes & Other Changes
 
@@ -96,7 +96,7 @@ This pre-1.0 release reworks how an agent's conversation is durably recorded and
 - The built-in `read` tool now reads files only and returns the filesystem error when given a directory.
 - Cloudflare projects now require `agents@^0.14.2`, whose schema migration repairs upgraded Durable Object SQLite databases missing the Agents SDK's MCP server table.
 
-## @flue/react 1.0.0-beta.4 - 2026-06-23
+## @bapX/react 1.0.0-beta.4 - 2026-06-23
 
 ### Fixes & Other Changes
 
@@ -106,7 +106,7 @@ This pre-1.0 release reworks how an agent's conversation is durably recorded and
 
 ### Breaking Changes
 
-- **The incomplete public `/openapi.json` route is removed.** It described only agent and workflow invocation while omitting Durable Streams reads, run metadata, and channels, so it was not a reliable contract for the mounted public API. Use the documented HTTP routes or `@flue/sdk`; a public OpenAPI document may return once it can describe the complete surface accurately.
+- **The incomplete public `/openapi.json` route is removed.** It described only agent and workflow invocation while omitting Durable Streams reads, run metadata, and channels, so it was not a reliable contract for the mounted public API. Use the documented HTTP routes or `@bapX/sdk`; a public OpenAPI document may return once it can describe the complete surface accurately.
 - **`flue run` now executes agents and workflows through the normal HTTP application.** Local runs temporarily expose route-free resources through an existing authored `flue()` mount and execute `app.ts` plus application and resource middleware. Use `--server <path>` to select an authored local mount or an absolute `--server <url>` with `agent:<name>` or `workflow:<name>` to attach remotely; the earlier private child-process invocation path is removed.
 - **Workflows are now definitions built around Actions.** Workflow modules must default-export `defineWorkflow({ agent, action })` or `defineWorkflow({ agent, input?, output?, run })`. Every workflow requires an agent definition. The runner now owns root harness initialization, so the legacy named `run(ctx)` export, public `ctx.init()`, named workflow harness options, and workflow payload passed to agent initializers are removed. Move `ctx.payload` to a declared Action `input`, bind the agent on the workflow and use the supplied `harness`, and move environment- or resource-dependent policy to the agent initializer. Action context does not expose `ctx.id`, `ctx.env`, or `ctx.req`; validate transport data before admission and pass required values explicitly as input.
 - **Agent and workflow declaration APIs use consistent `define*` naming.** `createAgent()` is renamed to `defineAgent()` and its returned type is now `AgentDefinition`; `createAgent()` remains as a deprecated compatibility alias. `createWorkflow()` is renamed to `defineWorkflow()` and its returned type is now `WorkflowDefinition`, with no compatibility alias. `CreatedAgent` and `CreatedWorkflow` are removed.
@@ -153,7 +153,7 @@ This pre-1.0 release reworks how an agent's conversation is durably recorded and
 - **Tool and timeout APIs changed.** `defineTool({ parameters })` now uses valibot instead of TypeBox, the root `Type` export is removed, duration fields are `timeoutMs`, and durability `retry` becomes `maxAttempts`.
 - **Cloudflare and sandbox cleanup.** `cloudflareSandbox()` replaces the workerd stub heuristic; `getVirtualSandbox`, `sandbox: false`, and expired sandbox migration shims are removed.
 - **Session and event contracts are tightened.** Public session operations expose `FlueSession`, subagent profiles are self-contained, session errors are typed, and durable events now carry `v: 1` without persisting `turn_request`, `message_update`, or raw `assistantMessageEvent` payloads. Streaming deltas are best-effort live progress; `message_end` is authoritative for completed assistant messages, and late attachment may miss earlier partial output until it arrives. Internal interrupted-turn recovery is unaffected.
-- **Cloudflare extension imports moved.** Generated-entry plumbing now lives under `@flue/runtime/cloudflare/internal`; user-facing Cloudflare imports remain authoring-only.
+- **Cloudflare extension imports moved.** Generated-entry plumbing now lives under `@bapX/runtime/cloudflare/internal`; user-facing Cloudflare imports remain authoring-only.
 - **GitHub handlers now receive provider-native deliveries.** Replace `{ c, event }` with `{ c, delivery }`; branch on `delivery.name` and native `delivery.payload` fields instead of Flue's normalized `event.type`, `event.payload`, and `event.raw` wrappers. The fixed event allowlist, synthetic `unknown` variant, form-encoded ingress, and `handlerTimeoutMs` are removed.
 - **Slack handlers now receive provider-native payloads.** `events`, `interactions`, and `commands` use `{ c, payload }`; Events API callbacks expose the official `SlackEvent` union, and normalized wrappers, fixed-workspace filtering, package timeouts, and legacy interaction types are removed.
 - **Discord handlers now receive provider-native interactions.** Callbacks preserve Discord API v10 fields and numeric discriminants; normalized wrappers, redundant application-id filtering, the non-cancelling package timeout, and redundant guild channel/thread identity are removed.
@@ -163,16 +163,16 @@ This pre-1.0 release reworks how an agent's conversation is durably recorded and
 ### New Features
 
 - Built-in `sqlite()` now persists workflow runs and indexes, matching PostgreSQL and Cloudflare durability; all built-in SQL stores now schema-version stamp.
-- `@flue/runtime` exports `listRuns()`, `getRun()`, and `listAgents()`; SDK `runs.get()` uses public `?meta`; workflow `wait=result` and typed direct-agent prompt responses are supported.
+- `@bapX/runtime` exports `listRuns()`, `getRun()`, and `listAgents()`; SDK `runs.get()` uses public `?meta`; workflow `wait=result` and typed direct-agent prompt responses are supported.
 - `CallHandle` now implements the full Promise interface, and SDK stream coordinates are taken from server responses rather than fabricated.
 - `FlueFs.writeFile()` now guarantees parent directory creation in every sandbox mode; `ShellOptions.timeoutMs` is available for shell operations.
 - OpenTelemetry spans and attributes now align with GenAI semconv.
-- Added `@flue/react` with `FlueProvider`, `useFlueAgent()`, and `useFlueWorkflow()` for live agent transcripts and workflow-run observation. Agent messages use an AI SDK v5-compatible parts shape without a runtime dependency on `ai`.
-- Added first-party `@flue/stripe`, `@flue/notion`, `@flue/resend`, `@flue/shopify`, `@flue/intercom`, `@flue/zendesk`, `@flue/salesforce`, `@flue/teams`, `@flue/google-chat`, `@flue/linear`, `@flue/telegram`, `@flue/whatsapp`, `@flue/twilio`, and `@flue/messenger` packages for verified HTTP ingress, constructor-owned typed handlers, canonical provider identity where available, and discovered `channels/<name>.ts` routing. Existing `@flue/github`, `@flue/slack`, and `@flue/discord` packages were rewritten and expanded around the same channel contract. Named `flue add` blueprints create editable project code using provider SDK or Fetch clients and application-owned tools.
+- Added `@bapX/react` with `FlueProvider`, `useFlueAgent()`, and `useFlueWorkflow()` for live agent transcripts and workflow-run observation. Agent messages use an AI SDK v5-compatible parts shape without a runtime dependency on `ai`.
+- Added first-party `@bapX/stripe`, `@bapX/notion`, `@bapX/resend`, `@bapX/shopify`, `@bapX/intercom`, `@bapX/zendesk`, `@bapX/salesforce`, `@bapX/teams`, `@bapX/google-chat`, `@bapX/linear`, `@bapX/telegram`, `@bapX/whatsapp`, `@bapX/twilio`, and `@bapX/messenger` packages for verified HTTP ingress, constructor-owned typed handlers, canonical provider identity where available, and discovered `channels/<name>.ts` routing. Existing `@bapX/github`, `@bapX/slack`, and `@bapX/discord` packages were rewritten and expanded around the same channel contract. Named `flue add` blueprints create editable project code using provider SDK or Fetch clients and application-owned tools.
 - `flue add <kind> <name|url>` now serves categorized channel, database, and sandbox blueprints. `flue update <kind> <name|url>` returns the same current guide with versioned primary-file markers and cumulative upgrade instructions so coding agents can update generated integrations while preserving application customizations.
-- Added driver-free `@flue/mysql`, `@flue/redis`, and `@flue/mongodb` persistence adapters with durable sessions, submissions, workflow runs, event streams, and image chunks. New database blueprints and ecosystem guides cover MySQL, Supabase, Redis, Valkey, and MongoDB.
+- Added driver-free `@bapX/mysql`, `@bapX/redis`, and `@bapX/mongodb` persistence adapters with durable sessions, submissions, workflow runs, event streams, and image chunks. New database blueprints and ecosystem guides cover MySQL, Supabase, Redis, Valkey, and MongoDB.
 - Durable event-stream reads accept `tail=N` to start from the beginning while reading at most the latest N events. Direct agent prompt receipts and their emitted events now expose a `submissionId` for reliable correlation.
-- `@flue/sdk` accepts browser-relative base URLs such as `/api`, exposes typed message snapshots, and supports `tail` across stream APIs.
+- `@bapX/sdk` accepts browser-relative base URLs such as `/api`, exposes typed message snapshots, and supports `tail` across stream APIs.
 
 ### Fixes & Other Changes
 
@@ -195,7 +195,7 @@ This pre-1.0 release reworks how an agent's conversation is durably recorded and
 
 ### New Features
 
-- Direct agent HTTP requests and `@flue/sdk` prompts can include images with up to 14 MiB of encoded data per image. Node and Cloudflare SQLite persistence stores image data in safe chunks and restores it for future turns and after restarts.
+- Direct agent HTTP requests and `@bapX/sdk` prompts can include images with up to 14 MiB of encoded data per image. Node and Cloudflare SQLite persistence stores image data in safe chunks and restores it for future turns and after restarts.
 
 ### Fixes & Other Changes
 
@@ -206,7 +206,7 @@ This pre-1.0 release reworks how an agent's conversation is durably recorded and
 
 ### New Features
 
-- **`flue docs` browses the documentation offline.** The docs markdown already shipped inside `@flue/cli` is now reachable from the command line: `flue docs` lists every page, `flue docs read <path>` prints one page as Markdown, and `flue docs search <query>` prints ranked JSON results. Content requires no network access and always matches the installed CLI version. Designed for coding agents (search → read), per [Documentation](https://flueframework.com/docs/cli/docs/).
+- **`flue docs` browses the documentation offline.** The docs markdown already shipped inside `@bapX/cli` is now reachable from the command line: `flue docs` lists every page, `flue docs read <path>` prints one page as Markdown, and `flue docs search <query>` prints ranked JSON results. Content requires no network access and always matches the installed CLI version. Designed for coding agents (search → read), per [Documentation](https://bapx.in/docs/cli/docs/).
 
 ### Fixes & Other Changes
 
@@ -221,23 +221,23 @@ This pre-1.0 release reworks how an agent's conversation is durably recorded and
 
 ### Breaking Changes
 
-- **Durable Streams protocol replaces WebSocket and SSE transports.** Agent instances and workflow runs are now URL-addressable durable event streams. Clients consume events via DS-compliant `GET` (catch-up, long-poll, SSE) with automatic offset-based reconnection. `POST /agents/:name/:id` now returns `202 { streamUrl, offset }`; add `?wait=result` for `200 { result, streamUrl, offset }`. `GET /agents/:name/:id` reads the event stream. `GET /runs/:runId` replaces both `/runs/:runId/events` and `/runs/:runId/stream`. WebSocket transport, `AgentSocket`, `WorkflowSocket`, and all socket-related types are removed from `@flue/runtime` and `@flue/sdk`.
+- **Durable Streams protocol replaces WebSocket and SSE transports.** Agent instances and workflow runs are now URL-addressable durable event streams. Clients consume events via DS-compliant `GET` (catch-up, long-poll, SSE) with automatic offset-based reconnection. `POST /agents/:name/:id` now returns `202 { streamUrl, offset }`; add `?wait=result` for `200 { result, streamUrl, offset }`. `GET /agents/:name/:id` reads the event stream. `GET /runs/:runId` replaces both `/runs/:runId/events` and `/runs/:runId/stream`. WebSocket transport, `AgentSocket`, `WorkflowSocket`, and all socket-related types are removed from `@bapX/runtime` and `@bapX/sdk`.
 - **Named sessions removed from agent public API.** The `session` parameter is removed from prompt submission, dispatch, SDK, and CLI. Agent instances always use the `"default"` session internally. An agent instance is now a single conversation with a single event stream.
-- **SDK rewritten with `@durable-streams/client`.** `@flue/sdk` now exports `agents.prompt()`, `agents.send()`, `agents.stream()`, `runs.stream()`, `runs.events()`, and `workflows.invoke()`. `agents.prompt()` waits for the result; `agents.send()` returns stream coordinates immediately. `FlueEventStream<T>` wraps the DS client's `jsonStream()` as an async iterable with `cancel()` and `offset` support.
-- **`connectEventStreamStore()` is now required on `PersistenceAdapter`.** Custom adapters must implement this method and provide durable event-stream storage. The built-in `sqlite()` and `@flue/postgres` adapters provide implementations.
+- **SDK rewritten with `@durable-streams/client`.** `@bapX/sdk` now exports `agents.prompt()`, `agents.send()`, `agents.stream()`, `runs.stream()`, `runs.events()`, and `workflows.invoke()`. `agents.prompt()` waits for the result; `agents.send()` returns stream coordinates immediately. `FlueEventStream<T>` wraps the DS client's `jsonStream()` as an async iterable with `cancel()` and `offset` support.
+- **`connectEventStreamStore()` is now required on `PersistenceAdapter`.** Custom adapters must implement this method and provide durable event-stream storage. The built-in `sqlite()` and `@bapX/postgres` adapters provide implementations.
 - **`client.runs.get()` now reads from the admin mount.** Applications using that SDK method must mount `admin()` and configure the client with the matching admin base path.
 
 ### New Features
 
-- **`@flue/postgres` supports durable event streams.** `PgEventStreamStore` provides a Postgres-backed implementation of `EventStreamStore` with transactional `appendEvent`, in-process subscriber hooks, and full DDL in the existing migration transaction. Postgres deployments now have working `GET` stream endpoints for agents and workflow runs.
+- **`@bapX/postgres` supports durable event streams.** `PgEventStreamStore` provides a Postgres-backed implementation of `EventStreamStore` with transactional `appendEvent`, in-process subscriber hooks, and full DDL in the existing migration transaction. Postgres deployments now have working `GET` stream endpoints for agents and workflow runs.
 - **DS protocol read endpoints.** `GET` supports catch-up (JSON array), long-poll (30s timeout with `Stream-Cursor`), and SSE (with 15s heartbeat and control events). `HEAD` returns stream metadata. Responses include `Stream-Next-Offset`, `Stream-Up-To-Date`, `Stream-Closed`, `ETag`, and `Cache-Control` headers per the DS protocol spec. Reads use `Cache-Control: no-store`; there is no fallback polling path when a live subscription is unavailable.
 
 ### Fixes & Other Changes
 
 - **`RunStore` reduced to metadata only.** `appendEvent()` and `getEvents()` removed; events are exclusively in `EventStreamStore`. `RunSubscriberRegistry` deleted.
 - **Agent POST responses are now split by wait mode.** Default agent POST returns `202` with stream coordinates; `?wait=result` returns the terminal result. Event observation is decoupled from POST responses via the DS stream read path.
-- **`SqliteEventStreamStore` creates its own tables in the constructor.** No separate `ensureEventStreamTables()` call required; removed from `ensureSqlAgentExecutionTables()` and `@flue/runtime/internal` exports.
-- **`flue logs` rewritten to use `@flue/sdk` DS streaming.** Removed dead `--session` flag.
+- **`SqliteEventStreamStore` creates its own tables in the constructor.** No separate `ensureEventStreamTables()` call required; removed from `ensureSqlAgentExecutionTables()` and `@bapX/runtime/internal` exports.
+- **`flue logs` rewritten to use `@bapX/sdk` DS streaming.** Removed dead `--session` flag.
 - Fixed stale WebSocket references in documentation, README, and generated entry code.
 
 ## 0.10.1 - 2026-06-08
@@ -253,12 +253,12 @@ This pre-1.0 release reworks how an agent's conversation is durably recorded and
 
 ## 0.10.0 - 2026-06-08
 
-This is a large pre-1.0 release that establishes Flue's durability model across Node.js and Cloudflare. Rather than cataloging every intermediate beta change, this entry highlights the final APIs and the most important upgrade work. For guides and API reference, see the [documentation](https://flueframework.com/docs/).
+This is a large pre-1.0 release that establishes Flue's durability model across Node.js and Cloudflare. Rather than cataloging every intermediate beta change, this entry highlights the final APIs and the most important upgrade work. For guides and API reference, see the [documentation](https://bapx.in/docs/).
 
 ### Breaking Changes
 
 - **Cloudflare durable deployments require a migration.** Generated Durable Object bindings and class names changed to `FLUE_<NAME>_AGENT`, `FLUE_<NAME>_WORKFLOW`, `FLUE_REGISTRY`, `Flue<Name>Agent`, `Flue<Name>Workflow`, and `FlueRegistry`. Existing deployments must add authored Wrangler `renamed_classes` migrations for already-deployed agent and workflow classes, update direct binding access such as `env.Assistant` to `env.FLUE_ASSISTANT_AGENT`, and introduce fresh SQLite-backed agent classes through `new_sqlite_classes`; existing KV-backed classes cannot be converted in place. Install `agents >=0.14.1 <0.15.0` for the audited Agents SDK behavior used by this release.
-- **Runtime surface cleanup.** Removed `tool_execution_*` event types, the `@flue/runtime/app`, `@flue/runtime/client`, and `@flue/runtime/sandbox` compat subpaths, public `AgentConfig` / `DirectAgentPayload` exports, public Cloudflare agent WebSocket adapters, `store()` from `@flue/runtime/cloudflare`, and the old Cloudflare shell migration stubs.
+- **Runtime surface cleanup.** Removed `tool_execution_*` event types, the `@bapX/runtime/app`, `@bapX/runtime/client`, and `@bapX/runtime/sandbox` compat subpaths, public `AgentConfig` / `DirectAgentPayload` exports, public Cloudflare agent WebSocket adapters, `store()` from `@bapX/runtime/cloudflare`, and the old Cloudflare shell migration stubs.
 - **Persistence adapter contracts changed.** Custom adapters now implement `connectRunStore()` and `connectRunRegistry()` on `PersistenceAdapter`, use `SubmissionClaimRef` for `claimSubmission()`, and provide `renewLeases()`, `listExpiredSubmissions()`, and `deleteSession()` on `AgentSubmissionStore`.
 - **Session state changed.** Ordinary session names beginning with `task:` are now reserved for framework-owned delegated-task history, and existing version-4 beta session state is rejected because provider affinity now uses one opaque `aff_<ULID>` key instead of derived instance/harness/session identifiers.
 - **OpenTelemetry sanitization changed.** `captureContent` is replaced by an application-owned `sanitize(event)` callback; metadata and generic failure messages are exported by default.
@@ -266,27 +266,27 @@ This is a large pre-1.0 release that establishes Flue's durability model across 
 ### New Features
 
 - **Unified durable agent execution.** Direct HTTP, SSE, WebSocket, local CLI, and `dispatch(...)` inputs now share one SQL-backed submission lifecycle on Node and Cloudflare: admission, same-session ordering, claiming, journaled execution, conservative recovery, and retained terminal receipts.
-- **Pluggable persistence.** Add source-root `db.ts` adapters, built-in `sqlite(path?)` persistence for Node, the new `@flue/postgres` package, and the `@flue/runtime/adapter` / `@flue/runtime/test-utils` subpaths for custom backend authors.
+- **Pluggable persistence.** Add source-root `db.ts` adapters, built-in `sqlite(path?)` persistence for Node, the new `@bapX/postgres` package, and the `@bapX/runtime/adapter` / `@bapX/runtime/test-utils` subpaths for custom backend authors.
 
   ```ts
   // src/db.ts
-  import { sqlite } from '@flue/runtime/node';
+  import { sqlite } from '@bapX/runtime/node';
   export default sqlite('./data/flue.db');
   ```
 
   ```ts
   // src/db.ts
-  import { postgres } from '@flue/postgres';
+  import { postgres } from '@bapX/postgres';
   export default postgres(process.env.DATABASE_URL!);
   ```
 
 - **Signal messages and mid-turn recovery.** Stream chunks are persisted during provider output so interrupted turns can resume from partial assistant text. Framework-injected context now uses signal messages for stream interruption/continuation, terminal submission advisories, dispatched input, compaction summaries, and branch summaries.
-- **Cloudflare extension hooks.** Agent and workflow modules may export `cloudflare = extend({ base, wrap })` from `@flue/runtime/cloudflare` to add native Agents SDK lifecycle hooks beneath Flue-owned routing or wrap generated Durable Object classes with integrations such as Sentry.
+- **Cloudflare extension hooks.** Agent and workflow modules may export `cloudflare = extend({ base, wrap })` from `@bapX/runtime/cloudflare` to add native Agents SDK lifecycle hooks beneath Flue-owned routing or wrap generated Durable Object classes with integrations such as Sentry.
 
 ### Fixes & Other Changes
 
 - **Node execution is concurrent and shutdown-aware.** Different sessions now process in parallel through a concurrent claim loop. Claimed submissions carry renewable leases, and SIGINT/SIGTERM drains active work at turn boundaries before reclaiming unfinished submissions on next startup.
-- **Postgres workflow history is durable.** `@flue/postgres` stores runs, run events, and the run registry in SQL-backed tables; built-in SQLite keeps run history in memory.
+- **Postgres workflow history is durable.** `@bapX/postgres` stores runs, run events, and the run registry in SQL-backed tables; built-in SQLite keeps run history in memory.
 - **Cloudflare routing and recovery are stricter.** Generated agent and workflow bindings are resolved explicitly instead of inferred from the Agents SDK environment scanner, workflow event identity is append-only by `(runId, eventIndex)`, and Cloudflare workflow storage preserves same-ID reset behavior and explicit terminal `null` results.
 - **Observability is more accurate.** OpenTelemetry now closes interrupted workflow spans correctly, exposes event indexes and compaction usage, and supports `resolveRootContext(event, ctx)` for parenting Flue roots under application-owned spans.
 - **Runtime resilience improved.** Prompt operations retry transient provider failures with abortable exponential backoff, generated import paths are escaped safely, and Bun compatibility diagnostics now point users at the right runtime upgrade.
@@ -302,23 +302,23 @@ This is a large pre-1.0 release that establishes Flue's durability model across 
 ### Fixes & Other Changes
 
 - **Fixed relative cwd double-scoping in custom sandbox connectors.** Flue now applies a created agent's `cwd` exactly once during `init()`, relative to the connector's provider-owned base directory. `SandboxFactory.createSessionEnv()` now receives only `{ id }`; connector implementations should stop consuming `cwd` there.
-- **SDK: Export reusable option types.** `@flue/sdk` now exports option types for direct agent invocation, socket prompts, workflow-run event retrieval and streaming, and admin run listing, plus the `RunStatus` type.
+- **SDK: Export reusable option types.** `@bapX/sdk` now exports option types for direct agent invocation, socket prompts, workflow-run event retrieval and streaming, and admin run listing, plus the `RunStatus` type.
 - MCP tools discovered through paginated listings now preserve output-schema validation and required task-execution metadata across every page.
 - `GET /admin/agents` and `client.admin.agents.list()` return one unpaginated list of all built agents. The unused `nextCursor` response field was removed from the SDK and OpenAPI schema.
 - Workflow run stores no longer prune completed histories implicitly after 50 runs. Retention is now owned by the deployment or configured store.
 - Cloudflare agent WebSockets now return a correlated error frame when persisted session restoration fails before a prompt.
 - Cloudflare WebSocket attachments strip query strings and fragments before persistence so URL-carried handshake credentials are not retained.
 - Agent and workflow WebSocket frames reject blank or whitespace-only `requestId` values, including optional agent ping IDs.
-- Published the Message-Driven Agents guide, Sandbox Connector API, and Daytona integration guide on the documentation site. Replace saved root-guide or raw GitHub links with [Message-Driven Agents](https://flueframework.com/docs/guide/message-driven-agents/), [Sandbox Connector API](https://flueframework.com/docs/api/sandbox-api/), and [Daytona](https://flueframework.com/docs/ecosystem/sandboxes/daytona/).
+- Published the Message-Driven Agents guide, Sandbox Connector API, and Daytona integration guide on the documentation site. Replace saved root-guide or raw GitHub links with [Message-Driven Agents](https://bapx.in/docs/guide/message-driven-agents/), [Sandbox Connector API](https://bapx.in/docs/api/sandbox-api/), and [Daytona](https://bapx.in/docs/ecosystem/sandboxes/daytona/).
 - Refreshed homepage and documentation canonical URLs and social-preview metadata.
-- **Cloudflare: Extend generated deployments and addressable agents.** Add an optional source-root `cloudflare.ts` module to export application-owned Durable Objects and compose non-HTTP Worker handlers. Addressable agent modules may export `cloudflare = extend({ base, wrap })` from `@flue/runtime/cloudflare` to add native Agents SDK lifecycle hooks beneath Flue-owned routing or wrap the final generated Durable Object class with integrations such as Sentry.
+- **Cloudflare: Extend generated deployments and addressable agents.** Add an optional source-root `cloudflare.ts` module to export application-owned Durable Objects and compose non-HTTP Worker handlers. Addressable agent modules may export `cloudflare = extend({ base, wrap })` from `@bapX/runtime/cloudflare` to add native Agents SDK lifecycle hooks beneath Flue-owned routing or wrap the final generated Durable Object class with integrations such as Sentry.
 - **Cloudflare Sandbox exports are now explicit.** Export Cloudflare Sandbox aliases from your source-root `cloudflare.ts` module instead of relying on the removed `Sandbox`-suffix auto-wiring.
 
 ## 0.9.0 - 2026-06-02
 
 ### Breaking Changes
 
-- **Move application routing imports out of `@flue/runtime/app`.** Import `flue`, `admin`, and `Fetchable` from `@flue/runtime/routing`. Import provider APIs and `observe` from `@flue/runtime`, and Workers AI binding types from `@flue/runtime/cloudflare`. Rename the `ProviderSettings` type to `ProviderConfiguration`.
+- **Move application routing imports out of `@bapX/runtime/app`.** Import `flue`, `admin`, and `Fetchable` from `@bapX/runtime/routing`. Import provider APIs and `observe` from `@bapX/runtime`, and Workers AI binding types from `@bapX/runtime/cloudflare`. Rename the `ProviderSettings` type to `ProviderConfiguration`.
 - **Check your authored source directory.** Flue now selects exactly one source directory in priority order: `.flue/`, `src/`, then the project root. If your project already has a `src/` directory, move root-level agents and workflows into the selected source directory so Flue continues to discover them.
 - **Cloudflare: Own Cloudflare Durable Object migrations in your project Wrangler config.** Flue still generates classes and bindings, but no longer appends migrations automatically. Before upgrading an existing deployment, copy its complete ordered `flue-class-*` migration history from the previously generated `.flue-vite.wrangler.jsonc` or built `wrangler.json` into the project-root Wrangler config. Keep deployed tags unchanged, and append a uniquely tagged `new_sqlite_classes` entry whenever you add an agent or workflow class.
 - **Workflows: Retry interrupted Cloudflare workflows explicitly.** Flue no longer starts a replacement workflow run automatically after an interruption. The interrupted run is recorded as failed; invoke the workflow again when retrying is appropriate. Restart-link fields and their legacy OpenTelemetry attributes were removed.
@@ -332,7 +332,7 @@ This is a large pre-1.0 release that establishes Flue's durability model across 
 - **Restart `flue dev` after configuration changes.** Creating, editing, or deleting an auto-discovered `flue.config.*` file restarts the development session with freshly resolved settings. Explicit `--config <path>` files are watched too.
 - **Forward authentication headers with `flue logs`.** Repeat `--header 'Name: value'` to send application-owned headers when inspecting workflow runs. Redirects are rejected so credentials stay on the selected server.
 - **Inspect admitted workflow runs from WebSocket clients.** `WorkflowSocket.runId` resolves after admission, before the workflow result arrives.
-- **Catch SDK HTTP failures with `FlueApiError`.** `@flue/sdk` now exports the error type with the HTTP status and parsed response body when available.
+- **Catch SDK HTTP failures with `FlueApiError`.** `@bapX/sdk` now exports the error type with the HTTP status and parsed response body when available.
 - **Forward Workers AI reasoning effort.** Binding-backed `cloudflare/...` models now pass reasoning effort to `env.AI.run(...)` for models that support it.
 
 ### Fixes & Other Changes
@@ -345,13 +345,13 @@ This is a large pre-1.0 release that establishes Flue's durability model across 
 - Fixed cwd scoping for created agents using Node `local()` sandboxes.
 - Pass at most one `--env` file. `flue build`, `flue dev`, `flue run`, and `flue connect` reject repeated `--env` flags. Combine values into one file or use shell environment overrides.
 - `session.delete()` and `harness.sessions.delete()` now reject while the selected session has an active operation.
-- Testing: Import `registerFauxProvider(...)`, `fauxAssistantMessage(...)`, `fauxText(...)`, and `fauxToolCall(...)` from `@earendil-works/pi-ai` instead of `@flue/runtime`.
+- Testing: Import `registerFauxProvider(...)`, `fauxAssistantMessage(...)`, `fauxText(...)`, and `fauxToolCall(...)` from `@earendil-works/pi-ai` instead of `@bapX/runtime`.
 
 ## 0.8.1 - 2026-05-28
 
 ### New Features
 
-- **OpenTelemetry tracing integration.** Added `@flue/opentelemetry` for tracing Flue model turns through OpenTelemetry-compatible observability tooling.
+- **OpenTelemetry tracing integration.** Added `@bapX/opentelemetry` for tracing Flue model turns through OpenTelemetry-compatible observability tooling.
 
 ### Fixes & Other Changes
 
@@ -359,12 +359,12 @@ This is a large pre-1.0 release that establishes Flue's durability model across 
 
 ## 0.8.0 - 2026-05-27
 
-This is a large pre-1.0 release that establishes Flue's model for building persistent agents and finite workflows. Rather than cataloging every intermediate beta change, this entry highlights the final APIs and the most important upgrade work. For guides and API reference, see the [documentation](https://flueframework.com/docs/).
+This is a large pre-1.0 release that establishes Flue's model for building persistent agents and finite workflows. Rather than cataloging every intermediate beta change, this entry highlights the final APIs and the most important upgrade work. For guides and API reference, see the [documentation](https://bapx.in/docs/).
 
 ### New Features
 
 - **Distinct agents and workflows.** Files in `agents/` now define persistent, addressable agent instances with `createAgent(...)`; files in `workflows/` define finite executions with `run(...)`. Agents maintain sessions across direct interactions and dispatched inputs, while workflows own persisted runs and results.
-- **Message-driven and live application surfaces.** Agents support direct HTTP prompts, asynchronous `dispatch(...)`, and WebSocket conversations. Workflows support HTTP and WebSocket invocation, and `@flue/sdk` now includes typed clients for connecting to deployed Flue applications.
+- **Message-driven and live application surfaces.** Agents support direct HTTP prompts, asynchronous `dispatch(...)`, and WebSocket conversations. Workflows support HTTP and WebSocket invocation, and `@bapX/sdk` now includes typed clients for connecting to deployed Flue applications.
 - **Composable agent capabilities.** `createAgent(...)`, `defineAgentProfile(...)`, `defineTool(...)`, and named subagents provide explicit reusable building blocks for model configuration, runtime resources, tools, skills, and delegation.
 - **Packaged Agent Skills and Markdown imports.** Applications can import `SKILL.md` dependencies as validated `SkillReference` values, bundle their supporting files for Node or Cloudflare, and import attributed Markdown through the shared Vite build pipeline.
 - **Observability and integrations.** Public model-turn telemetry enables tracing integrations such as the new Braintrust example. This release also adds a documentation app and examples for Chat SDK, Node WebSockets, Cloudflare WebSockets, and imported skills.
@@ -375,7 +375,7 @@ This is a large pre-1.0 release that establishes Flue's model for building persi
 - **Routing and run semantics changed.** Public HTTP and WebSocket exposure is declared through `route` and `websocket` middleware exports. Runs, `/runs`, and `flue logs` now describe workflows only; direct or dispatched agent interactions correlate by instance, session, operation, and `dispatchId` instead of `runId`.
 - **Roles and older agent definitions were replaced.** Migrate roles and `task({ role })` to named `defineAgentProfile(...)` subagents and `task({ agent })`; migrate reusable agent definitions to profiles and `ToolDef` imports to `ToolDefinition`.
 - **Build and Cloudflare configuration changed.** Node and Cloudflare builds now use a shared Vite graph; Cloudflare development follows `.dev.vars` / `.env` and `CLOUDFLARE_ENV` conventions. Cloudflare workflows now receive per-workflow Durable Object bindings, so review generated Wrangler configuration when upgrading.
-- **Cloudflare Shell is connector-owned.** Install it with `flue add @cloudflare/shell` and import its workspace sandbox helpers from the generated connector rather than `@flue/runtime/cloudflare`.
+- **Cloudflare Shell is connector-owned.** Install it with `flue add @cloudflare/shell` and import its workspace sandbox helpers from the generated connector rather than `@bapX/runtime/cloudflare`.
 
 ### Fixes & Other Changes
 
@@ -392,7 +392,7 @@ This is a large pre-1.0 release that establishes Flue's model for building persi
 
 ### New Features
 
-- **Cloudflare shell sandbox.** Added `getShellSandbox({ workspace, loader })`, `getDefaultWorkspace()`, and `hydrateFromBucket()` from `@flue/runtime/cloudflare`. The new sandbox wires `@cloudflare/shell` Workspaces into Flue through a codemode `code` tool backed by a Worker Loader binding. Agents use `state.*` inside the `code` tool instead of bash/read/write/grep/glob. Use `@cloudflare/shell` directly for primitives like `Workspace`, `WorkspaceFileSystem`, and `createGit`.
+- **Cloudflare shell sandbox.** Added `getShellSandbox({ workspace, loader })`, `getDefaultWorkspace()`, and `hydrateFromBucket()` from `@bapX/runtime/cloudflare`. The new sandbox wires `@cloudflare/shell` Workspaces into Flue through a codemode `code` tool backed by a Worker Loader binding. Agents use `state.*` inside the `code` tool instead of bash/read/write/grep/glob. Use `@cloudflare/shell` directly for primitives like `Workspace`, `WorkspaceFileSystem`, and `createGit`.
 
 ### Breaking Changes
 
@@ -437,10 +437,10 @@ This is a large pre-1.0 release that establishes Flue's model for building persi
   await session.compact();
   ```
 
-- **`local()` sandbox factory for host-bound agents on Node.** A new factory exported from `@flue/runtime/node`. `init({ sandbox: local() })` builds a `SessionEnv` that binds directly to the host: `exec` runs through the user's shell, file methods hit the real filesystem, and `cwd` defaults to `process.cwd()`. Env exposure is opt-in by design — only a small allowlist of shell essentials (`PATH`, `HOME`, `USER`, `LOGNAME`, `HOSTNAME`, `SHELL`, `LANG`, `LC_ALL`, `LC_CTYPE`, `TZ`, `TERM`, `TMPDIR`, `TMP`, `TEMP`) is inherited from `process.env`. Anything else, including API keys and tokens, must be passed explicitly via the `env` option, which keeps host secrets out of the agent's `bash` tool by default. Set a key to `undefined` to drop a default; pass `env: { ...process.env }` to opt into the full host env.
+- **`local()` sandbox factory for host-bound agents on Node.** A new factory exported from `@bapX/runtime/node`. `init({ sandbox: local() })` builds a `SessionEnv` that binds directly to the host: `exec` runs through the user's shell, file methods hit the real filesystem, and `cwd` defaults to `process.cwd()`. Env exposure is opt-in by design — only a small allowlist of shell essentials (`PATH`, `HOME`, `USER`, `LOGNAME`, `HOSTNAME`, `SHELL`, `LANG`, `LC_ALL`, `LC_CTYPE`, `TZ`, `TERM`, `TMPDIR`, `TMP`, `TEMP`) is inherited from `process.env`. Anything else, including API keys and tokens, must be passed explicitly via the `env` option, which keeps host secrets out of the agent's `bash` tool by default. Set a key to `undefined` to drop a default; pass `env: { ...process.env }` to opt into the full host env.
 
   ```ts
-  import { local } from '@flue/runtime/node';
+  import { local } from '@bapX/runtime/node';
 
   init({
     sandbox: local({
@@ -451,22 +451,22 @@ This is a large pre-1.0 release that establishes Flue's model for building persi
 
 - **Public OpenAPI spec for Flue's built-in routes.** `GET /openapi.json` now serves an OpenAPI 3.1 document for `POST /agents/<name>/<id>` and `GET /runs/<runId>{,/events,/stream}`. The spec is generated from Valibot schemas via `hono-openapi`, includes Flue's canonical error envelope, documents SSE routes with `x-flue-streaming: true`, and marks agent invocation payloads as user-defined.
 
-- **Read-only admin API sub-app.** `admin()` is now exported from `@flue/runtime/app` and can be mounted by user apps with their own auth middleware, e.g. `app.use('/admin/*', myAuthMiddleware); app.route('/admin', admin())`. It serves `GET /openapi.json`, `GET /agents`, `GET /agents/<name>/instances`, `GET /agents/<name>/instances/<id>/runs`, `GET /runs`, and `GET /runs/<runId>` relative to the mount point. Flue ships no auth opinions; middleware order in the user's Hono app controls access.
+- **Read-only admin API sub-app.** `admin()` is now exported from `@bapX/runtime/app` and can be mounted by user apps with their own auth middleware, e.g. `app.use('/admin/*', myAuthMiddleware); app.route('/admin', admin())`. It serves `GET /openapi.json`, `GET /agents`, `GET /agents/<name>/instances`, `GET /agents/<name>/instances/<id>/runs`, `GET /runs`, and `GET /runs/<runId>` relative to the mount point. Flue ships no auth opinions; middleware order in the user's Hono app controls access.
 
-- **SDK scaffold for public and admin APIs.** The `@flue/sdk` workspace package now contains a private, hand-written typed client scaffold for deployed Flue apps. It covers agent invocation modes, run lookup/events/streams, and read-only admin routes. The runtime still serves OpenAPI specs, but SDK code generation is deferred until a later pass can wire real spec snapshots and generated request methods end-to-end.
+- **SDK scaffold for public and admin APIs.** The `@bapX/sdk` workspace package now contains a private, hand-written typed client scaffold for deployed Flue apps. It covers agent invocation modes, run lookup/events/streams, and read-only admin routes. The runtime still serves OpenAPI specs, but SDK code generation is deferred until a later pass can wire real spec snapshots and generated request methods end-to-end.
 
 ### Breaking Changes
 
 - **`sandbox` magic strings removed.** `init({ sandbox })` no longer accepts the literal strings `'empty'` or `'local'`. The TypeScript union excludes both, and the runtime throws with a migration message for JS callers / `any`-typed inputs.
   - For the default in-memory sandbox, omit the `sandbox` option entirely or pass `false`.
-  - For host-bound agents on Node, use the `local()` factory from `@flue/runtime/node`. It also lets you opt host env vars into the sandbox via `local({ env: { ... } })`.
+  - For host-bound agents on Node, use the `local()` factory from `@bapX/runtime/node`. It also lets you opt host env vars into the sandbox via `local({ env: { ... } })`.
 
   ```diff
   - init({ sandbox: 'empty', model: 'anthropic/claude-sonnet-4-6' });
   + init({ model: 'anthropic/claude-sonnet-4-6' });
 
   - init({ sandbox: 'local', model: 'anthropic/claude-sonnet-4-6' });
-  + import { local } from '@flue/runtime/node';
+  + import { local } from '@bapX/runtime/node';
   + init({ sandbox: local({ env: { GH_TOKEN: process.env.GH_TOKEN } }), model: 'anthropic/claude-sonnet-4-6' });
   ```
 
@@ -488,27 +488,27 @@ This is a large pre-1.0 release that establishes Flue's model for building persi
 
 - **Cloudflare deployments gain a new `FlueRegistry` Durable Object class.** Auto-injected into the generated `dist/wrangler.jsonc` as a SQLite-backed DO binding (`FLUE_REGISTRY`) and a migration entry (`flue-class-FlueRegistry`). New deployments include it in their initial migration; existing deployments upgrading get a single appended migration entry. No user action required — the build's wrangler-merge owns the injection.
 
-- **`@flue/sdk` has been renamed to `@flue/runtime`.** The runtime library that user agent code and the generated server depend on is now published as `@flue/runtime`. User-facing agent, connector, MCP, and sandbox helper APIs now import from the root `@flue/runtime` entry; the old `@flue/sdk/client` and `@flue/sdk/sandbox` subpaths are folded into root. Platform/internal subpaths remain (`@flue/runtime/app`, `@flue/runtime/cloudflare`, `@flue/runtime/node`, `@flue/runtime/internal`). To migrate, replace user-code `@flue/sdk` imports with `@flue/runtime`. Generated `dist/` artifacts must be rebuilt — the new build emits `@flue/runtime/*` imports in `server.mjs` / `_entry.ts`.
+- **`@bapX/sdk` has been renamed to `@bapX/runtime`.** The runtime library that user agent code and the generated server depend on is now published as `@bapX/runtime`. User-facing agent, connector, MCP, and sandbox helper APIs now import from the root `@bapX/runtime` entry; the old `@bapX/sdk/client` and `@bapX/sdk/sandbox` subpaths are folded into root. Platform/internal subpaths remain (`@bapX/runtime/app`, `@bapX/runtime/cloudflare`, `@bapX/runtime/node`, `@bapX/runtime/internal`). To migrate, replace user-code `@bapX/sdk` imports with `@bapX/runtime`. Generated `dist/` artifacts must be rebuilt — the new build emits `@bapX/runtime/*` imports in `server.mjs` / `_entry.ts`.
 
-  The transitional `@flue/runtime/client` and `@flue/runtime/sandbox` subpaths still resolve for now, but immediately throw with migration guidance. They will be removed in a later release.
-
-  ```diff
-  - import type { FlueContext } from '@flue/sdk/client';
-  + import type { FlueContext } from '@flue/runtime';
-  ```
-
-- **Build tooling (`build`, `dev`, `parseEnvFiles`, `resolveEnvFiles`, `resolveSourceRoot`, the build plugins, env-file helpers) has moved from `@flue/sdk` to `@flue/cli`.** `@flue/runtime` is now a pure runtime library with no `esbuild` / `typescript` / `wrangler` baggage. The `wrangler` peer dependency moved with it and is now on `@flue/cli`. If you were driving the build programmatically via `import { build } from '@flue/sdk'`, update to import from `@flue/cli` (currently via internal paths; a stable public API will land separately).
-
-- **`flue.config.ts` now imports `defineConfig` from `@flue/cli/config`.** Update existing configs:
+  The transitional `@bapX/runtime/client` and `@bapX/runtime/sandbox` subpaths still resolve for now, but immediately throw with migration guidance. They will be removed in a later release.
 
   ```diff
-  - import { defineConfig } from '@flue/sdk/config';
-  + import { defineConfig } from '@flue/cli/config';
+  - import type { FlueContext } from '@bapX/sdk/client';
+  + import type { FlueContext } from '@bapX/runtime';
   ```
 
-  This sets up the eventual collapse to `import { defineConfig } from 'flue/config'` (matching Astro/Vite). `flue init` now scaffolds the new import. The `@flue/sdk/config` subpath no longer exists.
+- **Build tooling (`build`, `dev`, `parseEnvFiles`, `resolveEnvFiles`, `resolveSourceRoot`, the build plugins, env-file helpers) has moved from `@bapX/sdk` to `@bapX/cli`.** `@bapX/runtime` is now a pure runtime library with no `esbuild` / `typescript` / `wrangler` baggage. The `wrangler` peer dependency moved with it and is now on `@bapX/cli`. If you were driving the build programmatically via `import { build } from '@bapX/sdk'`, update to import from `@bapX/cli` (currently via internal paths; a stable public API will land separately).
 
-- **The `@flue/sdk` package is now a migration placeholder.** It keeps publishing with the old export map (`.`, `./app`, `./client`, `./sandbox`, `./internal`, `./cloudflare`, `./node`, `./config`) but has no runtime dependencies and every import throws with migration guidance. This prevents old installs from silently staying on an obsolete package while reserving the name for a future client-side SDK for talking to deployed Flue applications (send agent interactions, invoke or inspect workflow runs, stream events, etc.).
+- **`bapX.config.ts` now imports `defineConfig` from `@bapX/cli/config`.** Update existing configs:
+
+  ```diff
+  - import { defineConfig } from '@bapX/sdk/config';
+  + import { defineConfig } from '@bapX/cli/config';
+  ```
+
+  This sets up the eventual collapse to `import { defineConfig } from 'flue/config'` (matching Astro/Vite). `flue init` now scaffolds the new import. The `@bapX/sdk/config` subpath no longer exists.
+
+- **The `@bapX/sdk` package is now a migration placeholder.** It keeps publishing with the old export map (`.`, `./app`, `./client`, `./sandbox`, `./internal`, `./cloudflare`, `./node`, `./config`) but has no runtime dependencies and every import throws with migration guidance. This prevents old installs from silently staying on an obsolete package while reserving the name for a future client-side SDK for talking to deployed Flue applications (send agent interactions, invoke or inspect workflow runs, stream events, etc.).
 
 ### Fixes & Other Changes
 
@@ -536,11 +536,11 @@ This is a large pre-1.0 release that establishes Flue's model for building persi
 
 ### New Features
 
-- **`observe(...)` exported from `@flue/sdk/app` for isolate-global subscriptions to the Flue event stream.** Cross-cutting integrations — error reporting, log forwarding, metrics — can now tap every Flue event in the current isolate from a single module-scoped call, without per-agent or per-context wiring. The subscriber receives the fully decorated `FlueEvent` (with `runId`, `eventIndex`, `timestamp`, and tree-correlation fields) and the originating `FlueContext`. On the Cloudflare target each Durable Object is its own V8 isolate, so `app.ts` (and thus the `observe` registration) is evaluated per-DO — each isolate captures its own events independently, which is the intended shape. See `examples/sentry/` for a fully documented Sentry error-reporting integration built on top of this hook.
+- **`observe(...)` exported from `@bapX/sdk/app` for isolate-global subscriptions to the Flue event stream.** Cross-cutting integrations — error reporting, log forwarding, metrics — can now tap every Flue event in the current isolate from a single module-scoped call, without per-agent or per-context wiring. The subscriber receives the fully decorated `FlueEvent` (with `runId`, `eventIndex`, `timestamp`, and tree-correlation fields) and the originating `FlueContext`. On the Cloudflare target each Durable Object is its own V8 isolate, so `app.ts` (and thus the `observe` registration) is evaluated per-DO — each isolate captures its own events independently, which is the intended shape. See `examples/sentry/` for a fully documented Sentry error-reporting integration built on top of this hook.
 
   ```ts
   // app.ts
-  import { flue, observe } from '@flue/sdk/app';
+  import { flue, observe } from '@bapX/sdk/app';
   import * as Sentry from '@sentry/node';
 
   Sentry.init({ dsn: process.env.SENTRY_DSN });
@@ -561,7 +561,7 @@ This is a large pre-1.0 release that establishes Flue's model for building persi
 
   ```ts
   // app.ts
-  import { registerProvider } from '@flue/sdk/app';
+  import { registerProvider } from '@bapX/sdk/app';
   import { env } from 'cloudflare:workers';
 
   registerProvider('cloudflare', {
@@ -647,7 +647,7 @@ Big release! We are working hard to stabilize our APIs and add any missing and e
 
   Schema results are now extracted via injected `finish` / `give_up` model-facing tools instead of `---RESULT_START---` / `---RESULT_END---` text markers. The unused `ResultExtractionError` class is removed; a new `ResultUnavailableError` is thrown when the model invokes `give_up`.
 
-- **`commands` and `defineCommand` are removed.** The original idea — register first-party CLI tools the agent could shell out to — only worked under just-bash and saw little real use. The same surface is better expressed today by passing `env` to scope what a connector sees, or by choosing a sandbox connector that gives you the isolation you want. just-bash itself still supports custom commands — you just register them on your bash instance directly instead of through Flue's helper. Removed: the `commands?:` option on `init()` / `prompt()` / `skill()` / `task()` / `shell()`; the `Command`, `CommandDef`, `CommandOptions`, `CommandExecutor`, `CommandExecutorResult` types; the `defineCommand` export from `@flue/sdk/node` and `@flue/sdk/cloudflare`; the `command_start` / `command_end` `FlueEvent` variants; and the `BashLike.registerCommand` / `SessionEnv.scope` connector hooks.
+- **`commands` and `defineCommand` are removed.** The original idea — register first-party CLI tools the agent could shell out to — only worked under just-bash and saw little real use. The same surface is better expressed today by passing `env` to scope what a connector sees, or by choosing a sandbox connector that gives you the isolation you want. just-bash itself still supports custom commands — you just register them on your bash instance directly instead of through Flue's helper. Removed: the `commands?:` option on `init()` / `prompt()` / `skill()` / `task()` / `shell()`; the `Command`, `CommandDef`, `CommandOptions`, `CommandExecutor`, `CommandExecutorResult` types; the `defineCommand` export from `@bapX/sdk/node` and `@bapX/sdk/cloudflare`; the `command_start` / `command_end` `FlueEvent` variants; and the `BashLike.registerCommand` / `SessionEnv.scope` connector hooks.
 
 - **Default `thinkingLevel` changed from `'off'` to `'medium'`.** Reasoning-capable models (e.g. gpt-5, claude-opus-4-7) will now reason by default on every `prompt()` / `skill()` / `task()` call. Non-reasoning models are unaffected (clamped to `'off'` per the model's `thinkingLevelMap`). To restore the old behavior, set `thinkingLevel: 'off'` explicitly on `init()`, your role frontmatter, or the call options.
 
@@ -657,13 +657,13 @@ Big release! We are working hard to stabilize our APIs and add any missing and e
   - With the new `'local'` sandbox, the host shell is exposed directly. The agent's `bash` tool can run `gh issue view`, `npm test`, etc. with whatever's on `$PATH` and whatever env you launched flue with. The runner / container / VM is the isolation boundary.
   - For non-`'local'` sandboxes, install the binaries inside the sandbox image, or wrap the operation as a custom tool with `init({ tools: [...] })`. Tools have a structured parameter schema, are visible to the model directly, and recover the "secrets stay on the host" property — the tool reads `process.env`, the agent only sees the tool's params and result.
 
-  Removed: `Command`, `CommandDef`, `CommandOptions`, `CommandExecutor`, `CommandExecutorResult` types; `defineCommand` from `@flue/sdk/node` and `@flue/sdk/cloudflare`; `commands?:` field on `init()`, `prompt()`, `skill()`, `task()`, `shell()`; `BashLike.registerCommand?`, `SessionEnv.scope?`; the dead `command_start` / `command_end` `FlueEvent` variants.
+  Removed: `Command`, `CommandDef`, `CommandOptions`, `CommandExecutor`, `CommandExecutorResult` types; `defineCommand` from `@bapX/sdk/node` and `@bapX/sdk/cloudflare`; `commands?:` field on `init()`, `prompt()`, `skill()`, `task()`, `shell()`; `BashLike.registerCommand?`, `SessionEnv.scope?`; the dead `command_start` / `command_end` `FlueEvent` variants.
 
-- **`init({ providers: { … } })` has moved.** Provider configuration moved to the new `app.ts` runtime registration model (see below). Migrate by creating an `app.ts` at your project root and calling `configureProvider()` (to patch a built-in catalog provider's `baseUrl` / `apiKey` / `headers` / `storeResponses`) or `registerProvider()` (to register a brand-new URL-prefix provider). Both are exported from `@flue/sdk/app`. The `ProvidersConfig` type and `providers` field are removed from `AgentInit` and `AgentConfig`.
+- **`init({ providers: { … } })` has moved.** Provider configuration moved to the new `app.ts` runtime registration model (see below). Migrate by creating an `app.ts` at your project root and calling `configureProvider()` (to patch a built-in catalog provider's `baseUrl` / `apiKey` / `headers` / `storeResponses`) or `registerProvider()` (to register a brand-new URL-prefix provider). Both are exported from `@bapX/sdk/app`. The `ProvidersConfig` type and `providers` field are removed from `AgentInit` and `AgentConfig`.
 
 - **`FlueAgent.destroy()` and `SessionEnv.cleanup()` are removed.** Flue no longer manages sandbox lifetime — sandboxes are user-owned. Connectors that previously took a `cleanup` option (Boxd, Daytona, E2B, Exedev, islo, Modal, Vercel) no longer accept it; some lose their options argument entirely (e.g. `daytona(sandbox)` instead of `daytona(sandbox, { cleanup })`). If you were relying on automatic teardown, destroy your sandbox explicitly when your handler is done.
 
-- **CLI `--workspace` flag renamed to `--root`** across `flue dev` / `flue run` / `flue build`. The corresponding programmatic options also moved: `BuildOptions.workspaceDir` → `BuildOptions.root`, `BuildContext.workspaceDir` → `BuildContext.root`. The `flue.config.ts` key is `root`, not `workspace`.
+- **CLI `--workspace` flag renamed to `--root`** across `flue dev` / `flue run` / `flue build`. The corresponding programmatic options also moved: `BuildOptions.workspaceDir` → `BuildOptions.root`, `BuildContext.workspaceDir` → `BuildContext.root`. The `bapX.config.ts` key is `root`, not `workspace`.
 
 - **`outputDir` renamed to `output`** across `BuildOptions`, `BuildContext`, and `DevOptions`. Build plugin authors reading `ctx.outputDir` must update to `ctx.output`. The CLI flag remains `--output`. The default is `<root>/dist`, and `--output` is now the literal output directory (previously it was a parent directory into which `dist/` was written). `BuildOptions.output` is now optional.
 
@@ -671,26 +671,26 @@ Big release! We are working hard to stabilize our APIs and add any missing and e
 
 - **`Skill.instructions` field removed from the public type.** Skill bodies are no longer cached in memory — at call time the model reads `SKILL.md` from disk via its filesystem tools. This means relative references inside a skill resolve correctly, and edits are picked up mid-session without re-init. If you were reading `skill.instructions` from the SDK types, read the file from disk yourself.
 
-- **Sandbox connector contract: `SandboxApi.exec` is now timeout-primary, signal-optional.** Connectors are expected to forward `timeout` to their provider's native timeout option (E2B `timeoutMs`, Daytona `timeout`, etc.); signal-aware SDKs may additionally forward `signal` for true mid-flight cancellation. `BashLike.exec` options gained `signal?: AbortSignal`. If you maintain a sandbox connector, see [Sandbox Connector API](https://flueframework.com/docs/api/sandbox-api/) for the dual contract.
+- **Sandbox connector contract: `SandboxApi.exec` is now timeout-primary, signal-optional.** Connectors are expected to forward `timeout` to their provider's native timeout option (E2B `timeoutMs`, Daytona `timeout`, etc.); signal-aware SDKs may additionally forward `signal` for true mid-flight cancellation. `BashLike.exec` options gained `signal?: AbortSignal`. If you maintain a sandbox connector, see [Sandbox Connector API](https://bapx.in/docs/api/sandbox-api/) for the dual contract.
 
 - **Long-running agents on Node no longer time out at ~300s.** The generated Node server now sets `requestTimeout: 0` on the underlying `http.Server` and emits a 25s SSE heartbeat, which keeps undici's `bodyTimeout` and reverse-proxy idle timers satisfied. Multi-minute `bash` calls and other long handlers that emit no Flue-level events for >300s no longer abort with `[flue] Agent error: terminated`.
 
 ### New Features
 
-- **`flue.config.ts` project config.** A `flue.config.{ts,mts,mjs,js,cjs,cts}` file at the project root is auto-discovered and can set `target` (`'node' | 'cloudflare'`), `root`, and `output`. CLI flags still win per-field. Authored in TypeScript via Node's native type-stripping (no bundling). New `--config <path>` flag on `flue dev` / `flue run` / `flue build`. New `@flue/sdk/config` subpath export with `defineConfig`, `resolveConfig`, `resolveConfigPath`, `UserFlueConfig`, `FlueConfig`, `ResolveConfigOptions`, `ResolvedConfigResult`.
+- **`bapX.config.ts` project config.** A `flue.config.{ts,mts,mjs,js,cjs,cts}` file at the project root is auto-discovered and can set `target` (`'node' | 'cloudflare'`), `root`, and `output`. CLI flags still win per-field. Authored in TypeScript via Node's native type-stripping (no bundling). New `--config <path>` flag on `flue dev` / `flue run` / `flue build`. New `@bapX/sdk/config` subpath export with `defineConfig`, `resolveConfig`, `resolveConfigPath`, `UserFlueConfig`, `FlueConfig`, `ResolveConfigOptions`, `ResolvedConfigResult`.
 
   ```ts
-  // flue.config.ts
-  import { defineConfig } from '@flue/sdk/config';
+  // bapX.config.ts
+  import { defineConfig } from '@bapX/sdk/config';
 
   export default defineConfig({
     target: 'cloudflare',
   });
   ```
 
-- **`flue init` command** scaffolds a starter `flue.config.ts` in the target directory. Flags: `--target <node|cloudflare>` (required), `--root <path>`, `--force` (overwrite existing).
+- **`flue init` command** scaffolds a starter `bapX.config.ts` in the target directory. Flags: `--target <node|cloudflare>` (required), `--root <path>`, `--force` (overwrite existing).
 
-- **`app.ts` runtime entry point.** A new optional `app.ts` (also `.mts` / `.js` / `.mjs`) at the source root lets you take over the request pipeline with custom Hono middleware, routes, auth, etc. Mount Flue's agent handler via `app.route('/', flue())`. New `@flue/sdk/app` subpath export ships:
+- **`app.ts` runtime entry point.** A new optional `app.ts` (also `.mts` / `.js` / `.mjs`) at the source root lets you take over the request pipeline with custom Hono middleware, routes, auth, etc. Mount Flue's agent handler via `app.route('/', flue())`. New `@bapX/sdk/app` subpath export ships:
   - `flue()` — Hono sub-app exposing `/agents/:name/:id`.
   - `Fetchable` — type for the user app's default export.
   - `registerProvider(name, def)` — register a new URL-prefix model provider at runtime, with platform `env` in scope. Supports HTTP and Cloudflare AI binding registrations (`HttpProviderRegistration`, `CloudflareAIBindingRegistration`, `CloudflareAIBinding`).
@@ -701,7 +701,7 @@ Big release! We are working hard to stabilize our APIs and add any missing and e
 
 - **AbortSignal cancellation across `prompt()` / `skill()` / `task()` / `shell()`.** Pass `signal: AbortSignal` (e.g. `AbortSignal.timeout(5000)`) on the options bag, or use the new `CallHandle.abort(reason?)` method on the returned handle. Aborts reject with a standard `DOMException` named `AbortError` whose `cause` is the signal's reason. Aborting a `prompt()` also tears down in-flight `bash` tool commands, not just the model loop. `SessionEnv.exec()` also accepts `signal?` alongside `timeout?`.
 
-- **Per-call reasoning effort.** New `thinkingLevel?: ThinkingLevel` on `AgentInit`, `Role` (also via role frontmatter `thinkingLevel:`), `PromptOptions`, `SkillOptions`, `TaskOptions`, and `AgentConfig`. Precedence: per-call > role > agent. Tasks inherit the parent's resolved level. Per-call `'off'` is rejected (init/role/agent-level only). Unknown values in role frontmatter throw at build time. `ThinkingLevel` re-exported from `@flue/sdk` and `@flue/sdk/client`. A single deployment can now serve a cheap classifier at `'low'` and a careful auditor at `'high'` from the same model entry.
+- **Per-call reasoning effort.** New `thinkingLevel?: ThinkingLevel` on `AgentInit`, `Role` (also via role frontmatter `thinkingLevel:`), `PromptOptions`, `SkillOptions`, `TaskOptions`, and `AgentConfig`. Precedence: per-call > role > agent. Tasks inherit the parent's resolved level. Per-call `'off'` is rejected (init/role/agent-level only). Unknown values in role frontmatter throw at build time. `ThinkingLevel` re-exported from `@bapX/sdk` and `@bapX/sdk/client`. A single deployment can now serve a cheap classifier at `'low'` and a careful auditor at `'high'` from the same model entry.
 
 - **Images on `prompt()` / `skill()` / `task()`.** New `images?: PromptImage[]` option on all three (and the initial turn of `task()`). `PromptImage` is the shape `{ type: 'image', data: base64, mimeType }`, re-exported from pi-ai. Requires a vision-capable model. For schema-result calls, images are attached on the first attempt only; retries are text-only.
 
@@ -721,4 +721,4 @@ Big release! We are working hard to stabilize our APIs and add any missing and e
 
 - **Skills are now read from disk on demand.** `session.skill()` references the skill by name and the system prompt's "Available Skills" registry tells the model where to find it (`.agents/skills/<name>/SKILL.md`). Relative references inside a skill (sibling markdown files, scripts) now resolve from where they live, and edits to `SKILL.md` are picked up mid-session without re-init. Path-based references produce a distinct prompt naming the file path explicitly.
 
-- **`createLocalSessionEnv()` helper** exported from `@flue/sdk/node`. A pure-Node `SessionEnv` backed directly by `node:fs/promises` and `node:child_process`. Configurable `cwd` via `LocalSessionEnvOptions`. `exec` honors `timeout` + `signal` and lifts the default output buffer cap to 64 MB. This is what powers the new `sandbox: 'local'` behavior.
+- **`createLocalSessionEnv()` helper** exported from `@bapX/sdk/node`. A pure-Node `SessionEnv` backed directly by `node:fs/promises` and `node:child_process`. Configurable `cwd` via `LocalSessionEnvOptions`. `exec` honors `timeout` + `signal` and lifts the default output buffer cap to 64 MB. This is what powers the new `sandbox: 'local'` behavior.

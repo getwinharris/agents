@@ -8,23 +8,23 @@
 	"compatibility_flags": ["nodejs_compat"],
 	"migrations": [
 		{
-			"tag": "flue-class-FlueRegistry",
+			"tag": "bapX-class-FlueRegistry",
 			"new_sqlite_classes": ["FlueRegistry"]
 		},
 		{
-			"tag": "flue-class-SkillsFromGitWorkflow",
+			"tag": "bapX-class-SkillsFromGitWorkflow",
 			"new_sqlite_classes": ["SkillsFromGitWorkflow"]
 		},
 		{
-			"tag": "flue-class-SkillsFromR2Workflow",
+			"tag": "bapX-class-SkillsFromR2Workflow",
 			"new_sqlite_classes": ["SkillsFromR2Workflow"]
 		},
 		{
-			"tag": "flue-class-WithCloudflareBinding",
+			"tag": "bapX-class-WithCloudflareBinding",
 			"new_sqlite_classes": ["WithCloudflareBinding"]
 		},
 		{
-			"tag": "flue-rename-generated-classes",
+			"tag": "bapX-rename-generated-classes",
 			"renamed_classes": [
 				{ "from": "SkillsFromGitWorkflow", "to": "FlueSkillsFromGitWorkflow" },
 				{ "from": "SkillsFromR2Workflow", "to": "FlueSkillsFromR2Workflow" },
@@ -49,8 +49,8 @@
 	"r2_buckets": [
 		{
 			"binding": "KNOWLEDGE_BASE",
-			"bucket_name": "flue-example-knowledge-base",
-			"preview_bucket_name": "flue-example-knowledge-base-dev"
+			"bucket_name": "bapX-example-knowledge-base",
+			"preview_bucket_name": "bapX-example-knowledge-base-dev"
 		}
 	]
 }

@@ -8,7 +8,7 @@
  *
  * @example
  * ```ts
- * import { defineStoreContractTests } from '@flue/runtime/test-utils';
+ * import { defineStoreContractTests } from '@bapX/runtime/test-utils';
  *
  * defineStoreContractTests('My Backend', {
  *   async create() { return myStore; },

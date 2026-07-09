@@ -2,8 +2,8 @@
 title: Microsoft Teams
 description: Receive authenticated Teams activities and use a project-owned Bot Connector client.
 package:
-  name: '@flue/teams'
-  href: https://www.npmjs.com/package/@flue/teams
+  name: '@bapX/teams'
+  href: https://www.npmjs.com/package/@bapX/teams
 ---
 
 ## Quickstart
@@ -16,15 +16,15 @@ flue add channel teams
 
 ## Overview
 
-The blueprint installs `@flue/teams`, creates a source-root
+The blueprint installs `@bapX/teams`, creates a source-root
 `lib/teams-client.ts` Fetch client and `channels/teams.ts` channel module, and
 modifies the selected agent to bind the generated message tool. The Fetch client
 handles OAuth token exchange and Bot Connector requests without adding
 Microsoft's Node-oriented hosting SDKs.
 
 ```ts title="src/channels/teams.ts (abridged)"
-import { dispatch } from '@flue/runtime';
-import { createTeamsChannel } from '@flue/teams';
+import { dispatch } from '@bapX/runtime';
+import { createTeamsChannel } from '@bapX/teams';
 import assistant from '../agents/assistant.ts';
 
 export const channel = createTeamsChannel({
@@ -62,7 +62,7 @@ URL and thread. The generated Fetch client runs on Node and Cloudflare Workers.
 | `TEAMS_TENANT_ID`    | **Required** — Constrains activity tenant identity.   |
 | `TEAMS_APP_PASSWORD` | **Required** — Authenticates outbound OAuth requests. |
 
-It installs `@flue/teams` for authenticated Bot Connector ingress and creates a
+It installs `@bapX/teams` for authenticated Bot Connector ingress and creates a
 project-owned Fetch client for outbound messages.
 
 Microsoft's current JavaScript Agents and Teams SDKs declare Node runtimes and
@@ -83,8 +83,8 @@ must receive all channel or group-chat messages.
 ## Channel module
 
 ```ts title="src/channels/teams.ts"
-import { defineTool, dispatch } from '@flue/runtime';
-import { createTeamsChannel, type TeamsConversationRef } from '@flue/teams';
+import { defineTool, dispatch } from '@bapX/runtime';
+import { createTeamsChannel, type TeamsConversationRef } from '@bapX/teams';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';
 import { createTeamsClient } from '../lib/teams-client.ts';
@@ -162,7 +162,7 @@ any non-2xx response, so return a 2xx once the work is safely admitted.
 ## Bind the tool
 
 ```ts title="src/agents/assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, postMessage } from '../channels/teams.ts';
 
 export default defineAgent(({ id }) => ({
@@ -180,7 +180,7 @@ using them for outbound requests.
 
 ## Authentication
 
-`@flue/teams` verifies the Bot Connector bearer token before invoking the
+`@bapX/teams` verifies the Bot Connector bearer token before invoking the
 handler. It checks:
 
 - the Microsoft OpenID signing key and `RS256` signature;
@@ -196,4 +196,4 @@ authority.
 The package does not deduplicate activity ids. Claim them in application-owned
 durable storage before dispatch when duplicate admission is unacceptable.
 
-See the [`@flue/teams` README](https://github.com/withastro/flue/tree/main/packages/teams#readme).
+See the [`@bapX/teams` README](https://github.com/getwinharris/agents/tree/main/packages/teams#readme).

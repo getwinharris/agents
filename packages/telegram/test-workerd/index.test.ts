@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describe, expect, it, vi } from 'vitest';
 import { createTelegramChannel } from '../src/index.ts';
 
-describe('@flue/telegram workerd ingress', () => {
+describe('@bapX/telegram workerd ingress', () => {
 	it('verifies the secret header and forwards a native Update in workerd', async () => {
 		const webhook = vi.fn();
 		const telegram = createTelegramChannel({

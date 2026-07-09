@@ -4,7 +4,7 @@ import { createGitHubChannel } from '../src/index.ts';
 
 const encoder = new TextEncoder();
 
-describe('@flue/github workerd ingress', () => {
+describe('@bapX/github workerd ingress', () => {
 	it('verifies exact webhook bytes through the discovered route handler shape', async () => {
 		const webhook = vi.fn();
 		const github = createGitHubChannel({ webhookSecret: 'secret', webhook });

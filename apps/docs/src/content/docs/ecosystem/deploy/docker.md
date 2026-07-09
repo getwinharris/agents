@@ -34,7 +34,7 @@ EXPOSE 8080
 CMD ["node", "dist/server.mjs"]
 ```
 
-The build externalizes your application dependencies rather than bundling them, so the runtime stage installs production dependencies (`@flue/cli` stays a build-only dependency and is dropped by `--omit=dev`). Add a `.dockerignore` for `node_modules`, `dist`, `.git`, and `.env` so local artifacts and secrets never enter the image.
+The build externalizes your application dependencies rather than bundling them, so the runtime stage installs production dependencies (`@bapX/cli` stays a build-only dependency and is dropped by `--omit=dev`). Add a `.dockerignore` for `node_modules`, `dist`, `.git`, and `.env` so local artifacts and secrets never enter the image.
 
 The official `node` images ship a non-root `node` user (uid 1000); `USER node` drops superuser privileges in the running container. Node was not designed to run as PID 1 and won't reap children or forward signals cleanly, so run the container with an init — `docker run --init` (shown below) or a baked-in `tini`/`dumb-init` — so `SIGTERM` reaches the server for a graceful shutdown of in-flight streams.
 
@@ -63,7 +63,7 @@ docker run --init -p 8080:8080 \
 Without a `db.ts` adapter the server keeps canonical agent conversations, attachments, accepted submissions, and workflow-run records in process-local memory, so a restart or redeploy loses them. Add a Postgres-backed [`PersistenceAdapter`](/docs/guide/database/) for replacement recovery and shared workflow history. Multiple replicas must still route each agent instance to one live owner; shared storage does not enable active-active same-instance execution:
 
 ```typescript title=".flue/db.ts"
-import { postgres } from '@flue/postgres';
+import { postgres } from '@bapX/postgres';
 
 export default postgres(process.env.DATABASE_URL!);
 ```

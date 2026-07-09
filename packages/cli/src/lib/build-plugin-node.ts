@@ -83,7 +83,7 @@ process.on('disconnect', () => { void stop(0); });
 			: '';
 
 		// All HTTP routing, workflow admission, agent dispatch, and error
-		// rendering live in @flue/runtime's runtime modules. The generated
+		// rendering live in @bapX/runtime's runtime modules. The generated
 		// entry's job is narrow: import handlers, build the runtime config,
 		// instantiate sandboxes, start the listener.
 		const builtModuleNormalizationSource = generateBuiltModuleNormalizationSource();
@@ -92,7 +92,7 @@ process.on('disconnect', () => { void stop(0); });
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { format } from 'node:util';
 ${options.deployment ? "import { serve } from '@hono/node-server';" : ''}
-import { sqlite } from '@flue/runtime/node';
+import { sqlite } from '@bapX/runtime/node';
 import {
   Bash,
   InMemoryFs,
@@ -109,7 +109,7 @@ import {
   configureFlueRuntime,
   createDefaultFlueApp,
   installDevLifecycleLogger,
-} from '@flue/runtime/internal';
+} from '@bapX/runtime/internal';
 ${agentImports}
 ${workflowImports}
 ${channelImports}
@@ -324,7 +324,7 @@ if (!flueApp || typeof flueApp.fetch !== 'function') {
     '[flue] app.ts default export must be a Hono app or an object with a fetch(request) method.'
   );
 }`
-		: `// No app.ts: build the default app via @flue/runtime so the generated entry
+		: `// No app.ts: build the default app via @bapX/runtime so the generated entry
 // stays \`hono\`-free (users only need hono in their node_modules when
 // they author their own app.ts). The default mounts \`flue()\` at root
 // and renders canonical Flue envelopes for unmatched paths.

@@ -1,6 +1,6 @@
 import { createGitHubAdapter } from '@chat-adapter/github';
 import { createMemoryState } from '@chat-adapter/state-memory';
-import { type AgentDefinition, dispatch } from '@flue/runtime';
+import { type AgentDefinition, dispatch } from '@bapX/runtime';
 import { Chat } from 'chat';
 
 const webhookSecret = 'chat-sdk-example-secret';

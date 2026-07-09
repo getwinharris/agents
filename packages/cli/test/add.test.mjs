@@ -198,7 +198,7 @@ describe('flue add', () => {
 		const result = await runCli(['add', 'channel', 'whatsapp', '--print']);
 
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.includes('@flue/whatsapp'));
+		assert.ok(result.stdout.includes('@bapX/whatsapp'));
 		assert.ok(result.stdout.includes('@kapso/whatsapp-cloud-api@^0.2.1'));
 		assert.ok(result.stdout.includes('/channels/whatsapp/webhook'));
 		assert.ok(result.stdout.includes('X-Hub-Signature-256'));
@@ -208,7 +208,7 @@ describe('flue add', () => {
 		const result = await runCli(['add', 'channel', 'stripe', '--print']);
 
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.includes('@flue/stripe'));
+		assert.ok(result.stdout.includes('@bapX/stripe'));
 		assert.ok(result.stdout.includes('stripe@^22.2.1'));
 		assert.ok(result.stdout.includes('/channels/stripe/webhook'));
 		assert.ok(result.stdout.includes('Stripe.createFetchHttpClient()'));
@@ -220,7 +220,7 @@ describe('flue add', () => {
 		const result = await runCli(['add', 'channel', 'notion', '--print']);
 
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.includes('@flue/notion'));
+		assert.ok(result.stdout.includes('@bapX/notion'));
 		assert.ok(result.stdout.includes('@notionhq/client@^5.22.0'));
 		assert.ok(result.stdout.includes('/channels/notion/webhook'));
 		assert.ok(result.stdout.includes('verification_token'));
@@ -232,7 +232,7 @@ describe('flue add', () => {
 		const result = await runCli(['add', 'channel', 'resend', '--print']);
 
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.includes('@flue/resend'));
+		assert.ok(result.stdout.includes('@bapX/resend'));
 		assert.ok(result.stdout.includes('resend@^6.12.4'));
 		assert.ok(result.stdout.includes('@types/node'));
 		assert.ok(result.stdout.includes('@types/react'));
@@ -248,7 +248,7 @@ describe('flue add', () => {
 		const result = await runCli(['add', 'channel', 'shopify', '--print']);
 
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.includes('@flue/shopify'));
+		assert.ok(result.stdout.includes('@bapX/shopify'));
 		assert.ok(result.stdout.includes('@shopify/admin-api-client@^1.1.2'));
 		assert.ok(result.stdout.includes('@types/node'));
 		assert.ok(result.stdout.includes('/channels/shopify/webhook'));
@@ -265,7 +265,7 @@ describe('flue add', () => {
 		const result = await runCli(['add', 'channel', 'intercom', '--print']);
 
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.includes('@flue/intercom'));
+		assert.ok(result.stdout.includes('@bapX/intercom'));
 		assert.ok(result.stdout.includes('intercom-client@^7.0.3'));
 		assert.ok(result.stdout.includes('/channels/intercom/webhook'));
 		assert.ok(result.stdout.includes('HEAD'));
@@ -279,7 +279,7 @@ describe('flue add', () => {
 		const result = await runCli(['add', 'channel', 'zendesk', '--print']);
 
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.includes('@flue/zendesk'));
+		assert.ok(result.stdout.includes('@bapX/zendesk'));
 		assert.ok(result.stdout.includes('lossless-json@^4.3.0'));
 		assert.ok(result.stdout.includes('/channels/zendesk/webhook'));
 		assert.ok(result.stdout.includes('X-Zendesk-Webhook-Signature'));
@@ -293,7 +293,7 @@ describe('flue add', () => {
 		const result = await runCli(['add', 'channel', 'salesforce-marketing-cloud', '--print']);
 
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.includes('@flue/salesforce'));
+		assert.ok(result.stdout.includes('@bapX/salesforce'));
 		assert.ok(result.stdout.includes('/channels/salesforce-marketing-cloud/events'));
 		assert.ok(result.stdout.includes('x-sfmc-ens-signature'));
 		assert.ok(result.stdout.includes('.rest.marketingcloudapis.com'));
@@ -306,7 +306,7 @@ describe('flue add', () => {
 		const result = await runCli(['add', 'channel', 'twilio', '--print']);
 
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.includes('@flue/twilio'));
+		assert.ok(result.stdout.includes('@bapX/twilio'));
 		assert.ok(result.stdout.includes('/channels/twilio/webhook'));
 		assert.ok(result.stdout.includes('/channels/twilio/status'));
 		assert.ok(result.stdout.includes('X-Twilio-Signature'));
@@ -318,7 +318,7 @@ describe('flue add', () => {
 		const result = await runCli(['add', 'channel', 'messenger', '--print']);
 
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.includes('@flue/messenger'));
+		assert.ok(result.stdout.includes('@bapX/messenger'));
 		assert.ok(result.stdout.includes('/channels/messenger/webhook'));
 		assert.ok(result.stdout.includes('X-Hub-Signature-256'));
 		assert.ok(result.stdout.includes('EVENT_RECEIVED'));
@@ -404,7 +404,7 @@ describe('flue add', () => {
 	it('prints database blueprints with their transaction-safe runner wiring', async () => {
 		const postgres = await runCli(['add', 'database', 'postgres', '--print']);
 		assert.equal(postgres.code, 0);
-		assert.ok(postgres.stdout.includes('@flue/postgres'));
+		assert.ok(postgres.stdout.includes('@bapX/postgres'));
 		assert.ok(postgres.stdout.includes("import { Pool } from 'pg'"));
 		assert.ok(postgres.stdout.includes('pool.connect()'));
 		assert.ok(postgres.stdout.includes('BEGIN'));
@@ -412,13 +412,13 @@ describe('flue add', () => {
 
 		const libsql = await runCli(['add', 'database', 'libsql', '--print']);
 		assert.equal(libsql.code, 0);
-		assert.ok(libsql.stdout.includes('@flue/libsql'));
+		assert.ok(libsql.stdout.includes('@bapX/libsql'));
 		assert.ok(libsql.stdout.includes('const serialize'));
 		assert.ok(libsql.stdout.includes('tx.close()'));
 
 		const mongodb = await runCli(['add', 'database', 'mongodb', '--print']);
 		assert.equal(mongodb.code, 0);
-		assert.ok(mongodb.stdout.includes('@flue/mongodb'));
+		assert.ok(mongodb.stdout.includes('@bapX/mongodb'));
 		assert.ok(mongodb.stdout.includes("from 'mongodb'"));
 		assert.ok(mongodb.stdout.includes('// flue-blueprint: database/mongodb@1'));
 		assert.ok(mongodb.stdout.includes('MONGODB_URL'));
@@ -439,7 +439,7 @@ describe('flue add', () => {
 
 		const mysql = await runCli(['add', 'database', 'mysql', '--print']);
 		assert.equal(mysql.code, 0);
-		assert.ok(mysql.stdout.includes('@flue/mysql'));
+		assert.ok(mysql.stdout.includes('@bapX/mysql'));
 		assert.ok(mysql.stdout.includes('// flue-blueprint: database/mysql@1'));
 		assert.ok(mysql.stdout.includes('pool.execute(text, params)'));
 		assert.ok(mysql.stdout.includes('pool.getConnection()'));
@@ -454,7 +454,7 @@ describe('flue add', () => {
 
 		const supabase = await runCli(['add', 'database', 'supabase', '--print']);
 		assert.equal(supabase.code, 0);
-		assert.ok(supabase.stdout.includes('@flue/postgres'));
+		assert.ok(supabase.stdout.includes('@bapX/postgres'));
 		assert.ok(supabase.stdout.includes('// flue-blueprint: database/supabase@1'));
 		assert.ok(supabase.stdout.includes('SUPABASE_DATABASE_URL'));
 		assert.ok(supabase.stdout.includes("client.query('BEGIN')"));
@@ -465,7 +465,7 @@ describe('flue add', () => {
 
 		const turso = await runCli(['add', 'database', 'turso', '--print']);
 		assert.equal(turso.code, 0);
-		assert.ok(turso.stdout.includes('@flue/libsql'));
+		assert.ok(turso.stdout.includes('@bapX/libsql'));
 		assert.ok(turso.stdout.includes('TURSO_DATABASE_URL'));
 		assert.ok(turso.stdout.includes('tx.close()'));
 
@@ -475,7 +475,7 @@ describe('flue add', () => {
 		]) {
 			const result = await runCli(['add', 'database', name, '--print']);
 			assert.equal(result.code, 0);
-			assert.ok(result.stdout.includes('@flue/redis'));
+			assert.ok(result.stdout.includes('@bapX/redis'));
 			assert.ok(result.stdout.includes("from 'redis'"));
 			assert.ok(result.stdout.includes(`// flue-blueprint: database/${name}@1`));
 			assert.ok(result.stdout.includes(url));
@@ -523,7 +523,7 @@ describe('flue add', () => {
 		const result = await runCli(['add', 'tooling', 'vitest-evals', '--print']);
 
 		assert.equal(result.code, 0);
-		assert.ok(result.stdout.includes('@flue/sdk'));
+		assert.ok(result.stdout.includes('@bapX/sdk'));
 		assert.ok(result.stdout.includes('vitest-evals'));
 		assert.ok(result.stdout.includes('vitest.evals.config.ts'));
 		assert.ok(result.stdout.includes('createFlueClient'));

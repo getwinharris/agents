@@ -22,8 +22,8 @@ The blueprint installs `@cloudflare/shell` and `@cloudflare/codemode`, creates `
 import { Workspace, WorkspaceFileSystem /* ... */ } from '@cloudflare/shell';
 import { stateTools } from '@cloudflare/shell/workers';
 import { DynamicWorkerExecutor, resolveProvider /* ... */ } from '@cloudflare/codemode';
-import type { SandboxFactory, SessionToolFactory /* ... */ } from '@flue/runtime';
-import { getCloudflareContext } from '@flue/runtime/cloudflare';
+import type { SandboxFactory, SessionToolFactory /* ... */ } from '@bapX/runtime';
+import { getCloudflareContext } from '@bapX/runtime/cloudflare';
 
 export interface GetShellSandboxOptions {
   workspace: Workspace;
@@ -72,7 +72,7 @@ Create a workspace, then pass it with the `worker_loaders` binding to `getShellS
 | Environment-variable credentials          | **Not required** — The integration uses the `worker_loaders` binding instead.                                                        |
 | Ordinary Linux shell                      | **Not provided** — This adapter provides a model-facing `code` tool, not shell command execution.                                    |
 
-Import the generated helpers from your project adapter file, not from `@flue/runtime/cloudflare`:
+Import the generated helpers from your project adapter file, not from `@bapX/runtime/cloudflare`:
 
 ```ts
 import { getDefaultWorkspace, getShellSandbox } from '../sandboxes/cloudflare-shell';

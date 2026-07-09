@@ -17,7 +17,7 @@ arguments, traces, or AI metrics by default.
 
 Read local instructions, detect the package manager, and select the first
 existing source root: `<root>/.flue/`, then `<root>/src/`, then `<root>/`. Inspect
-`flue.config.ts`, deployment commands, `app.ts`, every module under `agents/` and
+`bapX.config.ts`, deployment commands, `app.ts`, every module under `agents/` and
 `workflows/`, environment types, and secret conventions.
 
 Determine the configured target before installing a Sentry package:
@@ -54,7 +54,7 @@ initialization below. The remaining bridge is shared by both targets.
 
 ```ts title="src/sentry.ts"
 // flue-blueprint: tooling/sentry@2
-import { type FlueEvent, observe } from '@flue/runtime';
+import { type FlueEvent, observe } from '@bapX/runtime';
 import * as Sentry from '@sentry/node';
 
 Sentry.init({
@@ -80,7 +80,7 @@ Flue server. Do not claim complete auto-instrumentation from the late
 
 ```ts title="src/sentry.ts"
 // flue-blueprint: tooling/sentry@2
-import { type FlueEvent, observe } from '@flue/runtime';
+import { type FlueEvent, observe } from '@bapX/runtime';
 import * as Sentry from '@sentry/cloudflare';
 ```
 
@@ -220,7 +220,7 @@ workflow definition export:
 
 ```ts
 import * as Sentry from '@sentry/cloudflare';
-import { extend } from '@flue/runtime/cloudflare';
+import { extend } from '@bapX/runtime/cloudflare';
 
 interface Env {
   SENTRY_DSN?: string;

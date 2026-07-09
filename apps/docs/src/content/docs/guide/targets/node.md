@@ -41,8 +41,8 @@ See [Database](/docs/guide/database/) for `db.ts`, SQLite, Postgres, and custom 
 Node is the only target with the built-in `local()` sandbox factory. It gives an agent direct access to the host filesystem and shell, making it useful for development tools, CI tasks, coding agents, and self-hosted automation where the host environment already provides isolation.
 
 ```ts title="src/agents/repository-reviewer.ts"
-import { defineAgent } from '@flue/runtime';
-import { local } from '@flue/runtime/node';
+import { defineAgent } from '@bapX/runtime';
+import { local } from '@bapX/runtime/node';
 
 export default defineAgent(() => ({
   model: 'anthropic/claude-sonnet-4-6',
@@ -93,7 +93,7 @@ Use the environment variable name your provider expects, such as `ANTHROPIC_API_
 ### `local(...)`
 
 ```ts
-import { local } from '@flue/runtime/node';
+import { local } from '@bapX/runtime/node';
 
 function local(options?: LocalSandboxOptions): SandboxFactory;
 ```
@@ -110,7 +110,7 @@ The environment snapshot is taken once at sandbox construction. Later mutations 
 ### `sqlite(...)`
 
 ```ts
-import { sqlite } from '@flue/runtime/node';
+import { sqlite } from '@bapX/runtime/node';
 
 function sqlite(path?: string): PersistenceAdapter;
 ```

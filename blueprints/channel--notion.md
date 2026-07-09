@@ -18,7 +18,7 @@ first existing source root: `<root>/.flue/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 which Notion page or comment events the application needs.
 
-Install `@flue/notion` and the official `@notionhq/client@^5.22.0`. In a strict
+Install `@bapX/notion` and the official `@notionhq/client@^5.22.0`. In a strict
 TypeScript project, keep the compatible `@types/node` peer available because
 the official client's declarations import `node:http`, even when the runtime
 uses Fetch. Add it as a development dependency when the package manager does
@@ -38,8 +38,8 @@ message, page identity, and tool to the application:
 ```ts
 // flue-blueprint: channel/notion@1
 import { Client } from '@notionhq/client';
-import { createNotionChannel } from '@flue/notion';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createNotionChannel } from '@bapX/notion';
+import { defineTool, dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 
 const PAGE_INSTANCE_PREFIX = 'notion-page:';
@@ -136,7 +136,7 @@ export function pageIdFromInstanceId(id: string): string {
 ```
 
 The page identity helper is application code, not a capability supplied by
-Notion or `@flue/notion`. The example uses Notion's page id because one
+Notion or `@bapX/notion`. The example uses Notion's page id because one
 project-owned client selects the installation. Add verified workspace or
 installation identity to the local id when the application serves multiple
 credential domains. Do not treat workspace, subscription, integration, page,
@@ -156,7 +156,7 @@ application's agent policy.
 ## Wire the agent
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { pageIdFromInstanceId, retrievePage } from '../channels/notion.ts';
 
 export default defineAgent(({ id }) => ({
@@ -194,7 +194,7 @@ ordinary event handling. While only the setup callback is configured, signed
 events receive `503` because no HMAC secret is available.
 
 Recurring events include `X-Notion-Signature:
-sha256=<hex-hmac>`. `@flue/notion` verifies the exact request bytes with the
+sha256=<hex-hmac>`. `@bapX/notion` verifies the exact request bytes with the
 stored verification token before parsing. The per-subscription signing token
 already establishes identity through signature verification, so the channel
 exposes no separate workspace, subscription, or integration constraint options.

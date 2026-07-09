@@ -20,8 +20,8 @@ The Mirage blueprint installs `@struktoai/mirage-node` for Node or `@struktoai/m
 
 ```ts title="<source-root>/sandboxes/mirage.ts (abridged)"
 // flue-blueprint: sandbox/mirage@1
-import { createSandboxSessionEnv } from '@flue/runtime';
-import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@flue/runtime';
+import { createSandboxSessionEnv } from '@bapX/runtime';
+import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 import type { Workspace as MirageWorkspace } from '@struktoai/mirage-core';
 
 export interface MirageAdapterOptions {

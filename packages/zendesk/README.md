@@ -1,4 +1,4 @@
-# `@flue/zendesk`
+# `@bapX/zendesk`
 
 Verified Zendesk event-subscription webhook ingress for Flue.
 
@@ -7,7 +7,7 @@ base64 HMAC-SHA256 over the signature timestamp concatenated directly with the
 exact request bytes before parsing the payload or calling application code.
 
 ```ts
-import { createZendeskChannel } from '@flue/zendesk';
+import { createZendeskChannel } from '@bapX/zendesk';
 
 export const channel = createZendeskChannel({
   signingSecret: process.env.ZENDESK_WEBHOOK_SIGNING_SECRET!,

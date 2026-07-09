@@ -4,8 +4,8 @@ import {
 	type APIInteractionResponse,
 	createDiscordChannel,
 	type DiscordDestinationRef,
-} from '@flue/discord';
-import { defineTool, dispatch } from '@flue/runtime';
+} from '@bapX/discord';
+import { defineTool, dispatch } from '@bapX/runtime';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';
 

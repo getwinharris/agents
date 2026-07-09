@@ -20,7 +20,7 @@ then `<root>/`. Inspect existing agents, environment types, secret
 conventions, Marketing Cloud tenant configuration, and the ENS event families
 the application subscribes to.
 
-Install `@flue/salesforce`. Do not install
+Install `@bapX/salesforce`. Do not install
 `@salesforce/core`: ingress and the narrow REST operation in this blueprint use
 standard Fetch and Web Crypto in Node and Cloudflare Workers.
 
@@ -193,8 +193,8 @@ access, the selected event families, and the dispatched message to the project:
 import {
   createSalesforceMarketingCloudChannel,
   type SalesforceMarketingCloudEvent,
-} from '@flue/salesforce';
-import { defineTool, dispatch, type JsonValue } from '@flue/runtime';
+} from '@bapX/salesforce';
+import { defineTool, dispatch, type JsonValue } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 import { createSalesforceMarketingCloudClient } from '../salesforce-marketing-cloud-client.ts';
 import {
@@ -349,7 +349,7 @@ ENS identity. Do not use deprecated `compositeId` for transactional email.
 Create an agent module such as `<source-dir>/agents/assistant.ts`:
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { retrieveCallback } from '../channels/salesforce-marketing-cloud.ts';
 import { parseEmailEventInstanceId } from '../salesforce-marketing-cloud-email.ts';
 

@@ -5,7 +5,7 @@ import * as path from 'node:path';
  * Flue's audience writes TS agents; the rest mirror Vite's supported set.
  */
 export const CONFIG_BASENAMES = Object.freeze([
-	'flue.config.ts',
+	'bapX.config.ts',
 	'flue.config.mts',
 	'flue.config.mjs',
 	'flue.config.js',

@@ -1,4 +1,4 @@
-import type { LlmAssistantMessage, LlmMessage, LlmTool } from '@flue/runtime';
+import type { LlmAssistantMessage, LlmMessage, LlmTool } from '@bapX/runtime';
 
 export type GenAIContent = unknown[];
 

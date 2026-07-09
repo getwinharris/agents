@@ -19,7 +19,7 @@ import type { PromptUsage } from './types.ts';
 import { addUsage, emptyUsage, fromProviderUsage } from './usage.ts';
 
 /**
- * Materialized conversation part. Structurally identical to @flue/sdk's
+ * Materialized conversation part. Structurally identical to @bapX/sdk's
  * `FlueConversationPart` — the public projection shape. The runtime cannot
  * import the SDK, so the shape is mirrored here and asserted by the snapshot
  * wire contract.

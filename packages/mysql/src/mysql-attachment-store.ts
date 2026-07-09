@@ -9,7 +9,7 @@ import {
 	type StoredAttachment,
 	sameAttachmentRef,
 	verifyAttachmentBytes,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import type { MysqlQuery, MysqlRunner } from './mysql-adapter.ts';
 import { assertMysqlConversationStreamPath } from './mysql-conversation-store.ts';
 

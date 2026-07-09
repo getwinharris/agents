@@ -1,0 +1,90 @@
+---
+import "../styles/global.css";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Products | bapX</title>
+    <meta name="description" content="bapX products — agent harness, CLI, SDK, channels, sandboxes, and more." />
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="canonical" href="https://bapx.in/products/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
+      <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+        <div class="flex h-full items-center gap-8">
+          <a href="/" class="flex items-center gap-2">
+            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
+          </a>
+          <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
+            <a href="/">Home</a>
+            <a href="/products/" class="active">Products</a>
+            <a href="https://docs.bapx.in/getting-started/quickstart/">Docs</a>
+            <a href="/mediahub/">Media Hub</a>
+            <a href="/blog/">Blog</a>
+            <a href="/contact/">Contact</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="https://agents.bapx.in/" class="bapx-pill">Agents</a>
+          <a href="/login/" class="bapx-pill bapx-pill-primary">Sign in</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="page-section page-header">
+      <div class="section-inner">
+        <span class="mono-label">Products</span>
+        <h1 class="display-xl" style="margin-top: 1.75rem;">bapX Products</h1>
+        <p class="body-lg" style="margin-top: 1.5rem; max-width: 680px;">A complete ecosystem for building, deploying, and managing autonomous AI agents.</p>
+
+        <div class="card-grid-auto" style="margin-top: 3.375rem;">
+          <div class="card">
+            <h2 class="display-md">@bapX/runtime</h2>
+            <p class="body-sm" style="margin-top: .75rem;">Core agent harness — sessions, tools, skills, sandbox plumbing, and durable execution.</p>
+            <a href="https://docs.bapx.in/getting-started/quickstart/" class="bapx-pill" style="margin-top: 1.125rem;">Read the docs</a>
+          </div>
+          <div class="card">
+            <h2 class="display-md">@bapX/cli</h2>
+            <p class="body-sm" style="margin-top: .75rem;">CLI for development, building, and deployment — dev, run, build, init, add, docs.</p>
+            <a href="https://docs.bapx.in/cli/overview/" class="bapx-pill" style="margin-top: 1.125rem;">CLI reference</a>
+          </div>
+          <div class="card">
+            <h2 class="display-md">@bapX/sdk</h2>
+            <p class="body-sm" style="margin-top: .75rem;">TypeScript SDK for interacting with agents via HTTP, WebSocket, and dispatch APIs.</p>
+            <a href="https://docs.bapx.in/sdk/overview/" class="bapx-pill" style="margin-top: 1.125rem;">SDK reference</a>
+          </div>
+          <div class="card">
+            <h2 class="display-md">Channels</h2>
+            <p class="body-sm" style="margin-top: .75rem;">Connect agents to Slack, Discord, Telegram, and other platforms via standardized channel adapters.</p>
+            <a href="https://docs.bapx.in/channels/" class="bapx-pill" style="margin-top: 1.125rem;">Channel docs</a>
+          </div>
+          <div class="card">
+            <h2 class="display-md">Sandboxes</h2>
+            <p class="body-sm" style="margin-top: .75rem;">Secure remote execution environments for your agents with resource limits and isolation.</p>
+            <a href="https://docs.bapx.in/sandboxes/" class="bapx-pill" style="margin-top: 1.125rem;">Sandbox docs</a>
+          </div>
+          <div class="card">
+            <h2 class="display-md">agents.bapx.in</h2>
+            <p class="body-sm" style="margin-top: .75rem;">Hosted agent platform — deploy, monitor, and manage your agents with a built-in workspace.</p>
+            <a href="https://agents.bapx.in/" class="bapx-pill" style="margin-top: 1.125rem;">Go to platform</a>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="page-footer">
+      <div class="section-inner">
+        <span>bapX — the open agent harness.</span>
+        <span>&copy; {new Date().getFullYear()}</span>
+      </div>
+    </footer>
+  </body>
+</html>

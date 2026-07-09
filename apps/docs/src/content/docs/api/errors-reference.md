@@ -82,11 +82,11 @@ class FlueError extends Error {
 }
 ```
 
-The catchable base class for framework-thrown runtime failures, exported from `@flue/runtime`. Application code distinguishes Flue failures from arbitrary errors with `instanceof FlueError`, then narrows with the concrete subclasses below or the stable `type` field. Message, `details`, and `dev` strings are human-readable prose, not API.
+The catchable base class for framework-thrown runtime failures, exported from `@bapX/runtime`. Application code distinguishes Flue failures from arbitrary errors with `instanceof FlueError`, then narrows with the concrete subclasses below or the stable `type` field. Message, `details`, and `dev` strings are human-readable prose, not API.
 
 ### Runtime errors
 
-Harness and session operations, and runtime provider registration, reject with typed `FlueError` subclasses, all importable from `@flue/runtime`:
+Harness and session operations, and runtime provider registration, reject with typed `FlueError` subclasses, all importable from `@bapX/runtime`:
 
 | Class                       | `type`                          | Thrown when                                                                                                                                                                                                                          |
 | --------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -116,7 +116,7 @@ class ResultUnavailableError extends Error {
 }
 ```
 
-Thrown when an agent cannot produce a required structured result, either because it gives up or does not finish after follow-up attempts. Import it from `@flue/runtime` when application logic needs to handle that outcome separately.
+Thrown when an agent cannot produce a required structured result, either because it gives up or does not finish after follow-up attempts. Import it from `@bapX/runtime` when application logic needs to handle that outcome separately.
 
 ### Cancellation
 

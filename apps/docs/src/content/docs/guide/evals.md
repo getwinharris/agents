@@ -16,7 +16,7 @@ Use the tooling blueprint to add the dependencies, dedicated configuration, reus
 flue add tooling vitest-evals
 ```
 
-The tooling blueprint creates `createFlueAgentHarness(...)`, which prompts an HTTP-exposed agent through `@flue/sdk` and records its response, model usage, costs, and tool calls in the format expected by `vitest-evals`. Each eval case gets a fresh agent instance, so saved conversation history cannot affect other cases. To evaluate a workflow instead, create a harness around `client.workflows.invoke(...)` and return the workflow result as its output.
+The tooling blueprint creates `createFlueAgentHarness(...)`, which prompts an HTTP-exposed agent through `@bapX/sdk` and records its response, model usage, costs, and tool calls in the format expected by `vitest-evals`. Each eval case gets a fresh agent instance, so saved conversation history cannot affect other cases. To evaluate a workflow instead, create a harness around `client.workflows.invoke(...)` and return the workflow result as its output.
 
 For protected deployments, configure the SDK client with the required token or headers. See [Vitest Evals tooling](/docs/ecosystem/tooling/vitest-evals/) for setup and reporting details.
 
@@ -74,7 +74,7 @@ FLUE_BASE_URL=https://your-app.example.com pnpm run evals
 
 The harness uses the agent's public HTTP route, so the module under test must export `route`. When evaluating a protected deployment, pass the required request headers to `createFlueClient(...)`.
 
-A complete runnable version of the agent, harness, and eval is available in [`examples/vitest-evals`](https://github.com/withastro/flue/tree/main/examples/vitest-evals).
+A complete runnable version of the agent, harness, and eval is available in [`examples/vitest-evals`](https://github.com/getwinharris/agents/tree/main/examples/vitest-evals).
 
 ## Braintrust
 

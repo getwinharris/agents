@@ -1,4 +1,4 @@
-import type { MessengerParticipantRef } from '@flue/messenger';
+import type { MessengerParticipantRef } from '@bapX/messenger';
 
 type MessengerJsonValue =
 	| null

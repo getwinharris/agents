@@ -20,8 +20,8 @@ The boxd blueprint installs `@boxd-sh/sdk` when needed and creates `sandboxes/bo
 
 ```ts title="<source-root>/sandboxes/boxd.ts (abridged)"
 // flue-blueprint: sandbox/boxd@1
-import { createSandboxSessionEnv } from '@flue/runtime';
-import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@flue/runtime';
+import { createSandboxSessionEnv } from '@bapX/runtime';
+import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 import type { Box as BoxdBox } from '@boxd-sh/sdk';
 
 export interface BoxdAdapterOptions {

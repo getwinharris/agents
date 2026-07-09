@@ -1,9 +1,9 @@
-# @flue/messenger
+# @bapX/messenger
 
 Verified Facebook Messenger Page ingress for Flue channels.
 
 ```ts
-import { createMessengerChannel } from '@flue/messenger';
+import { createMessengerChannel } from '@bapX/messenger';
 
 export const channel = createMessengerChannel({
   appSecret: process.env.MESSENGER_APP_SECRET!,
@@ -21,4 +21,4 @@ Applications own Page access tokens, outbound Graph clients, tools, dispatch
 policy, and deduplication.
 
 See the prepared package docs or
-<https://flueframework.com/docs/ecosystem/channels/messenger/>.
+<https://bapx.in/docs/ecosystem/channels/messenger/>.

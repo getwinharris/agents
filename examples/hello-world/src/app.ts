@@ -1,6 +1,6 @@
 /** Example `app.ts`: compose a custom Hono app and runtime providers. */
-import { registerProvider } from '@flue/runtime';
-import { flue } from '@flue/runtime/routing';
+import { registerProvider } from '@bapX/runtime';
+import { flue } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 // Brand-new provider IDs for local OpenAI-compatible servers.
@@ -40,7 +40,7 @@ app.get('/api/ping', (c) => c.json({ pong: true, at: new Date().toISOString() })
 app.route('/', flue());
 
 // To expose deployment-inspection endpoints, compose them from the
-// `listRuns`/`getRun`/`listAgents` primitives exported by `@flue/runtime`,
+// `listRuns`/`getRun`/`listAgents` primitives exported by `@bapX/runtime`,
 // behind your own auth middleware:
 // app.use('/admin/*', myAuthMiddleware);
 // app.get('/admin/agents', async (c) => c.json(await listAgents()));

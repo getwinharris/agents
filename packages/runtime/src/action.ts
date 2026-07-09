@@ -72,23 +72,23 @@ export function defineAction<
 	const TOutput extends ActionOutputSchema | undefined = undefined,
 >(options: ActionOptions<TInput, TOutput>): ActionDefinition<TInput, TOutput> {
 	if (!options || typeof options !== 'object') {
-		throw new Error('[flue] defineAction() requires an action definition object.');
+		throw new Error('[bapX] defineAction() requires an action definition object.');
 	}
 	assertNonEmptyString(options.name, 'defineAction({ name })');
 	assertNonEmptyString(options.description, 'defineAction({ description })');
 	if (options.input !== undefined) {
 		if (!isValibotSchema(options.input)) {
-			throw new Error('[flue] defineAction({ input }) must be a Valibot schema.');
+			throw new Error('[bapX] defineAction({ input }) must be a Valibot schema.');
 		}
 		if (!isTopLevelObjectSchema(options.input)) {
-			throw new Error('[flue] defineAction({ input }) must be a top-level object schema.');
+			throw new Error('[bapX] defineAction({ input }) must be a top-level object schema.');
 		}
 	}
 	if (options.output !== undefined && !isValibotSchema(options.output)) {
-		throw new Error('[flue] defineAction({ output }) must be a Valibot schema.');
+		throw new Error('[bapX] defineAction({ output }) must be a Valibot schema.');
 	}
 	if (typeof options.run !== 'function') {
-		throw new Error('[flue] defineAction({ run }) must be a function.');
+		throw new Error('[bapX] defineAction({ run }) must be a function.');
 	}
 	const action = Object.freeze({
 		__flueAction: true as const,

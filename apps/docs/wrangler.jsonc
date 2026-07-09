@@ -1,13 +1,13 @@
 {
-	"name": "flue-docs",
+	"name": "bapX-docs",
 	"compatibility_date": "2026-06-01",
 	"main": "./src/worker.ts",
 	"ai": {
 		"binding": "AI"
 	},
 	"routes": [
-		{ "pattern": "flueframework.com/docs", "zone_name": "flueframework.com" },
-		{ "pattern": "flueframework.com/docs/*", "zone_name": "flueframework.com" }
+		{ "pattern": "bapx.in/docs", "zone_name": "bapx.in" },
+		{ "pattern": "bapx.in/docs/*", "zone_name": "bapx.in" }
 	],
 	"assets": {
 		"directory": "./dist",

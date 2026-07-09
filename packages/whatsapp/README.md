@@ -1,9 +1,9 @@
-# @flue/whatsapp
+# @bapX/whatsapp
 
 Verified WhatsApp Business Cloud webhook ingress for Flue channels.
 
 ```ts
-import { createWhatsAppChannel } from '@flue/whatsapp';
+import { createWhatsAppChannel } from '@bapX/whatsapp';
 
 export const channel = createWhatsAppChannel({
   appSecret: process.env.WHATSAPP_APP_SECRET!,
@@ -23,4 +23,4 @@ filtering deliveries by business account or phone number, access tokens,
 outbound clients, tools, dispatch policy, and deduplication.
 
 See the prepared package docs or
-<https://flueframework.com/docs/ecosystem/channels/whatsapp/>.
+<https://bapx.in/docs/ecosystem/channels/whatsapp/>.

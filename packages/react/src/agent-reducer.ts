@@ -2,7 +2,7 @@ import type {
 	DeliveredAttachment,
 	FlueConversationMessage,
 	FlueConversationState,
-} from '@flue/sdk';
+} from '@bapX/sdk';
 
 export type AgentStatus = 'idle' | 'connecting' | 'submitted' | 'streaming' | 'error';
 

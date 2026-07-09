@@ -1,4 +1,4 @@
-import type { FlueClient } from '@flue/sdk';
+import type { FlueClient } from '@bapX/sdk';
 import { useEffect, useMemo, useSyncExternalStore } from 'react';
 import { useResolvedFlueClient } from './provider.ts';
 import { emptyWorkflowSnapshot, WorkflowRun, type WorkflowSnapshot } from './workflow-run.ts';

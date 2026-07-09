@@ -20,8 +20,8 @@ The blueprint installs `e2b` when needed and creates `sandboxes/e2b.ts` in your 
 
 ```ts title="<source-root>/sandboxes/e2b.ts (abridged)"
 // flue-blueprint: sandbox/e2b@1
-import { createSandboxSessionEnv } from '@flue/runtime';
-import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@flue/runtime';
+import { createSandboxSessionEnv } from '@bapX/runtime';
+import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 import type { Sandbox as E2BSandbox } from 'e2b';
 
 class E2BSandboxApi implements SandboxApi {
@@ -63,7 +63,7 @@ Pass an initialized E2B `Sandbox` to `e2b(...)`, then assign the returned factor
 
 ```ts
 import { Sandbox } from 'e2b';
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { e2b } from '../sandboxes/e2b';
 
 const sandbox = await Sandbox.create();

@@ -12,7 +12,7 @@ This guide covers how `db.ts` works, which built-in adapters are available, and 
 On Node.js, add a source-root `db.ts` file when state should survive process restart:
 
 ```ts title="src/db.ts"
-import { sqlite } from '@flue/runtime/node';
+import { sqlite } from '@bapX/runtime/node';
 
 export default sqlite('./data/flue.db');
 ```
@@ -31,10 +31,10 @@ Cloudflare does not use `db.ts`. Generated agent and workflow Durable Objects us
 
 ## SQLite on Node.js
 
-`sqlite()` is the built-in Node adapter, exported from `@flue/runtime/node`. Pass a file path for state that survives process restart, or omit the path for an in-memory database:
+`sqlite()` is the built-in Node adapter, exported from `@bapX/runtime/node`. Pass a file path for state that survives process restart, or omit the path for an in-memory database:
 
 ```ts title="src/db.ts"
-import { sqlite } from '@flue/runtime/node';
+import { sqlite } from '@bapX/runtime/node';
 
 // File-backed: survives process restart on the same host.
 export default sqlite('./data/flue.db');
@@ -47,10 +47,10 @@ A file-backed SQLite database is a good fit for local development, a single-host
 
 ## Postgres on Node.js
 
-Use `@flue/postgres` when state must survive host replacement or several application replicas need shared workflow history and replacement-recovery storage:
+Use `@bapX/postgres` when state must survive host replacement or several application replicas need shared workflow history and replacement-recovery storage:
 
 ```ts title="src/db.ts"
-import { postgres } from '@flue/postgres';
+import { postgres } from '@bapX/postgres';
 
 export default postgres(process.env.DATABASE_URL!);
 ```
@@ -86,8 +86,8 @@ A persisted conversation does not make a sandbox durable. A durable workspace do
 | ----------------------------- | ---------------------------------------------------------------------------------- |
 | Local development             | `sqlite()` with a file path, or no `db.ts` when restart persistence is unnecessary |
 | Single-host Node deployment   | File-backed `sqlite()`                                                             |
-| Multi-replica Node deployment | `@flue/postgres`, with one live owner routed per agent instance                         |
+| Multi-replica Node deployment | `@bapX/postgres`, with one live owner routed per agent instance                         |
 | Cloudflare deployment         | Built-in Durable Object SQLite                                                     |
 | Another database backend      | Custom `PersistenceAdapter`                                                        |
 
-A custom adapter can implement another database or hosting strategy through `@flue/runtime/adapter`. Use this when the built-in SQLite and Postgres adapters do not fit your deployment.
+A custom adapter can implement another database or hosting strategy through `@bapX/runtime/adapter`. Use this when the built-in SQLite and Postgres adapters do not fit your deployment.

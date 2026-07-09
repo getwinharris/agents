@@ -2,8 +2,8 @@
 title: Facebook Messenger
 description: Receive verified Messenger Page events with a project-owned Graph API client.
 package:
-  name: '@flue/messenger'
-  href: https://www.npmjs.com/package/@flue/messenger
+  name: '@bapX/messenger'
+  href: https://www.npmjs.com/package/@bapX/messenger
 ---
 
 ## Quickstart
@@ -16,11 +16,11 @@ flue add channel messenger
 
 ## Overview
 
-The Facebook Messenger blueprint installs `@flue/messenger`, creates a project-owned Graph API Fetch client at the source-root `messenger-client.ts`, and creates `channels/messenger.ts`. It also updates the selected agent to bind the generated reply tool to the verified Page conversation.
+The Facebook Messenger blueprint installs `@bapX/messenger`, creates a project-owned Graph API Fetch client at the source-root `messenger-client.ts`, and creates `channels/messenger.ts`. It also updates the selected agent to bind the generated reply tool to the verified Page conversation.
 
 ```ts title="src/channels/messenger.ts (abridged)"
-import { createMessengerChannel } from '@flue/messenger';
-import { dispatch } from '@flue/runtime';
+import { createMessengerChannel } from '@bapX/messenger';
+import { dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 import { MessengerClient } from '../messenger-client.ts';
 
@@ -77,7 +77,7 @@ The abridged example omits the generated `postMessage()` tool and Graph client i
 | `MESSENGER_PAGE_ID`           | **Required** — Restricts inbound events and binds outbound sends. |
 | `MESSENGER_PAGE_ACCESS_TOKEN` | **Required** — Authenticates outbound Graph API calls.            |
 
-It installs `@flue/messenger` for verified Page ingress and creates an editable
+It installs `@bapX/messenger` for verified Page ingress and creates an editable
 Graph API Fetch client for outbound messages. The same client runs in Node and
 workerd with Flue's required `nodejs_compat` configuration.
 
@@ -104,8 +104,8 @@ an outbound Graph credential. Keep both in trusted server configuration.
 ## Channel module
 
 ```ts title="src/channels/messenger.ts"
-import { createMessengerChannel, type MessengerConversationRef } from '@flue/messenger';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createMessengerChannel, type MessengerConversationRef } from '@bapX/messenger';
+import { defineTool, dispatch } from '@bapX/runtime';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';
 import { MessengerClient } from '../messenger-client.ts';
@@ -239,4 +239,4 @@ your application needs rather than treating process memory as provider
 history.
 
 See the
-[`@flue/messenger` README](https://github.com/withastro/flue/tree/main/packages/messenger#readme).
+[`@bapX/messenger` README](https://github.com/getwinharris/agents/tree/main/packages/messenger#readme).

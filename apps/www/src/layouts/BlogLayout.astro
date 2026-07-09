@@ -14,9 +14,9 @@ interface Frontmatter {
 const { frontmatter } = Astro.props as { frontmatter: Frontmatter };
 const { title, subtitle, description, author, authorUrl, pubDate } = frontmatter;
 
-const pageTitle = `${title} | Flue`;
+const pageTitle = `${title} | bapX`;
 const pageDescription = description ?? subtitle ?? "The open framework for building durable agents.";
-const canonicalUrl = new URL(Astro.url.pathname, "https://flueframework.com").href;
+const canonicalUrl = new URL(Astro.url.pathname, "https://bapx.in").href;
 const formattedDate = pubDate
 	? new Date(`${pubDate}T00:00:00Z`).toLocaleDateString("en-US", {
 			month: "long",
@@ -40,70 +40,63 @@ const formattedDate = pubDate
 		<meta name="generator" content={Astro.generator} />
 		<title>{pageTitle}</title>
 		<meta name="description" content={pageDescription} />
-		<meta name="theme-color" content="#ffffff" />
+		<meta name="theme-color" content="#0a0a0a" />
 		<link rel="canonical" href={canonicalUrl} />
 
 		<meta property="og:type" content="article" />
-		<meta property="og:site_name" content="Flue" />
+		<meta property="og:site_name" content="bapX" />
 		<meta property="og:title" content={pageTitle} />
 		<meta property="og:description" content={pageDescription} />
 		<meta property="og:url" content={canonicalUrl} />
-		<meta property="og:image" content="https://flueframework.com/og4.jpg" />
-		<meta property="og:image:alt" content="Flue framework logo" />
+		<meta property="og:image" content="https://bapx.in/og4.jpg" />
+		<meta property="og:image:alt" content="bapX logo" />
 
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:title" content={pageTitle} />
 		<meta name="twitter:description" content={pageDescription} />
-		<meta name="twitter:image" content="https://flueframework.com/og4.jpg" />
-		<meta name="twitter:image:alt" content="Flue framework logo" />
+		<meta name="twitter:image" content="https://bapx.in/og4.jpg" />
+		<meta name="twitter:image:alt" content="bapX logo" />
 
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 	</head>
-	<body class="bg-white text-gray-950 font-[Inter,system-ui,sans-serif] antialiased">
-		<!-- NAV (shared with homepage) -->
-		<nav class="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
+	<body>
+		<nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
 			<div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
 				<div class="flex h-full items-center gap-8">
 					<a href="/" class="flex items-center gap-2">
-						<svg class="size-6 shrink-0" viewBox="0 0 108 108" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-							<rect width="108" height="108" transform="matrix(-1 0 0 1 108 0)" fill="black"/>
-							<rect width="18" height="18" transform="matrix(-1 0 0 1 72 18)" fill="white"/>
-							<rect width="18" height="18" transform="matrix(-1 0 0 1 54 72)" fill="white"/>
-							<rect width="18" height="18" transform="matrix(-1 0 0 1 54 36)" fill="white"/>
-							<rect width="18" height="18" transform="matrix(-1 0 0 1 72 54)" fill="white"/>
-						</svg>
-						<span class="text-2xl font-extrabold leading-8 tracking-tight text-gray-950">Flue</span>
+						<img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
 					</a>
-					<div class="hidden h-full items-center gap-7 text-sm font-medium text-gray-500 lg:flex">
-						<a href="/docs/getting-started/quickstart/" class="transition-colors hover:text-blue-600">Guide</a>
-						<a href="/docs/api/agent-api/" class="transition-colors hover:text-blue-600">Reference</a>
-						<a href="/docs/cli/overview/" class="transition-colors hover:text-blue-600">CLI</a>
-						<a href="/docs/sdk/overview/" class="transition-colors hover:text-blue-600">SDK</a>
-						<a href="/docs/ecosystem/" class="transition-colors hover:text-blue-600">Ecosystem</a>
+					<div class="bapx-nav hidden h-full items-center gap-7 lg:flex">
+						<a href="/">Home</a>
+						<a href="https://docs.bapx.in/getting-started/quickstart/">Docs</a>
+						<a href="/mediahub/">Media Hub</a>
+						<a href="/blog/" class="active">Blog</a>
+						<a href="/products/">Products</a>
+						<a href="/contact/">Contact</a>
 					</div>
 				</div>
-				<div class="hidden items-center gap-6 sm:flex">
-					<a href="https://x.com/flueai" target="_blank" rel="noopener noreferrer" class="text-gray-400 transition-colors hover:text-gray-950" aria-label="X">
-						<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-					</a>
-					<a href="https://github.com/withastro/flue" target="_blank" rel="noopener noreferrer" class="text-gray-400 transition-colors hover:text-gray-950" aria-label="GitHub">
-						<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-					</a>
+				<div class="flex items-center gap-3">
+					<a href="https://agents.bapx.in/" class="bapx-pill">Agents</a>
+					<a href="/login/" class="bapx-pill bapx-pill-primary">Sign in</a>
 				</div>
 			</div>
 		</nav>
 
-		<main class="mx-auto w-[min(100%,46rem)] px-5 pb-24 pt-8 sm:pt-10">
-			<header class="mb-8 border-b border-[var(--blog-border)] pb-5">
+		<main class="mx-auto w-[min(100%,46rem)] px-5 pb-24 pt-8 sm:pt-10" style="margin-top: 2rem;">
+			<header class="mb-8 border-b border-[var(--hairline)] pb-5">
 				<BlogCover />
-				<h1 class="text-4xl font-bold leading-[1.08] tracking-[-0.03em] text-gray-950 sm:text-5xl">{title}</h1>
-				<div class="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-gray-500">
-					By {(
-						authorUrl
-							? <a href={authorUrl} target="_blank" rel="noopener noreferrer" class="text-gray-700 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-950">{author}</a>
-							: <span class="text-gray-700">{author}</span>
+				<h1 class="display-lg" style="margin-top: .5rem;">{title}</h1>
+				<div class="mt-1 flex flex-wrap items-center gap-x-2 text-sm" style="color: var(--body-mid);">
+					{author && (
+						<span>
+							By{" "}
+							{authorUrl
+								? <a href={authorUrl} target="_blank" rel="noopener noreferrer" style="color: var(--body); transition: color .15s;">{author}</a>
+								: <span style="color: var(--body);">{author}</span>
+							}
+						</span>
 					)}
 					{author && formattedDate && <span aria-hidden="true">·</span>}
 					{formattedDate && <time datetime={pubDate}>{formattedDate}</time>}
@@ -115,12 +108,10 @@ const formattedDate = pubDate
 			</article>
 		</main>
 
-		<footer class="border-t border-gray-200 bg-[#f8f9fb]">
-			<div class="mx-auto max-w-6xl px-6">
-				<div class="flex flex-col gap-3 px-4 py-8 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-					<span>flue — the open agent framework.</span>
-					<span>&copy; {new Date().getFullYear()}</span>
-				</div>
+		<footer class="page-footer">
+			<div class="section-inner">
+				<span>bapX — the open agent harness.</span>
+				<span>&copy; {new Date().getFullYear()}</span>
 			</div>
 		</footer>
 

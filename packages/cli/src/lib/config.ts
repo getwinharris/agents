@@ -1,7 +1,7 @@
 /**
  * Configure how the Flue CLI finds and builds a project.
  *
- * Use {@link defineConfig} in a `flue.config.ts` file for type checking and
+ * Use {@link defineConfig} in a `bapX.config.ts` file for type checking and
  * editor completion.
  */
 
@@ -13,10 +13,10 @@ import type { UserConfig as ViteUserConfig } from 'vite';
 import { CONFIG_BASENAMES } from './config-paths.ts';
 import { resolveSourceRoot } from './source-root.ts';
 
-// ─── Authoring API (re-exported by the public `@flue/cli/config` subpath) ───
+// ─── Authoring API (re-exported by the public `@bapX/cli/config` subpath) ───
 
 /**
- * Configuration authored in `flue.config.ts`. Only the fields declared by
+ * Configuration authored in `bapX.config.ts`. Only the fields declared by
  * this interface are accepted.
  */
 export interface UserFlueConfig {
@@ -61,11 +61,11 @@ export interface FlueConfig {
 }
 
 /**
- * Provides type checking and editor completion for `flue.config.ts`. Returns
+ * Provides type checking and editor completion for `bapX.config.ts`. Returns
  * the configuration unchanged.
  *
  * ```ts
- * import { defineConfig } from '@flue/cli/config';
+ * import { defineConfig } from '@bapX/cli/config';
  *
  * export default defineConfig({
  *   target: 'node',
@@ -202,11 +202,11 @@ export interface ResolvedConfigResult {
 /**
  * Discover, load, validate, merge, and resolve a Flue config. The single
  * entry point the CLI calls. Internal — not exported from the public
- * `@flue/cli/config` subpath.
+ * `@bapX/cli/config` subpath.
  *
  * Precedence (highest first):
  *   1. Inline values (`opts.inline.*`)
- *   2. `flue.config.ts`
+ *   2. `bapX.config.ts`
  *   3. Built-in defaults
  *
  * Throws if validation fails or if no `target` is supplied anywhere.
@@ -279,7 +279,7 @@ export async function resolveConfig(opts: ResolveConfigOptions): Promise<Resolve
 	if (!merged.target) {
 		throw new Error(
 			'[flue] Missing required `target`. Set it via `--target <node|cloudflare>` ' +
-				'or in `flue.config.ts` as `target: "node"` (or `"cloudflare"`).',
+				'or in `bapX.config.ts` as `target: "node"` (or `"cloudflare"`).',
 		);
 	}
 

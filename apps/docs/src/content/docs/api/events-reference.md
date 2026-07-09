@@ -4,7 +4,7 @@ description: Reference runtime activity, attached-agent event types, and global 
 lastReviewedAt: 2026-06-15
 ---
 
-Observable runtime types and global observation APIs are exported from `@flue/runtime`.
+Observable runtime types and global observation APIs are exported from `@bapX/runtime`.
 
 ```ts
 import {
@@ -14,7 +14,7 @@ import {
   type FlueObservation,
   observe,
   type FlueObservationSubscriber,
-} from '@flue/runtime';
+} from '@bapX/runtime';
 ```
 
 ## Runtime events
@@ -25,7 +25,7 @@ Every delivered event carries the durable event-format version `v: 3`, a per-con
 
 Runtime events can contain workflow inputs, provider or transport payloads, prompts, system instructions, reasoning-bearing messages, logs, tool results, and terminal errors. Live observations additionally contain normalized tool arguments and telemetry detail. Apply an exporter-local sanitization policy before forwarding either surface to an external service.
 
-Recognized image content blocks in framework event payloads never carry raw image bytes. They keep their `mimeType` but have `data` replaced with the sentinel string `'[image data omitted from event]'`, exported as the `IMAGE_DATA_OMITTED` constant from both `@flue/runtime` and `@flue/sdk`. Application-authored `data` event payloads are persisted verbatim and are not automatically sanitized; producers must not include raw image bytes, secrets, or unsanitized PII. Canonical conversation records retain attachment references, while the private attachment store retains verified bytes for model context.
+Recognized image content blocks in framework event payloads never carry raw image bytes. They keep their `mimeType` but have `data` replaced with the sentinel string `'[image data omitted from event]'`, exported as the `IMAGE_DATA_OMITTED` constant from both `@bapX/runtime` and `@bapX/sdk`. Application-authored `data` event payloads are persisted verbatim and are not automatically sanitized; producers must not include raw image bytes, secrets, or unsanitized PII. Canonical conversation records retain attachment references, while the private attachment store retains verified bytes for model context.
 
 ### Lifecycle events
 

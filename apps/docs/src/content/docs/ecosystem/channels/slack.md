@@ -2,8 +2,8 @@
 title: Slack
 description: Receive verified Slack events and use the Slack Web API from application code.
 package:
-  name: '@flue/slack'
-  href: https://www.npmjs.com/package/@flue/slack
+  name: '@bapX/slack'
+  href: https://www.npmjs.com/package/@bapX/slack
 lastReviewedAt: 2026-06-13
 ---
 
@@ -17,11 +17,11 @@ flue add channel slack
 
 ## Overview
 
-The Slack blueprint installs `@flue/slack` and Slack's official `@slack/web-api` SDK, then creates `channels/slack.ts` in the source-root. It also updates the selected agent to bind the generated thread-reply tool to the verified Slack conversation.
+The Slack blueprint installs `@bapX/slack` and Slack's official `@slack/web-api` SDK, then creates `channels/slack.ts` in the source-root. It also updates the selected agent to bind the generated thread-reply tool to the verified Slack conversation.
 
 ```ts title="src/channels/slack.ts (abridged)"
-import { dispatch } from '@flue/runtime';
-import { createSlackChannel } from '@flue/slack';
+import { dispatch } from '@bapX/runtime';
+import { createSlackChannel } from '@bapX/slack';
 import { WebClient } from '@slack/web-api';
 import assistant from '../agents/assistant.ts';
 
@@ -60,7 +60,7 @@ The abridged example omits the generated `replyInThread()` tool. The complete bl
 | `SLACK_SIGNING_SECRET` | **Required** — Verifies inbound request bytes.             |
 | `SLACK_BOT_TOKEN`      | **Required** — Authenticates outbound Slack Web API calls. |
 
-The blueprint installs and configures `@flue/slack` for inbound requests, along
+The blueprint installs and configures `@bapX/slack` for inbound requests, along
 with Slack's official `@slack/web-api` SDK for making outbound API calls. After
 running the command, you will have a new `src/channels/slack.ts` channel with
 new `/channels/slack/*` webhook routes set up and ready to receive events.
@@ -81,8 +81,8 @@ verification is answered internally after signature verification.
 ### Events
 
 ```ts title="src/channels/slack.ts"
-import { dispatch } from '@flue/runtime';
-import { createSlackChannel } from '@flue/slack';
+import { dispatch } from '@bapX/runtime';
+import { createSlackChannel } from '@bapX/slack';
 import assistant from '../agents/assistant.ts';
 
 export const channel = createSlackChannel({
@@ -210,7 +210,7 @@ export const client = new WebClient(process.env.SLACK_BOT_TOKEN);
 Use the client to define application-owned tools:
 
 ```ts title="src/channels/slack.ts"
-import { defineTool } from '@flue/runtime';
+import { defineTool } from '@bapX/runtime';
 import * as v from 'valibot';
 
 export function replyInThread(ref: { channelId: string; threadTs: string }) {
@@ -233,7 +233,7 @@ export function replyInThread(ref: { channelId: string; threadTs: string }) {
 Bind the destination in trusted code:
 
 ```ts title="src/agents/assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, replyInThread } from '../channels/slack.ts';
 
 export default defineAgent(({ id }) => ({
@@ -258,7 +258,7 @@ await client.assistant.threads.setStatus({
 ```
 
 This is a Slack Web API capability, not behavior implemented by
-`@flue/slack`.
+`@bapX/slack`.
 
 ## Stream a reply
 

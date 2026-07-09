@@ -1,8 +1,8 @@
 // Prompt copied to the user's clipboard by the "Copy Prompt" CTA in the hero.
-export const COPY_PROMPT = `Read https://flueframework.com/start.md then help create my first agent...`;
+export const COPY_PROMPT = `Read https://bapx.in/start.md then help create my first agent...`;
 
-export const HERO = `import { defineAgent } from '@flue/runtime';
-import { local } from '@flue/runtime/node';
+export const HERO = `import { defineAgent } from '@bapX/runtime';
+import { local } from '@bapX/runtime/node';
 import triage from '../skills/triage/SKILL.md' with { type: 'skill' };
 import verify from '../skills/verify/SKILL.md' with { type: 'skill' };
 import { replyToIssue } from '../tools/github.ts';

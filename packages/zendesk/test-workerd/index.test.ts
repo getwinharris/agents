@@ -8,7 +8,7 @@ const ACCOUNT_ID = '9223372036854775807';
 const WEBHOOK_ID = 'workerd-webhook-29';
 const TIMESTAMP = '2026-06-13T23:58:31Z';
 
-describe('@flue/zendesk workerd ingress', () => {
+describe('@bapX/zendesk workerd ingress', () => {
 	it('verifies exact bytes and preserves unsafe identifiers when running under nodejs_compat', async () => {
 		const nodeGlobals = globalThis as typeof globalThis & {
 			Buffer?: { from(value: string): { toString(encoding: string): string } };

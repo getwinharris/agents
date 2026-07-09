@@ -1,5 +1,5 @@
 /**
- * @flue/libsql — libSQL / Turso persistence adapter for Flue.
+ * @bapX/libsql — libSQL / Turso persistence adapter for Flue.
  *
  * Provides a {@link PersistenceAdapter} backed by libSQL (Turso, embedded
  * replicas, or a local SQLite file). Bring your own configured `@libsql/client`
@@ -9,7 +9,7 @@
  * @example
  * ```ts
  * // src/db.ts
- * import { libsql } from '@flue/libsql';
+ * import { libsql } from '@bapX/libsql';
  * import { createClient } from '@libsql/client';
  *
  * const client = createClient({

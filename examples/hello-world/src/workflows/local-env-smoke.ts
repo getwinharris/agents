@@ -1,5 +1,5 @@
-import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@flue/runtime';
-import { local } from '@flue/runtime/node';
+import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
+import { local } from '@bapX/runtime/node';
 
 export const route: WorkflowRouteHandler = async (_c, next) => next();
 const sentinelKey = '__FLUE_LOCAL_SMOKE_SENTINEL__';

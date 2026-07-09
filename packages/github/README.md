@@ -1,9 +1,9 @@
-# `@flue/github`
+# `@bapX/github`
 
 Verified GitHub webhook ingress for Flue applications.
 
 ```ts
-import { createGitHubChannel } from '@flue/github';
+import { createGitHubChannel } from '@bapX/github';
 
 export const channel = createGitHubChannel({
   webhookSecret: process.env.GITHUB_WEBHOOK_SECRET!,

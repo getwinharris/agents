@@ -25,8 +25,8 @@ The simplest agent — no container, no storage, just a prompt and a typed resul
 ```bash
 mkdir my-flue-server && cd my-flue-server
 npm init -y
-npm install @flue/runtime valibot
-npm install -D @flue/cli
+npm install @bapX/runtime valibot
+npm install -D @bapX/cli
 ```
 
 ### 2. Create your first agent
@@ -34,7 +34,7 @@ npm install -D @flue/cli
 `.flue/workflows/translate.ts`:
 
 ```typescript
-import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@flue/runtime';
+import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
 import * as v from 'valibot';
 
 export const route: WorkflowRouteHandler = async (_c, next) => next();
@@ -121,7 +121,7 @@ npx flue run translate --target node \
 Subagents define named delegates for detached task sessions:
 
 ```typescript
-import { defineAgent, defineAgentProfile } from '@flue/runtime';
+import { defineAgent, defineAgentProfile } from '@bapX/runtime';
 
 const analyst = defineAgentProfile({
   name: 'analyst',
@@ -183,8 +183,8 @@ Env exposure is opt-in. By default only shell essentials (`PATH`, `HOME`, locale
 `.flue/workflows/reviewer.ts`:
 
 ```typescript
-import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@flue/runtime';
-import { local } from '@flue/runtime/node';
+import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
+import { local } from '@bapX/runtime/node';
 import * as v from 'valibot';
 
 export const route: WorkflowRouteHandler = async (_c, next) => next();
@@ -284,7 +284,7 @@ Here's the progression of sandbox types available on Node.js, from simplest to m
 
 1. **Empty virtual sandbox** — `defineAgent(() => ({ model: 'openai/gpt-5.5' }))`. Fast, cheap, stateless. Good for prompt-and-response agents.
 2. **Virtual sandbox with shell setup** — Use `session.shell()` to write files and configure the workspace. Still fast and cheap, good for agents that need small amounts of static context.
-3. **Local sandbox** — `defineAgent(() => ({ sandbox: local(), model: 'anthropic/claude-sonnet-4-6' }))`. Direct host filesystem and shell access. Ideal for self-hosted agents, CI tasks, and dev tooling — anywhere the host environment already provides isolation. Import `local` from `@flue/runtime/node` and pass `env: { ... }` to expose specific host env vars to the agent's shell.
+3. **Local sandbox** — `defineAgent(() => ({ sandbox: local(), model: 'anthropic/claude-sonnet-4-6' }))`. Direct host filesystem and shell access. Ideal for self-hosted agents, CI tasks, and dev tooling — anywhere the host environment already provides isolation. Import `local` from `@bapX/runtime/node` and pass `env: { ... }` to expose specific host env vars to the agent's shell.
 4. **Remote sandbox** — Full isolated Linux environment via a sandbox adapter. For multi-tenant agents, coding sandboxes, and anything that needs per-session isolation.
 
 Start simple. Move up when you need to.

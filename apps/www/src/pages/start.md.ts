@@ -1,14 +1,14 @@
 import type { APIRoute } from 'astro';
 
 const DEPLOY_GUIDES = [
-	['Deploy on Node.js', 'https://flueframework.com/docs/ecosystem/deploy/node/index.md'],
-	['Deploy on Cloudflare', 'https://flueframework.com/docs/ecosystem/deploy/cloudflare/index.md'],
+	['Deploy on Node.js', 'https://bapx.in/docs/ecosystem/deploy/node/index.md'],
+	['Deploy on Cloudflare', 'https://bapx.in/docs/ecosystem/deploy/cloudflare/index.md'],
 	[
 		'Deploy on GitHub Actions',
-		'https://flueframework.com/docs/ecosystem/deploy/github-actions/index.md',
+		'https://bapx.in/docs/ecosystem/deploy/github-actions/index.md',
 	],
-	['Deploy on GitLab CI/CD', 'https://flueframework.com/docs/ecosystem/deploy/gitlab-ci/index.md'],
-	['Deploy on Render', 'https://flueframework.com/docs/ecosystem/deploy/render/index.md'],
+	['Deploy on GitLab CI/CD', 'https://bapx.in/docs/ecosystem/deploy/gitlab-ci/index.md'],
+	['Deploy on Render', 'https://bapx.in/docs/ecosystem/deploy/render/index.md'],
 ] as const;
 
 const DEPLOY_GUIDE_LIST = DEPLOY_GUIDES.map(([title, url]) => `   - ${title}: ${url}`).join('\n');
@@ -21,8 +21,8 @@ You are helping the user create their first Flue agent. Start with one agent mod
 
 First, fetch and read the Flue homepage and quickstart:
 
-https://flueframework.com/
-https://flueframework.com/docs/getting-started/quickstart/index.md
+https://bapx.in/
+https://bapx.in/docs/getting-started/quickstart/index.md
 
 ## Step 2: Discover Requirements
 
@@ -54,7 +54,7 @@ ${DEPLOY_GUIDE_LIST}
      - \`anthropic/claude-opus-4-7\` - latest Opus
      - \`openai/gpt-5.5\` - GPT-5.5
      - \`openrouter/moonshotai/kimi-k2.6\` - latest Kimi
-   - If the user wants a different provider or model, use this list to get the best model specifier: \`https://flueframework.com/models.json\`
+   - If the user wants a different provider or model, use this list to get the best model specifier: \`https://bapx.in/models.json\`
    - If their requested model is unavailable, ask before substituting another model. Don't continue until you have a model specifier.
 
 Before implementing, restate the chosen requirements to yourself as an implementation contract:
@@ -111,7 +111,7 @@ Before finishing, verify that the implementation matches the user's explicit cho
 - **Agent module**: One agent module exists in the selected layout's \`agents/<name>.ts\` and default-exports \`defineAgent(...)\`.
 - **Workflow choice**: No workflow was added for an agent-only starter; for an agent + workflow starter, one workflow module default-exports \`defineWorkflow(...)\` with the agent definition bound through its \`agent\` field.
 - **Deploy target**: Config and commands match the user's selected deploy target.
-- **LLM provider/model**: Model specifier is one of the suggested values, or an exact value from \`https://flueframework.com/models.json\` if the user requested another model.
+- **LLM provider/model**: Model specifier is one of the suggested values, or an exact value from \`https://bapx.in/models.json\` if the user requested another model.
 - **Secrets**: No fake API keys, tokens, or secrets were invented.
 - **Dependencies**: Only dependencies required by the selected deploy guide and starter shape were added.
 
@@ -124,7 +124,7 @@ In your final response, include a short checklist with the project directory, so
 - Important: Never invent API keys or secrets.
   - Instead: You can scaffold out obvious placeholders, but always ask the user to provide the API secrets/keys/tokens themselves. You can still help the user by showing them the command to run to set the secret, based on their local dev setup and chosen host.
 - Important: A direct prompt to an agent or a dispatched agent input is not a workflow run. Use workflow terminology only for an invocation of a workflow module.
-- Important: Once \`@flue/cli\` is installed in the project, the full Flue documentation is available offline through the CLI and always matches the installed version. Prefer it over fetching website URLs for follow-up questions:
+- Important: Once \`@bapX/cli\` is installed in the project, the full Flue documentation is available offline through the CLI and always matches the installed version. Prefer it over fetching website URLs for follow-up questions:
   - \`npx flue docs search <query>\` — search the documentation (JSON results)
   - \`npx flue docs read <path>\` — print one documentation page as Markdown
   - \`npx flue docs\` — list all documentation pages

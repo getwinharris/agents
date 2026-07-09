@@ -7,7 +7,7 @@ import { homepageEcosystemItems } from "../../../ecosystem-catalog";
 const heroAnnouncement = {
   label: '1.0 Beta',
   message: 'Read the announcement',
-  href: '/blog/flue-1-0-beta/',
+  href: '/blog/bapX-1-0-beta/',
 };
 
 // Floating blueprint squares clustered near the hero headline. Coordinates
@@ -62,63 +62,51 @@ const piCells = piPixelPattern.flatMap((line, sourceRow) =>
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="generator" content={Astro.generator} />
-    <title>Flue — The Open Agent Framework</title>
-    <meta name="description" content="Build durable AI agents and workflows with Flue's programmable TypeScript harness. Write once, deploy anywhere, use any LLM." />
+    <title>bapX — Agent Harness &amp; Workflows</title>
+    <meta name="description" content="Build durable AI agents and workflows with bapX's programmable TypeScript harness. Write once, deploy anywhere, use any LLM." />
     <meta name="theme-color" content="#ffffff" />
-    <link rel="canonical" href="https://flueframework.com/" />
+    <link rel="canonical" href="https://bapx.in/" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Flue" />
-    <meta property="og:title" content="Flue — The Open Agent Framework" />
-    <meta property="og:description" content="Build durable AI agents and workflows with Flue's programmable TypeScript harness. Write once, deploy anywhere, use any LLM." />
-    <meta property="og:url" content="https://flueframework.com/" />
-    <meta property="og:image" content="https://flueframework.com/og3.jpg" />
-    <meta property="og:image:alt" content="Flue framework logo" />
+    <meta property="og:site_name" content="bapX" />
+    <meta property="og:title" content="bapX — Agent Harness &amp; Workflows" />
+    <meta property="og:description" content="Build durable AI agents and workflows with bapX's programmable TypeScript harness. Write once, deploy anywhere, use any LLM." />
+    <meta property="og:url" content="https://bapx.in/" />
+    <meta property="og:image" content="https://bapx.in/og3.jpg" />
+    <meta property="og:image:alt" content="bapX logo" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Flue — The Open Agent Framework" />
-    <meta name="twitter:description" content="Build durable AI agents and workflows with Flue's programmable TypeScript harness. Write once, deploy anywhere, use any LLM." />
-    <meta name="twitter:image" content="https://flueframework.com/og3.jpg" />
-    <meta name="twitter:image:alt" content="Flue framework logo" />
+    <meta name="twitter:title" content="bapX — Agent Harness &amp; Workflows" />
+    <meta name="twitter:description" content="Build durable AI agents and workflows with bapX's programmable TypeScript harness. Write once, deploy anywhere, use any LLM." />
+    <meta name="twitter:image" content="https://bapx.in/og3.jpg" />
+    <meta name="twitter:image:alt" content="bapX logo" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   </head>
-  <body class="bg-white text-gray-950 font-[system-ui,sans-serif] antialiased">
+  <body class="bg-black text-white font-[Inter,system-ui,sans-serif] antialiased">
 
-    <!-- NAV -->
-    <nav class="relative z-50 border-b border-gray-200 bg-white/80 backdrop-blur-sm lg:sticky lg:top-0">
-      <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
+      <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         <div class="flex h-full items-center gap-8">
           <a href="/" class="flex items-center gap-2">
-            <svg class="size-6 shrink-0" viewBox="0 0 108 108" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <rect width="108" height="108" transform="matrix(-1 0 0 1 108 0)" fill="black"/>
-              <rect width="18" height="18" transform="matrix(-1 0 0 1 72 18)" fill="white"/>
-              <rect width="18" height="18" transform="matrix(-1 0 0 1 54 72)" fill="white"/>
-              <rect width="18" height="18" transform="matrix(-1 0 0 1 54 36)" fill="white"/>
-              <rect width="18" height="18" transform="matrix(-1 0 0 1 72 54)" fill="white"/>
-            </svg>
-            <span class="text-2xl font-extrabold tracking-tight text-gray-950 leading-8">Flue</span>
+            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
           </a>
-          <div class="hidden lg:flex h-full items-center gap-7 text-sm font-medium text-gray-500">
-            <a href="/docs/getting-started/quickstart/" class="hover:text-blue-600 transition-colors">Guide</a>
-            <a href="/docs/api/agent-api/" class="hover:text-blue-600 transition-colors">Reference</a>
-            <a href="/docs/cli/overview/" class="hover:text-blue-600 transition-colors">CLI</a>
-            <a href="/docs/sdk/overview/" class="hover:text-blue-600 transition-colors">SDK</a>
-            <a href="/docs/ecosystem/" class="hover:text-blue-600 transition-colors">Ecosystem</a>
+          <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
+            <a href="/" class="text-white">Home</a>
+            <a href="https://docs.bapx.in/getting-started/quickstart/">Docs</a>
+            <a href="/blog/">Blog</a>
+            <a href="/mediahub/">Media Hub</a>
+            <a href="/products/">Products</a>
+            <a href="/contact/">Contact</a>
           </div>
         </div>
-        <div class="flex items-center gap-5">
-          <a href="/docs/getting-started/quickstart/" class="text-sm font-medium text-gray-500 transition-colors hover:text-gray-950 lg:hidden">Docs</a>
-          <a href="https://x.com/flueai" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-gray-950 transition-colors" aria-label="X">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          </a>
-          <a href="https://github.com/withastro/flue" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-gray-950 transition-colors" aria-label="GitHub">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.065 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-          </a>
+        <div class="flex items-center gap-3">
+          <a href="https://agents.bapx.in/" class="bapx-pill">Agents</a>
+          <a href="/login/" class="bapx-pill bapx-pill-primary">Sign in</a>
         </div>
       </div>
     </nav>
@@ -171,19 +159,19 @@ const piCells = piPixelPattern.flatMap((line, sourceRow) =>
     <!-- HERO -->
     <section class="bg-transparent relative overflow-hidden">
       <div class="max-w-6xl mx-auto px-6 pt-14 lg:pt-20 lg:pb-8 relative z-10">
-        <a href={heroAnnouncement.href} class="group mb-5 inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-950">
+        <a href={heroAnnouncement.href} class="group mb-5 inline-flex items-center gap-2 text-sm font-medium text-[var(--body-mid)] hover:text-[var(--ink)] transition-colors">
           <span>{heroAnnouncement.label} — {heroAnnouncement.message}</span>
           <span class="transition-transform group-hover:translate-x-1">&rarr;</span>
         </a>
-        <h1 class="max-w-6xl text-balance font-heading text-4xl font-bold tracking-tight leading-[1.03] sm:text-[3.5rem]">
-          The Open Agent Framework
+        <h1 class="max-w-6xl text-balance text-5xl font-400 tracking-[-0.035em] leading-[0.95] sm:text-7xl lg:text-[5.5rem]" style="color: var(--ink);">
+          The bapX Agent Harness
         </h1>
-        <p class="mt-3 lg:mt-4 max-w-xl text-md sm:text-xl  text-gray-600">
-          Build durable AI agents and workflows with Flue's programmable TypeScript harness. Write once, deploy anywhere, use any LLM.
+        <p class="mt-6 max-w-xl text-lg lg:text-xl" style="color: var(--body);">
+          Build durable AI agents and workflows with bapX's programmable TypeScript harness. Write once, deploy anywhere, use any LLM.
         </p>
         <div class="mt-6 lg:mt-8 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <div id="copy-prompt-shell" class="group/copy relative" data-feedback="false" data-copy-error="false">
-            <button id="copy-prompt-btn" type="button" class="squircle-button group inline-flex cursor-pointer items-center gap-2.5 border border-gray-950 bg-gray-950 px-5 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-gray-800">
+            <button id="copy-prompt-btn" type="button" class="group inline-flex cursor-pointer items-center gap-2.5 border border-[var(--hairline)] bg-[var(--canvas-card)] px-5 py-3 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--canvas-mid)]" style="border-radius: 9999px;">
               <span class="relative flex items-center justify-start shrink-0 text-white w-[94px] h-5" aria-hidden="true">
                 <svg class="w-5 h-5 transition-transform duration-300 ease-out -rotate-6 group-hover:-rotate-12 group-hover:-translate-x-1" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" xmlns="http://www.w3.org/2000/svg"><path d="M20.998 10.949H24v3.102h-3v3.028h-1.487V20H18v-2.921h-1.487V20H15v-2.921H9V20H7.488v-2.921H6V20H4.487v-2.921H3V14.05H0V10.95h3V5h17.998v5.949zM6 10.949h1.488V8.102H6v2.847zm10.51 0H18V8.102h-1.49v2.847z"/></svg>
                 <svg class="w-5 h-5 ml-1 transition-transform duration-300 ease-out group-hover:-translate-x-px group-hover:-translate-y-px group-hover:rotate-6 group-hover:scale-110" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" xmlns="http://www.w3.org/2000/svg"><path d="M9.205 8.658v-2.26c0-.19.072-.333.238-.428l4.543-2.616c.619-.357 1.356-.523 2.117-.523 2.854 0 4.662 2.212 4.662 4.566 0 .167 0 .357-.024.547l-4.71-2.759a.797.797 0 00-.856 0l-5.97 3.473zm10.609 8.8V12.06c0-.333-.143-.57-.429-.737l-5.97-3.473 1.95-1.118a.433.433 0 01.476 0l4.543 2.617c1.309.76 2.189 2.378 2.189 3.948 0 1.808-1.07 3.473-2.76 4.163zM7.802 12.703l-1.95-1.142c-.167-.095-.239-.238-.239-.428V5.899c0-2.545 1.95-4.472 4.591-4.472 1 0 1.927.333 2.712.928L8.23 5.067c-.285.166-.428.404-.428.737v6.898zM12 15.128l-2.795-1.57v-3.33L12 8.658l2.795 1.57v3.33L12 15.128zm1.796 7.23c-1 0-1.927-.332-2.712-.927l4.686-2.712c.285-.166.428-.404.428-.737v-6.898l1.974 1.142c.167.095.238.238.238.428v5.233c0 2.545-1.974 4.472-4.614 4.472zm-5.637-5.303l-4.544-2.617c-1.308-.761-2.188-2.378-2.188-3.948A4.482 4.482 0 014.21 6.327v5.423c0 .333.143.571.428.738l5.947 3.449-1.95 1.118a.432.432 0 01-.476 0zm-.262 3.9c-2.688 0-4.662-2.021-4.662-4.519 0-.19.024-.38.047-.57l4.686 2.71c.286.167.571.167.856 0l5.97-3.448v2.26c0 .19-.07.333-.237.428l-4.543 2.616c-.619.357-1.356.523-2.117.523zm5.899 2.83a5.947 5.947 0 005.827-4.756C22.287 18.339 24 15.84 24 13.296c0-1.665-.713-3.282-1.998-4.448.119-.5.19-.999.19-1.498 0-3.401-2.759-5.947-5.946-5.947-.642 0-1.26.095-1.88.31A5.962 5.962 0 0010.205 0a5.947 5.947 0 00-5.827 4.757C1.713 5.447 0 7.945 0 10.49c0 1.666.713 3.283 1.998 4.448-.119.5-.19 1-.19 1.499 0 3.401 2.759 5.946 5.946 5.946.642 0 1.26-.095 1.88-.309a5.96 5.96 0 004.162 1.713z"/></svg>
@@ -208,7 +196,7 @@ const piCells = piPixelPattern.flatMap((line, sourceRow) =>
             </span>
           </div>
           <script id="copy-prompt-text" type="text/plain" set:html={COPY_PROMPT}></script>
-          <button id="watch-video-btn" type="button" class="squircle-button group inline-flex cursor-pointer items-center gap-2.5 border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-gray-400 hover:bg-gray-50">
+          <button id="watch-video-btn" type="button" class="group inline-flex cursor-pointer items-center gap-2.5 border border-[var(--hairline)] bg-transparent px-5 py-3 text-sm font-medium text-[var(--body)] transition-colors hover:border-[rgba(255,255,255,0.4)] hover:text-[var(--ink)]" style="border-radius: 9999px;">
             <svg class="w-5 h-5 fill-gray-400 transition-all duration-300 ease-out group-hover:fill-gray-700 group-hover:scale-110" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" aria-hidden="true"><path d="M187.2 100.9C174.8 94.1 159.8 94.4 147.6 101.6C135.4 108.8 128 121.9 128 136L128 504C128 518.1 135.5 531.2 147.6 538.4C159.7 545.6 174.8 545.9 187.2 539.1L523.2 355.1C536 348.1 544 334.6 544 320C544 305.4 536 291.9 523.2 284.9L187.2 100.9z"/></svg>
             <span>Watch Video</span>
           </button>
@@ -218,7 +206,7 @@ const piCells = piPixelPattern.flatMap((line, sourceRow) =>
 
     <dialog id="video-dialog" class="m-auto w-[min(960px,calc(100%-2rem))] overflow-visible rounded-lg border-0 bg-black p-0 shadow-2xl backdrop:bg-black/75">
       <div class="relative aspect-video overflow-hidden rounded-lg bg-black">
-        <iframe id="video-player" class="size-full" title="Flue video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        <iframe id="video-player" class="size-full" title="bapX video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </div>
       <button id="video-dialog-close" type="button" class="absolute right-0 -top-10 inline-flex size-8 cursor-pointer items-center justify-center text-white/80 transition-colors hover:text-white" aria-label="Close video">
         <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -253,7 +241,7 @@ const piCells = piPixelPattern.flatMap((line, sourceRow) =>
                   <polyline points="4 17 10 11 4 5"/>
                   <line x1="12" y1="19" x2="20" y2="19"/>
                 </svg>
-                <span class="font-[JetBrains_Mono,monospace] text-[13px] text-gray-600">flue run triage</span>
+                <span class="font-[JetBrains_Mono,monospace] text-[13px] text-gray-600">bapX run triage</span>
               </div>
               <!-- HTTP agent interaction mode -->
               <div class="hidden sm:flex items-baseline gap-2 px-4 py-2.5" title="Prompt a persistent agent instance over HTTP">
@@ -272,8 +260,8 @@ const piCells = piPixelPattern.flatMap((line, sourceRow) =>
       </div>
     </section>
 
-    <!-- Body sections — off-white background wraps everything below the hero. -->
-    <div class="bg-[#f8f9fb]">
+    <!-- Body sections — dark canvas wraps everything below the hero. -->
+    <div class="bg-[var(--canvas)] bapx-body">
 
     <section>
       <div class="max-w-6xl mx-auto px-6 py-24">
@@ -283,17 +271,17 @@ const piCells = piPixelPattern.flatMap((line, sourceRow) =>
               Powered by Pi, the open agent harness.
             </h2>
             <p class="mt-6 text-lg text-gray-600 leading-relaxed lg:max-w-md">
-              Flue is powered by Pi, the trusted agent harness used by OpenClaw and millions worldwide. Pi gives you the tools you need to unlock real agent autonomy, moving beyond simple chatbots.
+              bapX is powered by Pi, the trusted agent harness used by OpenClaw and millions worldwide. Pi gives you the tools you need to unlock real agent autonomy, moving beyond simple chatbots.
             </p>
             <p class="mt-6 text-lg text-gray-600 leading-relaxed lg:max-w-md">
-              Pi is the core of our open tech stack including <a href="https://durablestreams.com/" class="text-gray-700 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-950">Durable Streams</a>, <a href="https://vite.dev/" class="text-gray-700 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-950">Vite</a>, and a flexible <a href="https://flueframework.com/docs/guide/sandboxes/#remote-sandboxes" class="text-gray-700 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-950">Sandbox API</a>. Deploy Flue anywhere with confidence.
+              Pi is the core of our open tech stack including <a href="https://durablestreams.com/" class="text-gray-700 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-950">Durable Streams</a>, <a href="https://vite.dev/" class="text-gray-700 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-950">Vite</a>, and a flexible <a href="https://bapx.in/docs/guide/sandboxes/#remote-sandboxes" class="text-gray-700 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-950">Sandbox API</a>. Deploy bapX anywhere with confidence.
             </p>
           </div>
 
           <div class="order-1 mx-auto w-full max-w-sm overflow-hidden lg:order-2 lg:col-span-7 lg:max-w-none lg:translate-y-6 lg:px-12">
             <svg class="block w-full h-auto" viewBox="75 20 850 650" role="img" aria-labelledby="agent-chip-title agent-chip-desc" xmlns="http://www.w3.org/2000/svg">
-            <title id="agent-chip-title">Flue agent architecture</title>
-            <desc id="agent-chip-desc">An isometric agent harness powered by Pi, stacked above the Flue runtime.</desc>
+            <title id="agent-chip-title">bapX agent architecture</title>
+            <desc id="agent-chip-desc">An isometric agent harness powered by Pi, stacked above the bapX runtime.</desc>
 
             <defs>
               <filter id="chip-shadow" x="-20%" y="-30%" width="140%" height="170%">
@@ -352,7 +340,7 @@ const piCells = piPixelPattern.flatMap((line, sourceRow) =>
               Durability. Recovery. It's all handled for you.
             </h2>
             <p class="mt-6 text-lg text-gray-600 leading-relaxed">
-              Agents can’t die when the server goes down. Flue records every session in a durable stream, then safely resumes interrupted work when the runtime comes back online. Run one agent or a multi-agent swarm on the same durable foundation.
+              Agents can't die when the server goes down. bapX records every session in a durable stream, then safely resumes interrupted work when the runtime comes back online. Run one agent or a multi-agent swarm on the same durable foundation.
             </p>
             <ul class="mt-6 space-y-3 text-[15px] font-semibold text-gray-950">
               <li class="flex items-center gap-2.5">
@@ -391,7 +379,7 @@ const piCells = piPixelPattern.flatMap((line, sourceRow) =>
             <h2 class="font-heading text-3xl sm:text-4xl font-bold tracking-tight leading-[1.1] text-balance">
               Bring the stack you already love.
             </h2>
-            <a href="/docs/ecosystem/" class="group mt-3 inline-flex items-center gap-2 text-lg font-normal text-gray-600 transition-colors hover:text-gray-950">
+            <a href="https://docs.bapx.in/ecosystem/" class="group mt-3 inline-flex items-center gap-2 text-lg font-normal text-gray-600 transition-colors hover:text-gray-950">
               Explore our ecosystem <span class="transition-transform group-hover:translate-x-1">&rarr;</span>
             </a>
           </div>
@@ -420,7 +408,7 @@ const piCells = piPixelPattern.flatMap((line, sourceRow) =>
                 </li>
               ))}
               <li class="hidden sm:block">
-                <a href="/docs/ecosystem/" aria-label="Explore the full ecosystem" class="group block">
+                <a href="https://docs.bapx.in/ecosystem/" aria-label="Explore the full ecosystem" class="group block">
                   <span class="grid aspect-square place-items-center overflow-hidden rounded-[22%] border border-gray-300 bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.24),0_1px_2px_rgba(17,24,39,0.12),0_4px_10px_rgba(17,24,39,0.1)] transition duration-200 group-hover:scale-105 group-hover:border-blue-500 group-hover:bg-blue-50 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.24),0_2px_3px_rgba(17,24,39,0.14),0_8px_16px_rgba(17,24,39,0.12)]">
                     <svg class="size-[42%] text-gray-500 transition-colors duration-200 group-hover:text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                       <path d="M5 12h14"/>
@@ -436,6 +424,7 @@ const piCells = piPixelPattern.flatMap((line, sourceRow) =>
         </div>
       </div>
     </section>
+
     </div>
 
     <section>
@@ -450,7 +439,7 @@ const piCells = piPixelPattern.flatMap((line, sourceRow) =>
         </div>
 
         <div class="mt-10 grid lg:grid-cols-6 gap-5">
-          <a href="/docs/concepts/agents/" class="lg:col-span-3 bg-white flex flex-col transition-colors hover:bg-gray-50 [&>div]:transition-colors hover:[&>div]:border-gray-400">
+          <a href="https://docs.bapx.in/concepts/agents/" class="lg:col-span-3 bg-white flex flex-col transition-colors hover:bg-gray-50 [&>div]:transition-colors hover:[&>div]:border-gray-400">
             <div class="relative flex h-[184px] items-center justify-center overflow-hidden border border-slate-300 bg-[#e9eef4]">
               <svg class="absolute inset-0 h-full w-full" aria-hidden="true">
                 <defs>
@@ -468,7 +457,7 @@ const piCells = piPixelPattern.flatMap((line, sourceRow) =>
             </div>
           </a>
 
-          <a href="/docs/guide/workflows/" class="lg:col-span-3 bg-white flex flex-col transition-colors hover:bg-gray-50 [&>div]:transition-colors hover:[&>div]:border-gray-400">
+          <a href="https://docs.bapx.in/guide/workflows/" class="lg:col-span-3 bg-white flex flex-col transition-colors hover:bg-gray-50 [&>div]:transition-colors hover:[&>div]:border-gray-400">
             <div class="relative flex h-[184px] items-center justify-center overflow-hidden border border-slate-300 bg-[#e9eef4]">
               <svg class="absolute inset-0 h-full w-full" aria-hidden="true">
                 <defs>
@@ -486,62 +475,61 @@ const piCells = piPixelPattern.flatMap((line, sourceRow) =>
             </div>
           </a>
 
-          <a href="/docs/guide/sandboxes/" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
+          <a href="https://docs.bapx.in/guide/sandboxes/" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
             <h3 class="font-heading text-xl font-semibold tracking-tight text-gray-950">Sandboxes</h3>
             <p class="mt-1.5 text-[15px] text-gray-600 leading-relaxed">Give agents a secure environment where they can use tools, modify files, and autonomously complete real work.</p>
           </a>
 
-          <a href="/docs/guide/durable-execution/" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
+          <a href="https://docs.bapx.in/guide/durable-execution/" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
             <h3 class="font-heading text-xl font-semibold tracking-tight text-gray-950">Durable Execution</h3>
             <p class="mt-1.5 text-[15px] text-gray-600 leading-relaxed">Learn how agents preserve progress through failures and restarts with durable recovery for accepted work.</p>
           </a>
 
-          <a href="/docs/guide/subagents/" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
+          <a href="https://docs.bapx.in/guide/subagents/" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
             <h3 class="font-heading text-xl font-semibold tracking-tight text-gray-950">Subagents</h3>
             <p class="mt-1.5 text-[15px] text-gray-600 leading-relaxed">Define specialized roles for different tasks, then let your agent delegate work to the right expert.</p>
           </a>
 
-          <a href="/docs/guide/tools/" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
+          <a href="https://docs.bapx.in/guide/tools/" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
             <h3 class="font-heading text-xl font-semibold tracking-tight text-gray-950">Tools</h3>
             <p class="mt-1.5 text-[15px] text-gray-600 leading-relaxed">Give agents typed actions for calling APIs, querying data, and making controlled changes through your application.</p>
           </a>
 
-          <a href="/docs/guide/skills/" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
+          <a href="https://docs.bapx.in/guide/skills/" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
             <h3 class="font-heading text-xl font-semibold tracking-tight text-gray-950">Skills</h3>
             <p class="mt-1.5 text-[15px] text-gray-600 leading-relaxed">Package reusable expertise and workflows that agents can load whenever a task needs specialized guidance.</p>
           </a>
 
-          <a href="/docs/guide/tools/#connect-mcp-tools" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
+          <a href="https://docs.bapx.in/guide/tools/#connect-mcp-tools" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
             <h3 class="font-heading text-xl font-semibold tracking-tight text-gray-950">MCP Servers</h3>
             <p class="mt-1.5 text-[15px] text-gray-600 leading-relaxed">Connect agents to authenticated tools and services through the open Model Context Protocol ecosystem.</p>
           </a>
 
-          <a href="/docs/guide/observability/" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
+          <a href="https://docs.bapx.in/guide/observability/" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
             <h3 class="font-heading text-xl font-semibold tracking-tight text-gray-950">Observability</h3>
             <p class="mt-1.5 text-[15px] text-gray-600 leading-relaxed">Monitor your agents and export telemetry with OpenTelemetry, Braintrust, Sentry, or your own observer.</p>
           </a>
 
-          <a href="/docs/guide/chat/" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
+          <a href="https://docs.bapx.in/guide/chat/" class="lg:col-span-2 border border-gray-300 bg-white p-6 transition-colors hover:border-gray-400 hover:bg-gray-50">
             <h3 class="font-heading text-xl font-semibold tracking-tight text-gray-950">Chat</h3>
             <p class="mt-1.5 text-[15px] text-gray-600 leading-relaxed">Connect agents to where your work happens across Slack, Teams, Discord, GitHub, and more.</p>
           </a>
 
-          <a href="/docs/getting-started/quickstart/" class="group lg:col-span-2 border border-gray-300 bg-gray-950 p-6 text-white transition-colors hover:bg-gray-800">
+          <a href="https://docs.bapx.in/getting-started/quickstart/" class="group lg:col-span-2 border border-gray-300 bg-gray-950 p-6 text-white transition-colors hover:bg-gray-800">
             <h3 class="font-heading text-xl font-semibold tracking-tight">Explore the docs</h3>
-            <p class="mt-1.5 text-base text-gray-300 leading-relaxed">Learn how to build, run, and deploy production-ready agents with Flue.</p>
+            <p class="mt-1.5 text-base text-gray-300 leading-relaxed">Learn how to build, run, and deploy production-ready agents with bapX.</p>
             <span class="mt-5 inline-flex items-center gap-2 text-sm font-medium text-white">Read the docs <span class="transition-transform group-hover:translate-x-1">&rarr;</span></span>
           </a>
         </div>
       </div>
     </section>
 
+    </div><!-- end bapx-body wrapper -->
 
-    </div><!-- end off-white wrapper -->
-
-    <footer class="bg-[#f8f9fb]">
+    <footer style="border-top: 1px solid var(--hairline); background: var(--canvas);">
       <div class="max-w-6xl mx-auto px-6">
-        <div class="flex flex-col gap-3 border-t border-gray-200 px-4 py-8 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-          <span>flue — the open agent framework.</span>
+        <div class="flex flex-col gap-3 border-t border-[var(--hairline)] px-4 py-8 text-sm sm:flex-row sm:items-center sm:justify-between" style="color: var(--body-mid);">
+          <span>bapX — the open agent harness.</span>
           <span>&copy; {new Date().getFullYear()}</span>
         </div>
       </div>

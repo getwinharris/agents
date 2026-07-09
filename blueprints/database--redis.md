@@ -5,7 +5,7 @@
 # Add a Redis Database to Flue
 
 You are an AI coding agent configuring Redis-backed persistence for a Flue
-project using the first-party `@flue/redis` adapter and the official `redis`
+project using the first-party `@bapX/redis` adapter and the official `redis`
 (node-redis) client.
 
 This stores canonical agent conversation streams, immutable attachments,
@@ -31,8 +31,8 @@ and select the first existing source root: `<root>/.flue/`, then `<root>/src/`,
 then `<root>/`. Check for an existing `db.ts`; if one is present, confirm with
 the user before replacing it. Inspect the project's secret conventions.
 
-Install `@flue/redis` and the official `redis@^5.12.1` client with the project's package
-manager. `@flue/redis` does not bundle a production client; the project owns
+Install `@bapX/redis` and the official `redis@^5.12.1` client with the project's package
+manager. `@bapX/redis` does not bundle a production client; the project owns
 credentials, TLS, timeouts, reconnect behavior, and topology.
 
 ## Create `db.ts`
@@ -42,7 +42,7 @@ normalized result per command and rejects any `Error` result.
 
 ```ts title="src/db.ts"
 // flue-blueprint: database/redis@1
-import { redis } from '@flue/redis';
+import { redis } from '@bapX/redis';
 import { createClient } from 'redis';
 
 const client = createClient({ url: process.env.REDIS_URL });

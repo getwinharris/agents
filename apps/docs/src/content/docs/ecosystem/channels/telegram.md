@@ -2,8 +2,8 @@
 title: Telegram
 description: Receive verified Telegram Bot API Updates with a project-owned grammY client.
 package:
-  name: '@flue/telegram'
-  href: https://www.npmjs.com/package/@flue/telegram
+  name: '@bapX/telegram'
+  href: https://www.npmjs.com/package/@bapX/telegram
 ---
 
 ## Quickstart
@@ -16,13 +16,13 @@ flue add channel telegram
 
 ## Overview
 
-The blueprint installs `@flue/telegram` and grammY, creates a source-root
+The blueprint installs `@bapX/telegram` and grammY, creates a source-root
 `channels/telegram.ts` module with named `channel` and project-owned `client`
 exports, and modifies the selected agent to bind the generated message tool.
 
 ```ts title="src/channels/telegram.ts (abridged)"
-import { createTelegramChannel } from '@flue/telegram';
-import { dispatch } from '@flue/runtime';
+import { createTelegramChannel } from '@bapX/telegram';
+import { dispatch } from '@bapX/runtime';
 import { Api } from 'grammy';
 import assistant from '../agents/assistant.ts';
 
@@ -59,7 +59,7 @@ on Node and Cloudflare Workers with Flue's `nodejs_compat` setting.
 | `TELEGRAM_WEBHOOK_SECRET_TOKEN` | **Required** — Verifies inbound webhook requests.    |
 | `TELEGRAM_BOT_TOKEN`            | **Required** — Authenticates outbound Bot API calls. |
 
-It installs `@flue/telegram` for verified ingress and grammY for project-owned
+It installs `@bapX/telegram` for verified ingress and grammY for project-owned
 Bot API access. grammY publishes a browser/Fetch build that runs in both Node
 and workerd with Flue's required `nodejs_compat` configuration.
 
@@ -91,7 +91,7 @@ await client.setWebhook('https://example.com/channels/telegram/webhook', {
 ```
 
 Telegram sends the secret in `X-Telegram-Bot-Api-Secret-Token`.
-`@flue/telegram` rejects a missing or changed value before parsing the Update.
+`@bapX/telegram` rejects a missing or changed value before parsing the Update.
 Telegram does not sign the body or include a signed timestamp, so do not reuse
 one secret across bots.
 
@@ -101,8 +101,8 @@ outside the HTTP channel package.
 ## Channel module
 
 ```ts title="src/channels/telegram.ts"
-import { createTelegramChannel, type TelegramConversationRef } from '@flue/telegram';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createTelegramChannel, type TelegramConversationRef } from '@bapX/telegram';
+import { defineTool, dispatch } from '@bapX/runtime';
 import { Api } from 'grammy';
 import type { Message } from 'grammy/types';
 import * as v from 'valibot';
@@ -207,7 +207,7 @@ export function postMessage(ref: TelegramConversationRef) {
 ## Bind the tool
 
 ```ts title="src/agents/assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, postMessage } from '../channels/telegram.ts';
 
 export default defineAgent(({ id }) => ({
@@ -227,7 +227,7 @@ JSON, and forwards a single provider-native Bot API `Update` to your callback.
 There is no parallel normalized model — the update keeps Telegram's own field
 names, nesting, and discriminants. The authoritative type is the
 spec-generated [`@grammyjs/types`](https://github.com/grammyjs/types) `Update`,
-which `@flue/telegram` re-exports (the same type grammY uses).
+which `@bapX/telegram` re-exports (the same type grammY uses).
 
 Because at most one of an `Update`'s optional fields is present per delivery,
 branch on those fields instead of a discriminant. The example above reads
@@ -261,4 +261,4 @@ short-lived `answerGuestQuery` response and must not enter model context, logs,
 durable session data, or agent identity. An inline `callback_query` without a
 `message` likewise supplies no accessible chat.
 
-See the [`@flue/telegram` README](https://github.com/withastro/flue/tree/main/packages/telegram#readme).
+See the [`@bapX/telegram` README](https://github.com/getwinharris/agents/tree/main/packages/telegram#readme).

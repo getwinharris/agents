@@ -1,8 +1,8 @@
-import { defineTool, dispatch, type JsonValue } from '@flue/runtime';
+import { defineTool, dispatch, type JsonValue } from '@bapX/runtime';
 import {
 	createSalesforceMarketingCloudChannel,
 	type SalesforceMarketingCloudEvent,
-} from '@flue/salesforce';
+} from '@bapX/salesforce';
 import assistant from '../agents/assistant.ts';
 import {
 	createSalesforceMarketingCloudClient,

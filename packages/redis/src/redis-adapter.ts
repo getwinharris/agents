@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { WorkflowRunPointer } from '@flue/runtime';
+import type { WorkflowRunPointer } from '@bapX/runtime';
 import type {
 	AgentAttemptMarker,
 	AgentDispatchAdmission,
@@ -21,7 +21,7 @@ import type {
 	RunStatus,
 	SubmissionAttemptRef,
 	SubmissionClaimRef,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import {
 	assertSupportedFlueSchemaVersion,
 	clampLimit,
@@ -46,7 +46,7 @@ import {
 	prepareSubmissionAttachments,
 	SUBMISSION_HARNESS_NAME,
 	SUBMISSION_SESSION_NAME,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import { RedisAttachmentStore } from './attachment-store.ts';
 import { RedisConversationStreamStore } from './conversation-store.ts';
 import { encodeSegment, RedisKeys } from './redis-keys.ts';
@@ -227,8 +227,8 @@ async function inspectServer(backend: Backend, enabled: boolean): Promise<void> 
 		} catch {}
 	}
 	if (clusterEnabled === undefined)
-		throw new TypeError('@flue/redis could not verify that Redis Cluster is disabled.');
-	if (clusterEnabled) throw new TypeError('Redis Cluster is not supported by @flue/redis.');
+		throw new TypeError('@bapX/redis could not verify that Redis Cluster is disabled.');
+	if (clusterEnabled) throw new TypeError('Redis Cluster is not supported by @bapX/redis.');
 	let policy: string | undefined;
 	try {
 		const memory = strings(await backend.command('CONFIG', ['GET', 'maxmemory-policy']));
@@ -240,9 +240,9 @@ async function inspectServer(backend: Backend, enabled: boolean): Promise<void> 
 			policy = /^maxmemory_policy:(\S+)$/m.exec(info)?.[1];
 		} catch {}
 	}
-	if (!policy) throw new TypeError('@flue/redis could not verify maxmemory-policy.');
+	if (!policy) throw new TypeError('@bapX/redis could not verify maxmemory-policy.');
 	if (policy !== 'noeviction')
-		throw new TypeError('@flue/redis requires maxmemory-policy noeviction.');
+		throw new TypeError('@bapX/redis requires maxmemory-policy noeviction.');
 }
 
 async function stageHash(
@@ -459,15 +459,15 @@ class RedisSubmissionStore implements AgentSubmissionStore {
 		return affected;
 	}
 
-	async listPendingSubmissionSettlements(): Promise<import('@flue/runtime/adapter').SubmissionSettlementObligation[]> {
-		const output: import('@flue/runtime/adapter').SubmissionSettlementObligation[] = [];
+	async listPendingSubmissionSettlements(): Promise<import('@bapX/runtime/adapter').SubmissionSettlementObligation[]> {
+		const output: import('@bapX/runtime/adapter').SubmissionSettlementObligation[] = [];
 		for (const id of await this.backend.zrange(this.backend.keys.submissionStatus('terminalizing'))) {
 			const row = await this.backend.hgetall(this.backend.keys.submission(id));
 			if (row.kind === 'direct' && row.status === 'terminalizing') output.push({ submissionId: id, sessionKey: required(row.sessionKey, 'Persisted Redis settlement session is missing.'), attemptId: required(row.attemptId, 'Persisted Redis settlement attempt is missing.'), recordId: required(row.settlementRecordId, 'Persisted Redis settlement record id is missing.'), record: JSON.parse(required(row.settlementRecord, 'Persisted Redis settlement record is missing.')) });
 		}
 		return output;
 	}
-	async reserveSubmissionSettlement(attempt: SubmissionAttemptRef, settlement: { recordId: string; record: import('@flue/runtime/adapter').SubmissionSettledRecord }): Promise<import('@flue/runtime/adapter').SubmissionSettlementObligation | null> {
+	async reserveSubmissionSettlement(attempt: SubmissionAttemptRef, settlement: { recordId: string; record: import('@bapX/runtime/adapter').SubmissionSettledRecord }): Promise<import('@bapX/runtime/adapter').SubmissionSettlementObligation | null> {
 		if (settlement.record.id !== settlement.recordId) return null;
 		const id = attempt.submissionId;
 		const row = await this.backend.hgetall(this.backend.keys.submission(id));

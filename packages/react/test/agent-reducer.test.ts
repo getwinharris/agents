@@ -1,4 +1,4 @@
-import type { FlueConversationState } from '@flue/sdk';
+import type { FlueConversationState } from '@bapX/sdk';
 import { describe, expect, it } from 'vitest';
 import { type AgentReducerEvent, emptyAgentState, reduceAgentEvent } from '../src/agent-reducer.ts';
 import { conversation } from './fixtures/observation.ts';

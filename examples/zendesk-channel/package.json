@@ -9,13 +9,13 @@
 		"test": "vitest run --config vitest.config.ts && vitest run --config vitest.workerd.config.ts"
 	},
 	"dependencies": {
-		"@flue/runtime": "workspace:*",
-		"@flue/zendesk": "workspace:*",
+		"@bapX/runtime": "workspace:*",
+		"@bapX/zendesk": "workspace:*",
 		"lossless-json": "*"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "0.16.15",
-		"@flue/cli": "workspace:*",
+		"@bapX/cli": "workspace:*",
 		"@types/node": "^22.10.10",
 		"agents": "^0.14.2",
 		"typescript": "^6.0.3",

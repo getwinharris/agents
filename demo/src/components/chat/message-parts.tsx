@@ -1,4 +1,4 @@
-import type { FlueConversationPart } from '@flue/react'
+import type { FlueConversationPart } from '@bapX/react'
 import { Brain, ChevronRight, FileText } from 'lucide-react'
 import { useState } from 'react'
 import {

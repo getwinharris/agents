@@ -1,4 +1,4 @@
-import type { PersistedChunkOwner, PersistedChunkRow } from '@flue/runtime/adapter';
+import type { PersistedChunkOwner, PersistedChunkRow } from '@bapX/runtime/adapter';
 import type { MongoOperations, MongoRunner } from './mongodb-runner.ts';
 import { type StoredValue, ValueStore } from './value-store.ts';
 

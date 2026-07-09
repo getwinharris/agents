@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
-import { createFlueClient } from '@flue/sdk';
+import { createFlueClient } from '@bapX/sdk';
 import { ulid } from 'ulidx';
 import {
 	type ConsoleResource,

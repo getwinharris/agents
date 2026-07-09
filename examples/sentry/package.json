@@ -3,11 +3,11 @@
 	"private": true,
 	"type": "module",
 	"dependencies": {
-		"@flue/runtime": "workspace:*",
+		"@bapX/runtime": "workspace:*",
 		"@sentry/node": "*",
 		"hono": "^4.7.0"
 	},
 	"devDependencies": {
-		"@flue/cli": "workspace:*"
+		"@bapX/cli": "workspace:*"
 	}
 }

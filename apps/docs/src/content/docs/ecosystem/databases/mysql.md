@@ -2,8 +2,8 @@
 title: MySQL
 description: Give Flue agents and workflow runs durable, shared state with MySQL 8 and InnoDB.
 package:
-  name: '@flue/mysql'
-  href: https://www.npmjs.com/package/@flue/mysql
+  name: '@bapX/mysql'
+  href: https://www.npmjs.com/package/@bapX/mysql
 ---
 
 ## Quickstart
@@ -16,10 +16,10 @@ flue add database mysql
 
 ## Overview
 
-The MySQL blueprint installs `@flue/mysql` and `mysql2` and creates a source-root `db.ts`. The generated adapter uses a pool for ordinary queries and keeps each transaction on one checked-out connection:
+The MySQL blueprint installs `@bapX/mysql` and `mysql2` and creates a source-root `db.ts`. The generated adapter uses a pool for ordinary queries and keeps each transaction on one checked-out connection:
 
 ```ts title="src/db.ts (abridged)"
-import { mysql, type MysqlQuery } from '@flue/mysql';
+import { mysql, type MysqlQuery } from '@bapX/mysql';
 import mysql2 from 'mysql2/promise';
 
 const pool = mysql2.createPool(process.env.MYSQL_URL!);
@@ -54,23 +54,23 @@ secret store, never commit it, and configure `mysql2` TLS options when your
 provider requires them. For local development, `flue dev --env <file>` and
 `flue run --env <file>` load any `.env`-format file.
 
-The blueprint installs `@flue/mysql` and `mysql2`, then writes a source-root
+The blueprint installs `@bapX/mysql` and `mysql2`, then writes a source-root
 `db.ts`. Flue discovers that file at build time and wires it into the generated
 Node server.
 
-`@flue/mysql` supports **MySQL 8 with InnoDB** on the **Node.js target**. The
+`@bapX/mysql` supports **MySQL 8 with InnoDB** on the **Node.js target**. The
 Cloudflare target uses Durable Object SQLite automatically and rejects `db.ts`
 at build time. See [Database](/docs/guide/database/) for persistence by target.
 
 ## Bring your own driver
 
-`@flue/mysql` does not bundle a production driver. It accepts a runner so your
+`@bapX/mysql` does not bundle a production driver. It accepts a runner so your
 application owns pooling, TLS, credentials, and connection lifecycle. The
 canonical `mysql2` runner uses `pool.execute()` for normal queries and one
 checked-out connection for each callback transaction:
 
 ```ts title="src/db.ts"
-import { mysql, type MysqlQuery } from '@flue/mysql';
+import { mysql, type MysqlQuery } from '@bapX/mysql';
 import mysql2 from 'mysql2/promise';
 
 const pool = mysql2.createPool(process.env.MYSQL_URL!);
@@ -138,7 +138,7 @@ contract.
 ## When to choose MySQL
 
 Choose MySQL when your Node deployment already operates MySQL 8, or when replacement processes and multiple replicas need durable agent state and shared workflow history in an InnoDB-backed database. Preserve one live owner per agent instance. For single-host persistence, file-backed `sqlite()` may
-be simpler. Choose [`@flue/postgres`](/docs/ecosystem/databases/postgres/) when
+be simpler. Choose [`@bapX/postgres`](/docs/ecosystem/databases/postgres/) when
 Postgres is your existing operational standard, or
-[`@flue/libsql`](/docs/ecosystem/databases/libsql/) for SQLite and libSQL
+[`@bapX/libsql`](/docs/ecosystem/databases/libsql/) for SQLite and libSQL
 workloads.

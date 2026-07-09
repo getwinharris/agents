@@ -4,7 +4,7 @@ import { createNotionChannel, type NotionChannel } from '../src/index.ts';
 
 const encoder = new TextEncoder();
 
-describe('@flue/notion workerd ingress', () => {
+describe('@bapX/notion workerd ingress', () => {
 	it('executes exact-byte Web Crypto verification in workerd', async () => {
 		const webhook = vi.fn();
 		const notion = createNotionChannel({

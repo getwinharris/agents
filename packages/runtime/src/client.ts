@@ -108,7 +108,7 @@ export function createFlueContext(config: FlueContextConfig): FlueContextInterna
 			}
 		}
 		// Fan out to module-scoped subscribers registered via
-		// `observe()` from `@flue/runtime`. These run after the
+		// `observe()` from `@bapX/runtime`. These run after the
 		// per-context subscribers and receive the originating `ctx` as
 		// a second argument so cross-cutting code can read runtime identity
 		// and environment metadata.
@@ -289,7 +289,7 @@ export async function initializeRootHarness(
 		durability: definition.durability,
 	};
 	if (!config.conversationWriter || !config.attachmentStore) {
-		throw new Error('[flue] Canonical conversation runtime is not configured.');
+		throw new Error('[bapX] Canonical conversation runtime is not configured.');
 	}
 	return new Harness(
 		config.id,
@@ -349,5 +349,5 @@ async function resolveSessionEnv(
 		const env = await sandbox.createSessionEnv({ id });
 		return { env, toolFactory: sandbox.tools };
 	}
-	throw new Error('[flue] Invalid sandbox option returned from defineAgent().');
+	throw new Error('[bapX] Invalid sandbox option returned from defineAgent().');
 }

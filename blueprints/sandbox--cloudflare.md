@@ -67,7 +67,7 @@ You don't need an adapter file. Flue's runtime package already exports the wirin
 and the deploy guide's "Connecting a remote sandbox" section is the
 canonical blueprint. Steer the user there:
 
-> https://flueframework.com/docs/ecosystem/deploy/cloudflare/#connecting-a-remote-sandbox
+> https://bapx.in/docs/ecosystem/deploy/cloudflare/#connecting-a-remote-sandbox
 
 The short version, for your reference:
 
@@ -120,8 +120,8 @@ The short version, for your reference:
    above) is the key on `env`:
 
    ```ts
-   import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@flue/runtime';
-   import { cloudflareSandbox } from '@flue/runtime/cloudflare';
+   import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
+   import { cloudflareSandbox } from '@bapX/runtime/cloudflare';
    import { getSandbox } from '@cloudflare/sandbox';
    import * as v from 'valibot';
 
@@ -144,7 +144,7 @@ The short version, for your reference:
 
    Pass the result of `getSandbox()` through `cloudflareSandbox(...)` before
    supplying it to `defineAgent()`. The wrapper is provided by
-   `@flue/runtime/cloudflare`, so no project-owned adapter file is needed.
+   `@bapX/runtime/cloudflare`, so no project-owned adapter file is needed.
 
 6. Tell the user to put local variables in `.dev.vars` or `.env` and run
    `flue dev --target cloudflare`, then `flue build --target cloudflare &&
@@ -204,7 +204,7 @@ platform migration.
 If the user does say yes to migrating, **do not try to do the whole
 migration in one shot**. Direct them at the canonical guide instead:
 
-> https://flueframework.com/docs/ecosystem/deploy/cloudflare/
+> https://bapx.in/docs/ecosystem/deploy/cloudflare/
 
 That document walks through the migration end-to-end:
 
@@ -223,7 +223,7 @@ without first confirming the basics work on `--target cloudflare`.
 ## Hard rules
 
 - **Do not** create a `sandboxes/cloudflare.ts` file under any source
-  directory. Import `cloudflareSandbox` from `@flue/runtime/cloudflare`; no
+  directory. Import `cloudflareSandbox` from `@bapX/runtime/cloudflare`; no
   project-owned adapter file is needed.
 - **Do not** silently migrate a Node-target project to Cloudflare. Always
   confirm first.
@@ -233,7 +233,7 @@ without first confirming the basics work on `--target cloudflare`.
 - **Do not** pin the `cloudflare/sandbox:<version>` Docker tag to a
   version different from the `@cloudflare/sandbox` npm package version
   the user actually installed. They have to match.
-- The `@cloudflare/sandbox` package is a separate Cloudflare-published dependency the user installs themselves. Don't import from `@flue/runtime/internal`.
+- The `@cloudflare/sandbox` package is a separate Cloudflare-published dependency the user installs themselves. Don't import from `@bapX/runtime/internal`.
 
 When updating an existing integration, inspect and compare it against this complete current blueprint, apply every relevant change, and preserve customizations. This blueprint has no primary marked file, so comparison is the durable update path; do not add a marker to an auxiliary or deployment file.
 

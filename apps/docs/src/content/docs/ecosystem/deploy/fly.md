@@ -71,11 +71,11 @@ fly mpg attach <cluster-id> -a my-flue-agents
 Install the adapter and read `DATABASE_URL` in `db.ts`:
 
 ```bash
-npm install @flue/postgres
+npm install @bapX/postgres
 ```
 
 ```typescript title=".flue/db.ts"
-import { postgres } from '@flue/postgres';
+import { postgres } from '@bapX/postgres';
 
 export default postgres(process.env.DATABASE_URL!);
 ```

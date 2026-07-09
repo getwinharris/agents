@@ -4,7 +4,7 @@ import type {
 	FlueConversationMessage,
 	FlueConversationSettlement,
 	FlueConversationState,
-} from '@flue/sdk';
+} from '@bapX/sdk';
 import { type Mock, vi } from 'vitest';
 
 export interface FakeObservation extends AgentConversationObservation {

@@ -3,8 +3,8 @@
  *
  * These types describe the inputs and outputs of `build()` and the plugin
  * surface that targets (Node, Cloudflare) implement. They are not part of
- * the runtime surface of `@flue/runtime` — they were extracted here when the
- * build/dev tooling moved from `@flue/sdk` into `@flue/cli` so the runtime
+ * the runtime surface of `@bapX/runtime` — they were extracted here when the
+ * build/dev tooling moved from `@bapX/sdk` into `@bapX/cli` so the runtime
  * package would stop carrying tooling types.
  */
 export interface AgentInfo {

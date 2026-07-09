@@ -2,8 +2,8 @@
 title: Shopify
 description: Receive verified Shopify webhooks and use a shop-bound Admin GraphQL client from application-owned tools.
 package:
-  name: '@flue/shopify'
-  href: https://www.npmjs.com/package/@flue/shopify
+  name: '@bapX/shopify'
+  href: https://www.npmjs.com/package/@bapX/shopify
 ---
 
 ## Quickstart
@@ -16,7 +16,7 @@ flue add channel shopify
 
 ## Overview
 
-The blueprint installs `@flue/shopify` and the official lightweight
+The blueprint installs `@bapX/shopify` and the official lightweight
 `@shopify/admin-api-client`, creates a source-root `channels/shopify.ts` module
 with named `channel` and project-owned `client` exports, and modifies the
 selected orders agent to bind a generated Admin GraphQL tool. It also adds
@@ -25,8 +25,8 @@ selected orders agent to bind a generated Admin GraphQL tool. It also adds
 
 ```ts title="src/channels/shopify.ts (abridged)"
 import { createAdminApiClient } from '@shopify/admin-api-client';
-import { createShopifyChannel } from '@flue/shopify';
-import { dispatch } from '@flue/runtime';
+import { createShopifyChannel } from '@bapX/shopify';
+import { dispatch } from '@bapX/runtime';
 import orders from '../agents/orders.ts';
 
 const SHOP_DOMAIN = process.env.SHOPIFY_SHOP_DOMAIN!;
@@ -78,7 +78,7 @@ The same verified Fetch path runs on Node and Cloudflare Workers with Flue's
 | `SHOPIFY_ADMIN_ACCESS_TOKEN`     | **Required** — Authenticates outbound Admin GraphQL requests.          |
 | `SHOPIFY_SHOP_DOMAIN`            | **Required** — Binds the client and inbound tenancy check to one shop. |
 
-It installs `@flue/shopify` and the official lightweight
+It installs `@bapX/shopify` and the official lightweight
 `@shopify/admin-api-client@1.1.2`. The blueprint creates a channel module with
 named `channel` and project-owned `client` exports.
 
@@ -100,8 +100,8 @@ requirement and does not add Node runtime code to a Worker.
 
 ```ts title="src/channels/shopify.ts"
 import { type ClientResponse, createAdminApiClient } from '@shopify/admin-api-client';
-import { createShopifyChannel, type JsonValue } from '@flue/shopify';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createShopifyChannel, type JsonValue } from '@bapX/shopify';
+import { defineTool, dispatch } from '@bapX/runtime';
 import orders from '../agents/orders.ts';
 
 const SHOP_DOMAIN = process.env.SHOPIFY_SHOP_DOMAIN!;
@@ -280,7 +280,7 @@ string through `Number`.
 ## Bind the tool
 
 ```ts title="src/agents/orders.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { orderRefFromInstanceId, retrieveOrder } from '../channels/shopify.ts';
 
 export default defineAgent(({ id }) => {
@@ -302,7 +302,7 @@ authorization capability. Apply normal access control to direct agent routes.
 ## Verification and event shape
 
 Shopify computes base64 HMAC-SHA256 over the exact request body.
-`@flue/shopify` verifies those bytes before decoding or parsing JSON. The
+`@bapX/shopify` verifies those bytes before decoding or parsing JSON. The
 first-party channel supports JSON subscriptions only; XML receives `415`.
 
 The callback receives `{ c, payload, rawBody }`: the Hono context, the parsed
@@ -323,7 +323,7 @@ Topics remain provider-native strings such as `orders/create`. Future verified
 topics reach the callback instead of being rejected because the installed
 package does not recognize a closed topic union.
 
-`@flue/shopify` parses the payload with `lossless-json`. Numeric literals that
+`@bapX/shopify` parses the payload with `lossless-json`. Numeric literals that
 fit JavaScript's safe integer range remain numbers. Unsafe numeric literals,
 including 64-bit Shopify identifiers, retain their exact decimal spelling as
 strings instead of being rounded. Validate the fields used by each topic and
@@ -406,4 +406,4 @@ topics, malformed JSON, body limits, and handler results. Test
 rejects unexpected hosts and paths. No test should register a webhook or
 contact Shopify.
 
-See the [`@flue/shopify` README](https://github.com/withastro/flue/tree/main/packages/shopify#readme).
+See the [`@bapX/shopify` README](https://github.com/getwinharris/agents/tree/main/packages/shopify#readme).

@@ -1,4 +1,4 @@
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, postMessage } from '../channels/linear.ts';
 
 export default defineAgent(({ id }) => ({

@@ -1,5 +1,5 @@
-import type { ConversationStreamStore } from '@flue/runtime/adapter';
-import { ConversationStreamStoreError, defineSqlConversationStreamStore } from '@flue/runtime/adapter';
+import type { ConversationStreamStore } from '@bapX/runtime/adapter';
+import { ConversationStreamStoreError, defineSqlConversationStreamStore } from '@bapX/runtime/adapter';
 import type { MysqlParameter, MysqlRunner } from './mysql-adapter.ts';
 
 export const MYSQL_CONVERSATION_STREAM_PATH_LIMIT = 255;

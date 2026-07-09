@@ -1,9 +1,9 @@
-# @flue/twilio
+# @bapX/twilio
 
 Verified Twilio Programmable Messaging ingress for Flue channels.
 
 ```ts
-import { createTwilioChannel } from '@flue/twilio';
+import { createTwilioChannel } from '@bapX/twilio';
 
 export const channel = createTwilioChannel({
   accountSid: process.env.TWILIO_ACCOUNT_SID!,
@@ -27,4 +27,4 @@ narrow, or coerce Twilio's fields. Applications own credentials, outbound Fetch
 clients, tools, dispatch policy, and deduplication.
 
 See the prepared package docs or
-<https://flueframework.com/docs/ecosystem/channels/twilio/>.
+<https://bapx.in/docs/ecosystem/channels/twilio/>.

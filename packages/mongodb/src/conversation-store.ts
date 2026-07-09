@@ -4,7 +4,7 @@ import type {
 	ConversationStreamMeta,
 	ConversationStreamReadResult,
 	ConversationStreamStore,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import {
 	ConversationStreamStoreError,
 	clampLimit,
@@ -13,7 +13,7 @@ import {
 	MAX_READ_LIMIT,
 	parseOffset,
 	StreamListenerRegistry,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import type { MongoOperations, MongoRunner } from './mongodb-runner.ts';
 import { collectionName } from './schema.ts';
 

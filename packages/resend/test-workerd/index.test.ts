@@ -7,7 +7,7 @@ const encoder = new TextEncoder();
 const SECRET_TEXT = 'flue-resend-workerd-secret';
 const WEBHOOK_SECRET = `whsec_${base64(encoder.encode(SECRET_TEXT))}`;
 
-describe('@flue/resend workerd ingress', () => {
+describe('@bapX/resend workerd ingress', () => {
 	it('executes the official Resend verifier over exact bytes in workerd', async () => {
 		const webhook = vi.fn();
 		const app = channelApp(

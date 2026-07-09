@@ -57,8 +57,8 @@ Write this file verbatim. Do not "improve" it — it conforms to the published
  * }});
  * ```
  */
-import { createSandboxSessionEnv, SandboxOperationUnsupportedError } from '@flue/runtime';
-import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@flue/runtime';
+import { createSandboxSessionEnv, SandboxOperationUnsupportedError } from '@bapX/runtime';
+import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 import type { Sandbox as DaytonaSandbox } from '@daytona/sdk';
 
 /**
@@ -201,7 +201,7 @@ into, you can finish that work by wiring the adapter into it. Otherwise,
 share this snippet so they can wire it up themselves.
 
 ```ts
-import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@flue/runtime';
+import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
 import { Daytona } from '@daytona/sdk';
 import { daytona } from '../sandboxes/daytona'; // adjust path to match the user's layout
 

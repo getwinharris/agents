@@ -4,14 +4,14 @@ description: Compose Flue routes in an authored application entrypoint.
 lastReviewedAt: 2026-06-20
 ---
 
-Import application composition APIs from `@flue/runtime/routing`.
+Import application composition APIs from `@bapX/runtime/routing`.
 
 ## `app.ts`
 
 `app.ts` is an optional authored application entrypoint. Without it, Flue generates an application that mounts `flue()` at `/`. When `app.ts` exists, its default export owns the request pipeline and must mount `flue()` explicitly to publish Flue routes.
 
 ```ts title="src/app.ts"
-import { flue } from '@flue/runtime/routing';
+import { flue } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 const app = new Hono();
@@ -76,11 +76,11 @@ For an existing run, Flue invokes its owning workflow's `runs` middleware with a
 
 ## Compose your own admin endpoints
 
-Flue ships no admin HTTP surface. Build deployment-inspection endpoints from the server-side primitives exported by `@flue/runtime` — [`listRuns()`, `getRun()`, and `listAgents()`](/docs/api/data-persistence-api/#inspection-primitives) — behind your own authorization:
+Flue ships no admin HTTP surface. Build deployment-inspection endpoints from the server-side primitives exported by `@bapX/runtime` — [`listRuns()`, `getRun()`, and `listAgents()`](/docs/api/data-persistence-api/#inspection-primitives) — behind your own authorization:
 
 ```ts title="src/app.ts"
-import { listAgents, listRuns } from '@flue/runtime';
-import { flue } from '@flue/runtime/routing';
+import { listAgents, listRuns } from '@bapX/runtime';
+import { flue } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 import { requireOperator } from './auth.ts';
 

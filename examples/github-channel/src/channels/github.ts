@@ -1,5 +1,5 @@
-import { createGitHubChannel } from '@flue/github';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createGitHubChannel } from '@bapX/github';
+import { defineTool, dispatch } from '@bapX/runtime';
 import { Octokit } from '@octokit/rest';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';

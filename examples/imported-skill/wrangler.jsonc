@@ -5,19 +5,19 @@
 	"compatibility_flags": ["nodejs_compat"],
 	"migrations": [
 		{
-			"tag": "flue-class-FlueRegistry",
+			"tag": "bapX-class-FlueRegistry",
 			"new_sqlite_classes": ["FlueRegistry"]
 		},
 		{
-			"tag": "flue-class-WithCustomBashWorkflow",
+			"tag": "bapX-class-WithCustomBashWorkflow",
 			"new_sqlite_classes": ["WithCustomBashWorkflow"]
 		},
 		{
-			"tag": "flue-class-WithImportedSkillWorkflow",
+			"tag": "bapX-class-WithImportedSkillWorkflow",
 			"new_sqlite_classes": ["WithImportedSkillWorkflow"]
 		},
 		{
-			"tag": "flue-rename-generated-classes",
+			"tag": "bapX-rename-generated-classes",
 			"renamed_classes": [
 				{ "from": "WithCustomBashWorkflow", "to": "FlueWithCustomBashWorkflow" },
 				{ "from": "WithImportedSkillWorkflow", "to": "FlueWithImportedSkillWorkflow" }

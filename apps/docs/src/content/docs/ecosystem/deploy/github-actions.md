@@ -16,8 +16,8 @@ A minimal agent that runs in CI whenever an issue is opened.
 ```bash
 mkdir my-flue-project && cd my-flue-project
 npm init -y
-npm install @flue/runtime valibot
-npm install -D @flue/cli
+npm install @bapX/runtime valibot
+npm install -D @bapX/cli
 ```
 
 ### 2. Create your first agent
@@ -25,8 +25,8 @@ npm install -D @flue/cli
 `.flue/workflows/hello.ts`:
 
 ```typescript
-import { defineAgent, defineWorkflow } from '@flue/runtime';
-import { local } from '@flue/runtime/node';
+import { defineAgent, defineWorkflow } from '@bapX/runtime';
+import { local } from '@bapX/runtime/node';
 import * as v from 'valibot';
 
 const agent = defineAgent(() => ({ sandbox: local(), model: 'anthropic/claude-sonnet-4-6' }));
@@ -140,8 +140,8 @@ In GitHub Actions, this means you set the secrets you want the agent's CLIs to s
 `.flue/workflows/triage.ts`:
 
 ```typescript
-import { defineAgent, defineWorkflow } from '@flue/runtime';
-import { local } from '@flue/runtime/node';
+import { defineAgent, defineWorkflow } from '@bapX/runtime';
+import { local } from '@bapX/runtime/node';
 import * as v from 'valibot';
 
 const agent = defineAgent(() => ({
@@ -274,8 +274,8 @@ The `--input` flag passes JSON data to the workflow Action's validated `input`. 
 Result schemas aren't just for type safety — they're how you orchestrate multi-step workflows. Because you get typed data back from `prompt()` and `skill()`, you can branch on results within a single agent:
 
 ```typescript
-import { defineAgent, defineWorkflow } from '@flue/runtime';
-import { local } from '@flue/runtime/node';
+import { defineAgent, defineWorkflow } from '@bapX/runtime';
+import { local } from '@bapX/runtime/node';
 import * as v from 'valibot';
 
 const agent = defineAgent(() => ({ sandbox: local(), model: 'anthropic/claude-sonnet-4-6' }));

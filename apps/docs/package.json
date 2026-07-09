@@ -5,7 +5,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "astro dev",
-		"build": "rm -rf ./dist && astro build && mv ./dist/docs/_redirects ./dist/_redirects && pagefind --site ./dist/docs",
+		"build": "rm -rf ./dist && astro build && pagefind --site ./dist",
 		"preview": "astro preview",
 		"deploy": "pnpm run build && pnpm exec wrangler deploy",
 		"astro": "astro",

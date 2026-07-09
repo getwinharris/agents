@@ -1,12 +1,12 @@
 {
-	"name": "@flue/libsql",
+	"name": "@bapX/libsql",
 	"version": "1.0.0-beta.9",
 	"type": "module",
 	"license": "Apache-2.0",
-	"homepage": "https://flueframework.com/",
+	"homepage": "https://bapx.in/",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/withastro/flue",
+		"url": "https://github.com/getwinharris/agents",
 		"directory": "packages/libsql"
 	},
 	"exports": {
@@ -29,7 +29,7 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@flue/runtime": "workspace:*"
+		"@bapX/runtime": "workspace:*"
 	},
 	"devDependencies": {
 		"@libsql/client": "^0.17.3",

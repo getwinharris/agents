@@ -26,7 +26,7 @@ services:
         sync: false
 ```
 
-- `buildCommand` compiles the Flue Node target. The build externalizes your dependencies rather than bundling them, so `node_modules` must be present at runtime — `npm ci` installs them, and `@flue/cli` must be available to the build command.
+- `buildCommand` compiles the Flue Node target. The build externalizes your dependencies rather than bundling them, so `node_modules` must be present at runtime — `npm ci` installs them, and `@bapX/cli` must be available to the build command.
 - `startCommand` runs the generated server, which binds the `PORT` Render injects and serves agents at `/agents/<name>/<id>` and workflows at `/workflows/<name>`.
 - `healthCheckPath` lets Render verify each deploy before shifting traffic to it — but only if your application defines that route (see [Health and streaming](#health-and-streaming)).
 
@@ -86,11 +86,11 @@ services:
 `fromDatabase` supplies the database's internal connection string — the one Render recommends for services in the same account and region, since it stays on the private network. Install the adapter and read `DATABASE_URL` in `db.ts`:
 
 ```bash
-npm install @flue/postgres
+npm install @bapX/postgres
 ```
 
 ```typescript title=".flue/db.ts"
-import { postgres } from '@flue/postgres';
+import { postgres } from '@bapX/postgres';
 
 export default postgres(process.env.DATABASE_URL!);
 ```

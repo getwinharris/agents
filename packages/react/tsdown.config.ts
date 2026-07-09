@@ -5,5 +5,5 @@ export default defineConfig({
 	format: ['esm'],
 	dts: true,
 	clean: true,
-	deps: { neverBundle: ['@flue/sdk', 'react', 'react/jsx-runtime'] },
+	deps: { neverBundle: ['@bapX/sdk', 'react', 'react/jsx-runtime'] },
 });

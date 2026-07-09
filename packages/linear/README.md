@@ -1,9 +1,9 @@
-# `@flue/linear`
+# `@bapX/linear`
 
 Verified Linear webhook ingress for Flue applications.
 
 ```ts
-import { createLinearChannel } from '@flue/linear';
+import { createLinearChannel } from '@bapX/linear';
 
 export const channel = createLinearChannel({
   webhookSecret: process.env.LINEAR_WEBHOOK_SECRET!,

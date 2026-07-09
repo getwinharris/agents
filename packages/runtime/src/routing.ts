@@ -6,10 +6,10 @@
  * `/`. When `app.ts` exists, its default {@link Fetchable} export owns the
  * request pipeline and must mount {@link flue} explicitly to publish Flue
  * routes. Compose deployment-inspection endpoints from the `listRuns()`,
- * `getRun()`, and `listAgents()` primitives exported by `@flue/runtime`.
+ * `getRun()`, and `listAgents()` primitives exported by `@bapX/runtime`.
  *
  * ```ts
- * import { flue } from '@flue/runtime/routing';
+ * import { flue } from '@bapX/runtime/routing';
  * import { Hono } from 'hono';
  *
  * const app = new Hono();

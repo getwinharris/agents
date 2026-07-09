@@ -12,10 +12,10 @@
  * INTERNAL convenience, scoped to the SQLite dialect family (`node:sqlite`
  * and Durable Object SQLite). Do NOT generalize this module across SQL
  * dialects: there is deliberately no generic-SQL abstraction spanning
- * SQLite and Postgres, and `@flue/postgres` implements the store contract
+ * SQLite and Postgres, and `@bapX/postgres` implements the store contract
  * directly on purpose. Cross-backend parity is enforced by the documented
  * invariants on the store interfaces and the contract suites in
- * `@flue/runtime/test-utils` — the only shared code is the storage-agnostic
+ * `@bapX/runtime/test-utils` — the only shared code is the storage-agnostic
  * admission algorithm (`admitSubmissionWithBackend`) in adapter-helpers.
  */
 
@@ -127,7 +127,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 			.toArray()[0];
 		if (!row) return null;
 		if (typeof row.dispatch_id !== 'string' || typeof row.accepted_at !== 'number') {
-			throw new Error('[flue] Persisted dispatch receipt row is malformed.');
+			throw new Error('[bapX] Persisted dispatch receipt row is malformed.');
 		}
 		return { submissionId: row.dispatch_id, acceptedAt: row.accepted_at };
 	}
@@ -139,7 +139,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 	async admitDirect(input: AgentSubmissionInput): Promise<AgentSubmission> {
 		const admission = this.admitSubmission(input);
 		if (admission.kind !== 'submission') {
-			throw new Error('[flue] Internal direct admission returned an unexpected result.');
+			throw new Error('[bapX] Internal direct admission returned an unexpected result.');
 		}
 		return admission.submission;
 	}
@@ -262,7 +262,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 				typeof row.attempt_id !== 'string' ||
 				typeof row.created_at !== 'number'
 			) {
-				throw new Error('[flue] Persisted attempt marker row is malformed.');
+				throw new Error('[bapX] Persisted attempt marker row is malformed.');
 			}
 			return {
 				submissionId: row.submission_id,
@@ -504,7 +504,7 @@ class AgentSubmissionStoreImpl implements AgentSubmissionStore {
 			// Unreachable: every backend callback above is synchronous, so the
 			// shared algorithm completes inside `transactionSync`.
 			if (admission instanceof Promise) {
-				throw new Error('[flue] Internal SQLite admission backend must be synchronous.');
+				throw new Error('[bapX] Internal SQLite admission backend must be synchronous.');
 			}
 			return admission;
 		});
@@ -590,7 +590,7 @@ function parseSettlementObligation(row: SqlRow): SubmissionSettlementObligation 
 		typeof row.settlement_record_id !== 'string' ||
 		typeof row.settlement_record_json !== 'string'
 	) {
-		throw new Error('[flue] Persisted submission settlement obligation is malformed.');
+		throw new Error('[bapX] Persisted submission settlement obligation is malformed.');
 	}
 	return {
 		submissionId: row.submission_id,
@@ -645,7 +645,7 @@ function parseSubmission(
 		typeof row.max_retry !== 'number' ||
 		typeof row.timeout_at !== 'number'
 	) {
-		throw new Error('[flue] Persisted agent submission row is malformed.');
+		throw new Error('[bapX] Persisted agent submission row is malformed.');
 	}
 	const parsedPayload = JSON.parse(row.payload);
 	const input = hydratePersistedSubmissionAttachments(parsedPayload as AgentSubmissionInput, chunks);
@@ -657,7 +657,7 @@ function parseSubmission(
 			acceptedAt: row.accepted_at as number,
 		})
 	) {
-		throw new Error('[flue] Persisted agent submission payload is malformed.');
+		throw new Error('[bapX] Persisted agent submission payload is malformed.');
 	}
 	return {
 		sequence: row.sequence,

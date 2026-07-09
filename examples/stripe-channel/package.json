@@ -10,13 +10,13 @@
 		"test:workerd": "vitest run --config vitest.workerd.config.ts"
 	},
 	"dependencies": {
-		"@flue/runtime": "workspace:*",
-		"@flue/stripe": "workspace:*",
+		"@bapX/runtime": "workspace:*",
+		"@bapX/stripe": "workspace:*",
 		"stripe": "*"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "0.16.15",
-		"@flue/cli": "workspace:*",
+		"@bapX/cli": "workspace:*",
 		"@types/node": "^22.10.10",
 		"agents": "^0.14.2",
 		"typescript": "^6.0.3",

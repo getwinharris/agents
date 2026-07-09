@@ -23,8 +23,8 @@ The simplest agent — no container, no storage, just a prompt and a typed resul
 ```bash
 mkdir my-flue-worker && cd my-flue-worker
 npm init -y
-npm install @flue/runtime valibot 'agents@^0.14.2'
-npm install -D @flue/cli wrangler
+npm install @bapX/runtime valibot 'agents@^0.14.2'
+npm install -D @bapX/cli wrangler
 ```
 
 `agents` is Cloudflare's Agents SDK — Flue uses its Durable Object base class and native lifecycle capabilities while retaining ownership of application routing. Flue is tested against `agents` 0.14.x; the generated worker checks at runtime that the installed SDK provides the durability API it relies on (such as `runFiber`) and fails with an explicit error if it does not. If you also need a remote sandbox, additionally install `@cloudflare/sandbox` (see [Connecting a remote sandbox](#connecting-a-remote-sandbox) below).
@@ -34,7 +34,7 @@ npm install -D @flue/cli wrangler
 `.flue/workflows/translate.ts`:
 
 ```typescript
-import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@flue/runtime';
+import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
 import * as v from 'valibot';
 
 export const route: WorkflowRouteHandler = async (_c, next) => next();
@@ -166,8 +166,8 @@ Route middleware sees the original inbound HTTP request before Flue forwards acc
 Flue normally owns each generated agent and workflow Durable Object class. When an addressable agent or workflow needs native Cloudflare Agents SDK capabilities such as `onStart()`, `schedule()`, `scheduleEvery()`, or `queue()`, export a `cloudflare` extension descriptor from its module:
 
 ```ts
-import { defineAgent } from '@flue/runtime';
-import { extend } from '@flue/runtime/cloudflare';
+import { defineAgent } from '@bapX/runtime';
+import { extend } from '@bapX/runtime/cloudflare';
 
 export default defineAgent(() => ({ model: 'anthropic/claude-sonnet-4-6' }));
 
@@ -244,7 +244,7 @@ Use `.flue/app.ts` for custom HTTP routes and middleware. `cloudflare.ts` must n
 Subagents define named delegates for detached task sessions:
 
 ```typescript
-import { defineAgent, defineAgentProfile } from '@flue/runtime';
+import { defineAgent, defineAgentProfile } from '@bapX/runtime';
 
 const triager = defineAgentProfile({
   name: 'triager',
@@ -271,7 +271,7 @@ By default, the virtual sandbox starts empty — no files, no skills, no context
 Because the agent has shell access, it can set up its own workspace on the fly:
 
 ```typescript
-import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@flue/runtime';
+import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
 import * as v from 'valibot';
 
 export const route: WorkflowRouteHandler = async (_c, next) => next();
@@ -309,7 +309,7 @@ For support agents, you can seed Flue's default virtual sandbox with the knowled
 `.flue/workflows/support.ts`:
 
 ```typescript
-import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@flue/runtime';
+import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
 import * as v from 'valibot';
 
 export const route: WorkflowRouteHandler = async (_c, next) => next();
@@ -395,8 +395,8 @@ The base image is published by Cloudflare and bundles the control-plane HTTP ser
 `.flue/agents/assistant.ts`:
 
 ```typescript
-import { defineAgent, type AgentRouteHandler } from '@flue/runtime';
-import { cloudflareSandbox } from '@flue/runtime/cloudflare';
+import { defineAgent, type AgentRouteHandler } from '@bapX/runtime';
+import { cloudflareSandbox } from '@bapX/runtime/cloudflare';
 import { getSandbox } from '@cloudflare/sandbox';
 
 export const route: AgentRouteHandler = async (_c, next) => next();

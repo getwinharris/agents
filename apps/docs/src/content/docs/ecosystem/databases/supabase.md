@@ -2,8 +2,8 @@
 title: Supabase
 description: Give Flue agents and workflow runs durable, shared state with Supabase Postgres.
 package:
-  name: '@flue/postgres'
-  href: https://www.npmjs.com/package/@flue/postgres
+  name: '@bapX/postgres'
+  href: https://www.npmjs.com/package/@bapX/postgres
 ---
 
 ## Quickstart
@@ -16,7 +16,7 @@ flue add database supabase
 
 ## Overview
 
-The Supabase blueprint installs `@flue/postgres` and `pg`, adds the matching
+The Supabase blueprint installs `@bapX/postgres` and `pg`, adds the matching
 `@types/pg` development dependency, and creates a transaction-safe `db.ts` in
 the project's source-root. It uses the project's existing secret convention and
 updates an existing environment example or environment documentation when one
@@ -26,7 +26,7 @@ The primary generated adapter uses one checked-out `pg` client for every query
 in a transaction:
 
 ```ts title="src/db.ts (abridged)"
-import { postgres } from '@flue/postgres';
+import { postgres } from '@bapX/postgres';
 import { Pool } from 'pg';
 
 const pool = new Pool({ connectionString: process.env.SUPABASE_DATABASE_URL });
@@ -50,7 +50,7 @@ runs its migrations at server startup, and persists canonical agent conversation
 | ----------------------- | ----------------------------------------------------------------------- |
 | `SUPABASE_DATABASE_URL` | **Required** — Connection string from **Supabase Dashboard > Connect**. |
 
-The blueprint installs the existing `@flue/postgres` adapter with `pg` and
+The blueprint installs the existing `@bapX/postgres` adapter with `pg` and
 writes a source-root `db.ts`. There is no Supabase-specific Flue package. Flue
 discovers the file at build time and wires it into the generated Node server.
 
@@ -81,12 +81,12 @@ named prepared statements, and do not depend on session state.
 
 ## Use the transaction-safe runner
 
-`@flue/postgres` accepts a runner so the application owns driver configuration,
+`@bapX/postgres` accepts a runner so the application owns driver configuration,
 pooling, TLS, and credentials. The canonical `pg` runner checks out one client
 for the entire transaction callback:
 
 ```ts title="src/db.ts"
-import { postgres } from '@flue/postgres';
+import { postgres } from '@bapX/postgres';
 import { Pool } from 'pg';
 
 const pool = new Pool({ connectionString: process.env.SUPABASE_DATABASE_URL });
@@ -115,7 +115,7 @@ export default postgres({
 
 Every query in the callback uses the checked-out client. Sending those queries
 through the pool could move work onto another connection and outside the
-transaction. `@flue/postgres` uses transaction-scoped
+transaction. `@bapX/postgres` uses transaction-scoped
 `pg_advisory_xact_lock`, not session advisory locks, to serialize session
 updates; each lock is released with its transaction.
 

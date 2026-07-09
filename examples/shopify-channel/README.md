@@ -38,7 +38,7 @@ trusted application code binds the selected shop and order before the agent
 runs.
 
 The handler validates only the numeric `id` and `name` fields it uses. Shopify
-order ids can exceed JavaScript's safe integer range, so `@flue/shopify`
+order ids can exceed JavaScript's safe integer range, so `@bapX/shopify`
 preserves unsafe JSON integer literals as strings. The example accepts
 `string | number`, immediately normalizes the value with `String(id)`, and
 constructs the GraphQL order GID in trusted application code. Shopify topic

@@ -4,7 +4,7 @@ import type {
 	FlueClient,
 	FlueEvent,
 	WorkflowRunResult,
-} from '@flue/sdk';
+} from '@bapX/sdk';
 import {
 	type ConsoleTranscript,
 	createConsoleTranscript,

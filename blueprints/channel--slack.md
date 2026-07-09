@@ -19,7 +19,7 @@ first existing source root: `<root>/.flue/`, then `<root>/src/`, then
 whether the application needs Events API, interactivity, slash commands, or a
 combination.
 
-Install `@flue/slack` and Slack's official
+Install `@bapX/slack` and Slack's official
 `@slack/web-api@^8.0.0-rc.1` SDK with the project's package manager. Version 8
 uses Fetch and supports Cloudflare Workers with Flue's existing
 `nodejs_compat` configuration.
@@ -33,8 +33,8 @@ message to the application:
 
 ```ts
 // flue-blueprint: channel/slack@1
-import { defineTool, dispatch } from '@flue/runtime';
-import { createSlackChannel } from '@flue/slack';
+import { defineTool, dispatch } from '@bapX/runtime';
+import { createSlackChannel } from '@bapX/slack';
 import { WebClient } from '@slack/web-api';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';
@@ -110,7 +110,7 @@ export function replyInThread(ref: { channelId: string; threadTs: string }) {
 
 Slack Events API callbacks receive the provider-native outer `payload`.
 `payload.event` uses the official `SlackEvent` union re-exported by
-`@flue/slack`. Preserve Slack field names and discriminants; do not add a
+`@bapX/slack`. Preserve Slack field names and discriminants; do not add a
 parallel normalized event model. Filtering bot messages, message subtypes, or
 event families belongs in the application callback.
 
@@ -126,7 +126,7 @@ them into a dispatched message, model context, logs, or durable session data.
 ## Wire the agent
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, replyInThread } from '../channels/slack.ts';
 
 export default defineAgent(({ id }) => ({

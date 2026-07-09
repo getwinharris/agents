@@ -18,7 +18,7 @@ first existing source root: `<root>/.flue/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 the interaction commands the application supports.
 
-Install `@flue/discord` and `@discordjs/rest@^2.6.1`. Discord does not publish an
+Install `@bapX/discord` and `@discordjs/rest@^2.6.1`. Discord does not publish an
 official JavaScript REST SDK; `@discordjs/rest` is the
 dominant community-maintained REST client. Do not add Discord Gateway or a
 long-lived bot connection for outbound REST calls.
@@ -40,8 +40,8 @@ import {
   type APIInteraction,
   type APIInteractionResponse,
   type DiscordDestinationRef,
-} from '@flue/discord';
-import { defineTool, dispatch } from '@flue/runtime';
+} from '@bapX/discord';
+import { defineTool, dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 
 export const client = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN!);
@@ -122,7 +122,7 @@ This application-owned helper derives `DiscordDestinationRef` from native
 `guild_id`, `channel.id`, deprecated `channel_id`, `channel.type`, and `context`
 fields. Discord interactions require a provider
 response; do not rely on an empty acknowledgement. PING/PONG is handled by
-`@flue/discord`. Keep the native `interaction.token` out of the dispatched
+`@bapX/discord`. Keep the native `interaction.token` out of the dispatched
 message, tools, model context, logs, and durable history. Some valid
 interactions have no durable destination, and private-channel interactions
 cannot be used as arbitrary bot-token message destinations.
@@ -135,7 +135,7 @@ bot tokens to the model.
 ## Wire the agent
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, postMessage } from '../channels/discord.ts';
 
 export default defineAgent(({ id }) => ({

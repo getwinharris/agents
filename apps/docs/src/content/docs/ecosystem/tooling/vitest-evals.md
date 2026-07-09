@@ -20,7 +20,7 @@ The blueprint guides your coding agent through installing the test dependencies,
 
 The generated harness:
 
-- prompts an HTTP-exposed agent through `@flue/sdk`;
+- prompts an HTTP-exposed agent through `@bapX/sdk`;
 - gives each eval case a fresh agent instance;
 - captures the prompt's event sequence using its server-provided offset and submission ID;
 - records response text, model usage, costs, and tool calls in the normalized eval result;
@@ -64,4 +64,4 @@ The same artifact can be published by the `getsentry/vitest-evals` GitHub Action
 
 ## Next steps
 
-See [Evals](/docs/guide/evals/) for designing cases, choosing deterministic assertions or judges, evaluating workflows, and understanding the harness. A complete runnable project is available in [`examples/vitest-evals`](https://github.com/withastro/flue/tree/main/examples/vitest-evals).
+See [Evals](/docs/guide/evals/) for designing cases, choosing deterministic assertions or judges, evaluating workflows, and understanding the harness. A complete runnable project is available in [`examples/vitest-evals`](https://github.com/getwinharris/agents/tree/main/examples/vitest-evals).

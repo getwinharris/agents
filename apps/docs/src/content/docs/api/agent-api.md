@@ -1,10 +1,10 @@
 ---
 title: Agent API
-description: Reference for defining agents and running agent operations with @flue/runtime.
+description: Reference for defining agents and running agent operations with @bapX/runtime.
 lastReviewedAt: 2026-06-21
 ---
 
-The agent API is exported from `@flue/runtime`.
+The agent API is exported from `@bapX/runtime`.
 
 ```ts
 import {
@@ -61,7 +61,7 @@ import {
   type ToolOutput,
   type ToolOutputSchema,
   type ToolValidationIssue,
-} from '@flue/runtime';
+} from '@bapX/runtime';
 ```
 
 ## `defineAgentProfile(...)`
@@ -150,7 +150,7 @@ Validates a custom model-callable tool and returns a frozen definition. Tool nam
 | `run`         | `({ input, signal }) => value \| Promise` | Receives parsed input when declared and an optional `AbortSignal`. Returns JSON-compatible structured data. |
 
 ```ts
-import { defineTool } from '@flue/runtime';
+import { defineTool } from '@bapX/runtime';
 import * as v from 'valibot';
 
 const lookupPolicy = defineTool({
@@ -582,7 +582,7 @@ interface CallHandle<T> extends Promise<T> {
 
 `prompt()`, `skill()`, `task()`, and `shell()` return awaitable call handles. Retain the handle when application code needs to cancel in-flight work. Aborting rejects the awaited operation with an `AbortError` (`DOMException`). Pass `options.signal` to merge an external abort signal with the handle's signal.
 
-Other session failures reject with typed `FlueError` subclasses such as `SessionBusyError`, `SkillNotRegisteredError`, and `SubagentNotDeclaredError`, all importable from `@flue/runtime`. See the [Errors Reference](/docs/api/errors-reference/) for the full vocabulary.
+Other session failures reject with typed `FlueError` subclasses such as `SessionBusyError`, `SkillNotRegisteredError`, and `SubagentNotDeclaredError`, all importable from `@bapX/runtime`. See the [Errors Reference](/docs/api/errors-reference/) for the full vocabulary.
 
 #### `FlueFs`
 

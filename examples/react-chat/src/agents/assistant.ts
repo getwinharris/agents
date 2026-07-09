@@ -1,5 +1,5 @@
 import { fauxAssistantMessage, fauxText, registerFauxProvider } from '@earendil-works/pi-ai/compat';
-import { type AgentRouteHandler, defineAgent } from '@flue/runtime';
+import { type AgentRouteHandler, defineAgent } from '@bapX/runtime';
 
 // Opt this agent into HTTP transport so the built demo server serves it at
 // `/api/agents/assistant/:id`. Without an exported `route` the agent is private

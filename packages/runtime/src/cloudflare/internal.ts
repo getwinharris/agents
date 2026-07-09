@@ -3,12 +3,12 @@
  * entry point (the Cloudflare build plugin).
  *
  * This subpath is NOT part of the public API. The authoring surface for
- * Cloudflare users lives at `@flue/runtime/cloudflare`; the Node/shared
- * generated-entry helpers live at `@flue/runtime/internal`.
+ * Cloudflare users lives at `@bapX/runtime/cloudflare`; the Node/shared
+ * generated-entry helpers live at `@bapX/runtime/internal`.
  *
  * This entry owns the `cloudflare:workers` import graph (via the
  * `FlueRegistry` Durable Object). That virtual module only resolves inside
- * workerd, so it must never be imported from `@flue/runtime/internal` or any
+ * workerd, so it must never be imported from `@bapX/runtime/internal` or any
  * other Node-loadable entry — doing so poisons Node builds.
  */
 export { cfSandboxToSessionEnv } from './cf-sandbox.ts';

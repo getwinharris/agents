@@ -26,7 +26,7 @@ The blueprint inspects the project and creates a module such as
 `src/channels/slack.ts`. A typical channel module exports:
 
 ```ts title="src/channels/slack.ts"
-import { createSlackChannel } from '@flue/slack';
+import { createSlackChannel } from '@bapX/slack';
 import { WebClient } from '@slack/web-api';
 
 export const client = new WebClient(process.env.SLACK_BOT_TOKEN);
@@ -64,7 +64,7 @@ preserving provider-native events, and adding the provider's established SDK for
 outbound calls. Review the generated code and test valid and invalid signatures,
 protocol handshakes, responses, and the configured Node or Cloudflare target.
 
-See the [generic channel blueprint](https://github.com/withastro/flue/blob/main/blueprints/channel.md)
+See the [generic channel blueprint](https://github.com/getwinharris/agents/blob/main/blueprints/channel.md)
 for the full implementation and verification checklist.
 
 ## Understand ownership
@@ -108,7 +108,7 @@ No `app.ts` is required. If an authored application mounts `flue()` beneath a
 prefix, discovered channels receive the same prefix as agents and workflows:
 
 ```ts title="src/app.ts"
-import { flue } from '@flue/runtime/routing';
+import { flue } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 const app = new Hono();
@@ -132,8 +132,8 @@ authentication, parsing, and protocol handling. Handshakes that do not represent
 application events are handled before the callback:
 
 ```ts title="src/channels/slack.ts"
-import { dispatch } from '@flue/runtime';
-import { createSlackChannel } from '@flue/slack';
+import { dispatch } from '@bapX/runtime';
+import { createSlackChannel } from '@bapX/slack';
 import assistant from '../agents/assistant.ts';
 
 export const channel = createSlackChannel({
@@ -243,7 +243,7 @@ Initialize the provider's established SDK in application code and export the
 client from the channel module:
 
 ```ts
-import { defineTool } from '@flue/runtime';
+import { defineTool } from '@bapX/runtime';
 import { Octokit } from '@octokit/rest';
 import * as v from 'valibot';
 

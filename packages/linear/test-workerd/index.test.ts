@@ -4,7 +4,7 @@ import { createLinearChannel } from '../src/index.ts';
 
 const encoder = new TextEncoder();
 
-describe('@flue/linear workerd ingress', () => {
+describe('@bapX/linear workerd ingress', () => {
 	it('verifies exact webhook bytes and forwards native agent-session payloads in workerd', async () => {
 		const webhook = vi.fn();
 		const linear = createLinearChannel({ webhookSecret: 'worker-secret', webhook });

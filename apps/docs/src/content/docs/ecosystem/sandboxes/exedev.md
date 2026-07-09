@@ -20,8 +20,8 @@ The blueprint installs `ssh2` and its TypeScript declarations, then creates `san
 
 ```ts title="<source-root>/sandboxes/exedev.ts (abridged)"
 // flue-blueprint: sandbox/exedev@1
-import { createSandboxSessionEnv } from '@flue/runtime';
-import type { FileStat, SandboxApi, SandboxFactory, SessionEnv } from '@flue/runtime';
+import { createSandboxSessionEnv } from '@bapX/runtime';
+import type { FileStat, SandboxApi, SandboxFactory, SessionEnv } from '@bapX/runtime';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';

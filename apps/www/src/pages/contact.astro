@@ -1,0 +1,70 @@
+---
+import "../styles/global.css";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Contact | bapX</title>
+    <meta name="description" content="Get in touch with the bapX team." />
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="canonical" href="https://bapx.in/contact/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
+      <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+        <div class="flex h-full items-center gap-8">
+          <a href="/" class="flex items-center gap-2">
+            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
+          </a>
+          <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
+            <a href="/">Home</a>
+            <a href="https://docs.bapx.in/getting-started/quickstart/">Docs</a>
+            <a href="/mediahub/">Media Hub</a>
+            <a href="/blog/">Blog</a>
+            <a href="/products/">Products</a>
+            <a href="/contact/" class="active">Contact</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="https://agents.bapx.in/" class="bapx-pill">Agents</a>
+          <a href="/login/" class="bapx-pill bapx-pill-primary">Sign in</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="page-section page-header" style="max-width: 680px; margin: 0 auto;">
+      <span class="mono-label">Contact</span>
+      <h1 class="display-xl" style="margin-top: 1.75rem;">Get in Touch</h1>
+      <p class="body-lg" style="margin-top: 1.5rem; max-width: 560px;">Have a project in mind, interested in using bapX, or just want to say hello? Reach out below.</p>
+
+      <div class="card-grid-2" style="margin-top: 3.375rem; max-width: 560px;">
+        <div class="card">
+          <h2 class="display-md">Email</h2>
+          <p class="body-sm" style="margin-top: .75rem;"><a href="mailto:hello@bapx.in" style="color: var(--ink);">hello@bapx.in</a></p>
+        </div>
+        <div class="card">
+          <h2 class="display-md">X / Twitter</h2>
+          <p class="body-sm" style="margin-top: .75rem;"><a href="https://x.com/bapx_ai" target="_blank" rel="noopener noreferrer" style="color: var(--ink);">@bapx_ai</a></p>
+        </div>
+        <div class="card">
+          <h2 class="display-md">GitHub</h2>
+          <p class="body-sm" style="margin-top: .75rem;"><a href="https://github.com/getwinharris/agents" target="_blank" rel="noopener noreferrer" style="color: var(--ink);">github.com/getwinharris/agents</a></p>
+        </div>
+      </div>
+    </main>
+
+    <footer class="page-footer">
+      <div class="section-inner">
+        <span>bapX — the open agent harness.</span>
+        <span>&copy; {new Date().getFullYear()}</span>
+      </div>
+    </footer>
+  </body>
+</html>

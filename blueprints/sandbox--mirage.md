@@ -73,8 +73,8 @@ Write this file verbatim. Do not "improve" it — it conforms to the published
  * }});
  * ```
  */
-import { createSandboxSessionEnv, SandboxOperationUnsupportedError } from '@flue/runtime';
-import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@flue/runtime';
+import { createSandboxSessionEnv, SandboxOperationUnsupportedError } from '@bapX/runtime';
+import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 import type { Workspace as MirageWorkspace } from '@struktoai/mirage-core';
 
 export interface MirageAdapterOptions {
@@ -349,7 +349,7 @@ into, you can finish that work by wiring the adapter into it. Otherwise,
 share this snippet so they can wire it up themselves.
 
 ```ts
-import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@flue/runtime';
+import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
 import { Workspace, RAMResource, MountMode } from '@struktoai/mirage-node';
 import { mirage } from '../sandboxes/mirage'; // adjust path to match the user's layout
 

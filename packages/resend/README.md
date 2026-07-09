@@ -1,4 +1,4 @@
-# `@flue/resend`
+# `@bapX/resend`
 
 Verified Resend webhook ingress for Flue.
 
@@ -7,7 +7,7 @@ Resend client to verify the exact request body and signed `svix-*` headers
 before calling application code.
 
 ```ts
-import { createResendChannel } from '@flue/resend';
+import { createResendChannel } from '@bapX/resend';
 import { Resend } from 'resend';
 
 export const client = new Resend(process.env.RESEND_API_KEY!);

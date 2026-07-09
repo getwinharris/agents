@@ -20,8 +20,8 @@ The blueprint installs `@daytona/sdk` when needed and creates `sandboxes/daytona
 
 ```ts title="<source-root>/sandboxes/daytona.ts (abridged)"
 // flue-blueprint: sandbox/daytona@1
-import { createSandboxSessionEnv } from '@flue/runtime';
-import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@flue/runtime';
+import { createSandboxSessionEnv } from '@bapX/runtime';
+import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 import type { Sandbox as DaytonaSandbox } from '@daytona/sdk';
 
 class DaytonaSandboxApi implements SandboxApi {
@@ -64,7 +64,7 @@ The generated adapter expects your application to create and own the Daytona san
 
 ```ts
 import { Daytona } from '@daytona/sdk';
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { daytona } from '../sandboxes/daytona';
 
 const client = new Daytona({ apiKey: env.DAYTONA_API_KEY });

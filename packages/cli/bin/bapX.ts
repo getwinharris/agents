@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { type ParseArgsOptionsConfig, parseArgs as parseNodeArgs } from 'node:util';
-import type { ConversationStreamChunk, FlueEvent } from '@flue/sdk';
+import type { ConversationStreamChunk, FlueEvent } from '@bapX/sdk';
 import { determineAgent } from '@vercel/detect-agent';
 import MiniSearch from 'minisearch';
 import pc from 'picocolors';
@@ -109,7 +109,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  dev    Long-running watch-mode dev server. Rebuilds and reloads on file changes.\n' +
 			'  run      Invoke one agent or workflow through its normal HTTP application, then exit.\n' +
 			'  build    Build a deployable artifact to ./dist (production deploys).\n' +
-			'  init   Scaffold a starter flue.config.ts in the target directory.\n' +
+			'  init   Scaffold a starter bapX.config.ts in the target directory.\n' +
 			'  add    Fetch a blueprint implementation guide for an AI coding agent to follow.\n' +
 			'  update Fetch an updated blueprint implementation guide for an AI coding agent to follow.\n' +
 			'  docs   Browse the Flue docs. No args lists pages; `read` prints a page as markdown; `search` prints JSON results.\n' +
@@ -166,7 +166,7 @@ interface RunArgs {
 
 interface BuildArgs {
 	command: 'build';
-	/** May be undefined if the user is relying on `flue.config.ts` for `target`. */
+	/** May be undefined if the user is relying on `bapX.config.ts` for `target`. */
 	target: 'node' | 'cloudflare' | undefined;
 	/** Explicit --root value, or undefined to default to cwd. */
 	explicitRoot: string | undefined;
@@ -179,7 +179,7 @@ interface BuildArgs {
 
 interface DevArgs {
 	command: 'dev';
-	/** May be undefined if the user is relying on `flue.config.ts` for `target`. */
+	/** May be undefined if the user is relying on `bapX.config.ts` for `target`. */
 	target: 'node' | 'cloudflare' | undefined;
 	/** Explicit --root value, or undefined to default to cwd. */
 	explicitRoot: string | undefined;
@@ -898,7 +898,7 @@ async function run(args: RunArgs) {
 
 function renderConfigTemplate(target: 'node' | 'cloudflare'): string {
 	return (
-		`import { defineConfig } from '@flue/cli/config';\n` +
+		`import { defineConfig } from '@bapX/cli/config';\n` +
 		`\n` +
 		`export default defineConfig({\n` +
 		`\ttarget: '${target}',\n` +
@@ -931,7 +931,7 @@ function initCommand(args: InitArgs) {
 		process.exit(1);
 	}
 
-	const outPath = path.join(targetDir, 'flue.config.ts');
+	const outPath = path.join(targetDir, 'bapX.config.ts');
 	const content = renderConfigTemplate(args.target);
 
 	try {
@@ -944,25 +944,25 @@ function initCommand(args: InitArgs) {
 	const relOut = path.relative(process.cwd(), outPath) || outPath;
 	console.error(brand(['flue init', `target ${args.target}`, `wrote ${relOut}`]));
 
-	// If --force overwrote a non-`.ts` variant, the new flue.config.ts will
+	// If --force overwrote a non-`.ts` variant, the new bapX.config.ts will
 	// take precedence (CONFIG_BASENAMES priority), but the old file still
 	// sits on disk. Surface that so the user isn't surprised later.
-	if (existing && path.basename(existing) !== 'flue.config.ts') {
+	if (existing && path.basename(existing) !== 'bapX.config.ts') {
 		const relExisting = path.relative(process.cwd(), existing) || existing;
 		note(
-			`${relExisting} is still on disk. flue.config.ts now takes precedence; delete the old file if you no longer need it.`,
+			`${relExisting} is still on disk. bapX.config.ts now takes precedence; delete the old file if you no longer need it.`,
 		);
 	}
 
 	console.error('');
-	note('next: fetch https://flueframework.com/start.md to create a new agent');
+	note('next: fetch https://bapx.in/start.md to create a new agent');
 }
 
 // ─── `flue add` ─────────────────────────────────────────────────────────────
 
 // Default blueprint registry base. FLUE_REGISTRY_URL is an internal-only
-// override used for local development against `pnpm --filter @flue/www dev`.
-const DEFAULT_REGISTRY_URL = 'https://flueframework.com/cli/blueprints';
+// override used for local development against `pnpm --filter @bapX/www dev`.
+const DEFAULT_REGISTRY_URL = 'https://bapx.in/cli/blueprints';
 
 function registryUrlFor(slug: string): string {
 	const base = (process.env.FLUE_REGISTRY_URL ?? DEFAULT_REGISTRY_URL).replace(/\/+$/, '');
@@ -1228,7 +1228,7 @@ function docsCommand(args: DocsArgs): void {
 	const root = resolveDocsRoot();
 	if (!root) {
 		cliError(
-			'Could not locate the bundled documentation. Your @flue/cli installation may be incomplete — try reinstalling it.',
+			'Could not locate the bundled documentation. Your @bapX/cli installation may be incomplete — try reinstalling it.',
 		);
 		process.exit(1);
 	}
@@ -1327,7 +1327,7 @@ async function emitBlueprintMarkdown(
 	const result = await fetchBlueprintMarkdown(opts.slug);
 	if ('notFound' in result) {
 		cliError(
-			`The blueprint registry did not have Markdown for ${opts.notFoundLabel}. Your installed CLI may be out of sync with the registry — try updating @flue/cli.`,
+			`The blueprint registry did not have Markdown for ${opts.notFoundLabel}. Your installed CLI may be out of sync with the registry — try updating @bapX/cli.`,
 		);
 		process.exit(1);
 	}

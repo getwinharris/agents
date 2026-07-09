@@ -1,4 +1,4 @@
-import type { FlueConversationMessage } from '@flue/react'
+import type { FlueConversationMessage } from '@bapX/react'
 import { AlertCircle, Bot, Check, Copy, Square } from 'lucide-react'
 import { useState } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'

@@ -5,7 +5,7 @@ import { createIntercomChannel } from '../src/index.ts';
 const encoder = new TextEncoder();
 const CLIENT_SECRET = 'flue-intercom-workerd-secret';
 
-describe('@flue/intercom workerd ingress', () => {
+describe('@bapX/intercom workerd ingress', () => {
 	it('verifies exact bytes and preserves a future topic when running in workerd', async () => {
 		const webhook = vi.fn();
 		const intercom = createIntercomChannel({

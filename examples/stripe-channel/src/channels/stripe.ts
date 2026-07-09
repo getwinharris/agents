@@ -1,5 +1,5 @@
-import { defineTool, dispatch, type JsonValue } from '@flue/runtime';
-import { createStripeChannel } from '@flue/stripe';
+import { defineTool, dispatch, type JsonValue } from '@bapX/runtime';
+import { createStripeChannel } from '@bapX/stripe';
 import type Stripe from 'stripe';
 import assistant from '../agents/assistant.ts';
 import { createStripeClient, stripeRequestOptions } from '../stripe-client.ts';

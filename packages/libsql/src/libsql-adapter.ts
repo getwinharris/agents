@@ -10,7 +10,7 @@
  * tests can substitute an in-memory client without pulling in a real server.
  */
 
-import type { WorkflowRunPointer } from '@flue/runtime';
+import type { WorkflowRunPointer } from '@bapX/runtime';
 import type {
 	AgentAttemptMarker,
 	AgentDispatchAdmission,
@@ -35,7 +35,7 @@ import type {
 	RunStore,
 	SubmissionAttemptRef,
 	SubmissionClaimRef,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import {
 	admitSubmissionWithBackend,
 	assertSupportedFlueSchemaVersion,
@@ -56,7 +56,7 @@ import {
 	MAX_READ_LIMIT,
 	parseOffset,
 	submissionChunkOwner,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import { LibsqlAttachmentStore } from './libsql-attachment-store.ts';
 import { createLibsqlConversationStreamStore } from './libsql-conversation-store.ts';
 
@@ -73,9 +73,9 @@ export type LibsqlParameter = string | number | boolean | ArrayBuffer | null;
 export type LibsqlQuery = (text: string, params?: LibsqlParameter[]) => Promise<SqlRow[]>;
 
 /**
- * The driver seam `@flue/libsql` runs against. Wrap your own configured
+ * The driver seam `@bapX/libsql` runs against. Wrap your own configured
  * `@libsql/client` (local file, in-memory, or a Turso embedded/remote URL) in
- * this shape — `@flue/libsql` does not pick or bundle a driver, so you own
+ * this shape — `@bapX/libsql` does not pick or bundle a driver, so you own
  * driver choice, sync settings, auth tokens, and every other connection option.
  *
  * `transaction` must run `fn` inside one transaction on a single connection,
@@ -93,13 +93,13 @@ export interface LibsqlRunner {
 /**
  * Create a libSQL-backed {@link PersistenceAdapter} from a {@link LibsqlRunner}.
  *
- * `@flue/libsql` does not pick or bundle a driver — wrap your own configured
+ * `@bapX/libsql` does not pick or bundle a driver — wrap your own configured
  * `@libsql/client` in the runner shape so you own driver choice and every
  * connection option.
  *
  * @example
  * ```ts
- * import { libsql } from '@flue/libsql';
+ * import { libsql } from '@bapX/libsql';
  * import { createClient } from '@libsql/client';
  *
  * const client = createClient({
@@ -701,11 +701,11 @@ class LibsqlSubmissionStore implements AgentSubmissionStore {
 		return rows.length > 0;
 	}
 
-	async listPendingSubmissionSettlements(): Promise<import('@flue/runtime/adapter').SubmissionSettlementObligation[]> {
+	async listPendingSubmissionSettlements(): Promise<import('@bapX/runtime/adapter').SubmissionSettlementObligation[]> {
 		const rows = await this.runner.query(`SELECT submission_id, session_key, attempt_id, settlement_record_id, settlement_record FROM flue_agent_submissions WHERE kind = 'direct' AND status = 'terminalizing' ORDER BY sequence ASC`);
 		return rows.map((row) => ({ submissionId: String(row.submission_id), sessionKey: String(row.session_key), attemptId: String(row.attempt_id), recordId: String(row.settlement_record_id), record: JSON.parse(String(row.settlement_record)) }));
 	}
-	async reserveSubmissionSettlement(attempt: SubmissionAttemptRef, settlement: { recordId: string; record: import('@flue/runtime/adapter').SubmissionSettledRecord }): Promise<import('@flue/runtime/adapter').SubmissionSettlementObligation | null> {
+	async reserveSubmissionSettlement(attempt: SubmissionAttemptRef, settlement: { recordId: string; record: import('@bapX/runtime/adapter').SubmissionSettledRecord }): Promise<import('@bapX/runtime/adapter').SubmissionSettlementObligation | null> {
 		if (settlement.record.id !== settlement.recordId) return null;
 		const data = JSON.stringify(settlement.record);
 		const rows = await this.runner.query(`UPDATE flue_agent_submissions SET status = 'terminalizing', settlement_record_id = ?, settlement_record = ? WHERE submission_id = ? AND kind = 'direct' AND status = 'running' AND attempt_id = ? AND owner_id IS NOT NULL AND settlement_record_id IS NULL RETURNING submission_id, session_key, attempt_id, settlement_record_id, settlement_record`, [settlement.recordId, data, attempt.submissionId, attempt.attemptId]);

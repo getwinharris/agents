@@ -13,7 +13,7 @@ For the underlying mental model, start with [What is an agent?](/docs/concepts/a
 In a Flue project, an agent is a file in `src/agents/` whose default export is created with `defineAgent(...)`:
 
 ```ts title="src/agents/joke-teller.ts"
-import { defineAgent, type AgentRouteHandler } from '@flue/runtime';
+import { defineAgent, type AgentRouteHandler } from '@bapX/runtime';
 
 export const description = 'Tells a short joke in response to each message.';
 
@@ -39,8 +39,8 @@ See [Project Layout](/docs/guide/project-layout/) and [Models & Providers](/docs
 The object returned by `defineAgent(...)` defines the agent's behavior, capabilities, and environment. For example, a repository reviewer can be given review instructions, reusable Actions, tools and skills, and a local workspace to work within:
 
 ```ts title="src/agents/repository-reviewer.ts"
-import { defineAgent } from '@flue/runtime';
-import { local } from '@flue/runtime/node';
+import { defineAgent } from '@bapX/runtime';
+import { local } from '@bapX/runtime/node';
 import reviewChecklist from '../skills/review-checklist/SKILL.md' with { type: 'skill' };
 import { reviewChange } from '../actions/review-change.ts';
 import { repositoryTools } from '../shared/repository-tools.ts';
@@ -63,7 +63,7 @@ Actions let the model call finite agent-backed operations, tools execute bounded
 Long instructions can live in their own markdown file. Import a `.md` file with the `with { type: 'markdown' }` import attribute and Flue inlines its contents as a string at build time:
 
 ```ts title="src/agents/repository-reviewer.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import instructions from './repository-reviewer.md' with { type: 'markdown' };
 
 export default defineAgent(() => ({
@@ -88,7 +88,7 @@ It's up to the developer to decide what `id` means and whether it maps to import
 Flue passes that ID to `defineAgent(...)`, where the application can configure the resources that belong to that instance. For example, a support agent can receive tools scoped to one ticket:
 
 ```ts title="src/agents/support-assistant.ts"
-import { defineAgent, type AgentRouteHandler } from '@flue/runtime';
+import { defineAgent, type AgentRouteHandler } from '@bapX/runtime';
 import { createTicketTools } from '../shared/support-tickets.ts';
 
 export const route: AgentRouteHandler = async (_c, next) => next();
@@ -107,7 +107,7 @@ In this example, the agent can access the ticket selected by its `id`, but its t
 An agent profile defines reusable behavior and capabilities without creating a public agent or configuring its runtime resources. Use profiles to share an agent's model, instructions, tools, or skills across your project.
 
 ```ts title="src/agents/support-assistant.ts"
-import { defineAgent, defineAgentProfile } from '@flue/runtime';
+import { defineAgent, defineAgentProfile } from '@bapX/runtime';
 import { supportTools } from '../shared/support-tools.ts';
 
 const support = defineAgentProfile({
@@ -128,8 +128,8 @@ export default defineAgent(() => ({
 Subagents are another use for agent profiles: they let an agent delegate focused work to another agent.
 
 ```ts title="src/agents/policy-assistant.ts"
-import { defineAgent, defineAgentProfile } from '@flue/runtime';
-import { local } from '@flue/runtime/node';
+import { defineAgent, defineAgentProfile } from '@bapX/runtime';
+import { local } from '@bapX/runtime/node';
 
 const policyResearcherSubagent = defineAgentProfile({
   name: 'policy_researcher',
@@ -173,7 +173,7 @@ The body may also carry an optional `images` array of `{ "type": "image", "data"
 Use the `route` handler to protect direct HTTP access to an agent instance:
 
 ```ts title="src/agents/support-assistant.ts"
-import { defineAgent, type AgentRouteHandler } from '@flue/runtime';
+import { defineAgent, type AgentRouteHandler } from '@bapX/runtime';
 import { authenticate } from '../auth.ts';
 
 export const route: AgentRouteHandler = async (c, next) => {
@@ -199,8 +199,8 @@ For more information, see [Routing](/docs/guide/routing/) and [SDK](/docs/sdk/ov
 Use `dispatch(...)` when your application receives an event for an agent asynchronously, such as a webhook, queue message, chat event, or notification. For example, an application route can verify an incoming support-system webhook and dispatch the comment to the agent for that ticket:
 
 ```ts title="src/app.ts"
-import { dispatch } from '@flue/runtime';
-import { flue } from '@flue/runtime/routing';
+import { dispatch } from '@bapX/runtime';
+import { flue } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 import supportAssistant from './agents/support-assistant.ts';
 import { verifySupportWebhook } from './shared/support-webhooks.ts';

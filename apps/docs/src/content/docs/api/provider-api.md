@@ -4,7 +4,7 @@ description: Register custom model providers and override built-in provider tran
 lastReviewedAt: 2026-05-31
 ---
 
-The provider API configures model connection paths at runtime. Import ordinary provider APIs from `@flue/runtime`. For model selection, authentication setup, and Workers AI examples, see [Models & Providers](/docs/guide/models/).
+The provider API configures model connection paths at runtime. Import ordinary provider APIs from `@bapX/runtime`. For model selection, authentication setup, and Workers AI examples, see [Models & Providers](/docs/guide/models/).
 
 ## Imports
 
@@ -14,7 +14,7 @@ import {
   registerProvider,
   type HttpProviderRegistration,
   type ProviderRegistration,
-} from '@flue/runtime';
+} from '@bapX/runtime';
 ```
 
 ## `registerProvider()`
@@ -99,14 +99,14 @@ Pi's API-provider registry is module-scoped and last-write-wins. Registering the
 
 ## Cloudflare binding registrations
 
-Import Workers AI binding registration types from `@flue/runtime/cloudflare`:
+Import Workers AI binding registration types from `@bapX/runtime/cloudflare`:
 
 ```ts
 import {
   type CloudflareAIBinding,
   type CloudflareAIBindingRegistration,
   type CloudflareGatewayOptions,
-} from '@flue/runtime/cloudflare';
+} from '@bapX/runtime/cloudflare';
 ```
 
 `CloudflareAIBindingRegistration` registers a provider backed by an `env.AI` Workers AI binding instead of an HTTP endpoint. Its optional `gateway` setting forwards AI Gateway options to each `env.AI.run(...)` call; set `gateway: false` to omit the gateway option.

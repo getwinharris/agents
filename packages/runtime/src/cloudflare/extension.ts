@@ -1,10 +1,10 @@
 import type { DurableObject } from 'cloudflare:workers';
 
-const CLOUDFLARE_EXTENSION = Symbol.for('@flue/runtime/cloudflare-extension');
+const CLOUDFLARE_EXTENSION = Symbol.for('@bapX/runtime/cloudflare-extension');
 
 /**
  * Minimal structural view of the Cloudflare Agents SDK `Agent` base class
- * that Flue passes to `extend()` callbacks. `@flue/runtime` does not depend
+ * that Flue passes to `extend()` callbacks. `@bapX/runtime` does not depend
  * on the `agents` package, so this models the documented extension surface
  * (state, lifecycle, scheduling, queueing) instead of importing the real
  * class. Pass an explicit `TBase` to `extend()` to type against a richer
@@ -42,7 +42,7 @@ export type ExtensionClass<TInstance extends object = CloudflareAgentLike> = new
  * Cloudflare entry passes in extends the Agents SDK `Agent`, which is a real,
  * branded `DurableObject`. The `cloudflare:workers` import is type-only, so
  * this module's runtime graph stays free of that virtual module; consumers of
- * `@flue/runtime/cloudflare` are expected to have Cloudflare's workers types
+ * `@bapX/runtime/cloudflare` are expected to have Cloudflare's workers types
  * configured (any Wrangler project does).
  *
  * This is deliberately a concrete constructor type rather than a
@@ -102,7 +102,7 @@ export function resolveCloudflareExtension(
 	if (extension === undefined) return { base: identity, wrap: identity };
 	if (!isCloudflareExtension(extension)) {
 		throw new Error(
-			`[flue] ${kind} "${name}" cloudflare export must be created with extend({ base, wrap }) from "@flue/runtime/cloudflare".`,
+			`[flue] ${kind} "${name}" cloudflare export must be created with extend({ base, wrap }) from "@bapX/runtime/cloudflare".`,
 		);
 	}
 	const base = extension.base === undefined ? identity : extension.base;

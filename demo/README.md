@@ -3,7 +3,7 @@
 A standalone **Vite + React** single-page chat client that connects to **any running
 Flue example dev server**. It's a real-world manual-testing harness, a proof-of-concept
 for new runtime features, and a reference application showing how to build a chat UI on
-top of `@flue/sdk` and `@flue/react`.
+top of `@bapX/sdk` and `@bapX/react`.
 
 It is intentionally styled with a plain shadcn/ui look so it reads as a skinnable
 starting point rather than a finished product.
@@ -29,7 +29,7 @@ starting point rather than a finished product.
 ## Stack
 
 Vite, React 19, TypeScript, Tailwind v4, shadcn/ui, TanStack Router, `streamdown`
-(streaming Markdown), and the workspace packages `@flue/sdk` and `@flue/react`.
+(streaming Markdown), and the workspace packages `@bapX/sdk` and `@bapX/react`.
 
 ## Running it
 

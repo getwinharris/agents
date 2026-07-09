@@ -2,8 +2,8 @@ import {
 	createIntercomChannel,
 	type IntercomConversationRef,
 	type JsonValue,
-} from '@flue/intercom';
-import { defineTool, dispatch } from '@flue/runtime';
+} from '@bapX/intercom';
+import { defineTool, dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 import { createIntercomClient, type IntercomRegion } from '../intercom-client.ts';
 

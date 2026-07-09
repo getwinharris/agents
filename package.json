@@ -1,5 +1,5 @@
 {
-	"name": "flue",
+	"name": "bapX",
 	"type": "module",
 	"private": true,
 	"license": "Apache-2.0",
@@ -23,7 +23,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.2.0",
-		"@flue/runtime": "workspace:*",
+		"@bapX/runtime": "workspace:*",
 		"@types/node": "^22.10.10",
 		"bgproc": "^0.3.0",
 		"knip": "^6.14.2",

@@ -19,7 +19,7 @@ first existing source root: `<root>/.flue/`, then `<root>/src/`, then
 receiving-domain setup, and which Resend email, contact, or domain events the
 application needs.
 
-Install `@flue/resend` and the official `resend@^6.12.4` SDK with the project's
+Install `@bapX/resend` and the official `resend@^6.12.4` SDK with the project's
 package manager. Add compatible `@types/node` and `@types/react` development
 dependencies because the SDK's public declarations reference `Buffer` and
 React email types. Both are declaration-only requirements; they do not add
@@ -37,8 +37,8 @@ message, local message identity, and retrieval tool to the application:
 
 ```ts
 // flue-blueprint: channel/resend@1
-import { createResendChannel } from '@flue/resend';
-import { defineTool, dispatch, type JsonValue } from '@flue/runtime';
+import { createResendChannel } from '@bapX/resend';
+import { defineTool, dispatch, type JsonValue } from '@bapX/runtime';
 import { Resend } from 'resend';
 import assistant from '../agents/assistant.ts';
 
@@ -128,7 +128,7 @@ the model.
 Bind the trusted inbound email id inside the agent initializer:
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import {
   emailIdFromInstanceId,
   retrieveReceivedEmail,
@@ -143,7 +143,7 @@ export default defineAgent(({ id }) => {
 });
 ```
 
-This is an application-defined message-scoped agent instance. `@flue/resend`
+This is an application-defined message-scoped agent instance. `@bapX/resend`
 does not expose a conversation helper: Resend's `message_id` identifies one
 email message, not a stable thread root. If the application groups replies or
 related mail, define and persist that thread policy itself.

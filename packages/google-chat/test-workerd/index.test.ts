@@ -3,7 +3,7 @@ import { exportJWK, generateKeyPair, SignJWT } from 'jose';
 import { describe, expect, it, vi } from 'vitest';
 import { createGoogleChatChannel } from '../src/index.ts';
 
-describe('@flue/google-chat workerd ingress', () => {
+describe('@bapX/google-chat workerd ingress', () => {
 	it('executes wire-faithful callbacks when running in workerd', async () => {
 		const audience = 'https://worker.example.test/channels/google-chat/interactions';
 		const pubsubAudience = 'https://worker.example.test/channels/google-chat/events';

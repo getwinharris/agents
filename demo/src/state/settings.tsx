@@ -1,4 +1,4 @@
-import type { FlueClient } from '@flue/sdk'
+import type { FlueClient } from '@bapX/sdk'
 import { createContext, type ReactNode, useContext, useMemo, useState } from 'react'
 import { createClientFor, DEFAULT_CONNECTION, parseAgentUrl } from '@/lib/flue-client'
 import { loadJSON, saveJSON, STORAGE_KEYS } from '@/lib/storage'

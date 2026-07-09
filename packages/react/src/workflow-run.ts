@@ -4,7 +4,7 @@ import {
 	type FlueClient,
 	type FlueEvent,
 	type FlueEventStream,
-} from '@flue/sdk';
+} from '@bapX/sdk';
 
 export type WorkflowStatus =
 	| 'idle'

@@ -230,7 +230,7 @@ function resolveAgentDefinitionDispatchRequest(
 let runtimeConfig: FlueRuntime | undefined;
 
 /**
- * Not part of the public API — exposed via `@flue/runtime/internal` only
+ * Not part of the public API — exposed via `@bapX/runtime/internal` only
  * because the generated entry imports it from a stable bare specifier.
  */
 export function configureFlueRuntime(cfg: FlueRuntime): void {
@@ -302,7 +302,7 @@ export function flue(): Hono {
  * present. Mounts `flue()` at root, renders canonical Flue envelopes
  * for unmatched paths and any thrown errors.
  *
- * Lives in @flue/runtime rather than the generated entry so that user
+ * Lives in @bapX/runtime rather than the generated entry so that user
  * projects on the Cloudflare target — whose `node_modules` does not
  * declare `hono` directly — don't have to add it themselves just to
  * keep the no-`app.ts` default behavior working. When a user does

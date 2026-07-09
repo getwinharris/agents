@@ -1,4 +1,4 @@
-import type { ConversationLiveMode } from '@flue/sdk'
+import type { ConversationLiveMode } from '@bapX/sdk'
 
 /**
  * A configured connection to a single agent. The whole target is expressed as

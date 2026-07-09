@@ -93,10 +93,10 @@ new sst.aws.Service('Flue', {
 });
 ```
 
-Install `@flue/postgres` and add a `db.ts` that reads `DATABASE_URL`:
+Install `@bapX/postgres` and add a `db.ts` that reads `DATABASE_URL`:
 
 ```typescript title=".flue/db.ts"
-import { postgres } from '@flue/postgres';
+import { postgres } from '@bapX/postgres';
 
 export default postgres(process.env.DATABASE_URL!);
 ```

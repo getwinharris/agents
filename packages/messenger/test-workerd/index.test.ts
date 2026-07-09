@@ -4,7 +4,7 @@ import { createMessengerChannel } from '../src/index.ts';
 
 const encoder = new TextEncoder();
 
-describe('@flue/messenger workerd ingress', () => {
+describe('@bapX/messenger workerd ingress', () => {
 	it('performs GET verification and exact-body HMAC validation in workerd', async () => {
 		const webhook = vi.fn();
 		const channel = createMessengerChannel({

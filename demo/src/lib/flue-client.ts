@@ -1,4 +1,4 @@
-import { createFlueClient, type FlueClient } from '@flue/sdk'
+import { createFlueClient, type FlueClient } from '@bapX/sdk'
 import type { Connection } from './types'
 
 /** Out-of-the-box target: react-chat's credential-free faux assistant under `flue dev`. */

@@ -5,7 +5,7 @@
 # Add a MySQL Database to Flue
 
 You are an AI coding agent configuring MySQL-backed persistence for a Flue
-project using the first-party `@flue/mysql` adapter. This adapter supports
+project using the first-party `@bapX/mysql` adapter. This adapter supports
 MySQL 8 with InnoDB tables.
 
 This persists canonical agent conversation streams, immutable attachments,
@@ -30,8 +30,8 @@ convention.
 
 ## Install the adapter and driver
 
-Install `@flue/mysql` and [`mysql2@^3.22.5`](https://sidorares.github.io/node-mysql2/docs)
-with the project's package manager. `@flue/mysql` is driver-free at runtime;
+Install `@bapX/mysql` and [`mysql2@^3.22.5`](https://sidorares.github.io/node-mysql2/docs)
+with the project's package manager. `@bapX/mysql` is driver-free at runtime;
 the project owns pooling, TLS, credentials, and connection lifecycle.
 
 ## Create `db.ts`
@@ -43,7 +43,7 @@ connection until commit or rollback completes, then release it. Convert
 
 ```ts title="src/db.ts"
 // flue-blueprint: database/mysql@1
-import { mysql, type MysqlQuery } from '@flue/mysql';
+import { mysql, type MysqlQuery } from '@bapX/mysql';
 import mysql2 from 'mysql2/promise';
 
 const pool = mysql2.createPool(process.env.MYSQL_URL!);

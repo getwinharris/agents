@@ -1,5 +1,5 @@
-import { createMessengerChannel, type MessengerConversationRef } from '@flue/messenger';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createMessengerChannel, type MessengerConversationRef } from '@bapX/messenger';
+import { defineTool, dispatch } from '@bapX/runtime';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';
 import { MessengerClient } from '../messenger-client.ts';

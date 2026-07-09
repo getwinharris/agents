@@ -9,7 +9,7 @@
  * substitute PGlite without pulling in a real Postgres server.
  */
 
-import type { WorkflowRunPointer } from '@flue/runtime';
+import type { WorkflowRunPointer } from '@bapX/runtime';
 import type {
 	AgentAttemptMarker,
 	AgentDispatchAdmission,
@@ -34,7 +34,7 @@ import type {
 	RunStore,
 	SubmissionAttemptRef,
 	SubmissionClaimRef,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import {
 	admitSubmissionWithBackend,
 	assertSupportedFlueSchemaVersion,
@@ -55,7 +55,7 @@ import {
 	MAX_READ_LIMIT,
 	parseOffset,
 	submissionChunkOwner,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import { PgAttachmentStore } from './postgres-attachment-store.ts';
 import { createPgConversationStreamStore } from './postgres-conversation-store.ts';
 
@@ -68,7 +68,7 @@ type SubmissionSettlementObligation = {
 	sessionKey: string;
 	attemptId: string;
 	recordId: string;
-	record: import('@flue/runtime/adapter').SubmissionSettledRecord;
+	record: import('@bapX/runtime/adapter').SubmissionSettledRecord;
 };
 
 /**
@@ -80,9 +80,9 @@ export type PostgresParameter = string | number | boolean | Uint8Array | null;
 export type PostgresQuery = (text: string, params?: PostgresParameter[]) => Promise<SqlRow[]>;
 
 /**
- * The driver seam `@flue/postgres` runs against. Wrap your own configured
+ * The driver seam `@bapX/postgres` runs against. Wrap your own configured
  * Postgres driver (node-postgres, porsager `postgres`, Neon WebSocket Pool, …) in
- * this shape — `@flue/postgres` does not pick or bundle a driver, so you own
+ * this shape — `@bapX/postgres` does not pick or bundle a driver, so you own
  * driver choice, pooling, TLS, and every other connection option.
  *
  * `transaction` must run `fn` inside one transaction on a single connection,
@@ -100,13 +100,13 @@ export interface PostgresRunner {
 /**
  * Create a Postgres-backed {@link PersistenceAdapter} from a {@link PostgresRunner}.
  *
- * `@flue/postgres` does not pick or bundle a driver — wrap your own configured
+ * `@bapX/postgres` does not pick or bundle a driver — wrap your own configured
  * driver in the runner shape so you own driver choice and every connection
  * option.
  *
  * @example
  * ```ts
- * import { postgres, type PostgresQuery } from '@flue/postgres';
+ * import { postgres, type PostgresQuery } from '@bapX/postgres';
  * import sql from 'postgres';
  *
  * const db = sql(process.env.DATABASE_URL!);
@@ -691,7 +691,7 @@ class PgSubmissionStore implements AgentSubmissionStore {
 		return rows.map(parseSettlementObligation);
 	}
 
-	async reserveSubmissionSettlement(attempt: SubmissionAttemptRef, settlement: { recordId: string; record: import('@flue/runtime/adapter').SubmissionSettledRecord }): Promise<SubmissionSettlementObligation | null> {
+	async reserveSubmissionSettlement(attempt: SubmissionAttemptRef, settlement: { recordId: string; record: import('@bapX/runtime/adapter').SubmissionSettledRecord }): Promise<SubmissionSettlementObligation | null> {
 		if (settlement.record.id !== settlement.recordId) return null;
 		return this.runner.transaction(async (tx) => {
 			const data = JSON.stringify(settlement.record);

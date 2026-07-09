@@ -48,7 +48,7 @@ Before editing:
 
 Write `<source-dir>/channels/<provider>.ts` with a named `channel` export.
 
-If a maintained `@flue/<provider>` ingress package exists, use it. Otherwise,
+If a maintained `@bapX/<provider>` ingress package exists, use it. Otherwise,
 implement the discovered channel's structural route declarations directly:
 
 ```ts

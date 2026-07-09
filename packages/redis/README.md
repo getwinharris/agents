@@ -1,10 +1,10 @@
-# `@flue/redis`
+# `@bapX/redis`
 
 Persistent Redis and Valkey storage for Flue applications on the Node.js target.
 The package is driver-free at runtime and accepts a small Redis-native runner.
 
 ```ts
-import { redis } from '@flue/redis';
+import { redis } from '@bapX/redis';
 import { createClient } from 'redis';
 
 const client = createClient({ url: process.env.REDIS_URL });
@@ -103,7 +103,7 @@ and throw the first non-null error before returning the result values. The
 adapter also validates result count and common error-result shapes, but the
 runner remains responsible for normalizing driver-specific failures.
 
-`@flue/redis` does not bundle a production client. You own credentials, TLS,
+`@bapX/redis` does not bundle a production client. You own credentials, TLS,
 timeouts, reconnect behavior, and topology. Supply connection strings through
 your secret system and never commit credentials.
 
@@ -115,9 +115,9 @@ and reject project-owned `db.ts` adapters.
 ## Installation
 
 ```sh
-pnpm add @flue/redis redis
+pnpm add @bapX/redis redis
 ```
 
 The `redis` package above is one possible application driver. It is only a
-development dependency of `@flue/redis` and is not included in its runtime
+development dependency of `@bapX/redis` and is not included in its runtime
 artifact.

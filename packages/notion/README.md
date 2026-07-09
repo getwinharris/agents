@@ -1,4 +1,4 @@
-# `@flue/notion`
+# `@bapX/notion`
 
 Verified Notion webhook ingress for Flue.
 
@@ -7,7 +7,7 @@ initial unsigned setup token separately, then verifies exact request bytes with
 HMAC-SHA256 before calling application code for recurring events.
 
 ```ts
-import { createNotionChannel } from '@flue/notion';
+import { createNotionChannel } from '@bapX/notion';
 
 export const channel = createNotionChannel({
   verificationToken: process.env.NOTION_WEBHOOK_VERIFICATION_TOKEN!,

@@ -2,14 +2,14 @@ import type {
 	EventStreamMeta,
 	EventStreamReadResult,
 	EventStreamStore,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import {
 	clampLimit,
 	DEFAULT_READ_LIMIT,
 	formatOffset,
 	MAX_READ_LIMIT,
 	parseOffset,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import type { MongoRunner } from './mongodb-runner.ts';
 import { collectionName } from './schema.ts';
 import { type StoredValue, ValueStore } from './value-store.ts';

@@ -1,5 +1,5 @@
-import { defineTool, dispatch } from '@flue/runtime';
-import { createTeamsChannel, type TeamsConversationRef } from '@flue/teams';
+import { defineTool, dispatch } from '@bapX/runtime';
+import { createTeamsChannel, type TeamsConversationRef } from '@bapX/teams';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';
 import { createTeamsClient } from '../lib/teams-client.ts';

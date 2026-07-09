@@ -48,11 +48,11 @@ Work on one page at a time. Read:
 
 Identify the page's intended import path or configuration root. Examples:
 
-- `@flue/runtime`
-- `@flue/runtime/routing`
-- `@flue/runtime/node`
-- `@flue/runtime/cloudflare`
-- `@flue/cli/config`
+- `@bapX/runtime`
+- `@bapX/runtime/routing`
+- `@bapX/runtime/node`
+- `@bapX/runtime/cloudflare`
+- `@bapX/cli/config`
 
 ### 2. Enumerate package-visible exports
 
@@ -192,7 +192,7 @@ Use editorial grouping only where it improves lookup. Good grouping examples:
 
 - configuration fields under one authored config interface;
 - agents, profiles, harnesses, sessions, and session operations on one Agent API page;
-- application composition functions under `@flue/runtime/routing`;
+- application composition functions under `@bapX/runtime/routing`;
 - observable event unions and errors on an Events Reference page.
 
 Avoid introducing a separate manifest during the initial pass. For now:
@@ -207,9 +207,9 @@ Use these distinctions while auditing:
 
 - Runs are workflow-only. Direct agent prompts and dispatched agent inputs are not runs.
 - Agents have names; agent instances have ids; harnesses and sessions have names; operations have generated ids.
-- `@flue/runtime/internal` is generated-server plumbing, not supported user API.
+- `@bapX/runtime/internal` is generated-server plumbing, not supported user API.
 - Compatibility subpaths should not be presented as ordinary supported surfaces.
-- For `@flue/cli/config`, distinguish authored configuration such as `UserFlueConfig` from resolved internal shapes such as `FlueConfig`.
+- For `@bapX/cli/config`, distinguish authored configuration such as `UserFlueConfig` from resolved internal shapes such as `FlueConfig`.
 
 ## Completion handoff
 

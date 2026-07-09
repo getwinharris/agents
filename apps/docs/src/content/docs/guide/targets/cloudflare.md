@@ -116,7 +116,7 @@ For the full recovery model, see [Durable Agents](/docs/concepts/durable-executi
 A Flue Worker deployed without a public route can still be reached from another Worker through a [service binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/). The SDK client sends every request through its `fetch` option, so point that option at the binding instead of the network:
 
 ```ts
-import { createFlueClient } from '@flue/sdk';
+import { createFlueClient } from '@bapX/sdk';
 
 type Env = { AGENT_APP: Fetcher };
 
@@ -169,8 +169,8 @@ To customize the gateway, disable it, or target a named gateway, re-register the
 
 ```ts
 import { getSandbox } from '@cloudflare/sandbox';
-import { defineAgent } from '@flue/runtime';
-import { cloudflareSandbox } from '@flue/runtime/cloudflare';
+import { defineAgent } from '@bapX/runtime';
+import { cloudflareSandbox } from '@bapX/runtime/cloudflare';
 
 type Env = { Sandbox: DurableObjectNamespace };
 
@@ -195,7 +195,7 @@ Add the sandbox adapter to your project:
 pnpm exec flue add sandbox cloudflare-shell
 ```
 
-Then import its helpers from your generated sandbox adapter file, not from `@flue/runtime/cloudflare`:
+Then import its helpers from your generated sandbox adapter file, not from `@bapX/runtime/cloudflare`:
 
 ```ts
 import { getDefaultWorkspace, getShellSandbox } from '../sandboxes/cloudflare-shell';
@@ -208,8 +208,8 @@ Use Cloudflare Shell when a durable Workspace and structured code operations are
 Flue owns each generated Durable Object class. When an agent or workflow needs access to native Cloudflare Agents SDK capabilities such as `onStart()`, `schedule()`, `scheduleEvery()`, or `queue()`, export a `cloudflare` extension descriptor from its module:
 
 ```ts
-import { defineAgent } from '@flue/runtime';
-import { extend } from '@flue/runtime/cloudflare';
+import { defineAgent } from '@bapX/runtime';
+import { extend } from '@bapX/runtime/cloudflare';
 
 export default defineAgent(() => ({
   model: 'anthropic/claude-sonnet-4-6',
@@ -283,7 +283,7 @@ Use `cloudflare.ts` for Worker-level events such as inbound email, queues, or cr
 ### `extend(...)`
 
 ```ts
-import { extend } from '@flue/runtime/cloudflare';
+import { extend } from '@bapX/runtime/cloudflare';
 
 function extend<TBase extends object = CloudflareAgentLike, TEnv = any>(
   extension: CloudflareExtension<TBase, TEnv>,
@@ -303,7 +303,7 @@ Both callbacks are optional. When omitted, the corresponding step is an identity
 ### `getCloudflareContext()`
 
 ```ts
-import { getCloudflareContext } from '@flue/runtime/cloudflare';
+import { getCloudflareContext } from '@bapX/runtime/cloudflare';
 
 function getCloudflareContext(): CloudflareContext;
 ```
@@ -322,7 +322,7 @@ This is intended for advanced application-owned integrations such as custom Clou
 ### `getDurableObjectIdentity()`
 
 ```ts
-import { getDurableObjectIdentity } from '@flue/runtime/cloudflare';
+import { getDurableObjectIdentity } from '@bapX/runtime/cloudflare';
 
 function getDurableObjectIdentity(): FlueDurableObjectIdentity;
 ```

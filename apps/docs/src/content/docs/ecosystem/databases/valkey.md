@@ -2,8 +2,8 @@
 title: Valkey
 description: Give Flue agents and workflow runs durable, shared state with Valkey.
 package:
-  name: '@flue/redis'
-  href: https://www.npmjs.com/package/@flue/redis
+  name: '@bapX/redis'
+  href: https://www.npmjs.com/package/@bapX/redis
 ---
 
 ## Quickstart
@@ -16,7 +16,7 @@ flue add database valkey
 
 ## Overview
 
-The Valkey blueprint installs `@flue/redis` and the official Redis `redis`
+The Valkey blueprint installs `@bapX/redis` and the official Redis `redis`
 client, creates a `db.ts` in the project's source-root, and follows the
 project's existing secret convention for `VALKEY_URL`. It does not modify
 deployment configuration because persistence and recovery settings remain
@@ -26,7 +26,7 @@ The primary generated adapter connects the client and translates Flue database
 operations into Redis-protocol commands supported by Valkey:
 
 ```ts title="src/db.ts (abridged)"
-import { redis } from '@flue/redis';
+import { redis } from '@bapX/redis';
 import { createClient } from 'redis';
 
 const client = createClient({ url: process.env.VALKEY_URL });
@@ -51,7 +51,7 @@ depends on the deployment's AOF or snapshot configuration.
 | ------------ | -------------------------------------------------------------------------------------------- |
 | `VALKEY_URL` | **Required** — Connection URL for a persistent standalone or single-shard Valkey deployment. |
 
-The blueprint installs `@flue/redis` and the official Redis `redis`
+The blueprint installs `@bapX/redis` and the official Redis `redis`
 (node-redis) client, then writes a source-root `db.ts`. Valkey implements the
 Redis protocol and commands this adapter uses. This support is specific to
 Valkey and does not imply that every Redis-compatible provider is supported.
@@ -69,7 +69,7 @@ durable across server loss.
 The canonical runner uses node-redis over Valkey's Redis protocol:
 
 ```ts title="src/db.ts"
-import { redis } from '@flue/redis';
+import { redis } from '@bapX/redis';
 import { createClient } from 'redis';
 
 const client = createClient({ url: process.env.VALKEY_URL });

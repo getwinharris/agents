@@ -62,7 +62,7 @@ function parseChunkRow(row: Record<string, unknown>): PersistedChunkRow {
 		!Number.isInteger(row.chunk_count) ||
 		typeof row.data !== 'string'
 	) {
-		throw new Error('[flue] Persisted image chunk row is malformed.');
+		throw new Error('[bapX] Persisted image chunk row is malformed.');
 	}
 	return {
 		imageId: row.image_id,

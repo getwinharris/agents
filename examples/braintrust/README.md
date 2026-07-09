@@ -16,7 +16,7 @@ The integration lives in [`src/app.ts`](src/app.ts). Workflows do not import Bra
 The example pins Braintrust 3.17 and registers only the lifecycle events its Flue observer consumes:
 
 ```ts
-import { type FlueEvent, observe } from '@flue/runtime';
+import { type FlueEvent, observe } from '@bapX/runtime';
 import { braintrustFlueObserver, initLogger } from 'braintrust';
 
 const apiKey = process.env.BRAINTRUST_API_KEY;
@@ -93,7 +93,7 @@ Workflows are the only Flue executions represented as runs. Direct or dispatched
 
 ## Sensitive content
 
-Braintrust's observer is content-bearing. Braintrust 3.17 does not currently read Flue's public `run_start.input`, but it can export workflow results, model messages and output, reasoning, system prompts, tool definitions and values, task content, errors, and correlation metadata. Use Braintrust's masking support and review retention and access requirements before enabling it for sensitive workloads. See the [Braintrust ecosystem guide](https://flueframework.com/docs/ecosystem/tooling/braintrust/).
+Braintrust's observer is content-bearing. Braintrust 3.17 does not currently read Flue's public `run_start.input`, but it can export workflow results, model messages and output, reasoning, system prompts, tool definitions and values, task content, errors, and correlation metadata. Use Braintrust's masking support and review retention and access requirements before enabling it for sensitive workloads. See the [Braintrust ecosystem guide](https://bapx.in/docs/ecosystem/tooling/braintrust/).
 
 ## Running it
 

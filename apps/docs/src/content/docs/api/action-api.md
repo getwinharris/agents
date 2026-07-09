@@ -1,10 +1,10 @@
 ---
 title: Action API
-description: Reference for defining reusable finite Actions with @flue/runtime.
+description: Reference for defining reusable finite Actions with @bapX/runtime.
 lastReviewedAt: 2026-06-19
 ---
 
-The Action API is exported from `@flue/runtime`.
+The Action API is exported from `@bapX/runtime`.
 
 ## `defineAction()`
 

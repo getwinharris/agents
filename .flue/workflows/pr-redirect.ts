@@ -26,8 +26,8 @@
  * before adding any secret to the sandbox.
  */
 
-import { defineAgent, defineWorkflow, type FlueSession } from '@flue/runtime';
-import { local } from '@flue/runtime/node';
+import { defineAgent, defineWorkflow, type FlueSession } from '@bapX/runtime';
+import { local } from '@bapX/runtime/node';
 import * as v from 'valibot';
 import {
 	closePullRequest,

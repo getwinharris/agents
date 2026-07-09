@@ -4,7 +4,7 @@ description: Configure an SDK client for a deployed Flue application.
 ---
 
 ```ts
-import { createFlueClient } from '@flue/sdk';
+import { createFlueClient } from '@bapX/sdk';
 
 const client = createFlueClient({
   baseUrl: 'https://example.com/api',

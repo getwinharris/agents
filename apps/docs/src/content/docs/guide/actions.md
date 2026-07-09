@@ -12,7 +12,7 @@ Actions give [workflows](/docs/guide/workflows/) and [agents](/docs/guide/buildi
 Create an Action with `defineAction()`:
 
 ```ts title="src/actions/summarize.ts"
-import { defineAction } from '@flue/runtime';
+import { defineAction } from '@bapX/runtime';
 import * as v from 'valibot';
 
 export const summarize = defineAction({
@@ -45,7 +45,7 @@ This guide uses `src/actions/` to organize shared Actions, but Flue does not dis
 Bind the Action to an agent with `defineWorkflow()`:
 
 ```ts title="src/workflows/summarize.ts"
-import { defineAgent, defineWorkflow } from '@flue/runtime';
+import { defineAgent, defineWorkflow } from '@bapX/runtime';
 import { summarize } from '../actions/summarize.ts';
 
 export default defineWorkflow({
@@ -65,7 +65,7 @@ For behavior used by only one workflow, define `input`, `output`, and `run` dire
 Add an Action to the agent's `actions` list when the model should decide when to run it:
 
 ```ts title="src/agents/editor.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { summarize } from '../actions/summarize.ts';
 
 export default defineAgent(() => ({

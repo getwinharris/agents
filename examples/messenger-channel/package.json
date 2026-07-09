@@ -10,13 +10,13 @@
 		"test:workerd": "vitest run --config vitest.workerd.config.ts"
 	},
 	"dependencies": {
-		"@flue/messenger": "workspace:*",
-		"@flue/runtime": "workspace:*",
+		"@bapX/messenger": "workspace:*",
+		"@bapX/runtime": "workspace:*",
 		"valibot": "^1.0.0"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "0.16.15",
-		"@flue/cli": "workspace:*",
+		"@bapX/cli": "workspace:*",
 		"agents": "^0.14.2",
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.6"

@@ -17,7 +17,7 @@ flue add tooling sentry
 The Sentry blueprint creates a source-root `sentry.ts` and imports it once from `app.ts`. On Node.js, the core of that generated bridge looks like this:
 
 ```ts title="src/sentry.ts (abridged)"
-import { observe } from '@flue/runtime';
+import { observe } from '@bapX/runtime';
 import * as Sentry from '@sentry/node';
 
 Sentry.init({

@@ -18,7 +18,7 @@ first existing source root: `<root>/.flue/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 the Facebook Page the application owns.
 
-Install `@flue/messenger`. Flue owns GET verification, exact-body
+Install `@bapX/messenger`. Flue owns GET verification, exact-body
 `X-Hub-Signature-256` validation, fixed Page identity, the provider-native
 payload, and canonical conversation keys. The project owns Page access tokens,
 outbound Graph API behavior, tools, dispatch policy, and durable duplicate
@@ -67,8 +67,8 @@ dispatched message, and tool:
 import {
   createMessengerChannel,
   type MessengerConversationRef,
-} from '@flue/messenger';
-import { defineTool, dispatch } from '@flue/runtime';
+} from '@bapX/messenger';
+import { defineTool, dispatch } from '@bapX/runtime';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';
 import { MessengerClient } from '../messenger-client.ts';
@@ -140,7 +140,7 @@ export function postMessage(ref: MessengerConversationRef) {
 ## Wire the agent
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, postMessage } from '../channels/messenger.ts';
 
 export default defineAgent(({ id }) => ({

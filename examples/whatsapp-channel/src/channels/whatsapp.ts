@@ -1,5 +1,5 @@
-import { defineTool, dispatch } from '@flue/runtime';
-import { createWhatsAppChannel, type WhatsAppConversationRef } from '@flue/whatsapp';
+import { defineTool, dispatch } from '@bapX/runtime';
+import { createWhatsAppChannel, type WhatsAppConversationRef } from '@bapX/whatsapp';
 import { WhatsAppClient } from '@kapso/whatsapp-cloud-api';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';

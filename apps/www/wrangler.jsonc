@@ -1,8 +1,8 @@
 {
-	"name": "flue-www",
+	"name": "bapX-www",
 	"compatibility_date": "2026-06-01",
 	"preview_urls": true,
-	"routes": [{ "pattern": "flueframework.com", "custom_domain": true }],
+	"routes": [{ "pattern": "bapx.in", "custom_domain": true }],
 	"assets": {
 		"directory": "./dist",
 		"html_handling": "auto-trailing-slash",

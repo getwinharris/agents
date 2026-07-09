@@ -21,8 +21,8 @@ The islo blueprint creates `sandboxes/islo.ts` in your source-root without addin
 ```ts title="<source-root>/sandboxes/islo.ts (abridged)"
 // flue-blueprint: sandbox/islo@1
 import { spawn } from 'node:child_process';
-import { createSandboxSessionEnv } from '@flue/runtime';
-import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@flue/runtime';
+import { createSandboxSessionEnv } from '@bapX/runtime';
+import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 
 export interface IsloAdapterOptions {
   cwd?: string;

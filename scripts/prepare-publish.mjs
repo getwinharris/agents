@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Prepares publish artifacts for the core packages (`@flue/cli`,
- * `@flue/runtime`, and `@flue/sdk`):
+ * Prepares publish artifacts for the core packages (`@bapX/cli`,
+ * `@bapX/runtime`, and `@bapX/sdk`):
  * - Copies `apps/docs/src/content/docs` into `<package>/docs` for agent consumption.
  * - Syncs the root README.md into each package.
  * - Embeds the `flue docs` catalog into the installable Flue skill.
@@ -22,7 +22,7 @@ const skillPath = join(repoRoot, 'skills/flue/SKILL.md');
 const catalogStart = '<!-- flue-docs-catalog:start -->';
 const catalogEnd = '<!-- flue-docs-catalog:end -->';
 
-const PUBLISH_ARTIFACT_PACKAGES = new Set(['@flue/cli', '@flue/runtime', '@flue/sdk']);
+const PUBLISH_ARTIFACT_PACKAGES = new Set(['@bapX/cli', '@bapX/runtime', '@bapX/sdk']);
 
 export function embedDocsCatalog(skillSource, catalog) {
 	const start = skillSource.indexOf(catalogStart);

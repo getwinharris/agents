@@ -97,7 +97,7 @@ jobs:
       - name: Build Flue runtime + SDK + CLI
         # Only the packages the agent imports from. Other workspaces
         # don't need to build.
-        run: pnpm --filter @flue/runtime --filter @flue/sdk --filter @flue/cli build
+        run: pnpm --filter @bapX/runtime --filter @bapX/sdk --filter @bapX/cli build
 
       - name: Run pr-redirect workflow
         env:

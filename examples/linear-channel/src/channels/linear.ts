@@ -2,8 +2,8 @@ import {
 	createLinearChannel,
 	type LinearConversationRef,
 	type LinearWebhookPayload,
-} from '@flue/linear';
-import { defineTool, dispatch } from '@flue/runtime';
+} from '@bapX/linear';
+import { defineTool, dispatch } from '@bapX/runtime';
 import { LinearClient } from '@linear/sdk';
 import type {
 	AgentSessionEventWebhookPayload,

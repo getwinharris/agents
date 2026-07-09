@@ -5,11 +5,11 @@ import {
 	type ModelRequestInfo as RuntimeModelRequestInfo,
 	type PromptUsage as RuntimePromptUsage,
 	type RunRecord as RuntimeRunRecord,
-} from '@flue/runtime';
+} from '@bapX/runtime';
 import type {
 	AgentConversationSnapshot as RuntimeConversationSnapshot,
 	ConversationStreamChunk as RuntimeConversationChunk,
-} from '@flue/runtime/internal';
+} from '@bapX/runtime/internal';
 // `ConversationStreamChunk` is internal to the SDK (not public API), but the
 // wire-conformance assertions below must still pin it to the runtime shape.
 import type { ConversationStreamChunk as SdkConversationChunk } from '../src/public/conversation-stream.ts';

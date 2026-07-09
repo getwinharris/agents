@@ -1,4 +1,4 @@
-import type { WorkflowRunPointer } from '@flue/runtime';
+import type { WorkflowRunPointer } from '@bapX/runtime';
 import type {
 	AgentAttemptMarker,
 	AgentDispatchAdmission,
@@ -23,7 +23,7 @@ import type {
 	RunStore,
 	SubmissionAttemptRef,
 	SubmissionClaimRef,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import {
 	admitSubmissionWithBackend,
 	assertSupportedFlueSchemaVersion,
@@ -47,7 +47,7 @@ import {
 	SUBMISSION_HARNESS_NAME,
 	SUBMISSION_SESSION_NAME,
 	submissionChunkOwner,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import { MysqlAttachmentStore } from './mysql-attachment-store.ts';
 import {
 	createMysqlConversationStreamStore,
@@ -820,11 +820,11 @@ class MysqlSubmissionStore implements AgentSubmissionStore {
 		});
 	}
 
-	async listPendingSubmissionSettlements(): Promise<import('@flue/runtime/adapter').SubmissionSettlementObligation[]> {
+	async listPendingSubmissionSettlements(): Promise<import('@bapX/runtime/adapter').SubmissionSettlementObligation[]> {
 		const rows = await this.runner.query(`SELECT submission_id, session_key, attempt_id, settlement_record_id, settlement_record FROM flue_agent_submissions WHERE kind = 'direct' AND status = 'terminalizing' ORDER BY sequence ASC`);
 		return rows.map((row) => ({ submissionId: String(row.submission_id), sessionKey: String(row.session_key), attemptId: String(row.attempt_id), recordId: String(row.settlement_record_id), record: JSON.parse(String(row.settlement_record)) }));
 	}
-	async reserveSubmissionSettlement(attempt: SubmissionAttemptRef, settlement: { recordId: string; record: import('@flue/runtime/adapter').SubmissionSettledRecord }): Promise<import('@flue/runtime/adapter').SubmissionSettlementObligation | null> {
+	async reserveSubmissionSettlement(attempt: SubmissionAttemptRef, settlement: { recordId: string; record: import('@bapX/runtime/adapter').SubmissionSettledRecord }): Promise<import('@bapX/runtime/adapter').SubmissionSettlementObligation | null> {
 		if (settlement.record.id !== settlement.recordId) return null;
 		return this.runner.transaction(async (tx) => {
 			const data = JSON.stringify(settlement.record);

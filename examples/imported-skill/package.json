@@ -3,12 +3,12 @@
 	"private": true,
 	"type": "module",
 	"dependencies": {
-		"@flue/runtime": "workspace:*",
+		"@bapX/runtime": "workspace:*",
 		"agents": "^0.14.2",
 		"just-bash": "^3.0.1"
 	},
 	"devDependencies": {
-		"@flue/cli": "workspace:*",
+		"@bapX/cli": "workspace:*",
 		"wrangler": "^4.97.0"
 	}
 }

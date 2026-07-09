@@ -1,4 +1,4 @@
-import { createSessionStorageKey, PersistedSchemaVersionError } from '@flue/runtime/adapter';
+import { createSessionStorageKey, PersistedSchemaVersionError } from '@bapX/runtime/adapter';
 import { describe, expect, it } from 'vitest';
 import {
 	type MongoCollection,

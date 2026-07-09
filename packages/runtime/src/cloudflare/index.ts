@@ -1,9 +1,9 @@
 /**
- * Public authoring surface of `@flue/runtime/cloudflare`: APIs that user
+ * Public authoring surface of `@bapX/runtime/cloudflare`: APIs that user
  * agent/workflow modules import on the Cloudflare target.
  *
  * Generated-entry plumbing lives in `./internal.ts`
- * (`@flue/runtime/cloudflare/internal`), which also owns the
+ * (`@bapX/runtime/cloudflare/internal`), which also owns the
  * `cloudflare:workers` import graph — keep that virtual module out of this
  * entry's runtime graph (type-only imports are fine; they erase at build).
  */

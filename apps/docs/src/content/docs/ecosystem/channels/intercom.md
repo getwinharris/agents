@@ -2,8 +2,8 @@
 title: Intercom
 description: Receive verified Intercom notifications and use a workspace-bound official client from application-owned tools.
 package:
-  name: '@flue/intercom'
-  href: https://www.npmjs.com/package/@flue/intercom
+  name: '@bapX/intercom'
+  href: https://www.npmjs.com/package/@bapX/intercom
 ---
 
 ## Quickstart
@@ -16,11 +16,11 @@ flue add channel intercom
 
 ## Overview
 
-The Intercom blueprint installs `@flue/intercom` and the official `intercom-client` SDK, creates a project-owned client factory at the source-root `intercom-client.ts`, and creates `channels/intercom.ts`. It also updates the selected agent to bind a conversation-retrieval tool to the verified workspace and conversation.
+The Intercom blueprint installs `@bapX/intercom` and the official `intercom-client` SDK, creates a project-owned client factory at the source-root `intercom-client.ts`, and creates `channels/intercom.ts`. It also updates the selected agent to bind a conversation-retrieval tool to the verified workspace and conversation.
 
 ```ts title="src/channels/intercom.ts (abridged)"
-import { createIntercomChannel, type IntercomConversationRef } from '@flue/intercom';
-import { dispatch } from '@flue/runtime';
+import { createIntercomChannel, type IntercomConversationRef } from '@bapX/intercom';
+import { dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 import { createIntercomClient } from '../intercom-client.ts';
 
@@ -67,7 +67,7 @@ The abridged example shows one dispatched topic and omits the generated environm
 | `INTERCOM_WORKSPACE_ID`  | **Required** — Restricts resource identity to one Intercom workspace. |
 | `INTERCOM_REGION`        | **Optional** — Selects `us`, `eu`, or `au`; defaults to `us`.         |
 
-It installs `@flue/intercom` and the official
+It installs `@bapX/intercom` and the official
 `intercom-client@7.0.3`. The blueprint creates named `channel` and project-owned
 `client` exports.
 
@@ -87,8 +87,8 @@ import {
   createIntercomChannel,
   type IntercomConversationRef,
   type JsonValue,
-} from '@flue/intercom';
-import { defineTool, dispatch } from '@flue/runtime';
+} from '@bapX/intercom';
+import { defineTool, dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 import { createIntercomClient, type IntercomRegion } from '../intercom-client.ts';
 
@@ -239,7 +239,7 @@ official SDK supports it.
 ## Bind the tool
 
 ```ts title="src/agents/assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, retrieveConversation } from '../channels/intercom.ts';
 
 export default defineAgent(({ id }) => {
@@ -279,7 +279,7 @@ X-Hub-Signature: sha1=<40 hexadecimal characters>
 ```
 
 Intercom computes HMAC-SHA1 over the exact request body using the developer app
-client secret. `@flue/intercom` retains and verifies those bytes before UTF-8
+client secret. `@bapX/intercom` retains and verifies those bytes before UTF-8
 decoding or JSON parsing. A changed body, missing or malformed signature, or
 wrong secret is rejected before `webhook` runs.
 
@@ -353,4 +353,4 @@ disable retries, assert the exact host, path, method, authorization, version,
 and region, and reject every unexpected destination. Do not register a webhook,
 perform OAuth, obtain a real token, or contact Intercom.
 
-See the [`@flue/intercom` README](https://github.com/withastro/flue/tree/main/packages/intercom#readme).
+See the [`@bapX/intercom` README](https://github.com/getwinharris/agents/tree/main/packages/intercom#readme).

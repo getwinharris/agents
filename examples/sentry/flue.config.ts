@@ -1,4 +1,4 @@
-import { defineConfig } from '@flue/cli/config';
+import { defineConfig } from '@bapX/cli/config';
 
 /**
  * Build-time config. `target` is intentionally unset so this example

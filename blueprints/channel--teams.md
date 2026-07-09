@@ -18,7 +18,7 @@ first existing source root: `<root>/.flue/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 the activity families the application needs.
 
-Install `@flue/teams`. Do not install `@microsoft/agents-hosting` or
+Install `@bapX/teams`. Do not install `@microsoft/agents-hosting` or
 `@microsoft/teams.apps` as the canonical client: their current packages declare
 Node runtimes and depend on Node-oriented MSAL, JWT, HTTP, or Express
 infrastructure. Use the documented OAuth client-credentials and Bot Connector
@@ -56,9 +56,9 @@ message, event policy, and tool:
 
 ```ts
 // flue-blueprint: channel/teams@1
-import { defineTool, dispatch } from '@flue/runtime';
+import { defineTool, dispatch } from '@bapX/runtime';
 import * as v from 'valibot';
-import { createTeamsChannel, type TeamsConversationRef } from '@flue/teams';
+import { createTeamsChannel, type TeamsConversationRef } from '@bapX/teams';
 import assistant from '../agents/assistant.ts';
 import { createTeamsClient } from '../lib/teams-client.ts';
 
@@ -119,7 +119,7 @@ body or use the Hono context for explicit status and response control.
 ## Wire the agent
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, postMessage } from '../channels/teams.ts';
 
 export default defineAgent(({ id }) => ({

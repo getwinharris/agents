@@ -1,12 +1,12 @@
 import { randomUUID } from 'node:crypto';
-import { PersistedSchemaVersionError } from '@flue/runtime/adapter';
+import { PersistedSchemaVersionError } from '@bapX/runtime/adapter';
 import {
 	defineAttachmentStoreContractTests,
 	defineConversationStreamStoreContractTests,
 	defineEventStreamStoreContractTests,
 	defineRunStoreContractTests,
 	defineStoreContractTests,
-} from '@flue/runtime/test-utils';
+} from '@bapX/runtime/test-utils';
 import { createClient, RESP_TYPES } from 'redis';
 import { describe, expect, it } from 'vitest';
 import { type RedisRunner, redis } from '../src/index.ts';

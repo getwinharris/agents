@@ -2,8 +2,8 @@
 title: Linear
 description: Receive verified Linear resource and agent-session webhooks with a project-owned SDK client.
 package:
-  name: '@flue/linear'
-  href: https://www.npmjs.com/package/@flue/linear
+  name: '@bapX/linear'
+  href: https://www.npmjs.com/package/@bapX/linear
 ---
 
 ## Quickstart
@@ -16,14 +16,14 @@ flue add channel linear
 
 ## Overview
 
-The blueprint installs `@flue/linear` and the official `@linear/sdk`, creates a
+The blueprint installs `@bapX/linear` and the official `@linear/sdk`, creates a
 source-root `channels/linear.ts` module with named `channel` and project-owned
 `client` exports, and modifies the selected agent to bind the generated message
 tool.
 
 ```ts title="src/channels/linear.ts (abridged)"
-import { createLinearChannel } from '@flue/linear';
-import { dispatch } from '@flue/runtime';
+import { createLinearChannel } from '@bapX/linear';
+import { dispatch } from '@bapX/runtime';
 import { LinearClient } from '@linear/sdk';
 import assistant from '../agents/assistant.ts';
 
@@ -75,7 +75,7 @@ SDK also supports the generated agent-session path and runs with Flue's
 | `LINEAR_ORGANIZATION_ID` | **Optional** — Restricts inbound deliveries to one Linear organization. |
 | `LINEAR_WEBHOOK_ID`      | **Optional** — Restricts inbound deliveries to one configured webhook.  |
 
-It installs `@flue/linear` for verified ingress and the official
+It installs `@bapX/linear` for verified ingress and the official
 `@linear/sdk` for project-owned outbound API access. Linear uses that SDK in
 its own Cloudflare Workers agent example with `nodejs_compat`, which Flue's
 Cloudflare target already enables.
@@ -93,8 +93,8 @@ import {
   createLinearChannel,
   type LinearConversationRef,
   type LinearWebhookPayload,
-} from '@flue/linear';
-import { defineTool, dispatch } from '@flue/runtime';
+} from '@bapX/linear';
+import { defineTool, dispatch } from '@bapX/runtime';
 import { LinearClient } from '@linear/sdk';
 import * as v from 'valibot';
 import type {
@@ -207,7 +207,7 @@ application concerns.
 ## Bind the tool
 
 ```ts title="src/agents/assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, postMessage } from '../channels/linear.ts';
 
 export default defineAgent(({ id }) => ({
@@ -270,4 +270,4 @@ The channel requires Linear's UUID-v4 `Linear-Delivery` header and exposes it
 for application-owned deduplication, but does not persist delivery state.
 Conversation keys validate syntax, not authorization.
 
-See the [`@flue/linear` README](https://github.com/withastro/flue/tree/main/packages/linear#readme).
+See the [`@bapX/linear` README](https://github.com/getwinharris/agents/tree/main/packages/linear#readme).

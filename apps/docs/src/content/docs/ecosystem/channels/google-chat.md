@@ -2,8 +2,8 @@
 title: Google Chat
 description: Receive authenticated Google Chat interactions and Workspace Events with a project-owned REST client.
 package:
-  name: '@flue/google-chat'
-  href: https://www.npmjs.com/package/@flue/google-chat
+  name: '@bapX/google-chat'
+  href: https://www.npmjs.com/package/@bapX/google-chat
 lastReviewedAt: 2026-06-14
 ---
 
@@ -17,7 +17,7 @@ flue add channel google-chat
 
 ## Overview
 
-The blueprint installs `@flue/google-chat` and `jose`. It creates a narrow
+The blueprint installs `@bapX/google-chat` and `jose`. It creates a narrow
 service-account Fetch client at `<source-root>/lib/google-chat-client.ts` and
 `<source-root>/channels/google-chat.ts` with named `channel`, project-owned
 `client`, and message-tool exports, then wires the tool into an agent. The
@@ -25,8 +25,8 @@ primary generated path handles direct interactions; authenticated Pub/Sub push
 for Workspace Events is an optional section in the same channel module.
 
 ```ts title="src/channels/google-chat.ts (abridged)"
-import { createGoogleChatChannel } from '@flue/google-chat';
-import { dispatch } from '@flue/runtime';
+import { createGoogleChatChannel } from '@bapX/google-chat';
+import { dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 import { createGoogleChatClient } from '../lib/google-chat-client.ts';
 
@@ -90,7 +90,7 @@ Cloudflare targets use standards-based Fetch and Web Crypto.
 | `GOOGLE_CHAT_CLIENT_EMAIL`           | **Required for outbound API calls** — Identifies the service account used to request a `chat.bot` access token.                      |
 | `GOOGLE_CHAT_PRIVATE_KEY`            | **Required for outbound API calls** — Signs the service-account JWT assertion used for the OAuth token exchange.                     |
 
-The blueprint installs and configures `@flue/google-chat` for authenticated inbound
+The blueprint installs and configures `@bapX/google-chat` for authenticated inbound
 requests and `jose` for a project-owned outbound Fetch client. After running the
 command, you will have a new `src/channels/google-chat.ts` module exporting
 `channel`, `client`, and an application-owned message tool.
@@ -105,10 +105,10 @@ https://example.com/channels/google-chat/interactions
 ```
 
 Set `GOOGLE_CHAT_APP_URL` to that exact URL. With endpoint-URL authentication,
-`@flue/google-chat` verifies Google's signature, issuer, expiration, exact
+`@bapX/google-chat` verifies Google's signature, issuer, expiration, exact
 audience, and `chat@system.gserviceaccount.com` identity before invoking the
 handler. The package also supports Google's project-number authentication mode;
-see the [`@flue/google-chat` README](https://github.com/withastro/flue/tree/main/packages/google-chat#readme) when the Chat app is
+see the [`@bapX/google-chat` README](https://github.com/getwinharris/agents/tree/main/packages/google-chat#readme) when the Chat app is
 configured for that mode.
 
 For Workspace Events, the audience and service-account email must match the
@@ -128,8 +128,8 @@ Configure only the surfaces your application handles. Omitting `interactions` or
 ### Google Chat interactions
 
 ```ts title="src/channels/google-chat.ts"
-import { createGoogleChatChannel, type GoogleChatConversationRef } from '@flue/google-chat';
-import { dispatch } from '@flue/runtime';
+import { createGoogleChatChannel, type GoogleChatConversationRef } from '@bapX/google-chat';
+import { dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 
 export const channel = createGoogleChatChannel({
@@ -269,7 +269,7 @@ application concerns.
 ## Outbound REST
 
 Outbound Google Chat operations belong to the generated project-owned Fetch
-client, not `@flue/google-chat`:
+client, not `@bapX/google-chat`:
 
 ```ts title="src/channels/google-chat.ts"
 import { createGoogleChatClient } from '../lib/google-chat-client.ts';
@@ -290,8 +290,8 @@ Use the client to define an application-owned tool whose destination and
 credentials are bound in trusted code:
 
 ```ts title="src/channels/google-chat.ts"
-import type { GoogleChatConversationRef } from '@flue/google-chat';
-import { defineTool } from '@flue/runtime';
+import type { GoogleChatConversationRef } from '@bapX/google-chat';
+import { defineTool } from '@bapX/runtime';
 import * as v from 'valibot';
 
 export function postMessage(ref: GoogleChatConversationRef) {
@@ -310,7 +310,7 @@ export function postMessage(ref: GoogleChatConversationRef) {
 Bind the destination when creating the agent:
 
 ```ts title="src/agents/assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, postMessage } from '../channels/google-chat.ts';
 
 export default defineAgent(({ id }) => ({
@@ -335,7 +335,7 @@ admission is unacceptable. `delivery.deliveryAttempt` is retry metadata, not a
 unique identifier. The channel is stateless and does not deduplicate Pub/Sub
 message ids, CloudEvent ids, or direct interactions.
 
-`@flue/google-chat` ingress is tested in Node and workerd using Fetch and Web
+`@bapX/google-chat` ingress is tested in Node and workerd using Fetch and Web
 Crypto. The generated Fetch client is also exercised in both runtimes for
 service-account assertion signing, OAuth token exchange construction, and one
 threaded message request against a fail-closed fake transport. Cloudflare builds

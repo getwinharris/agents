@@ -1,10 +1,10 @@
-# `@flue/salesforce`
+# `@bapX/salesforce`
 
 Verified Salesforce Marketing Cloud Engagement Event Notification Service
 (ENS) ingress for Flue.
 
 ```ts
-import { createSalesforceMarketingCloudChannel } from '@flue/salesforce';
+import { createSalesforceMarketingCloudChannel } from '@bapX/salesforce';
 
 export const channel = createSalesforceMarketingCloudChannel({
   signatureKey: process.env.SALESFORCE_MARKETING_CLOUD_SIGNATURE_KEY!,

@@ -118,7 +118,7 @@ export class ConversationRecordWriter {
 		const matches = [...(await this.loadReducedState()).conversations.values()].filter(
 			(conversation) => conversation.harness === harness && conversation.session === session,
 		);
-		if (matches.length > 1) throw new Error('[flue] Multiple active canonical conversations share one session scope.');
+		if (matches.length > 1) throw new Error('[bapX] Multiple active canonical conversations share one session scope.');
 		return matches[0];
 	}
 
@@ -149,7 +149,7 @@ export class ConversationRecordWriter {
 		try {
 			this.assertActive();
 			if (this.pendingRecords.length > 0 && !sameAppendOptions(this.pendingOptions ?? {}, options)) {
-				throw new Error('[flue] Canonical batch ownership changed before the pending batch flushed.');
+				throw new Error('[bapX] Canonical batch ownership changed before the pending batch flushed.');
 			}
 			this.pendingOptions = options;
 			this.pendingRecords.push(...records);
@@ -285,7 +285,7 @@ export class ConversationRecordWriter {
 		const state = await this.loadReducedState();
 		const parent = state.conversations.get(input.parent.conversationId);
 		if (!parent || parent.harness !== input.parent.harness || parent.session !== input.parent.session) {
-			throw new Error('[flue] Canonical child parent is missing or conflicts with its scope.');
+			throw new Error('[bapX] Canonical child parent is missing or conflicts with its scope.');
 		}
 		const existing = state.conversations.get(input.child.conversationId);
 		const retained = parent.childConversations.get(input.child.conversationId);
@@ -298,7 +298,7 @@ export class ConversationRecordWriter {
 				existing.parentConversationId !== input.parent.conversationId ||
 				JSON.stringify(retained) !== JSON.stringify(input.ref)
 			) {
-				throw new Error('[flue] Canonical child conversation conflicts with retained topology.');
+				throw new Error('[bapX] Canonical child conversation conflicts with retained topology.');
 			}
 			return { offset: state.recordsThroughOffset };
 		}
@@ -354,7 +354,7 @@ export class ConversationRecordWriter {
 				existing.taskId !== input.taskId ||
 				existing.actionInvocationId !== input.actionInvocationId
 			) {
-				throw new Error('[flue] Canonical conversation identity conflicts with the requested session.');
+				throw new Error('[bapX] Canonical conversation identity conflicts with the requested session.');
 			}
 			return { offset: state.recordsThroughOffset };
 		}

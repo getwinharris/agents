@@ -3,10 +3,10 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-	site: 'https://flueframework.com',
-	base: '/docs',
+	site: 'https://docs.bapx.in',
+	base: '/',
 	trailingSlash: 'always',
-	outDir: './dist/docs',
+	outDir: './dist',
 	output: 'static',
 	integrations: [mdx()],
 	markdown: {

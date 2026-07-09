@@ -25,7 +25,7 @@ Add a [Cron Trigger](https://developers.cloudflare.com/workers/configuration/cro
 Then import the discovered Workflow's default export and invoke it from `src/cloudflare.ts`:
 
 ```ts title="src/cloudflare.ts"
-import { invoke } from '@flue/runtime';
+import { invoke } from '@bapX/runtime';
 import dailySummary from './workflows/daily-summary.ts';
 
 export default {
@@ -47,7 +47,7 @@ export default {
 Node.js does not include a built-in cron scheduler, so choose an ecosystem option that fits how your application is deployed. This example uses [Croner](https://croner.56k.guru/), a lightweight scheduler with async callbacks, overlap protection, and timezone support:
 
 ```ts title="src/app.ts"
-import { invoke } from '@flue/runtime';
+import { invoke } from '@bapX/runtime';
 import { Cron } from 'croner';
 import dailySummary from './workflows/daily-summary.ts';
 
@@ -76,7 +76,7 @@ For production schedules that must survive restarts or coordinate across replica
 Use `dispatch(...)` when scheduled occurrences should enter one persistent Agent session:
 
 ```ts
-import { dispatch } from '@flue/runtime';
+import { dispatch } from '@bapX/runtime';
 import dailySummary from './agents/daily-summary.ts';
 
 await dispatch(dailySummary, {

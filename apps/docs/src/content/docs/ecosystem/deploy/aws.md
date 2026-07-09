@@ -98,7 +98,7 @@ Without a `db.ts` adapter, Flue keeps canonical conversations, attachments, acce
 Add the adapter and a `db.ts` that reads `DATABASE_URL`:
 
 ```typescript title=".flue/db.ts"
-import { postgres } from '@flue/postgres';
+import { postgres } from '@bapX/postgres';
 
 export default postgres(process.env.DATABASE_URL!);
 ```

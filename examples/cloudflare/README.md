@@ -26,13 +26,13 @@ what `flue dev`/`run` consume; a fresh checkout has stale ones — see L1
 in the cf-shell adoption plan):
 
 ```bash
-pnpm run build -F @flue/runtime -F @flue/cli
+pnpm run build -F @bapX/runtime -F @bapX/cli
 ```
 
 The agents in this example use the Workers AI binding, so no provider API
 keys are required. If you switch them to a non-Cloudflare model, put the
 matching provider key in `.env` at the project root (see
-[the Cloudflare deployment guide](https://flueframework.com/docs/ecosystem/deploy/cloudflare/) for the full story).
+[the Cloudflare deployment guide](https://bapx.in/docs/ecosystem/deploy/cloudflare/) for the full story).
 
 ## Worker Loader requirement (skills-from-r2, skills-from-git)
 

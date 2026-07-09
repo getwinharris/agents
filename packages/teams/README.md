@@ -1,10 +1,10 @@
-# `@flue/teams`
+# `@bapX/teams`
 
 Authenticated Microsoft Teams Bot Connector activity ingress for Flue
 applications.
 
 ```ts
-import { createTeamsChannel } from '@flue/teams';
+import { createTeamsChannel } from '@bapX/teams';
 
 export const channel = createTeamsChannel({
   appId: process.env.TEAMS_APP_ID!,

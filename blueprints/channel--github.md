@@ -19,7 +19,7 @@ first existing source root: `<root>/.flue/`, then `<root>/src/`, then
 whether the application responds to issue comments, pull-request conversation
 comments, inline review comments, opened issues, or another verified delivery.
 
-Install `@flue/github` and the official `@octokit/rest@^22.0.1` SDK with the
+Install `@bapX/github` and the official `@octokit/rest@^22.0.1` SDK with the
 project's package manager. Do not add a generic GitHub tool collection.
 
 Install `valibot` using the project's existing dependency conventions.
@@ -31,8 +31,8 @@ message to the application, but preserve this ownership and routing shape:
 
 ```ts
 // flue-blueprint: channel/github@1
-import { createGitHubChannel } from '@flue/github';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createGitHubChannel } from '@bapX/github';
+import { defineTool, dispatch } from '@bapX/runtime';
 import { Octokit } from '@octokit/rest';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';
@@ -148,7 +148,7 @@ paths, or credentials unless the application has explicitly authorized that.
 Bind the trusted conversation destination inside the agent initializer:
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, commentOnIssue } from '../channels/github.ts';
 
 export default defineAgent(({ id }) => ({

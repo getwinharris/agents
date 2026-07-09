@@ -19,7 +19,7 @@ first existing source root: `<root>/.flue/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 which Google Chat event families the application needs.
 
-Install `@flue/google-chat` and `jose@^6.2.3`. Do not use `google-auth-library` in the
+Install `@bapX/google-chat` and `jose@^6.2.3`. Do not use `google-auth-library` in the
 canonical integration: its current package declares Node support and depends
 on Node-oriented authentication and HTTP packages. Use the documented
 service-account JWT assertion, OAuth token exchange, and Chat REST protocols
@@ -60,8 +60,8 @@ dispatched message, event policy, and tool:
 
 ```ts
 // flue-blueprint: channel/google-chat@1
-import { createGoogleChatChannel, type GoogleChatConversationRef } from '@flue/google-chat';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createGoogleChatChannel, type GoogleChatConversationRef } from '@bapX/google-chat';
+import { defineTool, dispatch } from '@bapX/runtime';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';
 import { createGoogleChatClient } from '../lib/google-chat-client.ts';
@@ -186,7 +186,7 @@ the dispatch boundary.
 ## Wire the agent
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, postMessage } from '../channels/google-chat.ts';
 
 export default defineAgent(({ id }) => ({

@@ -13,7 +13,7 @@ A [skill](/docs/guide/skills/) provides reusable instructions; a tool executes a
 Use `defineTool(...)` to create a new tool for your agent:
 
 ```ts title="src/shared/order-tools.ts"
-import { defineTool } from '@flue/runtime';
+import { defineTool } from '@bapX/runtime';
 import * as v from 'valibot';
 
 const orderStatuses = new Map([
@@ -52,7 +52,7 @@ Use clear action-oriented names, such as `lookup_order_status` or `create_suppor
 Provide a stable capability in the configuration for the agent that needs it:
 
 ```ts title="src/agents/order-assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { lookupOrderStatus } from '../shared/order-tools.ts';
 
 export default defineAgent(() => ({
@@ -73,7 +73,7 @@ A tool's parameters are model-selected inputs, not an authorization boundary. Yo
 For an addressable customer-support agent, the selected agent instance can establish which customer's orders are accessible:
 
 ```ts title="src/agents/customer-orders.ts"
-import { defineAgent, defineTool } from '@flue/runtime';
+import { defineAgent, defineTool } from '@bapX/runtime';
 import * as v from 'valibot';
 import { orders } from '../shared/orders.ts';
 
@@ -133,7 +133,7 @@ events, while your application uses the provider SDK and defines only the
 outbound actions its agents need:
 
 ```ts title="src/channels/github.ts"
-import { defineTool } from '@flue/runtime';
+import { defineTool } from '@bapX/runtime';
 import { Octokit } from '@octokit/rest';
 import * as v from 'valibot';
 
@@ -172,7 +172,7 @@ authorization design for them.
 An MCP server supplies remotely implemented tools. `connectMcpServer(...)` lists those tools and returns ordinary tool definitions, which you provide to agent work in the same way as your own custom tools.
 
 ```ts title="src/workflows/inventory-assistant.ts"
-import { connectMcpServer, defineAgent, defineWorkflow } from '@flue/runtime';
+import { connectMcpServer, defineAgent, defineWorkflow } from '@bapX/runtime';
 import * as v from 'valibot';
 
 type Env = {

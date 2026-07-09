@@ -4,7 +4,7 @@ import { createTwilioChannel } from '../src/index.ts';
 
 const encoder = new TextEncoder();
 
-describe('@flue/twilio workerd ingress', () => {
+describe('@bapX/twilio workerd ingress', () => {
 	it('validates HMAC-SHA1 forms and forwards native SMS fields in workerd', async () => {
 		const webhook = vi.fn();
 		const channel = createTwilioChannel({

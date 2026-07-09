@@ -1,4 +1,4 @@
-import type { FlueObservation } from '@flue/runtime';
+import type { FlueObservation } from '@bapX/runtime';
 import { context, propagation, SpanKind, SpanStatusCode, type Meter, type Span, type SpanOptions, trace, type Tracer } from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
 import { W3CTraceContextPropagator } from '@opentelemetry/core';

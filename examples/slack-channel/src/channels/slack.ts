@@ -1,5 +1,5 @@
-import { defineTool, dispatch } from '@flue/runtime';
-import { createSlackChannel } from '@flue/slack';
+import { defineTool, dispatch } from '@bapX/runtime';
+import { createSlackChannel } from '@bapX/slack';
 import { WebClient } from '@slack/web-api';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';

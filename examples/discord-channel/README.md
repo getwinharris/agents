@@ -11,7 +11,7 @@ The channel module exports both the ingress `channel` and the project-owned
 `@discordjs/rest` client. Discord does not publish an official JavaScript REST
 SDK; this example uses the dominant community-maintained client. The message
 tool is deliberately narrow application policy, not a generic tool supplied by
-`@flue/discord`.
+`@bapX/discord`.
 
 The channel module imports the agent and the agent imports the channel. This
 cycle is safe because the imported bindings are read only inside the interaction

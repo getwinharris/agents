@@ -20,8 +20,8 @@ The Modal blueprint installs the `modal` JavaScript SDK when needed and creates 
 
 ```ts title="<source-root>/sandboxes/modal.ts (abridged)"
 // flue-blueprint: sandbox/modal@1
-import { createSandboxSessionEnv } from '@flue/runtime';
-import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@flue/runtime';
+import { createSandboxSessionEnv } from '@bapX/runtime';
+import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 import type { Sandbox as ModalSandbox } from 'modal';
 
 export interface ModalAdapterOptions {

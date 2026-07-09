@@ -1,5 +1,5 @@
 /**
- * @flue/postgres — Postgres persistence adapter for Flue.
+ * @bapX/postgres — Postgres persistence adapter for Flue.
  *
  * Provides a {@link PersistenceAdapter} backed by PostgreSQL. Bring your own
  * configured driver (node-postgres, porsager `postgres`, Neon WebSocket Pool, …)
@@ -9,7 +9,7 @@
  * @example
  * ```ts
  * // src/db.ts
- * import { postgres, type PostgresQuery } from '@flue/postgres';
+ * import { postgres, type PostgresQuery } from '@bapX/postgres';
  * import sql from 'postgres';
  *
  * const db = sql(process.env.DATABASE_URL!);

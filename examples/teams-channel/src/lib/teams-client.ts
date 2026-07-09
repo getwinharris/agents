@@ -1,4 +1,4 @@
-import type { TeamsConversationRef } from '@flue/teams';
+import type { TeamsConversationRef } from '@bapX/teams';
 
 export interface TeamsClientOptions {
 	appId: string;

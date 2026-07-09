@@ -16,7 +16,7 @@ import { ProviderRegistrationError } from '../errors.ts';
 // ─── Public types ───────────────────────────────────────────────────────────
 
 /**
- * Minimal Workers AI binding shape. Kept structural so `@flue/runtime` stays
+ * Minimal Workers AI binding shape. Kept structural so `@bapX/runtime` stays
  * importable on Node.
  */
 export interface CloudflareAIBinding {

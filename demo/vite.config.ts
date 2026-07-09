@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     // The workspace has multiple React copies; force a single instance so
-    // hooks from `@shadcn/react` (and `@flue/react`) share the app's React.
+    // hooks from `@shadcn/react` (and `@bapX/react`) share the app's React.
     dedupe: ['react', 'react-dom'],
     alias: {
       '@': path.resolve(__dirname, './src'),

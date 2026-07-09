@@ -22,7 +22,7 @@ const subscribers = new Set<FlueObservationSubscriber>();
  * Usage (typically at the top of `app.ts`):
 
  *
- *     import { observe } from '@flue/runtime';
+ *     import { observe } from '@bapX/runtime';
  *
  *     observe((event, ctx) => {
  *       if (event.type === 'run_end' && event.isError) {

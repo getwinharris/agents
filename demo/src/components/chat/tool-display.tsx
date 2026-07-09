@@ -1,4 +1,4 @@
-import type { FlueConversationPart } from '@flue/react'
+import type { FlueConversationPart } from '@bapX/react'
 import {
   Bot,
   FilePen,

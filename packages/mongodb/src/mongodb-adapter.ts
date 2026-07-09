@@ -1,10 +1,10 @@
 import { randomUUID } from 'node:crypto';
-import type { PersistenceAdapter } from '@flue/runtime/adapter';
+import type { PersistenceAdapter } from '@bapX/runtime/adapter';
 import {
 	assertSupportedFlueSchemaVersion,
 	FLUE_SCHEMA_VERSION,
 	PersistedSchemaVersionError,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import { MongoAttachmentStore } from './attachment-store.ts';
 import { MongoConversationStreamStore } from './conversation-store.ts';
 import { MongoEventStreamStore } from './event-stream-store.ts';
@@ -30,7 +30,7 @@ export function mongodb(runner: MongoRunner, options: MongoOptions = {}): Persis
 			const topology = await runner.topology();
 			if (topology.kind === 'standalone' || !topology.transactions)
 				throw new TypeError(
-					'@flue/mongodb requires a replica set, Atlas, or a transaction-capable sharded cluster.',
+					'@bapX/mongodb requires a replica set, Atlas, or a transaction-capable sharded cluster.',
 				);
 			const metaSpec = schema(prefix)[0];
 			if (!metaSpec) throw new TypeError('MongoDB schema is missing metadata collection.');
@@ -89,7 +89,7 @@ export function mongodb(runner: MongoRunner, options: MongoOptions = {}): Persis
 		},
 		connect() {
 			if (!migrated)
-				throw new TypeError('@flue/mongodb connect() requires a successful migrate() first.');
+				throw new TypeError('@bapX/mongodb connect() requires a successful migrate() first.');
 			return {
 				executionStore: {
 					submissions: new MongoSubmissionStore(runner, prefix),

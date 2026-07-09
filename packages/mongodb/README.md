@@ -1,9 +1,9 @@
-# `@flue/mongodb`
+# `@bapX/mongodb`
 
 MongoDB persistence for Flue Node-target projects. It requires a replica set, Atlas deployment, or transaction-capable sharded cluster; standalone MongoDB is rejected before schema stamping.
 
 ```sh
-pnpm add @flue/mongodb mongodb
+pnpm add @bapX/mongodb mongodb
 ```
 
 The package has no production driver dependency. Supply a `MongoRunner` backed by your configured driver. The runner must use snapshot read concern, majority write concern, one `ClientSession` for every callback operation, sequential callback operations, bounded whole-transaction retries for `TransientTransactionError`, and commit-only retries for `UnknownTransactionCommitResult`.
@@ -14,7 +14,7 @@ import {
   type MongoCollection,
   type MongoOperations,
   type MongoRunner,
-} from '@flue/mongodb';
+} from '@bapX/mongodb';
 import { MongoClient } from 'mongodb';
 
 const client = new MongoClient(process.env.MONGODB_URL!);

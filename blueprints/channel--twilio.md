@@ -18,7 +18,7 @@ first existing source root: `<root>/.flue/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 whether the project uses one Twilio address or a Messaging Service.
 
-Install `@flue/twilio` and `twilio@^6.0.2`. Flue owns signed webhook validation,
+Install `@bapX/twilio` and `twilio@^6.0.2`. Flue owns signed webhook validation,
 exact public-URL handling, fixed account and destination identity, provider-native verified form
 fields, optional delivery-status callbacks, TwiML acknowledgement, and canonical
 conversation keys. The project owns credentials, outbound REST access, tools,
@@ -63,8 +63,8 @@ message, destination mode, and tool:
 import {
   createTwilioChannel,
   type TwilioConversationRef,
-} from '@flue/twilio';
-import { defineTool, dispatch } from '@flue/runtime';
+} from '@bapX/twilio';
+import { defineTool, dispatch } from '@bapX/runtime';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';
 import { TwilioClient } from '../twilio-client.ts';
@@ -144,7 +144,7 @@ destination: {
 ## Wire the agent
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, postMessage } from '../channels/twilio.ts';
 
 export default defineAgent(({ id }) => ({

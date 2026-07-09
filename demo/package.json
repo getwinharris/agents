@@ -1,5 +1,5 @@
 {
-  "name": "flue-demo",
+  "name": "bapX-demo",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,8 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@flue/react": "workspace:*",
-    "@flue/sdk": "workspace:*",
+    "@bapX/react": "workspace:*",
+    "@bapX/sdk": "workspace:*",
     "@shadcn/react": "^0.1.0",
     "@tanstack/react-router": "^1.135.4",
     "class-variance-authority": "^0.7.1",

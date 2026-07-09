@@ -1,4 +1,4 @@
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, postMessage } from '../channels/telegram.ts';
 
 export default defineAgent(({ id }) => ({

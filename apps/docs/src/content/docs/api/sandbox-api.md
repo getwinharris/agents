@@ -13,8 +13,8 @@ A sandbox adapter is one TypeScript file. It exports a factory function that tak
 
 ```ts
 // <source-dir>/sandboxes/<provider>.ts
-import { createSandboxSessionEnv } from '@flue/runtime';
-import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@flue/runtime';
+import { createSandboxSessionEnv } from '@bapX/runtime';
+import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 import type { Sandbox as ProviderSandbox } from '<provider-sdk>';
 
 class ProviderSandboxApi implements SandboxApi {
@@ -37,7 +37,7 @@ Sandbox adapters are pure adapters. They map a provider sandbox to a `SessionEnv
 
 ## Imports
 
-Import these from `@flue/runtime`:
+Import these from `@bapX/runtime`:
 
 - `createSandboxSessionEnv(api, cwd)` wraps your `SandboxApi` into a `SessionEnv` that Flue can drive. Pass the provider-owned base cwd, not an agent definition's cwd.
 - `SandboxApi` is the interface you implement.
@@ -47,11 +47,11 @@ Import these from `@flue/runtime`:
 - `FileStat` is the return type for `stat()`.
 - `SandboxOperationUnsupportedError` rejects filesystem options that a provider cannot implement exactly.
 
-Do not import internal runtime paths. `@flue/runtime` is the public surface for adapter authors.
+Do not import internal runtime paths. `@bapX/runtime` is the public surface for adapter authors.
 
 ## TypeScript contracts
 
-Always typecheck against the real types from `@flue/runtime`. If this page drifts from the runtime package, the runtime package wins.
+Always typecheck against the real types from `@bapX/runtime`. If this page drifts from the runtime package, the runtime package wins.
 
 ### `SandboxApi`
 
@@ -175,7 +175,7 @@ Sandbox adapter factories therefore take no `cleanup` option, and `createSandbox
 
 ## Reference implementation
 
-See the deployed [Daytona blueprint](https://flueframework.com/cli/blueprints/daytona.md) for a complete implementation. It demonstrates explicit rejection of unsupported `force` removal, `exists()` error handling, and buffer or string conversion in `writeFile()`.
+See the deployed [Daytona blueprint](https://bapx.in/cli/blueprints/daytona.md) for a complete implementation. It demonstrates explicit rejection of unsupported `force` removal, `exists()` error handling, and buffer or string conversion in `writeFile()`.
 
 ## Sandbox adapter file location
 
@@ -192,7 +192,7 @@ Write the adapter to `<source-dir>/sandboxes/<name>.ts`. If the selected source 
 Before finishing:
 
 1. Typecheck the file with `npx tsc --noEmit` or the project's existing typecheck command.
-2. Confirm that the adapter imports from `@flue/runtime`.
+2. Confirm that the adapter imports from `@bapX/runtime`.
 3. If the project does not depend on the provider SDK, tell the user to install it.
 4. Tell the user which environment variables they need to set.
 5. Show a minimal snippet wiring the adapter into an agent.

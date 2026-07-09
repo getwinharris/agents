@@ -19,7 +19,7 @@ first existing source root: `<root>/.flue/`, then `<root>/src/`, then
 whether the application needs ordinary issue comments, Linear agent sessions,
 or both.
 
-Install `@flue/linear` and `@linear/sdk@^86.0.0`. Flue owns verified ingress.
+Install `@bapX/linear` and `@linear/sdk@^86.0.0`. Flue owns verified ingress.
 The project owns the official SDK client and every outbound tool.
 
 The current official SDK is used by Linear's own Cloudflare Workers agent
@@ -40,8 +40,8 @@ import {
   createLinearChannel,
   type LinearConversationRef,
   type LinearWebhookPayload,
-} from '@flue/linear';
-import { defineTool, dispatch } from '@flue/runtime';
+} from '@bapX/linear';
+import { defineTool, dispatch } from '@bapX/runtime';
 import { LinearClient } from '@linear/sdk';
 import * as v from 'valibot';
 import type {
@@ -164,7 +164,7 @@ organization or webhook authorized by the signing secret.
 ## Wire the agent
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, postMessage } from '../channels/linear.ts';
 
 export default defineAgent(({ id }) => ({
@@ -188,7 +188,7 @@ Copy its signing secret into `LINEAR_WEBHOOK_SECRET`. Select only the resource
 families the application handles, typically Comments, Issues, and Projects.
 
 Linear signs the exact raw body with HMAC-SHA256 in `Linear-Signature`.
-`@flue/linear` also enforces the signed `webhookTimestamp` within one minute.
+`@bapX/linear` also enforces the signed `webhookTimestamp` within one minute.
 Do not put a body parser or JSON reserialization step in front of the route.
 
 Linear treats a delivery as failed if it does not return `200` within five

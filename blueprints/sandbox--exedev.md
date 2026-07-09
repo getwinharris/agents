@@ -89,13 +89,13 @@ Write this file verbatim. Do not "improve" it — it conforms to the published
 import {
   createSandboxSessionEnv,
   SandboxOperationUnsupportedError,
-} from "@flue/runtime";
+} from "@bapX/runtime";
 import type {
   FileStat,
   SandboxApi,
   SandboxFactory,
   SessionEnv,
-} from "@flue/runtime";
+} from "@bapX/runtime";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -728,7 +728,7 @@ no obvious project convention like `EXE_VM_HOST`, ask for the exe.dev VM
 hostname before wiring the adapter.
 
 ```ts
-import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from "@flue/runtime";
+import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from "@bapX/runtime";
 import { exedev } from "../sandboxes/exedev";
 
 export const route: WorkflowRouteHandler = async (_c, next) => next();
@@ -754,7 +754,7 @@ API token with `new` permission. The bound agent initializer creates the VM and
 passes it to `exedev(...)`.
 
 ```ts
-import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from "@flue/runtime";
+import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from "@bapX/runtime";
 import { createExeVm, exedev } from "../sandboxes/exedev";
 
 export const route: WorkflowRouteHandler = async (_c, next) => next();
@@ -783,7 +783,7 @@ an API token with `cp` permission. If the project also deletes the clone, the
 token needs `rm` permission.
 
 ```ts
-import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from "@flue/runtime";
+import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from "@bapX/runtime";
 import { cloneExeVm, exedev } from "../sandboxes/exedev";
 
 export const route: WorkflowRouteHandler = async (_c, next) => next();

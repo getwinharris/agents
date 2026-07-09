@@ -1,4 +1,4 @@
-# `@flue/stripe`
+# `@bapX/stripe`
 
 Verified Stripe webhook ingress for Flue.
 
@@ -8,7 +8,7 @@ calling application code.
 
 ```ts
 import Stripe from 'stripe';
-import { createStripeChannel } from '@flue/stripe';
+import { createStripeChannel } from '@bapX/stripe';
 
 export const client = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   httpClient: Stripe.createFetchHttpClient(),

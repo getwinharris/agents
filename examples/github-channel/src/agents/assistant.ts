@@ -1,4 +1,4 @@
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, commentOnIssue } from '../channels/github.ts';
 
 export default defineAgent(({ id }) => ({

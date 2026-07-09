@@ -18,7 +18,7 @@ first existing source root: `<root>/.flue/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 which WhatsApp message families the application handles.
 
-Install `@flue/whatsapp` and `@kapso/whatsapp-cloud-api@^0.2.1`. Flue owns GET
+Install `@bapX/whatsapp` and `@kapso/whatsapp-cloud-api@^0.2.1`. Flue owns GET
 verification, exact-body POST signature verification, and forwarding Meta's
 provider-native webhook payload unmodified. The project owns interpreting that
 payload, filtering deliveries by business account or phone number, the access
@@ -44,8 +44,8 @@ import {
   type WebhookMessage,
   type WebhookValue,
   type WhatsAppConversationRef,
-} from '@flue/whatsapp';
-import { defineTool, dispatch } from '@flue/runtime';
+} from '@bapX/whatsapp';
+import { defineTool, dispatch } from '@bapX/runtime';
 import * as v from 'valibot';
 import {
   WhatsAppClient,
@@ -172,7 +172,7 @@ when this blueprint was authored; keep version upgrades explicit and tested.
 ## Wire the agent
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, postMessage } from '../channels/whatsapp.ts';
 
 export default defineAgent(({ id }) => ({
@@ -254,7 +254,7 @@ outbound references. Group identity uses the provider's `group_id`.
 The SDK's current high-level text helper models `to` but not the documented
 BSUID `recipient` field. Keep the full exported SDK client and use its
 authenticated low-level `request()` method for that one application-owned
-operation. Do not add outbound behavior to `@flue/whatsapp`.
+operation. Do not add outbound behavior to `@bapX/whatsapp`.
 
 Native media payloads carry a bearer-authenticated media `id` (and, on newer
 API versions, a transient `url`). Treat those as transport credentials: use the

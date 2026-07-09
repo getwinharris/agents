@@ -101,7 +101,7 @@ describe('model-called Actions', () => {
 			input: v.object({ repository: v.string() }),
 			output: v.object({ status: v.string() }),
 			async run({ harness, input }) {
-				expect(input).toEqual({ repository: 'withastro/flue' });
+				expect(input).toEqual({ repository: 'getwinharris/flue' });
 				const defaultSession = await harness.session();
 				const namedSession = await harness.session('notes');
 				expect(defaultSession.name).toBe('default');
@@ -113,7 +113,7 @@ describe('model-called Actions', () => {
 			fauxAssistantMessage(
 				fauxToolCall(
 					'review_repository',
-					{ repository: 'withastro/flue' },
+					{ repository: 'getwinharris/flue' },
 					{ id: 'call-action-1' },
 				),
 				{ stopReason: 'toolUse' },

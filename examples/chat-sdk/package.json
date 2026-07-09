@@ -9,7 +9,7 @@
 		"@chat-adapter/github": "*",
 		"@chat-adapter/state-memory": "*",
 		"@earendil-works/pi-ai": "^0.80.2",
-		"@flue/runtime": "workspace:*",
+		"@bapX/runtime": "workspace:*",
 		"agents": "^0.14.2",
 		"chat": "*",
 		"hono": "^4.8.3",
@@ -18,7 +18,7 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20260602.1",
-		"@flue/cli": "workspace:*",
+		"@bapX/cli": "workspace:*",
 		"wrangler": "^4.97.0"
 	}
 }

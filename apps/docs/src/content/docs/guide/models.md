@@ -23,7 +23,7 @@ A model specifier is the unique string Flue uses to refer to a specific model ac
 Use a model specifier to choose an agent's default model:
 
 ```ts title="src/agents/assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 
 export default defineAgent(() => ({
   model: 'anthropic/claude-sonnet-4-6',
@@ -48,7 +48,7 @@ Reasoning effort controls how much additional reasoning Flue requests from a mod
 Set the ordinary reasoning effort for an agent alongside its model:
 
 ```ts title="src/agents/reviewer.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 
 export default defineAgent(() => ({
   model: 'anthropic/claude-sonnet-4-6',
@@ -97,8 +97,8 @@ Cloudflare provides several ways to reach models from a Flue application. Choose
 Use `registerProvider(...)` in `src/app.ts` when a built-in provider should retain its known model catalog but send requests through application-specific transport configuration, such as an AI gateway or proxy. Registering a built-in provider ID preserves its catalog metadata — cost, context window, and wire protocol — and layers your options on top.
 
 ```ts title="src/app.ts"
-import { registerProvider } from '@flue/runtime';
-import { flue } from '@flue/runtime/routing';
+import { registerProvider } from '@bapX/runtime';
+import { flue } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 if (process.env.ANTHROPIC_GATEWAY_URL) {
@@ -123,8 +123,8 @@ Use `registerProvider(...)` in `src/app.ts` when you want to connect Flue to a m
 For example, you can register a local Ollama server through its OpenAI-compatible endpoint:
 
 ```ts title="src/app.ts"
-import { registerProvider } from '@flue/runtime';
-import { flue } from '@flue/runtime/routing';
+import { registerProvider } from '@bapX/runtime';
+import { flue } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 registerProvider('ollama', {
@@ -141,14 +141,14 @@ export default app;
 The registered provider ID is now available anywhere you select a model:
 
 ```ts title="src/agents/local-assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 
 export default defineAgent(() => ({
   model: 'ollama/llama3.1:8b',
 }));
 ```
 
-A provider registration can also supply authentication, headers, and model metadata when your endpoint requires them. Most OpenAI-compatible services can use the built-in `openai-completions` protocol shown above. For an endpoint with a different wire protocol, advanced integrations can import `registerApiProvider(...)` from `@flue/runtime` and use it to register that protocol before registering a provider ID for it.
+A provider registration can also supply authentication, headers, and model metadata when your endpoint requires them. Most OpenAI-compatible services can use the built-in `openai-completions` protocol shown above. For an endpoint with a different wire protocol, advanced integrations can import `registerApiProvider(...)` from `@bapX/runtime` and use it to register that protocol before registering a provider ID for it.
 
 Choose a new provider ID unless you intend to override a built-in connection path. For example, registering `cloudflare` yourself takes precedence over Flue's generated `cloudflare/...` binding default, which is how the customization below takes effect.
 
@@ -159,7 +159,7 @@ For applications built with `--target cloudflare`, Flue provides the `cloudflare
 Everything after `cloudflare/` is passed as the model ID to `env.AI.run(...)`. Use Workers AI model IDs such as `@cf/moonshotai/kimi-k2.6`, or a binding-supported AI Gateway model ID such as `openai/gpt-5.5` when your Worker should reach that model through Cloudflare's binding and gateway path. Use `openai/gpt-5.5` without the `cloudflare/` prefix only when you intend to use Flue's direct OpenAI provider and its credentials.
 
 ```ts title="src/agents/assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 
 export default defineAgent(() => ({
   model: 'cloudflare/@cf/moonshotai/kimi-k2.6',
@@ -185,8 +185,8 @@ By default, Flue routes `cloudflare/...` binding calls through Cloudflare AI Gat
 
 ```ts title="src/app.ts"
 import { env } from 'cloudflare:workers';
-import { registerProvider } from '@flue/runtime';
-import { flue } from '@flue/runtime/routing';
+import { registerProvider } from '@bapX/runtime';
+import { flue } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 registerProvider('cloudflare', {

@@ -172,7 +172,7 @@ export default {
 		try {
 			fs.writeFileSync(
 				path.join(root, 'src', 'agents', 'reviewer.ts'),
-				`import { defineAgent } from '@flue/runtime';\nexport default defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n`,
+				`import { defineAgent } from '@bapX/runtime';\nexport default defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n`,
 			);
 			fs.writeFileSync(
 				path.join(root, 'wrangler.jsonc'),
@@ -238,11 +238,11 @@ function createRunFixture(): string {
 	fs.mkdirSync(path.join(root, 'workflows'));
 	fs.writeFileSync(
 		path.join(root, 'workflows', 'checkpoint.mjs'),
-		`import { defineAgent, defineWorkflow } from '@flue/runtime';\nconst agent = defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\nexport default defineWorkflow({ agent, async run({ log }) { log.info('checkpoint stream event'); return { checkpoint: 2 }; } });\n`,
+		`import { defineAgent, defineWorkflow } from '@bapX/runtime';\nconst agent = defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\nexport default defineWorkflow({ agent, async run({ log }) { log.info('checkpoint stream event'); return { checkpoint: 2 }; } });\n`,
 	);
 	fs.writeFileSync(
 		path.join(root, 'app.mjs'),
-		`import { flue } from '@flue/runtime/routing';\nimport { Hono } from 'hono';\nconst app = new Hono();\napp.use('*', async (c, next) => { if (c.req.header('x-checkpoint') !== 'observed') return c.text('missing checkpoint header', 400); await next(); c.header('x-outer-middleware', 'observed'); });\napp.route('/internal/flue', flue());\nexport default app;\n`,
+		`import { flue } from '@bapX/runtime/routing';\nimport { Hono } from 'hono';\nconst app = new Hono();\napp.use('*', async (c, next) => { if (c.req.header('x-checkpoint') !== 'observed') return c.text('missing checkpoint header', 400); await next(); c.header('x-outer-middleware', 'observed'); });\napp.route('/internal/flue', flue());\nexport default app;\n`,
 	);
 	return root;
 }
@@ -300,7 +300,7 @@ async function createGeneratedFixture(
 	);
 	fs.writeFileSync(
 		path.join(root, 'src', 'agents', 'assistant.ts'),
-		`import { defineAgent } from '@flue/runtime';\nexport default defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n`,
+		`import { defineAgent } from '@bapX/runtime';\nexport default defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n`,
 	);
 	fs.writeFileSync(path.join(root, 'src', 'cloudflare.ts'), cloudflareSource);
 	fs.writeFileSync(

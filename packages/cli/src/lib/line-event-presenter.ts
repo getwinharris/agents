@@ -1,4 +1,4 @@
-import type { ConversationStreamChunk, FlueEvent } from '@flue/sdk';
+import type { ConversationStreamChunk, FlueEvent } from '@bapX/sdk';
 
 const CONVERSATION_CHUNK_TYPES = new Set<ConversationStreamChunk['type']>([
 	'conversation-reset',

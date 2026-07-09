@@ -1,10 +1,10 @@
-# `@flue/slack`
+# `@bapX/slack`
 
 Verified Slack Events API, interactivity, and slash-command ingress for Flue
 applications.
 
 ```ts
-import { createSlackChannel } from '@flue/slack';
+import { createSlackChannel } from '@bapX/slack';
 
 export const channel = createSlackChannel({
   signingSecret: process.env.SLACK_SIGNING_SECRET!,

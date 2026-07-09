@@ -1,4 +1,4 @@
-import type { FlueConversationPart } from '@flue/react'
+import type { FlueConversationPart } from '@bapX/react'
 
 /**
  * Whether a conversation part renders anything given the current preferences.

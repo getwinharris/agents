@@ -9,7 +9,7 @@ import {
 	type StoredAttachment,
 	sameAttachmentRef,
 	verifyAttachmentBytes,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 import type { MongoOperations, MongoRunner } from './mongodb-runner.ts';
 import { collectionName } from './schema.ts';
 

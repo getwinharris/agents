@@ -1,4 +1,4 @@
-export type { DeliveredAttachment, FlueEvent, PromptUsage } from '@flue/sdk';
+export type { DeliveredAttachment, FlueEvent, PromptUsage } from '@bapX/sdk';
 export type { AgentStatus, FailedSend } from './agent-reducer.ts';
 export type { SendMessageOptions } from './agent-session.ts';
 export { FlueProvider, type FlueProviderProps, useFlueClient } from './provider.ts';

@@ -2,8 +2,8 @@
 title: Zendesk
 description: Receive verified Zendesk events and use a ticket-bound Fetch client from application-owned tools.
 package:
-  name: '@flue/zendesk'
-  href: https://www.npmjs.com/package/@flue/zendesk
+  name: '@bapX/zendesk'
+  href: https://www.npmjs.com/package/@bapX/zendesk
 ---
 
 ## Quickstart
@@ -16,7 +16,7 @@ flue add channel zendesk
 
 ## Overview
 
-The blueprint installs `@flue/zendesk` and `lossless-json`. It creates a narrow
+The blueprint installs `@bapX/zendesk` and `lossless-json`. It creates a narrow
 Fetch client at `<source-root>/zendesk-client.ts` and
 `<source-root>/channels/zendesk.ts` with named `channel` and project-owned
 `client` exports, ticket identity handling, and a ticket-bound retrieval tool.
@@ -24,8 +24,8 @@ It wires that tool into an agent and adds Node types only when the target needs
 them; no community Zendesk SDK is installed.
 
 ```ts title="src/channels/zendesk.ts (abridged)"
-import { createZendeskChannel } from '@flue/zendesk';
-import { dispatch } from '@flue/runtime';
+import { createZendeskChannel } from '@bapX/zendesk';
+import { dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 import { createZendeskClient } from '../zendesk-client.ts';
 
@@ -84,7 +84,7 @@ Zendesk identifiers and runs in Node or Cloudflare Workers.
 | `ZENDESK_EMAIL`                  | **Required** — Identifies the API-token user for Basic authentication. |
 | `ZENDESK_API_TOKEN`              | **Required** — Authenticates outbound Ticketing API requests.          |
 
-It installs `@flue/zendesk` and creates a channel module with named `channel`
+It installs `@bapX/zendesk` and creates a channel module with named `channel`
 and project-owned `client` exports. Zendesk has no officially supported Node
 server SDK, so the blueprint uses a narrow native Fetch client instead of adding a
 community wrapper.
@@ -100,8 +100,8 @@ The webhook signing secret and outbound API token are separate credentials.
 ## Channel module
 
 ```ts title="src/channels/zendesk.ts"
-import { createZendeskChannel, type JsonValue, type ZendeskTicketRef } from '@flue/zendesk';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createZendeskChannel, type JsonValue, type ZendeskTicketRef } from '@bapX/zendesk';
+import { defineTool, dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 import { createZendeskClient } from '../zendesk-client.ts';
 
@@ -310,7 +310,7 @@ instead of being rounded.
 ## Bind the tool
 
 ```ts title="src/agents/assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, retrieveTicket } from '../channels/zendesk.ts';
 
 export default defineAgent(({ id }) => {
@@ -341,7 +341,7 @@ X-Zendesk-Webhook-Signature-Timestamp
 
 The signature is base64 HMAC-SHA256 over the signature timestamp concatenated
 directly with the exact request body. There is no delimiter.
-`@flue/zendesk` preserves and verifies those bytes before UTF-8 decoding or
+`@bapX/zendesk` preserves and verifies those bytes before UTF-8 decoding or
 JSON parsing.
 
 The HMAC covers the timestamp and body, not the account, webhook, or invocation
@@ -426,4 +426,4 @@ header, and reject every unexpected destination. Create original synthetic
 events and local HMACs for ingress tests. Do not create a webhook, subscribe to
 live events, obtain a real token, or contact Zendesk.
 
-See the [`@flue/zendesk` README](https://github.com/withastro/flue/tree/main/packages/zendesk#readme).
+See the [`@bapX/zendesk` README](https://github.com/getwinharris/agents/tree/main/packages/zendesk#readme).

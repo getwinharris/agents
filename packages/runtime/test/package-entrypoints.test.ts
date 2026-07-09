@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 // Node-based export-map smoke tests cannot load the Cloudflare virtual module
-// pulled in by @flue/runtime/cloudflare/internal (the FlueRegistry Durable
+// pulled in by @bapX/runtime/cloudflare/internal (the FlueRegistry Durable
 // Object); real Cloudflare runtime behavior is covered by explicit boundary
 // and integration suites.
 vi.mock('cloudflare:workers', () => ({
@@ -17,8 +17,8 @@ beforeAll(() => {
 });
 
 describe('package entrypoints', () => {
-	it('exposes core authoring APIs when a consumer imports @flue/runtime', async () => {
-		const runtime = await import('@flue/runtime');
+	it('exposes core authoring APIs when a consumer imports @bapX/runtime', async () => {
+		const runtime = await import('@bapX/runtime');
 
 		expect(runtime).toMatchObject({
 			ActionInputValidationError: expect.any(Function),
@@ -65,15 +65,15 @@ describe('package entrypoints', () => {
 		expect(declarations).not.toContain('inputJsonSchema');
 	});
 
-	it('exposes flue() when a consumer imports @flue/runtime/routing', async () => {
-		const routing = await import('@flue/runtime/routing');
+	it('exposes flue() when a consumer imports @bapX/runtime/routing', async () => {
+		const routing = await import('@bapX/runtime/routing');
 
 		expect(routing.flue).toEqual(expect.any(Function));
 		expect(routing).not.toHaveProperty('admin');
 	});
 
-	it('exposes the portable tool authoring API from @flue/runtime/tool', async () => {
-		const tool = await import('@flue/runtime/tool');
+	it('exposes the portable tool authoring API from @bapX/runtime/tool', async () => {
+		const tool = await import('@bapX/runtime/tool');
 
 		expect(tool).toMatchObject({
 			defineTool: expect.any(Function),
@@ -91,8 +91,8 @@ describe('package entrypoints', () => {
 		expect(declaration).not.toContain('ToolParameters');
 	});
 
-	it('exposes generated-runtime APIs when generated code imports @flue/runtime/internal', async () => {
-		const internal = await import('@flue/runtime/internal');
+	it('exposes generated-runtime APIs when generated code imports @bapX/runtime/internal', async () => {
+		const internal = await import('@bapX/runtime/internal');
 
 		expect(internal).toMatchObject({
 			configureFlueRuntime: expect.any(Function),
@@ -101,14 +101,14 @@ describe('package entrypoints', () => {
 		});
 	});
 
-	it('exposes local() when a consumer imports @flue/runtime/node', async () => {
-		const node = await import('@flue/runtime/node');
+	it('exposes local() when a consumer imports @bapX/runtime/node', async () => {
+		const node = await import('@bapX/runtime/node');
 
 		expect(node.local).toEqual(expect.any(Function));
 	});
 
-	it('exposes Cloudflare authoring APIs when a consumer imports @flue/runtime/cloudflare', async () => {
-		const cloudflare = await import('@flue/runtime/cloudflare');
+	it('exposes Cloudflare authoring APIs when a consumer imports @bapX/runtime/cloudflare', async () => {
+		const cloudflare = await import('@bapX/runtime/cloudflare');
 
 		expect(cloudflare).toMatchObject({
 			cloudflareSandbox: expect.any(Function),
@@ -121,8 +121,8 @@ describe('package entrypoints', () => {
 		expect(cloudflare).not.toHaveProperty('resolveCloudflareExtension');
 	});
 
-	it('exposes generated Worker plumbing when generated code imports @flue/runtime/cloudflare/internal', async () => {
-		const internal = await import('@flue/runtime/cloudflare/internal');
+	it('exposes generated Worker plumbing when generated code imports @bapX/runtime/cloudflare/internal', async () => {
+		const internal = await import('@bapX/runtime/cloudflare/internal');
 
 		expect(internal).toMatchObject({
 			cfSandboxToSessionEnv: expect.any(Function),
@@ -135,8 +135,8 @@ describe('package entrypoints', () => {
 		});
 	});
 
-	it('exposes the adapter contract suites when an adapter author imports @flue/runtime/test-utils', async () => {
-		const testUtils = await import('@flue/runtime/test-utils');
+	it('exposes the adapter contract suites when an adapter author imports @bapX/runtime/test-utils', async () => {
+		const testUtils = await import('@bapX/runtime/test-utils');
 
 		expect(testUtils).toMatchObject({
 			defineAttachmentStoreContractTests: expect.any(Function),

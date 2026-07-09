@@ -2,7 +2,7 @@
  * Pure-Node `SessionEnv` backed by the host filesystem and `child_process`.
  *
  * Internal implementation behind the `local()` sandbox factory (see
- * `./local.ts`). Not exported from `@flue/runtime/node` — user code reaches
+ * `./local.ts`). Not exported from `@bapX/runtime/node` — user code reaches
  * this through `local(...)`. `exec` shells out via `child_process.spawn`;
  * file methods call `node:fs/promises` directly.
  */

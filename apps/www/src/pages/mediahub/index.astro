@@ -1,0 +1,127 @@
+---
+import "../../styles/global.css";
+
+const clients = [
+  { slug: "gut-conference", name: "GUT Conference", category: "Web product", summary: "Web product development and management tailored for conference operations.", links: [{ label: "Website", href: "https://gutconference.online/" }] },
+  { slug: "sri-panchami-spiritual", name: "Sri Panchami Spiritual", category: "Web product", summary: "Web product development and management tailored for a spiritual service brand.", links: [{ label: "Website", href: "https://sripanchamispiritual.com/" }] },
+  { slug: "nebo-lifestyle-clinic", name: "NEBO Lifestyle Clinic", category: "Web and social", summary: "Full business conversion online funnel, website, and social media management.", links: [{ label: "Website", href: "https://nebowellness.com/" }, { label: "Instagram", href: "https://www.instagram.com/nebolifestyleclinic/" }, { label: "Facebook", href: "https://www.facebook.com/nebolifestyleclinic" }] },
+  { slug: "flexi-feet", name: "Flexi Feet", category: "Web and social", summary: "Website and social media management for business presence and customer acquisition.", links: [{ label: "Website", href: "https://flexifeet.net/" }, { label: "Instagram", href: "https://www.instagram.com/flexifeetmalaysia/" }, { label: "Facebook", href: "https://www.facebook.com/flexifeetmalaysia" }] },
+  { slug: "indian-bariatrics", name: "Indian Bariatrics", category: "Web and social", summary: "Website and social media management for healthcare education and patient reach.", links: [{ label: "Website", href: "https://indianbariatrics.com/" }, { label: "Facebook", href: "https://www.facebook.com/FightObesityAndDiabetes/" }, { label: "YouTube", href: "https://www.youtube.com/@Bariatricdoctor" }] },
+  { slug: "happy-feet-erode", name: "Happy Feet Erode", category: "Social only", summary: "Social media content and management without a website build.", links: [{ label: "Instagram", href: "https://www.instagram.com/happyfeeterode/" }, { label: "Facebook", href: "https://www.facebook.com/happyfeeterode/" }, { label: "YouTube", href: "https://www.youtube.com/@happyfeeterode" }] },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Media Hub | bapX</title>
+    <meta name="description" content="Client portfolio, web services, social media, ads, SEO, and business automation." />
+    <link rel="canonical" href="https://mediahub.bapx.in/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
+      <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+        <div class="flex h-full items-center gap-8">
+          <a href="/" class="flex items-center gap-2">
+            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
+          </a>
+          <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
+            <a href="/">Home</a>
+            <a href="https://docs.bapx.in/getting-started/quickstart/">Docs</a>
+            <a href="/mediahub/" class="active">Media Hub</a>
+            <a href="/blog/">Blog</a>
+            <a href="/products/">Products</a>
+            <a href="/contact/">Contact</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="https://agents.bapx.in/" class="bapx-pill">Agents</a>
+          <a href="/login/" class="bapx-pill bapx-pill-primary">Sign in</a>
+        </div>
+      </div>
+    </nav>
+
+    <main>
+      <section class="page-section page-header">
+        <div class="section-inner">
+          <span class="mono-label">mediahub.bapx.in</span>
+          <h1 class="display-xl" style="margin-top: 1.75rem; max-width: 1060px;">
+            Client services, projects, and business presence managed around each client
+          </h1>
+          <p class="body-lg" style="margin-top: 1.875rem; max-width: 830px;">
+            bapX Media Hub covers websites, ecommerce, funnels, social media, ads, SEO, content, campaigns, automations, and custom business systems based on the client's actual market and workflow.
+          </p>
+          <div class="hero-actions">
+            <a href="/contact/" class="bapx-pill bapx-pill-primary">Discuss Media Hub</a>
+            <a href="#clients" class="bapx-pill">View clients</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-section" style="display: grid; grid-template-columns: minmax(300px, .75fr) minmax(0, 1fr); gap: clamp(2.125rem, 6vw, 5.75rem); border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline);">
+        <div style="align-self: center;">
+          <span class="mono-label">Services</span>
+          <h2 class="display-lg" style="margin-top: .5rem;">
+            bapX Media Hub builds around the business, not a fixed package shelf
+          </h2>
+          <p class="body-lg" style="margin-top: 1.5rem;">We work across WordPress, WooCommerce, Shopify, custom apps, web solutions, automations, ML/AI workflows, social media management, influencer campaigns, professional ads, regular media presence, SEO, and Meta or Google promotions.</p>
+          <div class="pill-links">
+            <a href="https://www.instagram.com/bapxmediahub/" target="_blank" rel="noopener noreferrer">Instagram</a>
+            <a href="https://www.facebook.com/bapxmediahub/" target="_blank" rel="noopener noreferrer">Facebook</a>
+            <a href="https://x.com/bapx_ai" target="_blank" rel="noopener noreferrer">X</a>
+          </div>
+        </div>
+        <div class="media-board">
+          <div class="media-card large">
+            <span class="mono-label">Clients</span>
+            <strong>Custom plans for shops, companies, influencers, professionals, and teams.</strong>
+          </div>
+          <div class="media-card">
+            <span class="mono-label">Web and commerce</span>
+            <strong>WordPress, WooCommerce, Shopify, custom apps, and business websites.</strong>
+          </div>
+          <div class="media-card">
+            <span class="mono-label">Growth</span>
+            <strong>SMM, influencer work, ads, SEO, Meta, Google, and regular presence.</strong>
+          </div>
+        </div>
+      </section>
+
+      <section id="clients" class="page-section" style="border-top: 1px solid var(--hairline);">
+        <div class="section-inner">
+          <div class="section-heading">
+            <h2 class="display-lg">Selected Media Hub clients and projects</h2>
+            <p class="body-lg">These are a few examples from a larger portfolio of business management services tailored around each client's market, sales process, team, and audience.</p>
+          </div>
+          <div class="client-grid">
+            {clients.map((client) => (
+              <article class="client-card">
+                <span class="mono-label">{client.category}</span>
+                <h3 class="display-md"><a href={"/mediahub/clients/" + client.slug + "/"}>{client.name}</a></h3>
+                <p class="body-sm">{client.summary}</p>
+                <div class="client-links">
+                  {client.links.map((link) => (
+                    <a href={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <div class="section-inner">
+        <span>bapX Media Hub</span>
+        <span>&copy; {new Date().getFullYear()}</span>
+      </div>
+    </footer>
+  </body>
+</html>

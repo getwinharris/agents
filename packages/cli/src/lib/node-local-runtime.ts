@@ -1,4 +1,4 @@
-import { resetProviderRuntime } from '@flue/runtime/internal';
+import { resetProviderRuntime } from '@bapX/runtime/internal';
 import {
 	createNodeApplicationLoader,
 	type NodeApplicationLoader,

@@ -65,9 +65,9 @@ Use public Flue APIs and the provider's documented extension points. Useful
 integration surfaces include:
 
 - a source-root `app.ts` for application initialization and HTTP middleware;
-- `observe(...)` from `@flue/runtime` for isolate-local structured activity;
+- `observe(...)` from `@bapX/runtime` for isolate-local structured activity;
 - module-local `cloudflare = extend({ base, wrap })` exports from
-  `@flue/runtime/cloudflare` when a Cloudflare integration must extend or wrap
+  `@bapX/runtime/cloudflare` when a Cloudflare integration must extend or wrap
   generated agent or workflow Durable Object classes.
 
 Register `observe(...)` once at module scope. Its callbacks receive every event,

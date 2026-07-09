@@ -19,7 +19,7 @@ then `<root>/`. Inspect existing agents, environment types, secret
 conventions, Zendesk account configuration, and the event families the
 application needs.
 
-Install `@flue/zendesk` and `lossless-json@^4.3.0`. Do not install
+Install `@bapX/zendesk` and `lossless-json@^4.3.0`. Do not install
 `node-zendesk` for this blueprint: Zendesk lists it as community maintained rather
 than officially supported, and a narrow native Fetch client is portable across
 Node and Cloudflare Workers. Add a compatible `@types/node` development
@@ -185,8 +185,8 @@ import {
   createZendeskChannel,
   type JsonValue,
   type ZendeskTicketRef,
-} from '@flue/zendesk';
-import { defineTool, dispatch } from '@flue/runtime';
+} from '@bapX/zendesk';
+import { defineTool, dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 import { createZendeskClient } from '../zendesk-client.ts';
 
@@ -312,7 +312,7 @@ than independent authorization capabilities.
 Bind the account and ticket selected by verified application code:
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, retrieveTicket } from '../channels/zendesk.ts';
 
 export default defineAgent(({ id }) => {

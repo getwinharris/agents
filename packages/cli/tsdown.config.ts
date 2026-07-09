@@ -4,7 +4,7 @@ export default defineConfig({
 	entry: {
 		// Bin entry, written to dist/flue.mjs (the build script renames to dist/flue.js).
 		flue: 'bin/flue.ts',
-		// `@flue/cli/config` subpath, written to dist/config.mjs.
+		// `@bapX/cli/config` subpath, written to dist/config.mjs.
 		config: 'src/config.ts',
 	},
 	format: ['esm'],
@@ -21,8 +21,8 @@ export default defineConfig({
 			'wrangler',
 			'vite',
 			'@cloudflare/vite-plugin',
-			'@flue/runtime',
-			'@flue/runtime/internal',
+			'@bapX/runtime',
+			'@bapX/runtime/internal',
 			'@hono/node-server',
 		],
 	},

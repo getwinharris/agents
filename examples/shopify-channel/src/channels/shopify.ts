@@ -1,5 +1,5 @@
-import { defineTool, dispatch } from '@flue/runtime';
-import { createShopifyChannel, type JsonValue } from '@flue/shopify';
+import { defineTool, dispatch } from '@bapX/runtime';
+import { createShopifyChannel, type JsonValue } from '@bapX/shopify';
 import assistant from '../agents/assistant.ts';
 import { createShopifyClient, retrieveShopifyOrder } from '../shopify-client.ts';
 

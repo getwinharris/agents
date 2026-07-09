@@ -1,5 +1,5 @@
 // flue-blueprint: tooling/vitest-evals@1
-import { createFlueClient, type FlueConversationMessage } from '@flue/sdk';
+import { createFlueClient, type FlueConversationMessage } from '@bapX/sdk';
 import { createHarness, type SimpleToolCallRecord } from 'vitest-evals';
 
 export interface FlueAgentHarnessOptions {

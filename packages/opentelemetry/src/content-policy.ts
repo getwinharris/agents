@@ -1,4 +1,4 @@
-import type { FlueObservation } from '@flue/runtime';
+import type { FlueObservation } from '@bapX/runtime';
 import type { Span } from '@opentelemetry/api';
 
 export type GenAIContentType =

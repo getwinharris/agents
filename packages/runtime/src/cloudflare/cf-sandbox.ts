@@ -7,7 +7,7 @@ import type { SandboxFactory, SessionEnv } from '../types.ts';
 
 /**
  * Minimal structural surface of a `@cloudflare/sandbox` Durable Object stub
- * (the value returned by `getSandbox()`). Kept structural so `@flue/runtime`
+ * (the value returned by `getSandbox()`). Kept structural so `@bapX/runtime`
  * does not depend on `@cloudflare/sandbox` and stays importable on Node;
  * only the methods Flue calls are listed. A wrong object fails loudly on
  * the first method call.
@@ -39,7 +39,7 @@ export interface CloudflareSandboxOptions {
  *
  * ```ts
  * import { getSandbox } from '@cloudflare/sandbox';
- * import { cloudflareSandbox } from '@flue/runtime/cloudflare';
+ * import { cloudflareSandbox } from '@bapX/runtime/cloudflare';
  *
  * export default defineAgent(({ id, env }) => ({
  *   sandbox: cloudflareSandbox(getSandbox(env.Sandbox, id)),

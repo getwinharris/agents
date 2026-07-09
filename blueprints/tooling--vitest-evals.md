@@ -4,7 +4,7 @@
 
 # Add vitest-evals to Flue
 
-You are an AI coding agent adding `vitest-evals` to a Flue project. Create a separate eval suite that exercises the application's public HTTP boundary through `@flue/sdk`. Do not import Flue runtime internals or replace the project's unit-test setup.
+You are an AI coding agent adding `vitest-evals` to a Flue project. Create a separate eval suite that exercises the application's public HTTP boundary through `@bapX/sdk`. Do not import Flue runtime internals or replace the project's unit-test setup.
 
 ## Inspect the project
 
@@ -16,7 +16,7 @@ The primary agent used below must already expose an HTTP route. Do not add an un
 
 ## Install dependencies
 
-Install `@flue/sdk`, `vitest`, and `vitest-evals` as development dependencies using the project's package manager. Preserve existing version and workspace conventions. Do not install a runtime-specific `@vitest-evals/harness-*` package: the custom harness below evaluates the deployed Flue application rather than Flue's underlying model runtime.
+Install `@bapX/sdk`, `vitest`, and `vitest-evals` as development dependencies using the project's package manager. Preserve existing version and workspace conventions. Do not install a runtime-specific `@vitest-evals/harness-*` package: the custom harness below evaluates the deployed Flue application rather than Flue's underlying model runtime.
 
 ## Create the eval configuration
 
@@ -55,7 +55,7 @@ Create `src/evals/harness.ts`:
 
 ```ts title="src/evals/harness.ts"
 // flue-blueprint: tooling/vitest-evals@1
-import { createFlueClient, type FlueConversationMessage } from '@flue/sdk';
+import { createFlueClient, type FlueConversationMessage } from '@bapX/sdk';
 import { createHarness, type SimpleToolCallRecord } from 'vitest-evals';
 
 export interface FlueAgentHarnessOptions {

@@ -325,7 +325,7 @@ export function createActivateSkillTool(
 	const sortedNames = [...skillNames].sort();
 	const [firstName] = sortedNames;
 	if (!firstName) {
-		throw new Error('[flue] Cannot create activate_skill tool without available skills.');
+		throw new Error('[bapX] Cannot create activate_skill tool without available skills.');
 	}
 	const NameSchema =
 		sortedNames.length === 1

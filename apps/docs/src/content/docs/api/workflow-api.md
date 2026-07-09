@@ -1,10 +1,10 @@
 ---
 title: Workflow API
-description: Reference for creating and invoking workflows with @flue/runtime.
+description: Reference for creating and invoking workflows with @bapX/runtime.
 lastReviewedAt: 2026-06-20
 ---
 
-The Workflow API is exported from `@flue/runtime`.
+The Workflow API is exported from `@bapX/runtime`.
 
 ## `defineWorkflow()`
 

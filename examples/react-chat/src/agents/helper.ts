@@ -3,7 +3,7 @@ import {
 	defineAgent,
 	defineAgentProfile,
 	defineTool,
-} from '@flue/runtime';
+} from '@bapX/runtime';
 import * as v from 'valibot';
 
 export const route: AgentRouteHandler = async (_c, next) => next();

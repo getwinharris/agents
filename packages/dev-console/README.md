@@ -1,8 +1,8 @@
-# `@flue/dev-console`
+# `@bapX/dev-console`
 
 Experimental terminal client for interacting with a running Flue application.
 
-This package is intentionally separate from `@flue/cli`. It does not discover projects, start a development server, load `.env` files, or temporarily expose route-free resources. Start the application separately and provide the absolute URL where its `flue()` routes are mounted.
+This package is intentionally separate from `@bapX/cli`. It does not discover projects, start a development server, load `.env` files, or temporarily expose route-free resources. Start the application separately and provide the absolute URL where its `flue()` routes are mounted.
 
 ## Usage
 
@@ -44,4 +44,4 @@ pnpm exec flue-dev-console workflow:deploy \
 
 For agents, `--input` must be a JSON object with a string `message` and optional `images`. The console stays open for follow-up prompts on the same agent instance. A workflow runs once and leaves a read-only transcript.
 
-`@flue/dev-console` is experimental. Its command-line interface and presentation may change without notice.
+`@bapX/dev-console` is experimental. Its command-line interface and presentation may change without notice.

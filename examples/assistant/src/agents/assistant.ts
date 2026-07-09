@@ -1,6 +1,6 @@
 import { getSandbox } from '@cloudflare/sandbox';
-import { type AgentRouteHandler, defineAgent, defineAgentProfile } from '@flue/runtime';
-import { cloudflareSandbox } from '@flue/runtime/cloudflare';
+import { type AgentRouteHandler, defineAgent, defineAgentProfile } from '@bapX/runtime';
+import { cloudflareSandbox } from '@bapX/runtime/cloudflare';
 
 interface Env {
 	Sandbox: Parameters<typeof getSandbox>[0];

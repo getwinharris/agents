@@ -54,8 +54,8 @@ import {
 	type SessionEnv,
 	type SessionToolFactory,
 	type ShellResult,
-} from '@flue/runtime';
-import { getCloudflareContext } from '@flue/runtime/cloudflare';
+} from '@bapX/runtime';
+import { getCloudflareContext } from '@bapX/runtime/cloudflare';
 
 export interface GetShellSandboxOptions {
 	workspace: Workspace;
@@ -312,7 +312,7 @@ belongs outside this adapter.
 ## Wiring it into a workflow
 
 ```ts
-import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@flue/runtime';
+import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
 import { getDefaultWorkspace, getShellSandbox } from '../sandboxes/cloudflare-shell';
 
 export const route: WorkflowRouteHandler = async (_c, next) => next();

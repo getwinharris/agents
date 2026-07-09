@@ -18,7 +18,7 @@ first existing source root: `<root>/.flue/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions,
 Shopify installation storage, and which webhook topics the application needs.
 
-Install `@flue/shopify` and the official
+Install `@bapX/shopify` and the official
 `@shopify/admin-api-client@^1.1.2`. Add a compatible `@types/node` development
 dependency when the project does not already provide one because
 `@shopify/graphql-client` exposes a declaration-only `Buffer` reference. This
@@ -26,7 +26,7 @@ does not add Node runtime code to a Worker bundle.
 
 Do not install the full `@shopify/shopify-api` SDK for this blueprint. The
 lightweight Admin client supplies the required outbound GraphQL path, while
-`@flue/shopify` verifies ingress directly with Web Crypto.
+`@bapX/shopify` verifies ingress directly with Web Crypto.
 
 Flue owns exact-body HMAC verification, body limits, and verified ingress that
 forwards Shopify's native JSON payload and delivery headers unchanged. The
@@ -46,8 +46,8 @@ import {
   type ClientResponse,
   createAdminApiClient,
 } from '@shopify/admin-api-client';
-import { createShopifyChannel, type JsonValue } from '@flue/shopify';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createShopifyChannel, type JsonValue } from '@bapX/shopify';
+import { defineTool, dispatch } from '@bapX/runtime';
 import orders from '../agents/orders.ts';
 
 const SHOP_DOMAIN = process.env.SHOPIFY_SHOP_DOMAIN!;
@@ -215,7 +215,7 @@ export function orderRefFromInstanceId(id: string): {
 ```
 
 Shopify order ids can exceed JavaScript's safe integer range.
-`@flue/shopify` uses `lossless-json`: safe numeric literals remain numbers,
+`@bapX/shopify` uses `lossless-json`: safe numeric literals remain numbers,
 while unsafe numeric literals retain their exact decimal spelling as strings.
 The example accepts a positive decimal `string | number`, rejects unsafe
 JavaScript numbers, and normalizes the validated id with `String(id)` before
@@ -237,7 +237,7 @@ through its own authenticated state and authorization policy.
 Bind the trusted shop and order selected by application code:
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import {
   orderRefFromInstanceId,
   retrieveOrder,

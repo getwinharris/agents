@@ -2,8 +2,8 @@
 title: Resend
 description: Receive verified Resend webhooks and retrieve inbound email through the official client.
 package:
-  name: '@flue/resend'
-  href: https://www.npmjs.com/package/@flue/resend
+  name: '@bapX/resend'
+  href: https://www.npmjs.com/package/@bapX/resend
 ---
 
 ## Quickstart
@@ -16,11 +16,11 @@ flue add channel resend
 
 ## Overview
 
-The Resend blueprint installs `@flue/resend` and the official `resend` SDK, adds the SDK's declaration-only development dependencies, and creates `channels/resend.ts` in the source-root. It also updates the selected agent to bind a message-retrieval tool to the verified inbound email.
+The Resend blueprint installs `@bapX/resend` and the official `resend` SDK, adds the SDK's declaration-only development dependencies, and creates `channels/resend.ts` in the source-root. It also updates the selected agent to bind a message-retrieval tool to the verified inbound email.
 
 ```ts title="src/channels/resend.ts (abridged)"
-import { createResendChannel } from '@flue/resend';
-import { dispatch } from '@flue/runtime';
+import { createResendChannel } from '@bapX/resend';
+import { dispatch } from '@bapX/runtime';
 import { Resend } from 'resend';
 import assistant from '../agents/assistant.ts';
 
@@ -60,7 +60,7 @@ The abridged example omits the generated local email-id helpers and `retrieveRec
 | `RESEND_WEBHOOK_SECRET` | **Required** — Verifies inbound deliveries.      |
 | `RESEND_API_KEY`        | **Required** — Authenticates outbound SDK calls. |
 
-It installs `@flue/resend` and the official `resend@6.12.4` SDK. The blueprint
+It installs `@bapX/resend` and the official `resend@6.12.4` SDK. The blueprint
 creates a channel module with named `channel` and project-owned `client`
 exports.
 
@@ -80,8 +80,8 @@ bundle.
 ## Channel module
 
 ```ts title="src/channels/resend.ts"
-import { createResendChannel } from '@flue/resend';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createResendChannel } from '@bapX/resend';
+import { defineTool, dispatch } from '@bapX/runtime';
 import { Resend } from 'resend';
 import assistant from '../agents/assistant.ts';
 
@@ -153,7 +153,7 @@ export function emailIdFromInstanceId(id: string): string {
 }
 ```
 
-`@flue/resend` gives `client.webhooks.verify()` the exact request body and the
+`@bapX/resend` gives `client.webhooks.verify()` the exact request body and the
 signed `svix-id`, `svix-timestamp`, and `svix-signature` values before invoking
 `webhook`. Returning nothing produces an empty `200`. A JSON-compatible value
 becomes the response body, and a normal Hono or Fetch `Response` passes through
@@ -185,7 +185,7 @@ or durable storage.
 ## Bind the tool
 
 ```ts title="src/agents/assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { emailIdFromInstanceId, retrieveReceivedEmail } from '../channels/resend.ts';
 
 export default defineAgent(({ id }) => {
@@ -235,4 +235,4 @@ Receiving-domain configuration, webhook registration, API keys, signing-secret
 rotation, deduplication, persistence, outbound mail, and reply behavior remain
 application-owned.
 
-See the [`@flue/resend` README](https://github.com/withastro/flue/tree/main/packages/resend#readme).
+See the [`@bapX/resend` README](https://github.com/getwinharris/agents/tree/main/packages/resend#readme).

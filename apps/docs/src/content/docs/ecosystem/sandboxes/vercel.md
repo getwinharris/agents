@@ -20,8 +20,8 @@ The blueprint installs `@vercel/sandbox` when needed and creates `sandboxes/verc
 
 ```ts title="<source-root>/sandboxes/vercel.ts (abridged)"
 // flue-blueprint: sandbox/vercel@1
-import { createSandboxSessionEnv } from '@flue/runtime';
-import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@flue/runtime';
+import { createSandboxSessionEnv } from '@bapX/runtime';
+import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 import type { Sandbox as VercelSandbox } from '@vercel/sandbox';
 
 class VercelSandboxApi implements SandboxApi {
@@ -117,7 +117,7 @@ Pass an initialized Vercel `Sandbox` to `vercel(...)` and assign the returned fa
 
 ```ts
 import { Sandbox } from '@vercel/sandbox';
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { vercel } from '../sandboxes/vercel';
 
 const sandbox = await Sandbox.create({ runtime: 'node24' });

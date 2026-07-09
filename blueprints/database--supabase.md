@@ -5,8 +5,8 @@
 # Add a Supabase Database to Flue
 
 You are an AI coding agent configuring Supabase Postgres persistence for a Flue
-project using the existing first-party `@flue/postgres` adapter and the `pg`
-driver. Do not create a Supabase-specific package or modify `@flue/postgres`.
+project using the existing first-party `@bapX/postgres` adapter and the `pg`
+driver. Do not create a Supabase-specific package or modify `@bapX/postgres`.
 
 This persists canonical agent conversation streams, immutable attachments,
 accepted submissions, workflow-run records, and event
@@ -28,8 +28,8 @@ the project already has an adapter; confirm with the user before replacing it.
 Inspect how the project reads secrets so the connection string follows the same
 convention.
 
-Install `@flue/postgres`, `pg@^8.21.0`, and the matching `@types/pg@^8.20.0` development
-dependency with the project's package manager. `@flue/postgres` does not bundle
+Install `@bapX/postgres`, `pg@^8.21.0`, and the matching `@types/pg@^8.20.0` development
+dependency with the project's package manager. `@bapX/postgres` does not bundle
 a database driver; the project owns pooling, TLS, credentials, and connection
 lifecycle.
 
@@ -62,7 +62,7 @@ work onto another connection.
 
 ```ts title="src/db.ts"
 // flue-blueprint: database/supabase@1
-import { postgres } from '@flue/postgres';
+import { postgres } from '@bapX/postgres';
 import { Pool } from 'pg';
 
 const pool = new Pool({ connectionString: process.env.SUPABASE_DATABASE_URL });
@@ -95,7 +95,7 @@ conventions and never commit a real value. For local development, `flue dev
 existing `.env.example` or environment documentation when the project keeps
 one; do not introduce a new secret-management convention without need.
 
-`@flue/postgres` uses transaction-scoped `pg_advisory_xact_lock` calls to
+`@bapX/postgres` uses transaction-scoped `pg_advisory_xact_lock` calls to
 serialize session updates. It does not rely on session advisory locks, and the
 locks are released when their transactions complete.
 

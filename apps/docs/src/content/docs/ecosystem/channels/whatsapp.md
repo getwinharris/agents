@@ -2,8 +2,8 @@
 title: WhatsApp
 description: Receive verified WhatsApp Business Cloud deliveries with a project-owned Fetch client.
 package:
-  name: '@flue/whatsapp'
-  href: https://www.npmjs.com/package/@flue/whatsapp
+  name: '@bapX/whatsapp'
+  href: https://www.npmjs.com/package/@bapX/whatsapp
 ---
 
 ## Quickstart
@@ -16,14 +16,14 @@ flue add channel whatsapp
 
 ## Overview
 
-The blueprint installs `@flue/whatsapp` and `@kapso/whatsapp-cloud-api`, creates
+The blueprint installs `@bapX/whatsapp` and `@kapso/whatsapp-cloud-api`, creates
 a source-root `channels/whatsapp.ts` module with named `channel` and
 project-owned `client` exports, and modifies the selected agent to bind the
 generated message tool.
 
 ```ts title="src/channels/whatsapp.ts (abridged)"
-import { createWhatsAppChannel } from '@flue/whatsapp';
-import { dispatch } from '@flue/runtime';
+import { createWhatsAppChannel } from '@bapX/whatsapp';
+import { dispatch } from '@bapX/runtime';
 import { WhatsAppClient } from '@kapso/whatsapp-cloud-api';
 import assistant from '../agents/assistant.ts';
 
@@ -82,8 +82,8 @@ Workers with Flue's `nodejs_compat` setting.
 | `WHATSAPP_PHONE_NUMBER_ID`     | **Required** — Restricts handling to the configured phone number.            |
 | `WHATSAPP_BUSINESS_ACCOUNT_ID` | **Optional** — Restricts handling by business account as application policy. |
 
-It installs `@flue/whatsapp` for verified ingress and
-`@kapso/whatsapp-cloud-api` for project-owned Graph API access. `@flue/whatsapp`
+It installs `@bapX/whatsapp` for verified ingress and
+`@kapso/whatsapp-cloud-api` for project-owned Graph API access. `@bapX/whatsapp`
 requires Node 24 because its selected webhook type package declares that engine
 floor. The client is Fetch-based and runs in Node and workerd with Flue's
 required `nodejs_compat` configuration.
@@ -116,8 +116,8 @@ import {
   type WebhookMessage,
   type WebhookValue,
   type WhatsAppConversationRef,
-} from '@flue/whatsapp';
-import { defineTool, dispatch } from '@flue/runtime';
+} from '@bapX/whatsapp';
+import { defineTool, dispatch } from '@bapX/runtime';
 import { WhatsAppClient, type SendMessageResponse } from '@kapso/whatsapp-cloud-api';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';
@@ -277,4 +277,4 @@ API versions, a transient `url`). Treat both as transport credentials: download
 media with the project-owned client using the verified id, and avoid forwarding
 the raw `payload` or media URLs into model context wholesale.
 
-See the [`@flue/whatsapp` README](https://github.com/withastro/flue/tree/main/packages/whatsapp#readme).
+See the [`@bapX/whatsapp` README](https://github.com/getwinharris/agents/tree/main/packages/whatsapp#readme).

@@ -152,7 +152,7 @@ export function isBufferedRunEvent(event: FlueEvent): boolean {
  * Events excluded from durable streams entirely: never persisted and never
  * served over HTTP, on agent streams and run streams alike. In-process
  * delivery is unaffected — `observe()` subscribers and exporters such as
- * `@flue/opentelemetry` receive these events with full fidelity.
+ * `@bapX/opentelemetry` receive these events with full fidelity.
  *
  * `turn_request` re-serializes the full system prompt, the entire message
  * history, and all tool schemas on every model turn; persisting it grows

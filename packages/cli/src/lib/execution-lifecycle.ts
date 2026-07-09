@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import path from 'node:path';
-import { createFlueClient, type FlueClient } from '@flue/sdk';
+import { createFlueClient, type FlueClient } from '@bapX/sdk';
 import { ulid } from 'ulidx';
 import { type FlueConfig, resolveConfig, resolveConfigPath, type UserFlueConfig } from './config.ts';
 import { createEnvLoader, type EnvLoader, selectEnvFile } from './env.ts';

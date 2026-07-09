@@ -1,4 +1,4 @@
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { getCustomerSummary, parseStripeCustomerInstanceId } from '../channels/stripe.ts';
 
 export default defineAgent(({ id }) => ({

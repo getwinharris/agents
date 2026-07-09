@@ -13,7 +13,7 @@ Each workflow invocation has a `runId`. Its run history records the completed re
 Use the Action context's `log` methods to record application-specific facts that runtime activity alone cannot explain. For example, a summarization workflow can report the size of the accepted document and the usage of the completed operation:
 
 ```ts title="src/workflows/summarize.ts"
-import { defineAgent, defineWorkflow } from '@flue/runtime';
+import { defineAgent, defineWorkflow } from '@bapX/runtime';
 import * as v from 'valibot';
 
 const summarizer = defineAgent(() => ({
@@ -50,8 +50,8 @@ A workflow's `startedAt` timestamp is captured before durable admission finishes
 Register `observe(...)` in your application entrypoint when you need telemetry across workflows and continuing agents. The observer receives activity handled by that running application context, including operations triggered by asynchronously dispatched input.
 
 ```ts title="src/app.ts"
-import { observe } from '@flue/runtime';
-import { flue } from '@flue/runtime/routing';
+import { observe } from '@bapX/runtime';
+import { flue } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 observe((event) => {

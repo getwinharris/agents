@@ -34,7 +34,7 @@ The example stores the skill in `src/skills/` alongside other authored source, b
 Import your skills with the `skill` import attribute (a new feature in modern JavaScript). Once imported, pass the imported reference to the agent's `skills` configuration:
 
 ```ts title="src/agents/assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import review from '../skills/review/SKILL.md' with { type: 'skill' };
 import triage from '../skills/triage/SKILL.md' with { type: 'skill' };
 import investigate from '../skills/investigate/SKILL.md' with { type: 'skill' };
@@ -95,7 +95,7 @@ Normally you can trust the agent to use the skills you provide it, as needed, to
 In workflows, you can manually trigger a skill through the `session.skill(name: string)` API method. This works with both registered imported skills and workspace-discovered skills.
 
 ```ts title="src/workflows/review-change.ts"
-import { defineAgent, defineWorkflow } from '@flue/runtime';
+import { defineAgent, defineWorkflow } from '@bapX/runtime';
 import * as v from 'valibot';
 import review from '../skills/review/SKILL.md' with { type: 'skill' };
 

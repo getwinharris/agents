@@ -1,4 +1,4 @@
-import type { ConversationLiveMode, FlueClient } from '@flue/sdk';
+import type { ConversationLiveMode, FlueClient } from '@bapX/sdk';
 import { useEffect, useMemo, useSyncExternalStore } from 'react';
 import { type AgentSnapshot, emptyAgentState } from './agent-reducer.ts';
 import { AgentSession, type SendMessageOptions } from './agent-session.ts';

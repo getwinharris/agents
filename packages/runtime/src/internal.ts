@@ -28,7 +28,7 @@ export type {
 export type { FlueContextConfig, FlueContextInternal } from './client.ts';
 export { createFlueContext, initializeRootHarness } from './client.ts';
 // `FlueRegistry` (Durable Object class) and the composite Cloudflare run
-// store/index factories live in the `@flue/runtime/cloudflare/internal`
+// store/index factories live in the `@bapX/runtime/cloudflare/internal`
 // subpath because that entry pulls in `cloudflare:workers`, a virtual module
 // Node can't resolve. The generated CF entry imports them from there
 // directly; nothing here may import `cloudflare:workers`.
@@ -100,11 +100,11 @@ export type {
 //     traffic.
 //
 //   - `createDefaultFlueApp` is the no-`app.ts` fallback. Lives in
-//     @flue/runtime so the generated entry doesn't have to import `hono` (which
+//     @bapX/runtime so the generated entry doesn't have to import `hono` (which
 //     keeps user projects from needing it as a direct dep when they
 //     don't author their own `app.ts`).
 //
-// The user-facing `flue()` itself is re-exported from `@flue/runtime/routing`, not here.
+// The user-facing `flue()` itself is re-exported from `@bapX/runtime/routing`, not here.
 export {
 	admitDetachedWorkflow,
 	assertWorkflowDefinition,

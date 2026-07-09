@@ -19,7 +19,7 @@ first existing source root: `<root>/.flue/`, then `<root>/src/`, then
 Stripe event destination's payload style, and which event types the application
 needs.
 
-Install `@flue/stripe` and Stripe's official `stripe@^22.2.1` SDK with the
+Install `@bapX/stripe` and Stripe's official `stripe@^22.2.1` SDK with the
 project's package manager. In a TypeScript project, keep the compatible
 `@types/node` peer available because Stripe's declarations reference those
 types even when the runtime selects its Worker implementation. Add it as a
@@ -38,8 +38,8 @@ client and fixed route:
 ```ts
 // flue-blueprint: channel/stripe@1
 import Stripe from 'stripe';
-import { createStripeChannel } from '@flue/stripe';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createStripeChannel } from '@bapX/stripe';
+import { defineTool, dispatch } from '@bapX/runtime';
 import billing from '../agents/billing.ts';
 
 export const client = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -117,7 +117,7 @@ application has explicitly authorized that access.
 Bind the trusted customer id inside the agent initializer:
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { retrieveCustomer } from '../channels/stripe.ts';
 
 export default defineAgent(({ id: customerId }) => ({
@@ -154,7 +154,7 @@ The callback receives Stripe's native
 `Stripe.V2.Core.EventNotification`. Application code may call
 `event.fetchEvent()` or `event.fetchRelatedObject()` through the project-owned
 client when it needs current data. Keep those API calls, credentials, and
-authorization policy outside `@flue/stripe`.
+authorization policy outside `@bapX/stripe`.
 
 Do not normalize snapshot events and thin notifications into one schema. They
 have different provider semantics and SDK APIs.

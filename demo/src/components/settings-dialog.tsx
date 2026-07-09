@@ -1,4 +1,4 @@
-import type { ConversationLiveMode } from '@flue/sdk'
+import type { ConversationLiveMode } from '@bapX/sdk'
 import { Settings } from 'lucide-react'
 import { type ReactNode, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'

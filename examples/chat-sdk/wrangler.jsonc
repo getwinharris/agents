@@ -5,15 +5,15 @@
 	"compatibility_flags": ["nodejs_compat"],
 	"migrations": [
 		{
-			"tag": "flue-class-Assistant",
+			"tag": "bapX-class-Assistant",
 			"new_sqlite_classes": ["Assistant"]
 		},
 		{
-			"tag": "flue-class-FlueRegistry",
+			"tag": "bapX-class-FlueRegistry",
 			"new_sqlite_classes": ["FlueRegistry"]
 		},
 		{
-			"tag": "flue-rename-generated-classes",
+			"tag": "bapX-rename-generated-classes",
 			"renamed_classes": [{ "from": "Assistant", "to": "FlueAssistantAgent" }]
 		}
 	]

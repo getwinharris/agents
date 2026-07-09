@@ -1,5 +1,5 @@
-import { defineTool, dispatch } from '@flue/runtime';
-import { createTelegramChannel, type TelegramConversationRef } from '@flue/telegram';
+import { defineTool, dispatch } from '@bapX/runtime';
+import { createTelegramChannel, type TelegramConversationRef } from '@bapX/telegram';
 import { Api } from 'grammy';
 import type { Message } from 'grammy/types';
 import * as v from 'valibot';

@@ -1,4 +1,4 @@
-# `@flue/libsql`
+# `@bapX/libsql`
 
 libSQL / Turso durable persistence for Flue applications on the Node.js target.
 One package serves a local SQLite file, a self-hosted libSQL server (`sqld`),
@@ -6,7 +6,7 @@ an embedded replica, and hosted [Turso](https://turso.tech).
 
 ```ts
 // src/db.ts
-import { libsql } from '@flue/libsql';
+import { libsql } from '@bapX/libsql';
 import { createClient, type ResultSet } from '@libsql/client';
 
 const client = createClient({
@@ -73,7 +73,7 @@ tickets, and payments in your own tables.
 
 ## Bring your own driver
 
-`@flue/libsql` does **not** pick or bundle a database driver. It runs against a
+`@bapX/libsql` does **not** pick or bundle a database driver. It runs against a
 small runner you wrap around your configured [`@libsql/client`](https://docs.turso.tech/sdk/ts/reference),
 so you own the client and its connection options. A runner is three functions:
 
@@ -120,7 +120,7 @@ flue add database turso    # hosted Turso
 ```
 
 Both install this package and write the `db.ts` for the chosen target. See the
-[libSQL guide](https://flueframework.com/docs/ecosystem/databases/libsql/) and
-[Turso guide](https://flueframework.com/docs/ecosystem/databases/turso/) for
-setup and the [Data Persistence API](https://flueframework.com/docs/api/data-persistence-api/)
+[libSQL guide](https://bapx.in/docs/ecosystem/databases/libsql/) and
+[Turso guide](https://bapx.in/docs/ecosystem/databases/turso/) for
+setup and the [Data Persistence API](https://bapx.in/docs/api/data-persistence-api/)
 for the adapter contract.

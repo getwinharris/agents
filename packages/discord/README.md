@@ -1,9 +1,9 @@
-# `@flue/discord`
+# `@bapX/discord`
 
 Verified Discord HTTP interactions ingress for Flue applications.
 
 ```ts
-import { createDiscordChannel, type APIInteractionResponse } from '@flue/discord';
+import { createDiscordChannel, type APIInteractionResponse } from '@bapX/discord';
 
 export const channel = createDiscordChannel({
   publicKey: process.env.DISCORD_PUBLIC_KEY!,

@@ -1,4 +1,4 @@
-import { FlueProvider } from '@flue/react'
+import { FlueProvider } from '@bapX/react'
 import { RouterProvider } from '@tanstack/react-router'
 import { StrictMode, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'

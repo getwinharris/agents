@@ -3,7 +3,7 @@ import type {
 	FlueConversationMessage,
 	FlueEvent,
 	FlueEventStream,
-} from '@flue/sdk';
+} from '@bapX/sdk';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { useFlueAgent } from '../src/use-agent.ts';

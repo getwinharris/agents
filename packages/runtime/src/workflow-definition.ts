@@ -21,7 +21,7 @@ export interface WorkflowDefinition<TAction extends ActionDefinition = ActionDef
 	readonly action: TAction;
 }
 
-const WORKFLOW_DEFINITIONS_KEY = Symbol.for('@flue/runtime/workflow-definitions');
+const WORKFLOW_DEFINITIONS_KEY = Symbol.for('@bapX/runtime/workflow-definitions');
 const runtimeGlobal = globalThis as typeof globalThis & {
 	[WORKFLOW_DEFINITIONS_KEY]?: WeakSet<object>;
 };
@@ -62,22 +62,22 @@ export function defineWorkflow(
 	options: ExtractedWorkflowOptions<ActionDefinition> | InlineWorkflowOptions<any, any>,
 ): WorkflowDefinition {
 	if (!options || typeof options !== 'object') {
-		throw new Error('[flue] defineWorkflow() requires a workflow definition object.');
+		throw new Error('[bapX] defineWorkflow() requires a workflow definition object.');
 	}
 	if (!isAgentDefinition(options.agent)) {
-		throw new Error('[flue] defineWorkflow({ agent }) requires an AgentDefinition.');
+		throw new Error('[bapX] defineWorkflow({ agent }) requires an AgentDefinition.');
 	}
 	const hasAction = Object.hasOwn(options, 'action') && options.action !== undefined;
 	const hasRun = Object.hasOwn(options, 'run') && options.run !== undefined;
 	if (hasAction === hasRun) {
-		throw new Error('[flue] defineWorkflow() requires exactly one of action or run.');
+		throw new Error('[bapX] defineWorkflow() requires exactly one of action or run.');
 	}
 	if (hasAction) {
 		if (!isActionDefinition(options.action)) {
-			throw new Error('[flue] defineWorkflow({ action }) requires an Action.');
+			throw new Error('[bapX] defineWorkflow({ action }) requires an Action.');
 		}
 		if (Object.hasOwn(options, 'input') || Object.hasOwn(options, 'output')) {
-			throw new Error('[flue] defineWorkflow({ action }) does not accept input or output.');
+			throw new Error('[bapX] defineWorkflow({ action }) does not accept input or output.');
 		}
 		return makeWorkflowDefinition(options.agent, options.action);
 	}

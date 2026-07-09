@@ -4,10 +4,10 @@ description: Use the Flue CLI to configure, develop, exercise, inspect, and buil
 lastReviewedAt: 2026-06-22
 ---
 
-Install `@flue/cli` as a development dependency, then invoke `flue` through your package manager:
+Install `@bapX/cli` as a development dependency, then invoke `flue` through your package manager:
 
 ```bash
-npm install --save-dev @flue/cli
+npm install --save-dev @bapX/cli
 npx flue dev
 ```
 
@@ -58,7 +58,7 @@ A build packages the discovered application for its runtime target. It does not 
 
 | Command                              | Description                                                                     |
 | ------------------------------------ | ------------------------------------------------------------------------------- |
-| [`flue init`](/docs/cli/init/)       | Create an initial `flue.config.ts`.                                             |
+| [`flue init`](/docs/cli/init/)       | Create an initial `bapX.config.ts`.                                             |
 | [`flue dev`](/docs/cli/dev/)         | Serve and watch the local application.                                          |
 | [`flue run`](/docs/cli/run/)         | Execute one agent prompt or workflow invocation, then exit.                     |
 | [`flue build`](/docs/cli/build/)     | Create deployable application artifacts.                                        |

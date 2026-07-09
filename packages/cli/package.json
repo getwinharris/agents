@@ -1,16 +1,16 @@
 {
-	"name": "@flue/cli",
+	"name": "@bapX/cli",
 	"version": "1.0.0-beta.9",
 	"type": "module",
 	"license": "Apache-2.0",
-	"homepage": "https://flueframework.com/",
+	"homepage": "https://bapx.in/",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/withastro/flue",
+		"url": "https://github.com/getwinharris/agents",
 		"directory": "packages/cli"
 	},
 	"bin": {
-		"flue": "bin/flue.mjs"
+		"bapX": "bin/bapX.mjs"
 	},
 	"exports": {
 		"./config": {
@@ -19,7 +19,7 @@
 		}
 	},
 	"files": [
-		"bin/flue.mjs",
+		"bin/bapX.mjs",
 		"dist",
 		"docs"
 	],
@@ -28,7 +28,7 @@
 	},
 	"scripts": {
 		"prebuild": "tsx scripts/generate-blueprint-index.ts",
-		"build": "tsdown && mv dist/flue.mjs dist/flue.js",
+		"build": "tsdown && mv dist/bapX.mjs dist/bapX.js",
 		"check:types": "tsc --noEmit",
 		"pretest": "pnpm run build",
 		"test": "node --test test/*.test.mjs && vitest run",
@@ -36,8 +36,8 @@
 	},
 	"dependencies": {
 		"@cloudflare/vite-plugin": "^1.39.2",
-		"@flue/runtime": "workspace:*",
-		"@flue/sdk": "workspace:*",
+		"@bapX/runtime": "workspace:*",
+		"@bapX/sdk": "workspace:*",
 		"@hono/node-server": "^2.0.3",
 		"@vercel/detect-agent": "^1.2.3",
 		"debug": "^4.4.3",

@@ -65,8 +65,8 @@ Write this file verbatim. Do not "improve" it — it conforms to the published
  * ```
  */
 import { spawn } from 'node:child_process';
-import { createSandboxSessionEnv } from '@flue/runtime';
-import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@flue/runtime';
+import { createSandboxSessionEnv } from '@bapX/runtime';
+import type { SandboxApi, SandboxFactory, SessionEnv, FileStat } from '@bapX/runtime';
 
 export interface IsloAdapterOptions {
 	/** Default cwd inside the sandbox. Defaults to `/workspace`. */
@@ -240,7 +240,7 @@ export function islo(name: string, options?: IsloAdapterOptions): SandboxFactory
 
 ## Required dependencies
 
-None. The adapter only uses `@flue/runtime` (already in the project) and
+None. The adapter only uses `@bapX/runtime` (already in the project) and
 Node's built-in `child_process`.
 
 ## Required runtime: the islo CLI
@@ -293,7 +293,7 @@ into, you can finish that work by wiring the adapter into it. Otherwise,
 share this snippet so they can wire it up themselves.
 
 ```ts
-import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@flue/runtime';
+import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
 import { islo } from '../sandboxes/islo'; // adjust path to match the user's layout
 
 export const route: WorkflowRouteHandler = async (_c, next) => next();

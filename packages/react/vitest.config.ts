@@ -1,7 +1,7 @@
 export default {
 	resolve: {
 		alias: {
-			'@flue/sdk': new URL('../sdk/src/index.ts', import.meta.url).pathname,
+			'@bapX/sdk': new URL('../sdk/src/index.ts', import.meta.url).pathname,
 		},
 	},
 	test: {

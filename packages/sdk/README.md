@@ -4,8 +4,8 @@ Not another SDK. Build autonomous agents and powerful AI workflows with Flue's p
 
 ```ts
 // agents/triage.ts
-import { defineAgent, type AgentRouteHandler } from '@flue/runtime';
-import { local } from '@flue/runtime/node';
+import { defineAgent, type AgentRouteHandler } from '@bapX/runtime';
+import { local } from '@bapX/runtime/node';
 import triage from '../skills/triage/SKILL.md' with { type: 'skill' };
 import verify from '../skills/verify/SKILL.md' with { type: 'skill' };
 import * as githubTools from '../tools/github.ts';
@@ -44,32 +44,32 @@ Agents like Claude Code and Codex broke the mold. These were _real agents._ Auto
 
 Build agents that can safely take action, maintain continuity, and connect to the systems where work already happens.
 
-- **[Agents](https://flueframework.com/docs/guide/building-agents/)** — Build agents that can keep context across conversations and events as they autonomously work toward a goal.
-- **[Workflows](https://flueframework.com/docs/guide/workflows/)** — Run structured automations where your code guides agent reasoning from a clear input to a finished result.
-- **[Sandboxes](https://flueframework.com/docs/guide/sandboxes/)** — Give agents a secure environment where they can use tools, modify files, and autonomously complete real work.
-- **[Durable Execution](https://flueframework.com/docs/guide/durable-execution/)** — Learn how agents preserve progress through failures and restarts with durable recovery for accepted work.
-- **[Subagents](https://flueframework.com/docs/guide/subagents/)** — Define specialized roles for different tasks, then let your agent delegate work to the right expert.
-- **[Tools](https://flueframework.com/docs/guide/tools/)** — Give agents typed actions for calling APIs, querying data, and making controlled changes through your application.
-- **[Skills](https://flueframework.com/docs/guide/skills/)** — Package reusable expertise and workflows that agents can load whenever a task needs specialized guidance.
-- **[MCP Servers](https://flueframework.com/docs/guide/tools/#connect-mcp-tools)** — Connect agents to authenticated tools and services through the open Model Context Protocol ecosystem.
-- **[Observability](https://flueframework.com/docs/guide/observability/)** — Monitor your agents and export telemetry with [OpenTelemetry](https://flueframework.com/docs/ecosystem/tooling/opentelemetry/), [Braintrust](https://flueframework.com/docs/ecosystem/tooling/braintrust/), [Sentry](https://flueframework.com/docs/ecosystem/tooling/sentry/), or your own observer.
-- **[Channels](https://flueframework.com/docs/guide/channels/)** — Receive verified events from Slack, Teams, Discord, GitHub, and more.
+- **[Agents](https://bapx.in/docs/guide/building-agents/)** — Build agents that can keep context across conversations and events as they autonomously work toward a goal.
+- **[Workflows](https://bapx.in/docs/guide/workflows/)** — Run structured automations where your code guides agent reasoning from a clear input to a finished result.
+- **[Sandboxes](https://bapx.in/docs/guide/sandboxes/)** — Give agents a secure environment where they can use tools, modify files, and autonomously complete real work.
+- **[Durable Execution](https://bapx.in/docs/guide/durable-execution/)** — Learn how agents preserve progress through failures and restarts with durable recovery for accepted work.
+- **[Subagents](https://bapx.in/docs/guide/subagents/)** — Define specialized roles for different tasks, then let your agent delegate work to the right expert.
+- **[Tools](https://bapx.in/docs/guide/tools/)** — Give agents typed actions for calling APIs, querying data, and making controlled changes through your application.
+- **[Skills](https://bapx.in/docs/guide/skills/)** — Package reusable expertise and workflows that agents can load whenever a task needs specialized guidance.
+- **[MCP Servers](https://bapx.in/docs/guide/tools/#connect-mcp-tools)** — Connect agents to authenticated tools and services through the open Model Context Protocol ecosystem.
+- **[Observability](https://bapx.in/docs/guide/observability/)** — Monitor your agents and export telemetry with [OpenTelemetry](https://bapx.in/docs/ecosystem/tooling/opentelemetry/), [Braintrust](https://bapx.in/docs/ecosystem/tooling/braintrust/), [Sentry](https://bapx.in/docs/ecosystem/tooling/sentry/), or your own observer.
+- **[Channels](https://bapx.in/docs/guide/channels/)** — Receive verified events from Slack, Teams, Discord, GitHub, and more.
 
 ## Deploy Anywhere
 
-- **[Node.js](https://flueframework.com/docs/ecosystem/deploy/node/)**
-- **[Cloudflare Workers](https://flueframework.com/docs/ecosystem/deploy/cloudflare/)**
-- **[GitHub Actions](https://flueframework.com/docs/ecosystem/deploy/github-actions/)**
-- **[GitLab CI/CD](https://flueframework.com/docs/ecosystem/deploy/gitlab-ci/)**
-- **[Daytona](https://flueframework.com/docs/ecosystem/sandboxes/daytona/)**
-- **[Render](https://flueframework.com/docs/ecosystem/deploy/render/)**
+- **[Node.js](https://bapx.in/docs/ecosystem/deploy/node/)**
+- **[Cloudflare Workers](https://bapx.in/docs/ecosystem/deploy/cloudflare/)**
+- **[GitHub Actions](https://bapx.in/docs/ecosystem/deploy/github-actions/)**
+- **[GitLab CI/CD](https://bapx.in/docs/ecosystem/deploy/gitlab-ci/)**
+- **[Daytona](https://bapx.in/docs/ecosystem/sandboxes/daytona/)**
+- **[Render](https://bapx.in/docs/ecosystem/deploy/render/)**
 
 ## Packages
 
 | Package                                         | Description                                            |
 | ----------------------------------------------- | ------------------------------------------------------ |
-| [`@flue/runtime`](packages/runtime)             | Runtime: harness, sessions, tools, sandbox             |
-| [`@flue/cli`](packages/cli)                     | CLI and build/dev tooling (`flue` binary)              |
-| [`@flue/sdk`](packages/sdk)                     | Client SDK for consuming deployed agents and workflows |
-| [`@flue/opentelemetry`](packages/opentelemetry) | OpenTelemetry tracing adapter                          |
-| [`@flue/postgres`](packages/postgres)           | Postgres persistence adapter                           |
+| [`@bapX/runtime`](packages/runtime)             | Runtime: harness, sessions, tools, sandbox             |
+| [`@bapX/cli`](packages/cli)                     | CLI and build/dev tooling (`flue` binary)              |
+| [`@bapX/sdk`](packages/sdk)                     | Client SDK for consuming deployed agents and workflows |
+| [`@bapX/opentelemetry`](packages/opentelemetry) | OpenTelemetry tracing adapter                          |
+| [`@bapX/postgres`](packages/postgres)           | Postgres persistence adapter                           |

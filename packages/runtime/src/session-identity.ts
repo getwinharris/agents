@@ -32,7 +32,7 @@ export function assertPublicSessionName(name: string): void {
 		);
 	}
 	if (isActionScopeName(name)) {
-		throw new Error('[flue] Session names beginning with "action:" are reserved for Actions.');
+		throw new Error('[bapX] Session names beginning with "action:" are reserved for Actions.');
 	}
 }
 

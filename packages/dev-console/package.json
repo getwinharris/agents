@@ -1,12 +1,12 @@
 {
-	"name": "@flue/dev-console",
+	"name": "@bapX/dev-console",
 	"version": "1.0.0-beta.3",
 	"type": "module",
 	"license": "Apache-2.0",
-	"homepage": "https://flueframework.com/",
+	"homepage": "https://bapx.in/",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/withastro/flue",
+		"url": "https://github.com/getwinharris/agents",
 		"directory": "packages/dev-console"
 	},
 	"bin": {
@@ -24,7 +24,7 @@
 		"check:types": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@flue/sdk": "workspace:*",
+		"@bapX/sdk": "workspace:*",
 		"ink": "^7.1.0",
 		"ink-text-input": "^6.0.0",
 		"react": "^19.2.6",

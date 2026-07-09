@@ -1,6 +1,6 @@
 # Flue Blueprints
 
-This directory contains the source-of-truth Markdown implementation guides returned by `flue add` and `flue update`. Both commands return the same complete guide for the selected blueprint; the guide must work for adding a new integration and updating an existing one without conditional show/hide instructions. Blueprints are served at `https://flueframework.com/cli/blueprints/<slug>.md`.
+This directory contains the source-of-truth Markdown implementation guides returned by `flue add` and `flue update`. Both commands return the same complete guide for the selected blueprint; the guide must work for adding a new integration and updating an existing one without conditional show/hide instructions. Blueprints are served at `https://bapx.in/cli/blueprints/<slug>.md`.
 
 A blueprint is a Markdown guide for an AI coding agent, not an npm package or runtime abstraction. The CLI fetches and prints the guide; the coding agent edits the user's project.
 
@@ -114,7 +114,7 @@ Do not imply a common provider-client API, install generic tool collections, or 
 
 Database blueprints produce a source-root `db.ts` that default-exports a `PersistenceAdapter`, not a file under `sandboxes/`.
 
-Named blueprints with first-party packages install `@flue/<backend>` and create a small `db.ts`. The generic guide points to the `PersistenceAdapter` contract and the PostgreSQL blueprint as an implementation example.
+Named blueprints with first-party packages install `@bapX/<backend>` and create a small `db.ts`. The generic guide points to the `PersistenceAdapter` contract and the PostgreSQL blueprint as an implementation example.
 
 Database adapters are for the Node target; Cloudflare uses Durable Object SQLite and rejects `db.ts`. Read connection strings from the environment and do not store application business data in the adapter.
 

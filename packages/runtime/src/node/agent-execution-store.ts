@@ -106,7 +106,7 @@ function openDatabase(path: string): {
  * @example
  * ```ts
  * // src/db.ts
- * import { sqlite } from '@flue/runtime/node';
+ * import { sqlite } from '@bapX/runtime/node';
  * export default sqlite('./data/flue.db');
  * ```
  */

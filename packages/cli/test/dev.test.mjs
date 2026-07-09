@@ -22,17 +22,17 @@ test('restarts after discovered config changes and recovers after invalid config
 	writeWorkflow(root);
 	fs.writeFileSync(
 		path.join(root, 'workflows', 'daily.report.mjs'),
-		`import { defineAgent, defineWorkflow } from '@flue/runtime';\nexport default defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), async run() { return { ok: true }; } });\n`,
+		`import { defineAgent, defineWorkflow } from '@bapX/runtime';\nexport default defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), async run() { return { ok: true }; } });\n`,
 	);
 	fs.writeFileSync(
 		path.join(root, 'workflows', 'weekly.mjs'),
-		`import { defineAgent, defineWorkflow } from '@flue/runtime';\nexport default defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), async run() { return { ok: true }; } });\n`,
+		`import { defineAgent, defineWorkflow } from '@bapX/runtime';\nexport default defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), async run() { return { ok: true }; } });\n`,
 	);
 	fs.mkdirSync(path.join(root, 'agents'));
 	for (const name of ['support', 'researcher', 'reviewer', 'writer', 'planner']) {
 		fs.writeFileSync(
 			path.join(root, 'agents', `${name}.mjs`),
-			`import { defineAgent } from '@flue/runtime';\nexport default defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n`,
+			`import { defineAgent } from '@bapX/runtime';\nexport default defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n`,
 		);
 	}
 	fs.mkdirSync(path.join(root, 'channels'));
@@ -62,7 +62,7 @@ test('restarts after discovered config changes and recovers after invalid config
 
 		fs.writeFileSync(
 			path.join(root, 'agents', 'support.mjs'),
-			`import { defineAgent } from '@flue/runtime';\nexport default defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n`,
+			`import { defineAgent } from '@bapX/runtime';\nexport default defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n`,
 		);
 		await dev.waitForLog('changed agents/support.mjs');
 		await dev.waitForLog('reloaded in');
@@ -74,19 +74,19 @@ test('restarts after discovered config changes and recovers after invalid config
 		await dev.waitForLog(`http://localhost:${port}`, 2);
 		await waitForServer(port);
 
-		fs.writeFileSync(path.join(root, 'flue.config.ts'), `export default { target: ;\n`);
+		fs.writeFileSync(path.join(root, 'bapX.config.ts'), `export default { target: ;\n`);
 		await dev.waitForLog('Dev server restart failed. Waiting for a configuration change...');
 		await waitForServerDown(port);
 
 		fs.writeFileSync(
-			path.join(root, 'flue.config.ts'),
+			path.join(root, 'bapX.config.ts'),
 			`export default { target: 'node', output: 'dist-ts' };\n`,
 		);
 		await dev.waitForLog(`http://localhost:${port}`, 3);
 		await waitForServer(port);
 
-		fs.rmSync(path.join(root, 'flue.config.ts'));
-		await dev.waitForLog('flue.config.ts changed; restarting');
+		fs.rmSync(path.join(root, 'bapX.config.ts'));
+		await dev.waitForLog('bapX.config.ts changed; restarting');
 		await dev.waitForLog(`http://localhost:${port}`, 2);
 		await waitForServer(port);
 	} finally {
@@ -225,7 +225,7 @@ test('resolves attributed Markdown imports from workspace package exports', asyn
 	fs.mkdirSync(path.join(root, 'workflows'));
 	fs.writeFileSync(
 		path.join(root, 'workflows', 'workspace-imports.mjs'),
-		`import { defineAgent, defineWorkflow } from '@flue/runtime';
+		`import { defineAgent, defineWorkflow } from '@bapX/runtime';
 import explore from '@repo/workspace-content/explore/SKILL.md' with { type: 'skill' };
 import guide from '@repo/workspace-content/guide.md' with { type: 'markdown' };
 export const route = async (_c, next) => next();
@@ -252,7 +252,7 @@ test('reloads the Node application when an external environment file changes', a
 	fs.mkdirSync(path.join(root, 'workflows'));
 	fs.writeFileSync(
 		path.join(root, 'workflows', 'environment.mjs'),
-		`import { defineAgent, defineWorkflow } from '@flue/runtime';\nexport const route = async (_c, next) => next();\nexport default defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), async run() { return { value: process.env.FLUE_DEV_ENV_TEST }; } });\n`,
+		`import { defineAgent, defineWorkflow } from '@bapX/runtime';\nexport const route = async (_c, next) => next();\nexport default defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), async run() { return { value: process.env.FLUE_DEV_ENV_TEST }; } });\n`,
 	);
 	fs.writeFileSync(envPath, 'FLUE_DEV_ENV_TEST=first\n');
 
@@ -327,7 +327,7 @@ function writeWorkflow(root, replace = false) {
 	fs.mkdirSync(path.join(root, 'workflows'), { recursive: replace });
 	fs.writeFileSync(
 		path.join(root, 'workflows', 'smoke.mjs'),
-		`import { defineAgent, defineWorkflow } from '@flue/runtime';\nexport const route = async (_c, next) => next();\nexport default defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), async run() { return { ok: true }; } });\n`,
+		`import { defineAgent, defineWorkflow } from '@bapX/runtime';\nexport const route = async (_c, next) => next();\nexport default defineWorkflow({ agent: defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' })), async run() { return { ok: true }; } });\n`,
 	);
 }
 

@@ -3,7 +3,7 @@ import type {
 	DeliveredAttachment,
 	ConversationLiveMode,
 	FlueClient,
-} from '@flue/sdk';
+} from '@bapX/sdk';
 import {
 	type AgentReducerEvent,
 	type AgentSnapshot,

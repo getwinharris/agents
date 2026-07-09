@@ -1,5 +1,5 @@
-import { createNotionChannel } from '@flue/notion';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createNotionChannel } from '@bapX/notion';
+import { defineTool, dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 import { createNotionClient } from '../notion-client.ts';
 

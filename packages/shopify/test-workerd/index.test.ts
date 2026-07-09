@@ -6,7 +6,7 @@ const encoder = new TextEncoder();
 const CURRENT_SECRET = 'flue-shopify-workerd-current';
 const PREVIOUS_SECRET = 'flue-shopify-workerd-previous';
 
-describe('@flue/shopify workerd ingress', () => {
+describe('@bapX/shopify workerd ingress', () => {
 	it('verifies exact bytes with Web Crypto in workerd', async () => {
 		const webhook = vi.fn();
 		const app = channelApp(

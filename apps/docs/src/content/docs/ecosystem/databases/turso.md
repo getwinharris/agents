@@ -2,8 +2,8 @@
 title: Turso
 description: Give Flue agents and workflow runs durable, hosted state with Turso — managed, replicated libSQL.
 package:
-  name: '@flue/libsql'
-  href: https://www.npmjs.com/package/@flue/libsql
+  name: '@bapX/libsql'
+  href: https://www.npmjs.com/package/@bapX/libsql
 ---
 
 ## Quickstart
@@ -16,10 +16,10 @@ flue add database turso
 
 ## Overview
 
-The Turso blueprint installs `@flue/libsql` and `@libsql/client`, creates a source-root `db.ts`, and updates existing environment documentation when the project has it. It uses the libSQL adapter with Turso's database URL and auth token:
+The Turso blueprint installs `@bapX/libsql` and `@libsql/client`, creates a source-root `db.ts`, and updates existing environment documentation when the project has it. It uses the libSQL adapter with Turso's database URL and auth token:
 
 ```ts title="src/db.ts (abridged)"
-import { libsql } from '@flue/libsql';
+import { libsql } from '@bapX/libsql';
 import { createClient, type ResultSet } from '@libsql/client';
 
 const client = createClient({
@@ -53,14 +53,14 @@ Flue discovers the adapter at build time and wires it into the generated Node se
 local development, `flue dev --env <file>` and `flue run --env <file>` load any
 `.env`-format file. In production, supply them from your platform's secret store.
 
-Turso is hosted, replicated libSQL. The blueprint installs `@flue/libsql` and
+Turso is hosted, replicated libSQL. The blueprint installs `@bapX/libsql` and
 the official `@libsql/client`, and writes a source-root `db.ts` that wraps the
 client with a Turso configuration — it is the **same adapter** as
 [`flue add database libsql`](/docs/ecosystem/databases/libsql/), pointed at a Turso
 database. Flue discovers `db.ts` at build time and wires it into the generated
 Node server.
 
-`@flue/libsql` is a **Node.js** adapter. The Cloudflare target uses Durable
+`@bapX/libsql` is a **Node.js** adapter. The Cloudflare target uses Durable
 Object SQLite automatically and rejects a `db.ts` file at build time, so this
 guide applies to Node deployments. See [Database](/docs/guide/database/) for the
 full picture of how state is stored on each target.
@@ -77,7 +77,7 @@ turso db tokens create flue-agents   # → TURSO_AUTH_TOKEN
 ```
 
 ```ts title="src/db.ts"
-import { libsql } from '@flue/libsql';
+import { libsql } from '@bapX/libsql';
 import { createClient, type ResultSet } from '@libsql/client';
 
 const client = createClient({
@@ -159,4 +159,4 @@ for the exact adapter contract.
 Choose Turso when you want a managed, replicated SQLite without running a
 server, and optionally embedded replicas for low-latency reads. For a local
 file or a libSQL server you operate yourself, use the same adapter via the
-[libSQL guide](/docs/ecosystem/databases/libsql/). For external durable storage that supports process or host replacement, see [`@flue/postgres`](/docs/ecosystem/databases/postgres/). Node still requires one live owner per agent instance.
+[libSQL guide](/docs/ecosystem/databases/libsql/). For external durable storage that supports process or host replacement, see [`@bapX/postgres`](/docs/ecosystem/databases/postgres/). Node still requires one live owner per agent instance.

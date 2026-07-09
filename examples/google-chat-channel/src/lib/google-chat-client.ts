@@ -1,4 +1,4 @@
-import type { GoogleChatConversationRef } from '@flue/google-chat';
+import type { GoogleChatConversationRef } from '@bapX/google-chat';
 import { importPKCS8, SignJWT } from 'jose';
 
 const CHAT_BOT_SCOPE = 'https://www.googleapis.com/auth/chat.bot';

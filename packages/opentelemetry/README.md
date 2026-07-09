@@ -1,14 +1,14 @@
 # OpenTelemetry for Flue
 
-`@flue/opentelemetry` projects Flue runtime observations into the OpenTelemetry GenAI semantic conventions pinned at commit `4c8addb53718b544134be47e256237026fe88875`.
+`@bapX/opentelemetry` projects Flue runtime observations into the OpenTelemetry GenAI semantic conventions pinned at commit `4c8addb53718b544134be47e256237026fe88875`.
 
 ## Usage
 
 Configure an OpenTelemetry SDK and exporter first, then register the instrumentation once:
 
 ```ts
-import { createOpenTelemetryInstrumentation } from '@flue/opentelemetry';
-import { instrument } from '@flue/runtime';
+import { createOpenTelemetryInstrumentation } from '@bapX/opentelemetry';
+import { instrument } from '@bapX/runtime';
 
 const instrumentation = createOpenTelemetryInstrumentation();
 const dispose = instrument(instrumentation);

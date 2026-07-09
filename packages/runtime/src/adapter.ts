@@ -6,8 +6,8 @@
  * a persistence backend for a database not covered by the built-in adapters.
  *
  * ```ts
- * import type { AgentExecutionStore, PersistenceAdapter } from '@flue/runtime/adapter';
- * import { createSessionStorageKey, parseAcceptedAt } from '@flue/runtime/adapter';
+ * import type { AgentExecutionStore, PersistenceAdapter } from '@bapX/runtime/adapter';
+ * import { createSessionStorageKey, parseAcceptedAt } from '@bapX/runtime/adapter';
  * ```
  *
  * This surface is intentionally narrow: store interfaces, vocabulary types,
@@ -20,7 +20,7 @@
  * as MongoDB are first-class implementations. An adapter is correct when the
  * executable contract suites pass: `defineStoreContractTests`,
  * `defineRunStoreContractTests`, and `defineEventStreamStoreContractTests`
- * from `@flue/runtime/test-utils`.
+ * from `@bapX/runtime/test-utils`.
  *
  * Stability: `RunStore` and `EventStreamStore` are stable.
  * The `AgentSubmissionStore` settlement and lease method groups mirror the

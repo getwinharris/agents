@@ -2,8 +2,8 @@
 title: Redis
 description: Give Flue agents and workflow runs durable, shared state with Redis.
 package:
-  name: '@flue/redis'
-  href: https://www.npmjs.com/package/@flue/redis
+  name: '@bapX/redis'
+  href: https://www.npmjs.com/package/@bapX/redis
 ---
 
 ## Quickstart
@@ -16,7 +16,7 @@ flue add database redis
 
 ## Overview
 
-The Redis blueprint installs `@flue/redis` and the official `redis` client,
+The Redis blueprint installs `@bapX/redis` and the official `redis` client,
 creates a `db.ts` in the project's source-root, and follows the project's
 existing secret convention for `REDIS_URL`. It does not modify deployment
 configuration because persistence and recovery settings remain owned by the
@@ -26,7 +26,7 @@ The primary generated adapter connects the client and translates Flue database
 operations into Redis commands:
 
 ```ts title="src/db.ts (abridged)"
-import { redis } from '@flue/redis';
+import { redis } from '@bapX/redis';
 import { createClient } from 'redis';
 
 const client = createClient({ url: process.env.REDIS_URL });
@@ -51,7 +51,7 @@ depends on the deployment's AOF or snapshot configuration.
 | ----------- | ------------------------------------------------------------------------------------------- |
 | `REDIS_URL` | **Required** — Connection URL for a persistent standalone or single-shard Redis deployment. |
 
-The blueprint installs `@flue/redis` and the official `redis` (node-redis)
+The blueprint installs `@bapX/redis` and the official `redis` (node-redis)
 client, then writes a source-root `db.ts`. This is a **Node.js** adapter. The
 Cloudflare target uses Durable Object SQLite and rejects `db.ts`.
 
@@ -65,7 +65,7 @@ loss.
 The canonical runner uses the official client:
 
 ```ts title="src/db.ts"
-import { redis } from '@flue/redis';
+import { redis } from '@bapX/redis';
 import { createClient } from 'redis';
 
 const client = createClient({ url: process.env.REDIS_URL });

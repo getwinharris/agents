@@ -1,19 +1,19 @@
 ---
 title: Routing
-description: Compose Flue with application routes, middleware, and custom HTTP ingress.
+description: Compose bapX with application routes, middleware, and custom HTTP ingress.
 lastReviewedAt: 2026-06-20
 ---
 
-`src/app.ts` is an optional entrypoint for providing your own HTTP application in a Flue project. Add this file when your application needs authentication, health checks, route prefixes, or custom routes alongside the agents, workflows, and channels exposed by Flue.
+`src/app.ts` is an optional entrypoint for providing your own HTTP application in a bapX project. Add this file when your application needs authentication, health checks, route prefixes, or custom routes alongside the agents, workflows, and channels exposed by bapX.
 
-It is an ordinary [Hono](https://hono.dev/) application, so you can compose Flue routes with your own routes and middleware.
+It is an ordinary [Hono](https://hono.dev/) application, so you can compose bapX routes with your own routes and middleware.
 
 ## `app.ts`
 
-Without `src/app.ts`, Flue generates an application that mounts its public routes at `/`. When you add `src/app.ts`, export a Hono application and mount `flue()` explicitly:
+Without `src/app.ts`, bapX generates an application that mounts its public routes at `/`. When you add `src/app.ts`, export a Hono application and mount `flue()` explicitly:
 
 ```ts title="src/app.ts"
-import { flue } from '@flue/runtime/routing';
+import { flue } from '@bapX/runtime/routing';
 import { Hono, type MiddlewareHandler } from 'hono';
 import { authenticate } from './auth.ts';
 
@@ -50,8 +50,8 @@ Because your authored application imports `Hono`, include `hono` in your applica
 A custom application can serve any route your service needs. It can also accept an external event, verify and normalize it, and deliver it to an agent without exposing a direct prompt route for that event source:
 
 ```ts title="src/app.ts"
-import { dispatch } from '@flue/runtime';
-import { flue } from '@flue/runtime/routing';
+import { dispatch } from '@bapX/runtime';
+import { flue } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 import supportAssistant from './agents/support-assistant.ts';
 import { parseVerifiedSupportComment } from './support-webhooks.ts';
@@ -82,10 +82,10 @@ Here, the webhook route belongs to your application: it determines which request
 
 ## Customized routing
 
-For most applications, mount Flue at the root with `app.route('/', flue())`. You can instead mount it beneath a prefix when Flue is one part of a larger API:
+For most applications, mount bapX at the root with `app.route('/', flue())`. You can instead mount it beneath a prefix when bapX is one part of a larger API:
 
 ```ts title="src/app.ts"
-import { flue } from '@flue/runtime/routing';
+import { flue } from '@bapX/runtime/routing';
 import { Hono } from 'hono';
 
 const app = new Hono();
@@ -119,7 +119,7 @@ Mounting `flue()` does not make every discovered agent or workflow directly invo
 `route` controls workflow invocation only. Export `runs` separately when HTTP clients should inspect runs, including runs created by ambient `invoke()`, schedules, or other non-HTTP callers:
 
 ```ts title="src/workflows/summarize-ticket.ts"
-import type { WorkflowRunsHandler } from '@flue/runtime';
+import type { WorkflowRunsHandler } from '@bapX/runtime';
 import { verifyRunToken } from '../auth.ts';
 
 export const runs: WorkflowRunsHandler = async (c, next) => {

@@ -17,7 +17,7 @@ before enabling them in a sensitive environment.
 
 Read local instructions, detect the package manager, and select the first
 existing source root: `<root>/.flue/`, then `<root>/src/`, then `<root>/`. Inspect
-`app.ts`, `flue.config.ts`, agents, workflows, environment types, deployment
+`app.ts`, `bapX.config.ts`, agents, workflows, environment types, deployment
 configuration, and secret conventions.
 
 Install `braintrust@3.17.0` with the project's package manager. Do not change the
@@ -67,7 +67,7 @@ Create `<source-dir>/braintrust.ts`:
 
 ```ts title="src/braintrust.ts"
 // flue-blueprint: tooling/braintrust@2
-import { type FlueEvent, observe } from '@flue/runtime';
+import { type FlueEvent, observe } from '@bapX/runtime';
 import { braintrustFlueObserver, initLogger } from 'braintrust';
 
 const apiKey = process.env.BRAINTRUST_API_KEY;

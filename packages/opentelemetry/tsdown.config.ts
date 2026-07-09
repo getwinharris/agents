@@ -5,5 +5,5 @@ export default defineConfig({
 	format: ['esm'],
 	dts: true,
 	clean: true,
-	deps: { neverBundle: ['@flue/runtime', '@opentelemetry/api'] },
+	deps: { neverBundle: ['@bapX/runtime', '@opentelemetry/api'] },
 });

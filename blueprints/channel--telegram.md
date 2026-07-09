@@ -18,7 +18,7 @@ first existing source root: `<root>/.flue/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 which Telegram Update families the application handles.
 
-Install `@flue/telegram` and `grammy@^1.44.0`. Flue owns verified webhook
+Install `@bapX/telegram` and `grammy@^1.44.0`. Flue owns verified webhook
 ingress. The project owns grammY's full `Api` client, update policy, durable
 deduplication, and every outbound tool.
 
@@ -34,7 +34,7 @@ Create `<source-dir>/channels/telegram.ts`. Adapt the imported agent,
 dispatched message, handled update kinds, and tool:
 
 The callback receives one verified provider-native Telegram `Update` (the
-official `@grammyjs/types` shape, re-exported by `@flue/telegram` and by
+official `@grammyjs/types` shape, re-exported by `@bapX/telegram` and by
 grammY). At most one of its optional fields is present per update, so branch on
 those fields directly. Derive the conversation key from the native `Message`.
 
@@ -43,8 +43,8 @@ those fields directly. Derive the conversation key from the native `Message`.
 import {
   createTelegramChannel,
   type TelegramConversationRef,
-} from '@flue/telegram';
-import { defineTool, dispatch } from '@flue/runtime';
+} from '@bapX/telegram';
+import { defineTool, dispatch } from '@bapX/runtime';
 import { Api } from 'grammy';
 import type { Message } from 'grammy/types';
 import * as v from 'valibot';
@@ -153,7 +153,7 @@ export function postMessage(ref: TelegramConversationRef) {
 ## Wire the agent
 
 ```ts
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, postMessage } from '../channels/telegram.ts';
 
 export default defineAgent(({ id }) => ({

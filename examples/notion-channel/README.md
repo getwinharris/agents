@@ -43,7 +43,7 @@ choose another page, token, or network destination.
 
 Page instance ids in this example use the local `notion-page:` prefix. That is
 an application convention for this agent, not a universal conversation
-identity supplied by `@flue/notion`. The agent is intentionally dispatch-only;
+identity supplied by `@bapX/notion`. The agent is intentionally dispatch-only;
 any direct agent route would need to authorize a caller-selected instance id
 before exposing the bound page tool.
 

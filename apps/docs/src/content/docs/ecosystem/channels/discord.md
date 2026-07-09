@@ -2,8 +2,8 @@
 title: Discord
 description: Receive verified Discord interactions and use a project-owned REST client.
 package:
-  name: '@flue/discord'
-  href: https://www.npmjs.com/package/@flue/discord
+  name: '@bapX/discord'
+  href: https://www.npmjs.com/package/@bapX/discord
 lastReviewedAt: 2026-06-13
 ---
 
@@ -17,7 +17,7 @@ flue add channel discord
 
 ## Overview
 
-The blueprint installs `@flue/discord` and the community-maintained
+The blueprint installs `@bapX/discord` and the community-maintained
 `@discordjs/rest` client. It creates a source-root `channels/discord.ts` module
 that verifies interactions, dispatches supported commands, exports a
 project-owned REST client and message tool, and modifies the selected agent to
@@ -25,8 +25,8 @@ bind that tool to the interaction's trusted destination.
 
 ```ts title="src/channels/discord.ts (abridged)"
 import { REST } from '@discordjs/rest';
-import { createDiscordChannel, type APIInteractionResponse } from '@flue/discord';
-import { dispatch } from '@flue/runtime';
+import { createDiscordChannel, type APIInteractionResponse } from '@bapX/discord';
+import { dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 
 export const client = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN!);
@@ -84,14 +84,14 @@ package selects its Fetch-based export and uses Flue's `nodejs_compat` setting.
 | `DISCORD_PUBLIC_KEY` | **Required** — Verifies inbound interaction request bytes. |
 | `DISCORD_BOT_TOKEN`  | **Required** — Authenticates outbound Discord REST calls.  |
 
-The blueprint installs and configures `@flue/discord` for inbound HTTP
+The blueprint installs and configures `@bapX/discord` for inbound HTTP
 interactions, along with a project-owned `@discordjs/rest` client for outbound
 API calls. After running the command, you will have a new source-root
 `channels/discord.ts` module exporting `channel` and `client`.
 
 Discord does not publish an official JavaScript REST SDK. The blueprint uses the
 community-maintained `@discordjs/rest` client. Your application owns that client
-and its outbound API calls; `@flue/discord` handles only verified inbound HTTP
+and its outbound API calls; `@bapX/discord` handles only verified inbound HTTP
 interactions.
 
 In the Discord Developer Portal, set the application's Interactions Endpoint
@@ -113,7 +113,7 @@ channel package.
 
 Discord can deliver [interactions](https://docs.discord.com/developers/interactions/receiving-and-responding)
 through the Gateway or an outgoing webhook, but not both for the same
-application. `@flue/discord` implements the verified HTTP path. Discord Gateway
+application. `@bapX/discord` implements the verified HTTP path. Discord Gateway
 is a persistent WebSocket transport and remains outside the channel model.
 
 Signed PING requests are answered with PONG internally before application code
@@ -122,7 +122,7 @@ runs.
 ### Interactions
 
 ```ts title="src/channels/discord.ts"
-import { type APIInteractionResponse, createDiscordChannel } from '@flue/discord';
+import { type APIInteractionResponse, createDiscordChannel } from '@bapX/discord';
 
 export const channel = createDiscordChannel({
   publicKey: process.env.DISCORD_PUBLIC_KEY!,
@@ -212,7 +212,7 @@ export const client = new REST({ version: '10' }).setToken(process.env.DISCORD_B
 
 Bot-token messages, application-command registration, and interaction-token
 follow-ups or edits are Discord REST operations. They are not implemented by
-`@flue/discord`.
+`@bapX/discord`.
 
 ## Discord Tools
 
@@ -220,8 +220,8 @@ Use the client to define an application-owned tool with its destination bound in
 trusted code:
 
 ```ts title="src/channels/discord.ts"
-import { defineTool } from '@flue/runtime';
-import type { DiscordDestinationRef } from '@flue/discord';
+import { defineTool } from '@bapX/runtime';
+import type { DiscordDestinationRef } from '@bapX/discord';
 import * as v from 'valibot';
 
 export function postMessage(ref: DiscordDestinationRef) {
@@ -242,7 +242,7 @@ export function postMessage(ref: DiscordDestinationRef) {
 Bind the destination when creating the agent:
 
 ```ts title="src/agents/assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, postMessage } from '../channels/discord.ts';
 
 export default defineAgent(({ id }) => ({
@@ -262,7 +262,7 @@ Discord does not document dependable interaction redelivery behavior. Preserve
 before dispatch when duplicate admission is unacceptable. The channel itself is
 stateless and does not deduplicate interaction ids.
 
-`@flue/discord` runs in Node and Cloudflare Workers with Flue's required
+`@bapX/discord` runs in Node and Cloudflare Workers with Flue's required
 `nodejs_compat` setting. The example executes `@discordjs/rest` channel-message
 request construction against a fail-closed fake Fetch transport in both
 runtimes. Validate any additional REST operations your application depends on.

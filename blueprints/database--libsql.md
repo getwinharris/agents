@@ -5,7 +5,7 @@
 # Add a libSQL Database to Flue
 
 You are an AI coding agent configuring libSQL-backed persistence for a Flue
-project using the first-party `@flue/libsql` adapter. Use this for a local
+project using the first-party `@bapX/libsql` adapter. Use this for a local
 SQLite file, a self-hosted libSQL server (`sqld`), or an embedded replica. For
 hosted Turso, use the `turso` blueprint instead — it is the same package with a
 different client configuration.
@@ -28,8 +28,8 @@ then `<root>/`. Check for an existing `db.ts` — if one is present, the project
 already has an adapter; confirm with the user before replacing it. Inspect how
 the project reads secrets.
 
-Install `@flue/libsql` and the official [`@libsql/client@^0.17.3`](https://docs.turso.tech/sdk/ts/reference)
-with the project's package manager. `@flue/libsql` does not bundle a driver.
+Install `@bapX/libsql` and the official [`@libsql/client@^0.17.3`](https://docs.turso.tech/sdk/ts/reference)
+with the project's package manager. `@bapX/libsql` does not bundle a driver.
 
 ## Create `db.ts`
 
@@ -41,7 +41,7 @@ callback in one `write` transaction, and `close`. `@libsql/client` returns a
 
 ```ts title="src/db.ts"
 // flue-blueprint: database/libsql@1
-import { libsql } from '@flue/libsql';
+import { libsql } from '@bapX/libsql';
 import { createClient, type ResultSet } from '@libsql/client';
 
 // Local file: `file:./data/flue.db`

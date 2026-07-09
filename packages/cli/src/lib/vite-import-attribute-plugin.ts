@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type { PackagedSkillDirectory } from '@flue/runtime';
-import { buildPackagedSkill, parseSkillMarkdown } from '@flue/runtime/internal';
+import type { PackagedSkillDirectory } from '@bapX/runtime';
+import { buildPackagedSkill, parseSkillMarkdown } from '@bapX/runtime/internal';
 import { normalizePath, type Plugin, transformWithOxc } from 'vite';
 
 const MARKDOWN_MODULE_PREFIX = '\0flue-markdown:';
@@ -162,7 +162,7 @@ export function importAttributePlugin(): Plugin {
 			trackedSkillDirectories.add(canonicalPath(directory));
 			const packagedSkill = await packageSkill(skillPath);
 			return [
-				`import { createSkillReference } from '@flue/runtime/internal';`,
+				`import { createSkillReference } from '@bapX/runtime/internal';`,
 				`const directory = ${JSON.stringify(packagedSkill)};`,
 				'export default createSkillReference(directory);',
 			].join('\n');

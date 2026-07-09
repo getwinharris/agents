@@ -49,10 +49,10 @@ Read these before writing code.
 
 - **Spec** (the `PersistenceAdapter` contract — canonical stream, attachment,
   submission, run, and event-stream stores):
-  `https://flueframework.com/docs/api/data-persistence-api/index.md`
+  `https://bapx.in/docs/api/data-persistence-api/index.md`
 - **Worked example** (the Postgres adapter — one complete implementation of
   the full contract; your backend's shape may be quite different):
-  `https://flueframework.com/cli/blueprints/postgres.md`
+  `https://bapx.in/cli/blueprints/postgres.md`
 
 ## Flue-specific conventions
 
@@ -68,8 +68,8 @@ These are the things that aren't obvious from the spec or the example.
   `// flue-blueprint: database/<provider>@1`, replacing `<provider>` with the
   selected provider slug. Flue discovers it at build time and wires the default
   export into the generated Node server. Ask the user if their layout is unusual.
-- **Imports.** The contract types and helpers live at `@flue/runtime/adapter`.
-  Don't import from `@flue/runtime/internal` or any other internal path.
+- **Imports.** The contract types and helpers live at `@bapX/runtime/adapter`.
+  Don't import from `@bapX/runtime/internal` or any other internal path.
 - **`migrate()` runs at startup.** The generated server calls `migrate()` once
   before serving. Make schema/collection/index creation idempotent — it runs
   against fresh and already-provisioned databases alike. Stamp and check the
@@ -105,8 +105,8 @@ These are the things that aren't obvious from the spec or the example.
   runtime state only.
 - Don't modify files outside the `db.ts` path you've chosen unless the user
   agreed (e.g. `package.json` to add a dependency).
-- The published surface is `@flue/runtime/adapter`. Don't import from
-  `@flue/runtime/internal` or anywhere else.
+- The published surface is `@bapX/runtime/adapter`. Don't import from
+  `@bapX/runtime/internal` or anywhere else.
 
 ## Upgrade Guide
 

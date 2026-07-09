@@ -1,4 +1,4 @@
-import type { FlueClient } from '@flue/sdk';
+import type { FlueClient } from '@bapX/sdk';
 import { describe, expect, it, vi } from 'vitest';
 import { assertRunIdAllowed, parseAgentInput, runTarget } from '../src/lib/run-controller.ts';
 

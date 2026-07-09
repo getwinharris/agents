@@ -4,8 +4,8 @@ import {
 	useFlueAgent,
 	useFlueClient,
 	useFlueWorkflow,
-} from '@flue/react';
-import { createFlueClient } from '@flue/sdk';
+} from '@bapX/react';
+import { createFlueClient } from '@bapX/sdk';
 import { type FormEvent, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';

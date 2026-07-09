@@ -1,4 +1,4 @@
-import { useFlueAgent, useFlueClient } from '@flue/react'
+import { useFlueAgent, useFlueClient } from '@bapX/react'
 import { AlertCircle } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { DEFAULT_TITLE, useConversations } from '@/state/conversations'

@@ -79,7 +79,7 @@ export function defineAgent<TEnv = Record<string, any>>(
 	) => AgentRuntimeConfig | Promise<AgentRuntimeConfig>,
 ): AgentDefinition<TEnv> {
 	if (typeof initialize !== 'function') {
-		throw new Error('[flue] defineAgent() requires an initializer function.');
+		throw new Error('[bapX] defineAgent() requires an initializer function.');
 	}
 	const agent = Object.freeze({ __flueAgentDefinition: true as const, initialize });
 	agentDefinitions.add(agent);
@@ -151,7 +151,7 @@ function mergeArrays<T>(base: T[] | undefined, additions: T[] | undefined): T[] 
 
 function assertAgentRuntimeConfig(value: AgentRuntimeConfig | undefined): void {
 	if (!value || typeof value !== 'object' || Array.isArray(value)) {
-		throw new Error('[flue] defineAgent() initializer must return an agent runtime config object.');
+		throw new Error('[bapX] defineAgent() initializer must return an agent runtime config object.');
 	}
 	for (const key of Object.keys(value)) {
 		if (!AGENT_RUNTIME_FIELDS.has(key)) {

@@ -1,5 +1,5 @@
-import type { ConversationStreamStore } from '@flue/runtime/adapter';
-import { defineSqlConversationStreamStore } from '@flue/runtime/adapter';
+import type { ConversationStreamStore } from '@bapX/runtime/adapter';
+import { defineSqlConversationStreamStore } from '@bapX/runtime/adapter';
 import type { PostgresParameter, PostgresRunner } from './postgres-adapter.ts';
 
 export function createPgConversationStreamStore(runner: PostgresRunner): ConversationStreamStore {

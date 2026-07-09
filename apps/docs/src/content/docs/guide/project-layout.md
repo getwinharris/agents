@@ -11,7 +11,7 @@ Flue discovers application entrypoints from your project's source directory. Use
 ```text
 my-project/
 ├─ package.json
-├─ flue.config.ts
+├─ bapX.config.ts
 ├─ src/
 │  ├─ app.ts
 │  ├─ db.ts
@@ -101,10 +101,10 @@ The source directory is always discovered relative to your project root. To conf
 
 `dist/` is the default output directory for generated build artifacts. It is created at the project root when you build the application and is never part of authored source discovery.
 
-To change where generated artifacts are written, set `output` in `flue.config.ts`:
+To change where generated artifacts are written, set `output` in `bapX.config.ts`:
 
-```ts title="flue.config.ts"
-import { defineConfig } from '@flue/cli/config';
+```ts title="bapX.config.ts"
+import { defineConfig } from '@bapX/cli/config';
 
 export default defineConfig({
   output: './build',

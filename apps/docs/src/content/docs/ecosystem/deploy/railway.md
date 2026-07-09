@@ -15,7 +15,7 @@ Railway builds a connected repo with [Railpack](https://railpack.com), which aut
 - **Build command** — `npm ci && npx flue build --target node`
 - **Start command** — `node dist/server.mjs`
 
-The build externalizes your dependencies rather than bundling them, so `node_modules` must be present at runtime. `npm ci` installs them; keep `@flue/cli` available to the build command. The built server reads only the environment present when it starts — it does not load `.env` — so configuration lives in Railway variables, not a committed file.
+The build externalizes your dependencies rather than bundling them, so `node_modules` must be present at runtime. `npm ci` installs them; keep `@bapX/cli` available to the build command. The built server reads only the environment present when it starts — it does not load `.env` — so configuration lives in Railway variables, not a committed file.
 
 To build from a container instead, drop the Dockerfile from [Deploy Agents with Docker](/docs/ecosystem/deploy/docker/) at the repo root. Railway detects a root `Dockerfile` (capital `D`) and builds with it in place of Railpack; point at a non-standard path with the `RAILWAY_DOCKERFILE_PATH` variable.
 
@@ -64,11 +64,11 @@ DATABASE_URL=${{Postgres.DATABASE_URL}}
 Then install the adapter and read that variable in `db.ts`:
 
 ```bash
-npm install @flue/postgres
+npm install @bapX/postgres
 ```
 
 ```typescript title=".flue/db.ts"
-import { postgres } from '@flue/postgres';
+import { postgres } from '@bapX/postgres';
 
 export default postgres(process.env.DATABASE_URL!);
 ```

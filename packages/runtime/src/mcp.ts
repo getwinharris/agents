@@ -176,7 +176,7 @@ function createMcpTools(
 			input: undefined,
 			output: undefined,
 			run() {
-				throw new Error('[flue] MCP tools execute through the internal adapter.');
+				throw new Error('[bapX] MCP tools execute through the internal adapter.');
 			},
 		};
 		registerPreparedToolAdapter(definition, {

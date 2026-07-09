@@ -1,5 +1,5 @@
-import { createGoogleChatChannel, type GoogleChatConversationRef } from '@flue/google-chat';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createGoogleChatChannel, type GoogleChatConversationRef } from '@bapX/google-chat';
+import { defineTool, dispatch } from '@bapX/runtime';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';
 import { createGoogleChatClient } from '../lib/google-chat-client.ts';

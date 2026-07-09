@@ -1064,7 +1064,7 @@ export type FlueEventInput = FlueEventVariant & {
  *
  * Persisted workflow events always carry `runId` and `eventIndex`; together they
  * form the immutable persisted identity for one workflow event. Attached-agent
- * streams and `observe()` from `@flue/runtime` deliver live activity; their
+ * streams and `observe()` from `@bapX/runtime` deliver live activity; their
  * indexes are per-context ordering, not durable identity.
  *
  * Recognized image content blocks in framework event payloads never carry raw

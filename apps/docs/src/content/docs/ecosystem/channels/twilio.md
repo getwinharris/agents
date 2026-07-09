@@ -2,8 +2,8 @@
 title: Twilio
 description: Receive verified Twilio SMS and MMS webhooks with a project-owned Fetch client.
 package:
-  name: '@flue/twilio'
-  href: https://www.npmjs.com/package/@flue/twilio
+  name: '@bapX/twilio'
+  href: https://www.npmjs.com/package/@bapX/twilio
 ---
 
 ## Quickstart
@@ -16,11 +16,11 @@ flue add channel twilio
 
 ## Overview
 
-The Twilio blueprint installs `@flue/twilio`, creates a project-owned Fetch client at the source-root `twilio-client.ts`, and creates `channels/twilio.ts`. It also updates the selected agent to bind the generated reply tool to the verified conversation.
+The Twilio blueprint installs `@bapX/twilio`, creates a project-owned Fetch client at the source-root `twilio-client.ts`, and creates `channels/twilio.ts`. It also updates the selected agent to bind the generated reply tool to the verified conversation.
 
 ```ts title="src/channels/twilio.ts (abridged)"
-import { createTwilioChannel } from '@flue/twilio';
-import { dispatch } from '@flue/runtime';
+import { createTwilioChannel } from '@bapX/twilio';
+import { dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 import { TwilioClient } from '../twilio-client.ts';
 
@@ -65,7 +65,7 @@ The abridged example omits the generated `postMessage()` tool and the Fetch clie
 | `TWILIO_MESSAGING_SERVICE_SID` | **Required for a Messaging Service destination** — Binds a Messaging Service destination.       |
 | `TWILIO_STATUS_CALLBACK_URL`   | **Required when status callbacks are enabled** — Supplies the exact public status callback URL. |
 
-It installs `@flue/twilio` for verified ingress and creates an editable Fetch
+It installs `@bapX/twilio` for verified ingress and creates an editable Fetch
 client for outbound Programmable Messaging. The official Twilio Node helper is
 not the canonical path because it is Node-only; the generated REST client runs
 in Node and workerd with Flue's required `nodejs_compat` configuration.
@@ -106,8 +106,8 @@ The package rejects signed requests for another account or destination.
 ## Channel module
 
 ```ts title="src/channels/twilio.ts"
-import { createTwilioChannel, type TwilioConversationRef } from '@flue/twilio';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createTwilioChannel, type TwilioConversationRef } from '@bapX/twilio';
+import { defineTool, dispatch } from '@bapX/runtime';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';
 import { TwilioClient } from '../twilio-client.ts';
@@ -242,4 +242,4 @@ overrides on the webhook URL can opt into retries with `rc` (retry count) and
 the signed URL. Acknowledge before slow work and make admission idempotent when
 retries are enabled.
 
-See the [`@flue/twilio` README](https://github.com/withastro/flue/tree/main/packages/twilio#readme).
+See the [`@bapX/twilio` README](https://github.com/getwinharris/agents/tree/main/packages/twilio#readme).

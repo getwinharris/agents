@@ -1,5 +1,5 @@
 import { createAdaptorServer } from '@hono/node-server';
-import { RuntimeUnavailableError, toHttpResponse } from '@flue/runtime/internal';
+import { RuntimeUnavailableError, toHttpResponse } from '@bapX/runtime/internal';
 
 type NodeRuntimeStatus = 'loading' | 'ready' | 'draining' | 'failed' | 'closed';
 

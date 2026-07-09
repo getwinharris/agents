@@ -16,7 +16,7 @@ flue add tooling braintrust
 The Braintrust blueprint creates a source-root `braintrust.ts` and imports it once from `app.ts`. The generated module initializes Braintrust when an API key is available, then connects Braintrust's Flue observer to the runtime event stream:
 
 ```ts title="src/braintrust.ts (abridged)"
-import { observe } from '@flue/runtime';
+import { observe } from '@bapX/runtime';
 import { braintrustFlueObserver, initLogger } from 'braintrust';
 
 if (process.env.BRAINTRUST_API_KEY) {

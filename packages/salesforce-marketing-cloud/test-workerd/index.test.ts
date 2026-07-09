@@ -8,7 +8,7 @@ import {
 const encoder = new TextEncoder();
 const SIGNATURE_KEY = 'mB7iPNv9hpWHmvQcxEwM7Zp6HSlFrFXhAN2TyFvncC4=';
 
-describe('@flue/salesforce workerd ingress', () => {
+describe('@bapX/salesforce workerd ingress', () => {
 	it('verifies exact notification bytes under nodejs_compat', async () => {
 		const nodeGlobals = globalThis as typeof globalThis & {
 			Buffer?: unknown;

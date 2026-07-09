@@ -1,4 +1,4 @@
-# `@flue/shopify`
+# `@bapX/shopify`
 
 Verified Shopify JSON webhook ingress for Flue.
 
@@ -7,7 +7,7 @@ base64 HMAC-SHA256 over the exact request bytes before parsing the payload or
 calling application code.
 
 ```ts
-import { createShopifyChannel } from '@flue/shopify';
+import { createShopifyChannel } from '@bapX/shopify';
 
 export const channel = createShopifyChannel({
   clientSecret: process.env.SHOPIFY_CLIENT_SECRET!,

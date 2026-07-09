@@ -45,10 +45,10 @@ modified the implementation.
 Read these before writing code.
 
 - **Spec** (the `SandboxFactory` / `SandboxApi` contract):
-  `https://flueframework.com/docs/api/sandbox-api/index.md`
+  `https://bapx.in/docs/api/sandbox-api/index.md`
 - **Worked example** (the Daytona adapter — one example of a finished
   adapter; your provider's shape may be quite different):
-  `https://flueframework.com/cli/blueprints/daytona.md`
+  `https://bapx.in/cli/blueprints/daytona.md`
 
 ## Flue-specific conventions
 
@@ -59,8 +59,8 @@ These are the things that aren't obvious from the spec or the example.
   `<source-dir>/sandboxes/<name>.ts`. Its first generated line must be
   `// flue-blueprint: sandbox/<provider>@1`, replacing `<provider>` with the
   selected provider slug. Ask the user if their layout is unusual.
-- **Imports.** The published surface is `@flue/runtime`. Don't import
-  from `@flue/runtime/internal` or any other internal path.
+- **Imports.** The published surface is `@bapX/runtime`. Don't import
+  from `@bapX/runtime/internal` or any other internal path.
 - **Cancellation.** `SandboxApi.exec()` receives `timeoutMs` in milliseconds
   (primary) and optionally `signal`. Always forward `timeoutMs` to the provider's
   native timeout option when one exists, converting units and rounding up when
@@ -90,8 +90,8 @@ These are the things that aren't obvious from the spec or the example.
 - Never invent API keys, tokens, or secrets.
 - Don't modify files outside the adapter path you've chosen unless the
   user agreed (e.g. `package.json` to add a dep).
-- The published surface is `@flue/runtime`. Don't import from
-  `@flue/runtime/internal` or anywhere else.
+- The published surface is `@bapX/runtime`. Don't import from
+  `@bapX/runtime/internal` or anywhere else.
 
 ## Upgrade Guide
 

@@ -4,7 +4,7 @@ import { createSlackChannel } from '../src/index.ts';
 
 const encoder = new TextEncoder();
 
-describe('@flue/slack workerd ingress', () => {
+describe('@bapX/slack workerd ingress', () => {
 	it('verifies exact Events API bytes when a provider-native event is received', async () => {
 		const events = vi.fn();
 		const slack = createSlackChannel({

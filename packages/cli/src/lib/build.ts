@@ -332,7 +332,7 @@ function getUserExternals(root: string): string[] {
 
 	try {
 		const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-		const bundledGeneratedEntryDependencies = new Set(['@flue/runtime', 'debug']);
+		const bundledGeneratedEntryDependencies = new Set(['@bapX/runtime', 'debug']);
 		const deps = Object.keys({
 			...pkg.dependencies,
 			...pkg.devDependencies,
@@ -394,8 +394,8 @@ export function viteGeneratedEntryDependencyResolver(
 			if (
 				options.importers &&
 				(!importer || !options.importers.includes(importer)) &&
-				source !== '@flue/runtime' &&
-				!source.startsWith('@flue/runtime/') &&
+				source !== '@bapX/runtime' &&
+				!source.startsWith('@bapX/runtime/') &&
 				source !== '@hono/node-server' &&
 				source !== 'debug'
 			)
@@ -430,10 +430,10 @@ export function viteGeneratedEntryDependencyResolver(
 function collectNodePaths(root: string): Set<string> {
 	const nodePathsSet = new Set<string>();
 	// Walk up from the project root (user's deps), the CLI's own location
-	// (in case the build needs CLI-bundled helpers), and `@flue/runtime`'s
+	// (in case the build needs CLI-bundled helpers), and `@bapX/runtime`'s
 	// install location as resolved from the project. The latter is what
 	// surfaces the runtime deps (`@hono/node-server`, `hono`, `pi-ai`,
-	// etc.) that the generated `server.mjs` imports — `@flue/runtime` is the
+	// etc.) that the generated `server.mjs` imports — `@bapX/runtime` is the
 	// package that lists them, so the Vite build must be able to reach its
 	// `node_modules/` subtree.
 	const seeds = [root, getCLIDir()];
@@ -455,14 +455,14 @@ function getCLIDir(): string {
 }
 
 /**
- * Resolve the install directory of `@flue/runtime` as seen from the project
- * `root`. We walk up from `root` looking for `node_modules/@flue/runtime` —
- * `require.resolve` would be cleaner, but `@flue/runtime`'s `package.json`
+ * Resolve the install directory of `@bapX/runtime` as seen from the project
+ * `root`. We walk up from `root` looking for `node_modules/@bapX/runtime` —
+ * `require.resolve` would be cleaner, but `@bapX/runtime`'s `package.json`
  * isn't part of the package's `exports` map and its subpaths are
  * ESM-only, both of which trip up `createRequire`. Walking the
  * `node_modules` chain is what npm/pnpm/yarn all do internally for
  * resolution anyway. Returns the package directory, or `undefined` if
- * the project doesn't have `@flue/runtime` installed yet.
+ * the project doesn't have `@bapX/runtime` installed yet.
  */
 function resolveRuntimeDir(root: string): string | undefined {
 	let dir = root;

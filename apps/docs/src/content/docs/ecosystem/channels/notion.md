@@ -2,8 +2,8 @@
 title: Notion
 description: Receive signed Notion webhook events and use the official client from application-owned tools.
 package:
-  name: '@flue/notion'
-  href: https://www.npmjs.com/package/@flue/notion
+  name: '@bapX/notion'
+  href: https://www.npmjs.com/package/@bapX/notion
 ---
 
 ## Quickstart
@@ -16,7 +16,7 @@ flue add channel notion
 
 ## Overview
 
-The blueprint installs `@flue/notion`, the official `@notionhq/client`, and its
+The blueprint installs `@bapX/notion`, the official `@notionhq/client`, and its
 required TypeScript peer when needed. It creates
 `<source-root>/channels/notion.ts` with a named `channel`, project-owned
 `client`, local page identity helpers, and a page-bound retrieval tool, then
@@ -25,8 +25,8 @@ wires that tool into an agent. It may also add `"node"` to a restrictive
 
 ```ts title="src/channels/notion.ts (abridged)"
 import { Client } from '@notionhq/client';
-import { createNotionChannel } from '@flue/notion';
-import { dispatch } from '@flue/runtime';
+import { createNotionChannel } from '@bapX/notion';
+import { dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 
 export const client = new Client({ auth: process.env.NOTION_TOKEN! });
@@ -70,7 +70,7 @@ below, before recurring signed delivery can begin.
 | `NOTION_WEBHOOK_VERIFICATION_TOKEN` | **Required after initial verification** — Verifies recurring webhook events after setup. |
 | `NOTION_TOKEN`                      | **Required** — Authenticates outbound API calls.                                         |
 
-It installs `@flue/notion` and the official
+It installs `@bapX/notion` and the official
 `@notionhq/client@5.22.0`. The blueprint creates a channel module with named
 `channel` and `client` exports.
 
@@ -94,8 +94,8 @@ is a type dependency and does not add Node code to a Worker bundle. If
 
 ```ts title="src/channels/notion.ts"
 import { Client } from '@notionhq/client';
-import { createNotionChannel } from '@flue/notion';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createNotionChannel } from '@bapX/notion';
+import { defineTool, dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 
 const PAGE_INSTANCE_PREFIX = 'notion-page:';
@@ -201,7 +201,7 @@ arm. There is no synthetic `type: 'unknown'` variant, `eventType`, or `raw`
 mirror.
 
 The `notion-page:` id is a local application convention because
-`@flue/notion` does not invent one universal conversation key for unrelated
+`@bapX/notion` does not invent one universal conversation key for unrelated
 Notion resources. This example uses the page id because one project-owned
 client selects the installation. Include workspace or installation identity
 when one agent can cross credential domains.
@@ -209,7 +209,7 @@ when one agent can cross credential domains.
 ## Bind the tool
 
 ```ts title="src/agents/assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { pageIdFromInstanceId, retrievePage } from '../channels/notion.ts';
 
 export default defineAgent(({ id }) => ({
@@ -288,4 +288,4 @@ HMAC signatures with Web Crypto, and exercise `Client.pages.retrieve()` through
 an injected fake Fetch in Node and workerd. The fake transport should reject
 unexpected URLs so tests cannot contact Notion.
 
-See the [`@flue/notion` README](https://github.com/withastro/flue/tree/main/packages/notion#readme).
+See the [`@bapX/notion` README](https://github.com/getwinharris/agents/tree/main/packages/notion#readme).

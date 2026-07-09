@@ -11,7 +11,7 @@ Workflows are finite, inspectable operations for background jobs, document trans
 A file in `src/workflows/` defines a discovered workflow. Its filename becomes the workflow name, and its default export must be the value returned by `defineWorkflow()`:
 
 ```ts title="src/workflows/summarize.ts"
-import { defineAgent, defineWorkflow } from '@flue/runtime';
+import { defineAgent, defineWorkflow } from '@bapX/runtime';
 import * as v from 'valibot';
 
 export default defineWorkflow({
@@ -34,7 +34,7 @@ This defines the `summarize` workflow. Each invocation validates the supplied te
 Define the workflow inline as shown above for the ordinary case. If the workflow should run an existing [Action](/docs/guide/actions/), bind that Action to its agent:
 
 ```ts title="src/workflows/summarize.ts"
-import { defineAgent, defineWorkflow } from '@flue/runtime';
+import { defineAgent, defineWorkflow } from '@bapX/runtime';
 import { summarize } from '../actions/summarize.ts';
 
 export default defineWorkflow({
@@ -62,7 +62,7 @@ pnpm exec flue run summarize --input '{"text":"Flue workflows complete finite op
 Use ambient `invoke()` from application-owned routes, channels, schedules, or other code executing inside a Flue-built server:
 
 ```ts
-import { invoke } from '@flue/runtime';
+import { invoke } from '@bapX/runtime';
 import summarize from './workflows/summarize.ts';
 
 const { runId } = await invoke(summarize, {
@@ -84,7 +84,7 @@ Workflow HTTP access is private by default. Two independent module exports contr
 Use the same authentication policy for both when callers should be able to invoke and inspect a workflow:
 
 ```ts title="src/workflows/summarize.ts"
-import type { WorkflowRouteHandler, WorkflowRunsHandler } from '@flue/runtime';
+import type { WorkflowRouteHandler, WorkflowRunsHandler } from '@bapX/runtime';
 import { requireUser } from '../auth.ts';
 
 export const route: WorkflowRouteHandler = requireUser;

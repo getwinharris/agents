@@ -1,10 +1,10 @@
-# `@flue/mysql`
+# `@bapX/mysql`
 
 MySQL 8 and InnoDB durable persistence for Flue applications on the Node.js
 target.
 
 ```ts
-import { mysql, type MysqlQuery } from '@flue/mysql';
+import { mysql, type MysqlQuery } from '@bapX/mysql';
 import mysql2 from 'mysql2/promise';
 
 const pool = mysql2.createPool(process.env.MYSQL_URL!);
@@ -64,7 +64,7 @@ provider credentials.
 
 ## Bring your own driver
 
-`@flue/mysql` does **not** pick or bundle a production database driver. It runs
+`@bapX/mysql` does **not** pick or bundle a production database driver. It runs
 against a small runner around your configured driver, so you own pooling, TLS,
 credentials, and connection lifecycle.
 
@@ -92,9 +92,9 @@ real connection string.
 
 ## When to use it
 
-Use `@flue/mysql` when state must survive host replacement, be shared by
+Use `@bapX/mysql` when state must survive host replacement, be shared by
 multiple Node replicas, or fit an existing MySQL 8 operational environment. For
-a single host, file-backed `sqlite()` from `@flue/runtime/node` may be simpler.
+a single host, file-backed `sqlite()` from `@bapX/runtime/node` may be simpler.
 
 ## Target support
 
@@ -107,7 +107,7 @@ SQLite automatically and rejects `db.ts` at build time.
 flue add database mysql
 ```
 
-The blueprint installs `@flue/mysql` and `mysql2`, then writes `db.ts`. See the
-[MySQL guide](https://flueframework.com/docs/ecosystem/databases/mysql/) for
-setup and the [Data Persistence API](https://flueframework.com/docs/api/data-persistence-api/)
+The blueprint installs `@bapX/mysql` and `mysql2`, then writes `db.ts`. See the
+[MySQL guide](https://bapx.in/docs/ecosystem/databases/mysql/) for
+setup and the [Data Persistence API](https://bapx.in/docs/api/data-persistence-api/)
 for the adapter contract.

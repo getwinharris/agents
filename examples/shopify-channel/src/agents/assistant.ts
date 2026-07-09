@@ -1,4 +1,4 @@
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { parseShopifyOrderInstanceId, retrieveOrder } from '../channels/shopify.ts';
 
 export default defineAgent(({ id }) => {

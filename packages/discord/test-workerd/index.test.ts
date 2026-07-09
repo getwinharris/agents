@@ -4,7 +4,7 @@ import { createDiscordChannel } from '../src/index.ts';
 
 const encoder = new TextEncoder();
 
-describe('@flue/discord workerd ingress', () => {
+describe('@bapX/discord workerd ingress', () => {
 	it('verifies exact bytes and preserves provider fields when receiving an interaction', async () => {
 		const { app, interactions, keyPair } = await fixture();
 		const timestamp = '1717971234';

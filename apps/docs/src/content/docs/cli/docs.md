@@ -14,7 +14,7 @@ flue docs search <query>
 
 ## Description
 
-`flue docs` works with the documentation bundled inside the installed `@flue/cli` package. It requires no network access, and its content always matches the installed CLI version.
+`flue docs` works with the documentation bundled inside the installed `@bapX/cli` package. It requires no network access, and its content always matches the installed CLI version.
 
 With no arguments, the command prints usage hints and the full page catalog. `read` prints one page as Markdown. `search` prints ranked results as JSON.
 
@@ -35,7 +35,7 @@ The catalog, page Markdown, and search JSON print to stdout; usage hints and err
 ```bash
 flue docs read guide/sandboxes
 flue docs read /docs/guide/sandboxes/
-flue docs read https://flueframework.com/docs/guide/sandboxes/
+flue docs read https://bapx.in/docs/guide/sandboxes/
 ```
 
 Unknown pages exit with status `1`.

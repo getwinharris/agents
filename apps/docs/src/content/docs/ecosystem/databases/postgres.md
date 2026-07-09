@@ -2,8 +2,8 @@
 title: Postgres
 description: Give Flue agents and workflow runs durable, shared state with a Postgres database.
 package:
-  name: '@flue/postgres'
-  href: https://www.npmjs.com/package/@flue/postgres
+  name: '@bapX/postgres'
+  href: https://www.npmjs.com/package/@bapX/postgres
 ---
 
 ## Quickstart
@@ -16,10 +16,10 @@ flue add database postgres
 
 ## Overview
 
-The Postgres blueprint installs `@flue/postgres` and reuses an existing Postgres driver, or adds `pg` and the matching `@types/pg` development dependency by default. It creates a source-root `db.ts` and updates existing environment documentation when the project has it. The default generated adapter uses a pool for ordinary queries and keeps each transaction on one checked-out connection:
+The Postgres blueprint installs `@bapX/postgres` and reuses an existing Postgres driver, or adds `pg` and the matching `@types/pg` development dependency by default. It creates a source-root `db.ts` and updates existing environment documentation when the project has it. The default generated adapter uses a pool for ordinary queries and keeps each transaction on one checked-out connection:
 
 ```ts title="src/db.ts (abridged)"
-import { postgres } from '@flue/postgres';
+import { postgres } from '@bapX/postgres';
 import { Pool } from 'pg';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -59,19 +59,19 @@ For local development, `flue dev --env <file>` and `flue run --env <file>` load
 any `.env`-format file. In production, supply it from your platform's secret
 store.
 
-The blueprint installs `@flue/postgres` with `pg` by default and writes a
+The blueprint installs `@bapX/postgres` with `pg` by default and writes a
 source-root `db.ts` that wraps it. Flue discovers `db.ts` at build
 time and wires it into the generated Node server. After running the command,
 canonical agent conversations, immutable attachments, accepted submissions, and workflow-run records persist to Postgres instead of in-memory state.
 
-`@flue/postgres` is a **Node.js** adapter. The Cloudflare target uses Durable
+`@bapX/postgres` is a **Node.js** adapter. The Cloudflare target uses Durable
 Object SQLite automatically and rejects a `db.ts` file at build time, so this
 guide applies to Node deployments. See [Database](/docs/guide/database/) for the
 full picture of how state is stored on each target.
 
 ## Bring your own driver
 
-`@flue/postgres` does not pick or bundle a database driver. It runs against a
+`@bapX/postgres` does not pick or bundle a database driver. It runs against a
 small runner you wrap around your configured driver, so you own driver choice,
 pooling, TLS, and every other connection option. A runner is three functions:
 `query` (a SQL string with numbered `$N` placeholders plus positional params,
@@ -83,7 +83,7 @@ out a single client and issues `BEGIN`/`COMMIT`/`ROLLBACK` itself — a pool
 cannot run a transaction across arbitrary connections:
 
 ```ts title="src/db.ts"
-import { postgres } from '@flue/postgres';
+import { postgres } from '@bapX/postgres';
 import { Pool } from 'pg';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -131,9 +131,9 @@ for the exact adapter contract.
 
 | Use case                                                       | Adapter                                                       |
 | -------------------------------------------------------------- | ------------------------------------------------------------- |
-| Local development, or restart persistence is unnecessary       | `sqlite()` from `@flue/runtime/node` (file path or in-memory) |
+| Local development, or restart persistence is unnecessary       | `sqlite()` from `@bapX/runtime/node` (file path or in-memory) |
 | Single-host Node deployment                                    | File-backed `sqlite()`                                        |
-| Multi-replica Node deployment, or state must survive host loss | `@flue/postgres`, with one live owner per agent instance      |
+| Multi-replica Node deployment, or state must survive host loss | `@bapX/postgres`, with one live owner per agent instance      |
 | Cloudflare deployment                                          | Built-in Durable Object SQLite (no `db.ts`)                   |
 
 Choose Postgres when a replacement process must recover accepted work, when replicas need shared workflow history, or when a single host's disk is not a durable enough home for state. Keep one live owner for each agent instance and use instance-affine routing across replicas. Managed Postgres pairs naturally with the container deploy targets —

@@ -2,8 +2,8 @@
 title: GitHub
 description: Receive signed GitHub webhooks and use Octokit from application-owned tools.
 package:
-  name: '@flue/github'
-  href: https://www.npmjs.com/package/@flue/github
+  name: '@bapX/github'
+  href: https://www.npmjs.com/package/@bapX/github
 ---
 
 ## Quickstart
@@ -16,7 +16,7 @@ flue add channel github
 
 ## Overview
 
-The blueprint installs `@flue/github` and the official `@octokit/rest` SDK. It
+The blueprint installs `@bapX/github` and the official `@octokit/rest` SDK. It
 creates `<source-root>/channels/github.ts` with a named `channel`, a
 project-owned Octokit `client`, and an issue-comment tool, then wires that tool
 into an agent. Adapt the subscribed events, dispatched message, and tool to the
@@ -24,8 +24,8 @@ application.
 
 ```ts title="src/channels/github.ts (abridged)"
 import { Octokit } from '@octokit/rest';
-import { createGitHubChannel } from '@flue/github';
-import { dispatch } from '@flue/runtime';
+import { createGitHubChannel } from '@bapX/github';
+import { dispatch } from '@bapX/runtime';
 import assistant from '../agents/assistant.ts';
 
 export const client = new Octokit({ auth: process.env.GITHUB_TOKEN });
@@ -77,7 +77,7 @@ under Flue's `nodejs_compat` configuration.
 | `GITHUB_WEBHOOK_SECRET` | **Required** — Verifies inbound deliveries.          |
 | `GITHUB_TOKEN`          | **Required** — Authenticates outbound Octokit calls. |
 
-It installs `@flue/github` for verified ingress and the official
+It installs `@bapX/github` for verified ingress and the official
 `@octokit/rest` SDK for outbound API calls. It creates
 `src/channels/github.ts` with named `channel` and `client` exports.
 
@@ -97,8 +97,8 @@ existing secret system.
 ## Channel module
 
 ```ts title="src/channels/github.ts"
-import { createGitHubChannel } from '@flue/github';
-import { defineTool, dispatch } from '@flue/runtime';
+import { createGitHubChannel } from '@bapX/github';
+import { defineTool, dispatch } from '@bapX/runtime';
 import { Octokit } from '@octokit/rest';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';
@@ -212,7 +212,7 @@ callback.
 ## Bind the tool
 
 ```ts title="src/agents/assistant.ts"
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, commentOnIssue } from '../channels/github.ts';
 
 export default defineAgent(({ id }) => ({
@@ -240,4 +240,4 @@ Octokit's REST methods use Fetch and the example's typed
 through `process.env` or typed Worker bindings and should verify their complete
 target build.
 
-See the [`@flue/github` README](https://github.com/withastro/flue/tree/main/packages/github#readme).
+See the [`@bapX/github` README](https://github.com/getwinharris/agents/tree/main/packages/github#readme).

@@ -1,4 +1,4 @@
-import type { FlueClient, FlueEvent, FlueEventStream } from '@flue/sdk';
+import type { FlueClient, FlueEvent, FlueEventStream } from '@bapX/sdk';
 import { describe, expect, it, vi } from 'vitest';
 import { AgentSession } from '../src/agent-session.ts';
 import { WorkflowRun } from '../src/workflow-run.ts';

@@ -1,4 +1,4 @@
-import { defineAgent } from '@flue/runtime';
+import { defineAgent } from '@bapX/runtime';
 import { channel, replyInThread } from '../channels/slack.ts';
 
 export default defineAgent(({ id }) => ({

@@ -1,11 +1,11 @@
-import { PersistedSchemaVersionError } from '@flue/runtime/adapter';
+import { PersistedSchemaVersionError } from '@bapX/runtime/adapter';
 import {
 	defineAttachmentStoreContractTests,
 	defineConversationStreamStoreContractTests,
 	defineEventStreamStoreContractTests,
 	defineRunStoreContractTests,
 	defineStoreContractTests,
-} from '@flue/runtime/test-utils';
+} from '@bapX/runtime/test-utils';
 import mysql2, { type Pool } from 'mysql2/promise';
 import { describe, expect, it } from 'vitest';
 import { type MysqlQuery, type MysqlRunner, mysql } from '../src/mysql-adapter.ts';

@@ -20,8 +20,8 @@
  */
 
 import type { Sandbox as DaytonaSandbox } from '@daytona/sdk';
-import type { FileStat, SandboxApi, SandboxFactory, SessionEnv } from '@flue/runtime';
-import { createSandboxSessionEnv, SandboxOperationUnsupportedError } from '@flue/runtime';
+import type { FileStat, SandboxApi, SandboxFactory, SessionEnv } from '@bapX/runtime';
+import { createSandboxSessionEnv, SandboxOperationUnsupportedError } from '@bapX/runtime';
 
 // ─── DaytonaSandboxApi ──────────────────────────────────────────────────────
 

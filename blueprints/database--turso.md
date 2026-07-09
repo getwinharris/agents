@@ -5,7 +5,7 @@
 # Add a Turso Database to Flue
 
 You are an AI coding agent configuring hosted [Turso](https://turso.tech)
-persistence for a Flue project using the first-party `@flue/libsql` adapter.
+persistence for a Flue project using the first-party `@bapX/libsql` adapter.
 Turso is hosted libSQL; this is the same adapter as the `libsql` blueprint with
 a Turso client configuration. For a local file or self-hosted libSQL server,
 use the `libsql` blueprint instead.
@@ -29,8 +29,8 @@ then `<root>/`. Check for an existing `db.ts` — if one is present, the project
 already has an adapter; confirm with the user before replacing it. Inspect how
 the project reads secrets.
 
-Install `@flue/libsql` and the official [`@libsql/client@^0.17.3`](https://docs.turso.tech/sdk/ts/reference)
-with the project's package manager. `@flue/libsql` does not bundle a driver.
+Install `@bapX/libsql` and the official [`@libsql/client@^0.17.3`](https://docs.turso.tech/sdk/ts/reference)
+with the project's package manager. `@bapX/libsql` does not bundle a driver.
 
 The user creates the database and an auth token with the
 [Turso CLI](https://docs.turso.tech/cli/introduction) (`turso db create`,
@@ -46,7 +46,7 @@ callback in one `write` transaction, and `close`. `@libsql/client` returns a
 
 ```ts title="src/db.ts"
 // flue-blueprint: database/turso@1
-import { libsql } from '@flue/libsql';
+import { libsql } from '@bapX/libsql';
 import { createClient, type ResultSet } from '@libsql/client';
 
 const client = createClient({

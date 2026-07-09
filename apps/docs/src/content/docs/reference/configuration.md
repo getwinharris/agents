@@ -1,19 +1,19 @@
 ---
 title: Configuration
-description: Reference for flue.config.ts options.
+description: Reference for bapX.config.ts options.
 ---
 
-Use `flue.config.ts` to select the build target, project root, and build output directory. Import `defineConfig()` from `@flue/cli/config` for type checking and editor completion:
+Use `bapX.config.ts` to select the build target, project root, and build output directory. Import `defineConfig()` from `@bapX/cli/config` for type checking and editor completion:
 
-```ts title="flue.config.ts"
-import { defineConfig } from '@flue/cli/config';
+```ts title="bapX.config.ts"
+import { defineConfig } from '@bapX/cli/config';
 
 export default defineConfig({
   target: 'node',
 });
 ```
 
-Only the options listed below are accepted. Flue recognizes `flue.config.ts`, `.mts`, `.mjs`, `.js`, `.cjs`, and `.cts`, in that priority order. TypeScript configuration files are loaded directly by Node and must use erasable syntax.
+Only the options listed below are accepted. Flue recognizes `bapX.config.ts`, `.mts`, `.mjs`, `.js`, `.cjs`, and `.cts`, in that priority order. TypeScript configuration files are loaded directly by Node and must use erasable syntax.
 
 For source-module placement, see [Project Layout](/docs/guide/project-layout/). For configuration-file discovery, command-line overrides, and environment files, see the [CLI reference](/docs/cli/overview/).
 
@@ -49,11 +49,11 @@ Build output directory. Must not be empty. Relative values loaded from a configu
 
 ## Vite configuration
 
-Export `vite` from `flue.config.ts` to pass native Vite configuration to the development server. Use Vite's `defineConfig()` helper for type checking.
+Export `vite` from `bapX.config.ts` to pass native Vite configuration to the development server. Use Vite's `defineConfig()` helper for type checking.
 
-```ts title="flue.config.ts"
+```ts title="bapX.config.ts"
 import { defineConfig as defineViteConfig } from 'vite';
-import { defineConfig } from '@flue/cli/config';
+import { defineConfig } from '@bapX/cli/config';
 
 export default defineConfig({
   target: 'node',
@@ -76,4 +76,4 @@ Flue owns the Vite project root, server mode, host, port, and its internal plugi
 function defineConfig(config: UserFlueConfig): UserFlueConfig;
 ```
 
-Provides type checking and editor completion for `flue.config.ts`. Returns the configuration unchanged.
+Provides type checking and editor completion for `bapX.config.ts`. Returns the configuration unchanged.

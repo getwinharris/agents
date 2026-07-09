@@ -86,7 +86,7 @@ function reassemblePersistedChunks(
 			ordered.length !== expectedCount ||
 			ordered.some((row, index) => row.count !== expectedCount || row.index !== index)
 		) {
-			throw new Error('[flue] Persisted image chunks are missing or malformed.');
+			throw new Error('[bapX] Persisted image chunks are missing or malformed.');
 		}
 		data.set(imageId, ordered.map((row) => row.data).join(''));
 	}

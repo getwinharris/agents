@@ -15,7 +15,7 @@ By default, an initialized agent works in a virtual sandbox unless you configure
 For example, a workflow can stage an input document, let an agent work on it, and retrieve an output file:
 
 ```ts title="src/workflows/review-document.ts"
-import { defineAgent, defineWorkflow } from '@flue/runtime';
+import { defineAgent, defineWorkflow } from '@bapX/runtime';
 import * as v from 'valibot';
 
 const reviewer = defineAgent(() => ({
@@ -46,8 +46,8 @@ The virtual sandbox starts without your application files or host filesystem, an
 On the Node.js target, use `local()` when an agent should operate directly on the host filesystem and shell. This is useful for trusted development tools or disposable CI runners working against an existing checkout:
 
 ```ts title="src/agents/repository-reviewer.ts"
-import { defineAgent } from '@flue/runtime';
-import { local } from '@flue/runtime/node';
+import { defineAgent } from '@bapX/runtime';
+import { local } from '@bapX/runtime/node';
 
 export default defineAgent(() => ({
   model: 'anthropic/claude-sonnet-4-6',

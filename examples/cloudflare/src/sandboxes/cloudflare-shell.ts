@@ -17,8 +17,8 @@ import type {
 	SessionEnv,
 	SessionToolFactory,
 	ShellResult,
-} from '@flue/runtime';
-import { getCloudflareContext } from '@flue/runtime/cloudflare';
+} from '@bapX/runtime';
+import { getCloudflareContext } from '@bapX/runtime/cloudflare';
 
 export interface GetShellSandboxOptions {
 	workspace: Workspace;

@@ -1,4 +1,4 @@
-import type { FlueObservation } from '@flue/runtime';
+import type { FlueObservation } from '@bapX/runtime';
 import { context, propagation, trace } from '@opentelemetry/api';
 import * as Sentry from '@sentry/node';
 import { afterEach, describe, expect, it } from 'vitest';

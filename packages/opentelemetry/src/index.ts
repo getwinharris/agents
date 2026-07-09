@@ -5,7 +5,7 @@ import type {
 	FlueObservation,
 	FlueObservationSubscriber,
 	PromptUsage,
-} from '@flue/runtime';
+} from '@bapX/runtime';
 import {
 	type Attributes,
 	type Context,
@@ -54,7 +54,7 @@ export interface OpenTelemetryInstrumentationOptions {
 	diagnostic?: (diagnostic: { type: string; message: string; error?: unknown }) => void;
 }
 
-const OPEN_TELEMETRY_INSTRUMENTATION_KEY = Symbol.for('@flue/opentelemetry');
+const OPEN_TELEMETRY_INSTRUMENTATION_KEY = Symbol.for('@bapX/opentelemetry');
 
 export interface OpenTelemetryInstrumentation {
 	key: symbol;
@@ -71,9 +71,9 @@ export function createOpenTelemetryInstrumentation(
 		options.tracer ??
 		trace
 			.getTracerProvider()
-			.getTracer('@flue/opentelemetry', undefined, { schemaUrl: GEN_AI_SCHEMA_URL });
+			.getTracer('@bapX/opentelemetry', undefined, { schemaUrl: GEN_AI_SCHEMA_URL });
 	const meter =
-		options.meter ?? metrics.getMeter('@flue/opentelemetry', undefined, { schemaUrl: GEN_AI_SCHEMA_URL });
+		options.meter ?? metrics.getMeter('@bapX/opentelemetry', undefined, { schemaUrl: GEN_AI_SCHEMA_URL });
 	const instruments = createGenAIMetrics(meter);
 	const runs = new Map<string, TrackedSpan>();
 	const operations = new Map<string, TrackedSpan>();

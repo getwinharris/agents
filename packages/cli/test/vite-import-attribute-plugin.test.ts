@@ -151,7 +151,7 @@ async function buildFixture(
 	const output = path.join(root, 'dist');
 	fs.writeFileSync(
 		entryPath,
-		`${source}\nconst key = Symbol.for('@flue/runtime/packaged-skill/v1');\nexport const files = references.map((reference) => Object.keys(reference[key].files));`,
+		`${source}\nconst key = Symbol.for('@bapX/runtime/packaged-skill/v1');\nexport const files = references.map((reference) => Object.keys(reference[key].files));`,
 	);
 	await build({
 		configFile: false,

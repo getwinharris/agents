@@ -3,7 +3,7 @@ title: Data Persistence API
 description: Reference for Flue persistence adapters and stores.
 ---
 
-Adapter authors implement these contracts to back a custom database. Import them from `@flue/runtime/adapter`:
+Adapter authors implement these contracts to back a custom database. Import them from `@bapX/runtime/adapter`:
 
 ```ts
 import type {
@@ -15,7 +15,7 @@ import type {
   PersistenceAdapter,
   PersistenceStores,
   RunStore,
-} from '@flue/runtime/adapter';
+} from '@bapX/runtime/adapter';
 ```
 
 Application code usually configures an adapter through `db.ts`; see [Database](/docs/guide/database/). Always typecheck an adapter against the package exports. If this page and the package differ, the package wins.
@@ -44,7 +44,7 @@ Flue calls `migrate()` once at startup when present, then awaits `connect()` onc
 
 ### Schema versioning
 
-An adapter must record its schema or format version when creating storage and reject every mismatch before reading or writing data. The current pre-1.0 format is schema v7 and is reset-only: clear stores created by another version rather than attempting an in-place migration. Use `FLUE_SCHEMA_VERSION`, `assertSupportedFlueSchemaVersion()`, and `PersistedSchemaVersionError` from `@flue/runtime/adapter`.
+An adapter must record its schema or format version when creating storage and reject every mismatch before reading or writing data. The current pre-1.0 format is schema v7 and is reset-only: clear stores created by another version rather than attempting an in-place migration. Use `FLUE_SCHEMA_VERSION`, `assertSupportedFlueSchemaVersion()`, and `PersistedSchemaVersionError` from `@bapX/runtime/adapter`.
 
 ## `AgentExecutionStore`
 
@@ -142,11 +142,11 @@ Use `formatOffset()` and `parseOffset()` for Durable Streams offsets. `nextOffse
 ## Inspection primitives
 
 ```ts
-import { getRun, listAgents, listRuns } from '@flue/runtime';
+import { getRun, listAgents, listRuns } from '@bapX/runtime';
 ```
 
 These server-side functions read the configured stores and deployment manifest. Flue does not expose an inspection HTTP surface automatically; applications may compose authorized endpoints with them.
 
 ## Validating an adapter
 
-`@flue/runtime/test-utils` exports contract suites for submission, run, event-stream, canonical-stream, and attachment stores. Run every applicable suite against isolated storage. These suites are the acceptance tests for the observable adapter contract.
+`@bapX/runtime/test-utils` exports contract suites for submission, run, event-stream, canonical-stream, and attachment stores. Run every applicable suite against isolated storage. These suites are the acceptance tests for the observable adapter contract.

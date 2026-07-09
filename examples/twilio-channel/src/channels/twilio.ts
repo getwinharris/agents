@@ -1,5 +1,5 @@
-import { defineTool, dispatch } from '@flue/runtime';
-import { createTwilioChannel, type TwilioConversationRef } from '@flue/twilio';
+import { defineTool, dispatch } from '@bapX/runtime';
+import { createTwilioChannel, type TwilioConversationRef } from '@bapX/twilio';
 import * as v from 'valibot';
 import assistant from '../agents/assistant.ts';
 import { TwilioClient } from '../twilio-client.ts';

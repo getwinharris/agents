@@ -1,4 +1,4 @@
-import type { WhatsAppConversationRef } from '@flue/whatsapp';
+import type { WhatsAppConversationRef } from '@bapX/whatsapp';
 import { WhatsAppClient } from '@kapso/whatsapp-cloud-api';
 import { describe, expect, it, vi } from 'vitest';
 import { sendTextMessage } from '../src/whatsapp-client.ts';

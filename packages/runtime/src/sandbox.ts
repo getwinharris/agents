@@ -191,7 +191,7 @@ function isBashLike(value: unknown): value is BashLike {
 
 function assertBashLike(value: unknown): asserts value is BashLike {
 	if (!isBashLike(value)) {
-		throw new Error('[flue] BashFactory must return a Bash-like object.');
+		throw new Error('[bapX] BashFactory must return a Bash-like object.');
 	}
 }
 

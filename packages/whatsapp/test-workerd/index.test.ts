@@ -4,7 +4,7 @@ import { createWhatsAppChannel } from '../src/index.ts';
 
 const encoder = new TextEncoder();
 
-describe('@flue/whatsapp workerd ingress', () => {
+describe('@bapX/whatsapp workerd ingress', () => {
 	it('verifies exact bytes and preserves batched events in workerd', async () => {
 		const webhook = vi.fn();
 		const whatsapp = createWhatsAppChannel({
