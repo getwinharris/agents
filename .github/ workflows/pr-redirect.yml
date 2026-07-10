@@ -1,0 +1,117 @@
+name: PR Redirect
+
+# SECURITY: This workflow runs on `pull_request_target`, which executes
+# in the base-repo context with full secrets. The agent here is safe
+# ONLY because we check out the base ref (never the PR head), and the
+# agent reads PR data exclusively through `gh pr view --json` rather
+# than executing fork-controlled code or interpolating PR strings into
+# shell scripts.
+#
+# Do NOT add `ref: ${{ github.event.pull_request.head.sha }}` to the
+# checkout step. Do NOT add steps that build, test, or otherwise execute
+# code from the PR. Either change makes a fork PR author able to
+# exfiltrate FREDKBOT_GITHUB_TOKEN.
+
+on:
+  pull_request_target:
+    # `opened` is the primary trigger. `labeled` is a manual re-trigger:
+    # a maintainer adds the `triage` label to re-run the agent (useful if
+    # the original run failed or the workflow was disabled at the time).
+    # The agent removes the label on success so re-adding it re-runs.
+    types: [opened, labeled]
+
+# Concurrency keyed by PR. Queued (not cancelled) so an in-flight write
+# can finish before the next run starts.
+concurrency:
+  group: pr-redirect-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  check-contributor:
+    if: >-
+      (github.event.action != 'labeled' || github.event.label.name == 'triage') &&
+      github.event.pull_request.author_association != 'OWNER' &&
+      github.event.pull_request.author_association != 'MEMBER'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      approved: ${{ steps.check.outputs.approved }}
+    steps:
+      - name: Check approved contributors
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const path = '.github/APPROVED_CONTRIBUTORS';
+            const author = context.payload.pull_request.user.login.toLowerCase();
+            const ref = context.payload.repository.default_branch;
+            const { data } = await github.rest.repos.getContent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path,
+              ref,
+            });
+
+            if (!('content' in data) || typeof data.content !== 'string') {
+              throw new Error(`Expected file content for ${path}`);
+            }
+
+            const approved = Buffer.from(data.content, 'base64')
+              .toString('utf8')
+              .split('\n')
+              .map((line) => line.trim().toLowerCase())
+              .filter((line) => line && !line.startsWith('#'))
+              .includes(author);
+
+            core.setOutput('approved', approved ? 'true' : 'false');
+
+  redirect:
+    needs: check-contributor
+    if: needs.check-contributor.outputs.approved != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      discussions: write
+
+    steps:
+      - name: Checkout (base ref only — never the PR head)
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Flue runtime + SDK + CLI
+        # Only the packages the agent imports from. Other workspaces
+        # don't need to build.
+        run: pnpm --filter @flue/runtime --filter @flue/sdk --filter @flue/cli build
+
+      - name: Run pr-redirect workflow
+        env:
+          # Read-only token for the agent's in-sandbox `gh` calls.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Privileged write token (astrobot-houston PAT) for the
+          # deterministic phase. Must not be exposed to the sandbox.
+          FREDKBOT_GITHUB_TOKEN: ${{ secrets.FREDKBOT_GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.CI_ANTHROPIC_API_KEY }}
+          # Read by the agent rather than interpolated into the shell,
+          # so PR-controlled data never reaches `run:`.
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          node packages/cli/bin/flue.mjs run pr-redirect \
+            --target node \
+            --input "{\"prNumber\": $PR_NUMBER}"
