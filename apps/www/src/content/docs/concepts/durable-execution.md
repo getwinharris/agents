@@ -10,7 +10,7 @@ Durable execution is about recovering safely when running work is disrupted by a
 
 Agents are continuing, stateful contexts. Each persistent agent instance owns one canonical conversation stream. Sessions within the instance select conversations from that stream, and later operations rebuild model context from the same durable records that recovery and clients read.
 
-Direct prompts and asynchronous `dispatch(...)` inputs are operations inside an agent instance. They are not workflow runs. For application-owned ingress such as webhooks or chat messages, see [Routing](/docs/guide/routing/).
+Direct prompts and asynchronous `dispatch(...)` inputs are operations inside an agent instance. They are not workflow runs. For application-owned ingress such as webhooks or chat messages, see [Routing](/guide/routing/).
 
 ```txt
 agent input → canonical conversation stream → operation completes
@@ -22,7 +22,7 @@ later input → rebuilds context → continues the conversation
 
 The canonical stream records model-visible messages, assistant output, tool calls and results, compaction, topology, and recovery facts. Attachment bytes live in a separate immutable attachment store and are referenced from canonical records. Mutable submission claims and leases remain operational state rather than a second transcript.
 
-To persist this state in an application-controlled database, create a `src/db.ts` or `.bapX/db.ts` file that default-exports a `PersistenceAdapter`. See [Database](/docs/guide/database/) for setup and [Data Persistence API](/docs/api/data-persistence-api/) for the storage contracts.
+To persist this state in an application-controlled database, create a `src/db.ts` or `.bapX/db.ts` file that default-exports a `PersistenceAdapter`. See [Database](/guide/database/) for setup and [Data Persistence API](/api/data-persistence-api/) for the storage contracts.
 
 ### Durable Agents on Cloudflare
 
@@ -38,7 +38,7 @@ The connection that submitted a prompt observes the work but does not own it. If
 
 After interruption, Bapx decides what to do next from the canonical conversation stream alone. It recognizes already-completed output, continues usable partial output from durable deltas, and reuses completed tool results. A tool call with no durable result is represented as interrupted with an unknown outcome rather than run again automatically. When no output was durably persisted before the interruption, recovery may re-dispatch the provider once — consistent with at-least-once execution.
 
-This recovery is intentionally conservative because repeating model or tool activity can duplicate external effects. Use application-owned idempotency keys where repeated effects would be harmful. See [Deploy Agents on Cloudflare](/docs/ecosystem/deploy/cloudflare/) for platform configuration and migrations.
+This recovery is intentionally conservative because repeating model or tool activity can duplicate external effects. Use application-owned idempotency keys where repeated effects would be harmful. See [Deploy Agents on Cloudflare](/ecosystem/deploy/cloudflare/) for platform configuration and migrations.
 
 When recovery cannot complete the work — the retry budget (`durability.maxAttempts`) is exhausted, the processing timeout expires, or an abort settles a crash-interrupted submission — the submission is terminalized and its conversation is settled to a deterministic rest state. Every tool call without a confirmed outcome receives an explicit interrupted-error result (never a re-execution), an interrupted partial stream is completed as aborted, and a terminal advisory records the reason with the interrupted calls as structured metadata. No tool call is ever left permanently unresolved, and the settled turn stays visible to future model context.
 
@@ -56,7 +56,7 @@ To deliberately stop an instance's work, `client.agents.abort(name, id)` (HTTP `
 
 Agent prompts are fire-and-forget; there is no synchronous result. Awaiting completion with `client.agents.wait()` follows the durable conversation stream and is best-effort and process-scoped — if that process disappears, the submission still settles in the background. Observe the canonical conversation with `client.agents.observe()` to receive the durable outcome and the agent's reply. `history()` and `updates()` remain lower-level primitives for applications that manage their own materialized state.
 
-A file-backed SQLite adapter protects against restart on the same host. Surviving host loss requires external durable storage such as Postgres, while still preserving the single-live-owner rule. See [Database](/docs/guide/database/) and [Deploy Agents on Node.js](/docs/ecosystem/deploy/node/).
+A file-backed SQLite adapter protects against restart on the same host. Surviving host loss requires external durable storage such as Postgres, while still preserving the single-live-owner rule. See [Database](/guide/database/) and [Deploy Agents on Node.js](/ecosystem/deploy/node/).
 
 ### Cloudflare and Node recovery compared
 
@@ -79,7 +79,7 @@ Programmatic `session.task(...)` calls made directly from your own code are not 
 
 ### Keep workspace state separate
 
-Persisting a conversation does not make sandbox files durable. The default virtual sandbox is an in-memory workspace, while a durable remote workspace does not preserve conversation records by itself. Choose workspace and conversation persistence independently. See [Sandboxes](/docs/guide/sandboxes/).
+Persisting a conversation does not make sandbox files durable. The default virtual sandbox is an in-memory workspace, while a durable remote workspace does not preserve conversation records by itself. Choose workspace and conversation persistence independently. See [Sandboxes](/guide/sandboxes/).
 
 ## Durable Workflows
 
@@ -104,4 +104,4 @@ Use application-owned idempotency keys around external effects whose earlier out
 
 Use a workflow's `runId` to inspect its recorded outcome and events independently of the connection that started it. HTTP and SDK inspection requires the workflow to expose and authorize its run resources.
 
-Agent prompts and dispatched inputs do not create workflow runs. See [Workflows](/docs/guide/workflows/) for workflow authoring and [Observability](/docs/guide/observability/) for runtime telemetry.
+Agent prompts and dispatched inputs do not create workflow runs. See [Workflows](/guide/workflows/) for workflow authoring and [Observability](/guide/observability/) for runtime telemetry.

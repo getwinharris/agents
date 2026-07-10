@@ -49,7 +49,7 @@ The blueprint installs Braintrust 3.17 and registers its public Bapx observer th
 
 Braintrust also provides a Node import hook for Node-only auto-instrumentation. The generated manual observer is the portable path for projects that may target either runtime.
 
-See [Observability](/docs/guide/observability/#choose-an-observability-provider) to compare Braintrust with OpenTelemetry and Sentry.
+See [Observability](/guide/observability/#choose-an-observability-provider) to compare Braintrust with OpenTelemetry and Sentry.
 
 ## What Braintrust traces
 
@@ -62,7 +62,7 @@ See [Observability](/docs/guide/observability/#choose-an-observability-provider)
 | Delegated task                         | Nested task span                                                 |
 | Context compaction                     | Nested compaction span                                           |
 
-Model spans include token usage and estimated cost where available. Workflow traces carry `runId`; persistent-agent traces retain agent instance, session, operation, and optional `dispatchId` correlation. See [Observability](/docs/guide/observability/) for Bapx's identity and observer model.
+Model spans include token usage and estimated cost where available. Workflow traces carry `runId`; persistent-agent traces retain agent instance, session, operation, and optional `dispatchId` correlation. See [Observability](/guide/observability/) for Bapx's identity and observer model.
 
 Braintrust 3.17 expects the previous `tool_call` name for terminal tool events, reads workflow input from the legacy synthetic `run_start.payload` field, and does not consume `run_resume`. Normal Bapx `run_start` events retain their current public `input` shape. The generated bridge translates tool events and creates a payload-less synthetic recovery start only when the current isolate did not observe the original workflow start; otherwise the existing workflow span remains open for `run_end`. This fallback does not preserve Bapx's distinct recovery semantics or durably continue a trace across isolates. Re-check these translations before upgrading Braintrust.
 

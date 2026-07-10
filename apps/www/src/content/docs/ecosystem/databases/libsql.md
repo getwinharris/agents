@@ -52,12 +52,12 @@ development, `bapX dev --env <file>` and `bapX run --env <file>` load any
 The blueprint installs `@bapX/libsql` and the official `@libsql/client`, and
 writes a source-root `db.ts` that wraps the client. Bapx discovers `db.ts` at
 build time and wires it into the generated Node server. For hosted Turso, use
-[`bapX add database turso`](/docs/ecosystem/databases/turso/) instead — it is the same
+[`bapX add database turso`](/ecosystem/databases/turso/) instead — it is the same
 adapter with a Turso client configuration.
 
 `@bapX/libsql` is a **Node.js** adapter. The Cloudflare target uses Durable
 Object SQLite automatically and rejects a `db.ts` file at build time, so this
-guide applies to Node deployments. See [Database](/docs/guide/database/) for the
+guide applies to Node deployments. See [Database](/guide/database/) for the
 full picture of how state is stored on each target.
 
 ## Bring your own driver
@@ -123,7 +123,7 @@ of them:
 | Local SQLite file                                | `{ url: 'file:./data/bapX.db' }`                        |
 | Self-hosted libSQL server (`sqld`)               | `{ url: 'http://127.0.0.1:8080' }`                      |
 | Embedded replica (local file synced to a remote) | `{ url: 'file:local.db', syncUrl, authToken }`          |
-| Hosted Turso                                     | see the [Turso guide](/docs/ecosystem/databases/turso/) |
+| Hosted Turso                                     | see the [Turso guide](/ecosystem/databases/turso/) |
 
 ### Embedded-file concurrency
 
@@ -153,8 +153,8 @@ A Bapx database stores runtime state, not your whole application.
 | Workflow-run records and persisted events                         | Provider credentials or secrets                                |
 | Run indexing for `/runs` lookups and `listRuns()`                 |                                                                |
 
-See [Durable Agents](/docs/concepts/durable-execution/) for how recovery uses
-submission state, and the [Data Persistence API](/docs/api/data-persistence-api/)
+See [Durable Agents](/concepts/durable-execution/) for how recovery uses
+submission state, and the [Data Persistence API](/api/data-persistence-api/)
 for the exact adapter contract.
 
 ## When to choose libSQL
@@ -164,9 +164,9 @@ for the exact adapter contract.
 | Local development                                           | `sqlite()` from `@bapX/runtime/node`, or libSQL against a `file:` database |
 | Single-host Node deployment                                 | File-backed `sqlite()` or libSQL `file:`                                   |
 | Self-hosted SQLite over the network, or an embedded replica | `@bapX/libsql`                                                             |
-| Hosted, replicated SQLite                                   | `@bapX/libsql` against [Turso](/docs/ecosystem/databases/turso/)           |
-| Multi-replica Node deployment on Postgres                   | [`@bapX/postgres`](/docs/ecosystem/databases/postgres/)                    |
+| Hosted, replicated SQLite                                   | `@bapX/libsql` against [Turso](/ecosystem/databases/turso/)           |
+| Multi-replica Node deployment on Postgres                   | [`@bapX/postgres`](/ecosystem/databases/postgres/)                    |
 
 libSQL is the right choice when you want SQLite's model but reachable over the
 network or kept close to the app as an embedded replica. For a fully managed,
-replicated deployment, point the same adapter at [Turso](/docs/ecosystem/databases/turso/).
+replicated deployment, point the same adapter at [Turso](/ecosystem/databases/turso/).

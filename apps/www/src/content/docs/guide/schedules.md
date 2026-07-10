@@ -94,7 +94,7 @@ The stable `id` means every occurrence targets the same AgentInstance and conver
 
 ## Next steps
 
-- [Workflows](/docs/guide/workflows/) — define finite scheduled operations and inspect their runs.
-- [Agents](/docs/guide/building-agents/) — define a continuing agent that receives scheduled input.
-- [Cloudflare](/docs/guide/targets/cloudflare/) — configure the Cloudflare target and `cloudflare.ts` entrypoint.
-- [Node.js](/docs/guide/targets/node/) — build and operate the generated Node.js server.
+- [Workflows](/guide/workflows/) — define finite scheduled operations and inspect their runs.
+- [Agents](/guide/building-agents/) — define a continuing agent that receives scheduled input.
+- [Cloudflare](/guide/targets/cloudflare/) — configure the Cloudflare target and `cloudflare.ts` entrypoint.
+- [Node.js](/guide/targets/node/) — build and operate the generated Node.js server.

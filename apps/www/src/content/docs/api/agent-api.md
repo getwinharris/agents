@@ -90,7 +90,7 @@ Throws when the profile contains unknown fields, invalid capabilities, duplicate
 | `compaction`    | `false \| CompactionConfig` | Automatic conversation-compaction configuration. `false` disables threshold compaction; overflow recovery and explicit `session.compact()` calls still compact when needed. |
 | `durability`    | `DurabilityConfig`          | Durability configuration for durable agent submissions. Controls recovery attempt limits and submission timeouts. Rejected on subagent profiles.                            |
 
-When a profile is selected as a subagent with `session.task()`, it is self-contained: `instructions`, `tools`, `skills`, and `subagents` apply only as declared on the profile (omitted means none), while `model`, `thinkingLevel`, and `compaction` inherit from the parent as defaults. See [Subagents](/docs/guide/subagents/#configuration-inheritance).
+When a profile is selected as a subagent with `session.task()`, it is self-contained: `instructions`, `tools`, `skills`, and `subagents` apply only as declared on the profile (omitted means none), while `model`, `thinkingLevel`, and `compaction` inherit from the parent as defaults. See [Subagents](/guide/subagents/#configuration-inheritance).
 
 #### `DurabilityConfig`
 
@@ -118,7 +118,7 @@ type Skill =
     };
 ```
 
-Skill metadata registered with an agent, harness, or profile. Imported `SkillReference` values bundle application-owned skill content. Inline metadata adds only a named catalog entry; it does not package or inject an instruction body. Initialization rejects a registered skill whose name collides with a workspace-discovered skill. See [Skills](/docs/guide/skills/).
+Skill metadata registered with an agent, harness, or profile. Imported `SkillReference` values bundle application-owned skill content. Inline metadata adds only a named catalog entry; it does not package or inject an instruction body. Initialization rejects a registered skill whose name collides with a workspace-discovered skill. See [Skills](/guide/skills/).
 
 ## `defineTool(...)`
 
@@ -243,7 +243,7 @@ The initializer runs whenever a runner initializes a root harness from the agent
 | `compaction`    | `false \| CompactionConfig` | Automatic conversation-compaction configuration. `false` disables threshold compaction; overflow recovery and explicit `session.compact()` calls still compact when needed.                                                                                                               |
 | `durability`    | `DurabilityConfig`          | Durability configuration for durable agent submissions. Controls recovery attempt limits and submission timeouts.                                                                                                                                                                         |
 | `cwd`           | `string`                    | Working directory inside the initialized sandbox.                                                                                                                                                                                                                                         |
-| `sandbox`       | `SandboxFactory`            | Sandbox factory used to construct the initialized environment. Omit for the default in-memory sandbox; use `bash(...)` to wrap a custom just-bash factory (`BashFactory`). See [Sandboxes](/docs/guide/sandboxes/).                                                                       |
+| `sandbox`       | `SandboxFactory`            | Sandbox factory used to construct the initialized environment. Omit for the default in-memory sandbox; use `bash(...)` to wrap a custom just-bash factory (`BashFactory`). See [Sandboxes](/guide/sandboxes/).                                                                       |
 
 #### `AgentDefinition`
 
@@ -324,7 +324,7 @@ type DeliveredAttachment = {
 
 One image attachment on a `kind: 'user'` `DeliveredMessage`. Today the only supported attachment is an image; the selected model must support image input.
 
-Delivery durability depends on the generated target. Node uses a process-lifetime in-memory queue by default; with a durable `db.ts` adapter, dispatches survive restarts and are reconciled on the replacement process. Cloudflare durably admits delivery to the target agent Durable Object, orders it with direct prompts, and reconciles interruptions conservatively. Both targets retry only when replay safety is provable; external effects still require application-level idempotency. See [Durable Agents](/docs/concepts/durable-execution/) for recovery details, and [Deploy Agents on Node.js](/docs/ecosystem/deploy/node/) and [Deploy Agents on Cloudflare](/docs/ecosystem/deploy/cloudflare/) for target-specific setup.
+Delivery durability depends on the generated target. Node uses a process-lifetime in-memory queue by default; with a durable `db.ts` adapter, dispatches survive restarts and are reconciled on the replacement process. Cloudflare durably admits delivery to the target agent Durable Object, orders it with direct prompts, and reconciles interruptions conservatively. Both targets retry only when replay safety is provable; external effects still require application-level idempotency. See [Durable Agents](/concepts/durable-execution/) for recovery details, and [Deploy Agents on Node.js](/ecosystem/deploy/node/) and [Deploy Agents on Cloudflare](/ecosystem/deploy/cloudflare/) for target-specific setup.
 
 ## Agent
 
@@ -582,7 +582,7 @@ interface CallHandle<T> extends Promise<T> {
 
 `prompt()`, `skill()`, `task()`, and `shell()` return awaitable call handles. Retain the handle when application code needs to cancel in-flight work. Aborting rejects the awaited operation with an `AbortError` (`DOMException`). Pass `options.signal` to merge an external abort signal with the handle's signal.
 
-Other session failures reject with typed `BapxError` subclasses such as `SessionBusyError`, `SkillNotRegisteredError`, and `SubagentNotDeclaredError`, all importable from `@bapX/runtime`. See the [Errors Reference](/docs/api/errors-reference/) for the full vocabulary.
+Other session failures reject with typed `BapxError` subclasses such as `SessionBusyError`, `SkillNotRegisteredError`, and `SubagentNotDeclaredError`, all importable from `@bapX/runtime`. See the [Errors Reference](/api/errors-reference/) for the full vocabulary.
 
 #### `BapxFs`
 

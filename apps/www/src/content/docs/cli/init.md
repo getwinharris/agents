@@ -43,4 +43,4 @@ bapX init --target node
 bapX init --target cloudflare --root ./apps/assistant
 ```
 
-See [Configuration](/docs/reference/configuration/) for the complete `bapX.config.ts` surface.
+See [Configuration](/reference/configuration/) for the complete `bapX.config.ts` surface.

@@ -1,0 +1,136 @@
+flowchart TD
+  root["agents"]
+  n_apps["apps"]
+  root --> n_apps
+  n_apps_www["apps/www"]
+  n_apps --> n_apps_www
+  n_packages["packages"]
+  root --> n_packages
+  n_packages_cli["packages/cli"]
+  n_packages --> n_packages_cli
+  n_packages_dev_console["packages/dev-console"]
+  n_packages --> n_packages_dev_console
+  n_packages_discord["packages/discord"]
+  n_packages --> n_packages_discord
+  n_packages_github["packages/github"]
+  n_packages --> n_packages_github
+  n_packages_google_chat["packages/google-chat"]
+  n_packages --> n_packages_google_chat
+  n_packages_intercom["packages/intercom"]
+  n_packages --> n_packages_intercom
+  n_packages_libsql["packages/libsql"]
+  n_packages --> n_packages_libsql
+  n_packages_linear["packages/linear"]
+  n_packages --> n_packages_linear
+  n_packages_messenger["packages/messenger"]
+  n_packages --> n_packages_messenger
+  n_packages_mongodb["packages/mongodb"]
+  n_packages --> n_packages_mongodb
+  n_packages_mysql["packages/mysql"]
+  n_packages --> n_packages_mysql
+  n_packages_notion["packages/notion"]
+  n_packages --> n_packages_notion
+  n_packages_opentelemetry["packages/opentelemetry"]
+  n_packages --> n_packages_opentelemetry
+  n_packages_postgres["packages/postgres"]
+  n_packages --> n_packages_postgres
+  n_packages_react["packages/react"]
+  n_packages --> n_packages_react
+  n_packages_redis["packages/redis"]
+  n_packages --> n_packages_redis
+  n_packages_resend["packages/resend"]
+  n_packages --> n_packages_resend
+  n_packages_runtime["packages/runtime"]
+  n_packages --> n_packages_runtime
+  n_packages_salesforce_marketing_cloud["packages/salesforce-marketing-cloud"]
+  n_packages --> n_packages_salesforce_marketing_cloud
+  n_packages_sdk["packages/sdk"]
+  n_packages --> n_packages_sdk
+  n_packages_shopify["packages/shopify"]
+  n_packages --> n_packages_shopify
+  n_packages_slack["packages/slack"]
+  n_packages --> n_packages_slack
+  n_packages_stripe["packages/stripe"]
+  n_packages --> n_packages_stripe
+  n_packages_teams["packages/teams"]
+  n_packages --> n_packages_teams
+  n_packages_telegram["packages/telegram"]
+  n_packages --> n_packages_telegram
+  n_packages_twilio["packages/twilio"]
+  n_packages --> n_packages_twilio
+  n_packages_whatsapp["packages/whatsapp"]
+  n_packages --> n_packages_whatsapp
+  n_packages_zendesk["packages/zendesk"]
+  n_packages --> n_packages_zendesk
+  n_examples["examples"]
+  root --> n_examples
+  n_examples_assistant["examples/assistant"]
+  n_examples --> n_examples_assistant
+  n_examples_braintrust["examples/braintrust"]
+  n_examples --> n_examples_braintrust
+  n_examples_chat_sdk["examples/chat-sdk"]
+  n_examples --> n_examples_chat_sdk
+  n_examples_cloudflare["examples/cloudflare"]
+  n_examples --> n_examples_cloudflare
+  n_examples_discord_channel["examples/discord-channel"]
+  n_examples --> n_examples_discord_channel
+  n_examples_github_channel["examples/github-channel"]
+  n_examples --> n_examples_github_channel
+  n_examples_google_chat_channel["examples/google-chat-channel"]
+  n_examples --> n_examples_google_chat_channel
+  n_examples_hello_world["examples/hello-world"]
+  n_examples --> n_examples_hello_world
+  n_examples_imported_skill["examples/imported-skill"]
+  n_examples --> n_examples_imported_skill
+  n_examples_intercom_channel["examples/intercom-channel"]
+  n_examples --> n_examples_intercom_channel
+  n_examples_linear_channel["examples/linear-channel"]
+  n_examples --> n_examples_linear_channel
+  n_examples_messenger_channel["examples/messenger-channel"]
+  n_examples --> n_examples_messenger_channel
+  n_examples_node_schedules["examples/node-schedules"]
+  n_examples --> n_examples_node_schedules
+  n_examples_notion_channel["examples/notion-channel"]
+  n_examples --> n_examples_notion_channel
+  n_examples_react_chat["examples/react-chat"]
+  n_examples --> n_examples_react_chat
+  n_examples_resend_channel["examples/resend-channel"]
+  n_examples --> n_examples_resend_channel
+  n_examples_salesforce_marketing_cloud_channel["examples/salesforce-marketing-cloud-channel"]
+  n_examples --> n_examples_salesforce_marketing_cloud_channel
+  n_examples_sentry["examples/sentry"]
+  n_examples --> n_examples_sentry
+  n_examples_shopify_channel["examples/shopify-channel"]
+  n_examples --> n_examples_shopify_channel
+  n_examples_slack_channel["examples/slack-channel"]
+  n_examples --> n_examples_slack_channel
+  n_examples_stripe_channel["examples/stripe-channel"]
+  n_examples --> n_examples_stripe_channel
+  n_examples_teams_channel["examples/teams-channel"]
+  n_examples --> n_examples_teams_channel
+  n_examples_telegram_channel["examples/telegram-channel"]
+  n_examples --> n_examples_telegram_channel
+  n_examples_twilio_channel["examples/twilio-channel"]
+  n_examples --> n_examples_twilio_channel
+  n_examples_vitest_evals["examples/vitest-evals"]
+  n_examples --> n_examples_vitest_evals
+  n_examples_whatsapp_channel["examples/whatsapp-channel"]
+  n_examples --> n_examples_whatsapp_channel
+  n_examples_zendesk_channel["examples/zendesk-channel"]
+  n_examples --> n_examples_zendesk_channel
+  n_demo["demo"]
+  root --> n_demo
+  n_blueprints["blueprints"]
+  root --> n_blueprints
+  n_skills["skills"]
+  root --> n_skills
+  n_scripts["scripts"]
+  root --> n_scripts
+  n_bapX[".bapX"]
+  root --> n_bapX
+  n_agents[".agents"]
+  root --> n_agents
+  n_github[".github"]
+  root --> n_github
+
+%% Generated by `bapX map`. Do not edit by hand.

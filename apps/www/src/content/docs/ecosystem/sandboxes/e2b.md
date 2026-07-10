@@ -75,4 +75,4 @@ const agent = defineAgent(() => ({
 
 Select templates, timeouts, network access, secret exposure, and resource reuse through your application and provider policy. Bapx adapts the active environment; it does not choose provider retention for you.
 
-See [Sandboxes](/docs/guide/sandboxes/) and [Sandbox Adapter API](/docs/api/sandbox-api/).
+See [Sandboxes](/guide/sandboxes/) and [Sandbox Adapter API](/api/sandbox-api/).

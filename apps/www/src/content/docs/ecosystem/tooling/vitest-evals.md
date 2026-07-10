@@ -33,19 +33,19 @@ The blueprint does not expose an existing agent automatically. Confirm that the 
 Start the Bapx application in one terminal:
 
 ```sh
-pnpm exec bapX dev
+npx bapX dev
 ```
 
 After the server is ready, run evals in another terminal:
 
 ```sh
-pnpm run evals
+npm run evals
 ```
 
 The server process needs the application's normal model-provider credentials. To evaluate a deployment, set its public mount URL:
 
 ```sh
-FLUE_BASE_URL=https://preview.example.com pnpm run evals
+FLUE_BASE_URL=https://preview.example.com npm run evals
 ```
 
 Configure a token or request headers in the SDK client when the target is protected. Never commit provider or application credentials.
@@ -55,13 +55,13 @@ Configure a token or request headers in the SDK client when the target is protec
 The blueprint adds commands for compact terminal output, detailed tool and usage output, and a JSON artifact. Open the JSON report locally with:
 
 ```sh
-pnpm exec vitest-evals serve vitest-results.json
+npx vitest-evals serve vitest-results.json
 ```
 
 The same artifact can be published by the `getsentry/vitest-evals` GitHub Action. Reports can contain prompts, outputs, tool arguments and results, errors, and application metadata; review retention and access requirements before uploading them.
 
-`vitest-evals` does not include a Braintrust reporter. Bapx's [Braintrust integration](/docs/ecosystem/tooling/braintrust/) can independently trace the application execution, but those traces do not replace eval cases, assertions, judges, or CI gates.
+`vitest-evals` does not include a Braintrust reporter. Bapx's [Braintrust integration](/ecosystem/tooling/braintrust/) can independently trace the application execution, but those traces do not replace eval cases, assertions, judges, or CI gates.
 
 ## Next steps
 
-See [Evals](/docs/guide/evals/) for designing cases, choosing deterministic assertions or judges, evaluating workflows, and understanding the harness. A complete runnable project is available in [`examples/vitest-evals`](https://github.com/getwinharris/agents/tree/main/examples/vitest-evals).
+See [Evals](/guide/evals/) for designing cases, choosing deterministic assertions or judges, evaluating workflows, and understanding the harness. A complete runnable project is available in [`examples/vitest-evals`](https://github.com/getwinharris/agents/tree/main/examples/vitest-evals).

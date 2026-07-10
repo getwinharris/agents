@@ -213,7 +213,7 @@ Derive the canonical space from `payload.space.name` or
 `payload.message.space.name`. Use `space.spaceType` for descriptive metadata,
 not the deprecated `space.type`, and accept a thread only when its resource name
 belongs to that exact space. Conversation keys are identifiers, not
-authorization capabilities; see the shared [Channels guide](/docs/guide/channels/)
+authorization capabilities; see the shared [Channels guide](/guide/channels/)
 for dispatch and authorization guidance.
 
 Google Chat requires the direct endpoint to respond within 30 seconds. The

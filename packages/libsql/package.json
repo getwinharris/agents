@@ -29,7 +29,7 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@bapX/runtime": "workspace:*"
+		"@bapX/runtime": "*"
 	},
 	"devDependencies": {
 		"@libsql/client": "^0.17.3",

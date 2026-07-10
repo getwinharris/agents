@@ -141,4 +141,4 @@ The generated adapter uses Mirage's shared workspace contract. Some Mirage resou
 
 Use Mirage when your application wants to assemble a workspace from explicit mounted resources and present that workspace to an agent through a single sandbox boundary. Your application owns resource mounting, credentials, writable boundaries, and workspace lifetime.
 
-See [Sandboxes](/docs/guide/sandboxes/), [Deploy on Node.js](/docs/ecosystem/deploy/node/), [Deploy on Cloudflare](/docs/ecosystem/deploy/cloudflare/), and [Sandbox Adapter API](/docs/api/sandbox-api/).
+See [Sandboxes](/guide/sandboxes/), [Deploy on Node.js](/ecosystem/deploy/node/), [Deploy on Cloudflare](/ecosystem/deploy/cloudflare/), and [Sandbox Adapter API](/api/sandbox-api/).

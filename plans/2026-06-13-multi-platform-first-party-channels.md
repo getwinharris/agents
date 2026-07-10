@@ -2760,7 +2760,7 @@ pnpm --dir packages/cli run test
 pnpm --dir apps/docs run check
 pnpm --dir apps/docs run build
 
-pnpm run check
+npm run check
 git diff --check
 ```
 
@@ -2830,7 +2830,7 @@ Implemented outcomes:
 
 Fresh final validation:
 
-- `pnpm run check` passed across the 37-project workspace. All 55 test tasks
+- `npm run check` passed across the 37-project workspace. All 55 test tasks
   passed. Biome reported only existing advisory warnings outside this channel
   work.
 - Forced package build, strict typecheck, Node protocol tests, and workerd

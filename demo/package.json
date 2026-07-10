@@ -7,11 +7,12 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "map:check": "bapX map --root . --check --profile demo-project",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@bapX/react": "workspace:*",
-    "@bapX/sdk": "workspace:*",
+    "@bapX/react": "*",
+    "@bapX/sdk": "*",
     "@shadcn/react": "^0.1.0",
     "@tanstack/react-router": "^1.135.4",
     "class-variance-authority": "^0.7.1",

@@ -43,7 +43,7 @@ In this application, `/health` is application-owned, while `bapX()` serves expos
 
 Use broader middleware for requirements shared by a group of routes, such as requiring an authenticated user. When access depends on a specific selected resource, apply that check as well: for example, an agent route should verify that the caller may access the agent instance named by its `id`, and an application that publishes workflow run reads should authorize access to the selected run.
 
-Because your authored application imports `Hono`, include `hono` in your application dependencies. See [Project Layout](/docs/guide/project-layout/) for alternative source directories supported by existing projects.
+Because your authored application imports `Hono`, include `hono` in your application dependencies. See [Project Layout](/guide/project-layout/) for alternative source directories supported by existing projects.
 
 ## Add custom routes
 
@@ -78,7 +78,7 @@ app.route('/', bapX());
 export default app;
 ```
 
-Here, the webhook route belongs to your application: it determines which requests are valid and which agent instance receives the accepted message. `dispatch(...)` delivers that message asynchronously to the continuing agent session. See [Agents](/docs/guide/building-agents/) for agent interaction patterns and [Channels](/docs/guide/channels/) for provider integrations.
+Here, the webhook route belongs to your application: it determines which requests are valid and which agent instance receives the accepted message. `dispatch(...)` delivers that message asynchronously to the continuing agent session. See [Agents](/guide/building-agents/) for agent interaction patterns and [Channels](/guide/channels/) for provider integrations.
 
 ## Customized routing
 
@@ -136,12 +136,12 @@ export const runs: WorkflowRunsHandler = async (c, next) => {
 
 An agent used only through application-owned `dispatch(...)` calls does not need a public transport export.
 
-See [Agents](/docs/guide/building-agents/) for creating and exposing continuing agent instances, and [Workflows](/docs/guide/workflows/) for exposing finite operations and inspecting their runs.
+See [Agents](/guide/building-agents/) for creating and exposing continuing agent instances, and [Workflows](/guide/workflows/) for exposing finite operations and inspecting their runs.
 
 ## Next steps
 
-- [Agents](/docs/guide/building-agents/) — create continuing agents and deliver direct or dispatched input.
-- [Workflows](/docs/guide/workflows/) — create finite operations and inspect workflow runs.
-- [Channels](/docs/guide/channels/) — compose provider ingress with agent sessions.
-- [CLI](/docs/cli/overview/) — run the application locally, create build output, and continue to deployment.
-- [Observability](/docs/guide/observability/) — observe workflow runs and agent activity.
+- [Agents](/guide/building-agents/) — create continuing agents and deliver direct or dispatched input.
+- [Workflows](/guide/workflows/) — create finite operations and inspect workflow runs.
+- [Channels](/guide/channels/) — compose provider ingress with agent sessions.
+- [CLI](/cli/overview/) — run the application locally, create build output, and continue to deployment.
+- [Observability](/guide/observability/) — observe workflow runs and agent activity.

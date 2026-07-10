@@ -46,7 +46,7 @@ The named `channel` export is the Bapx integration. The named `client` export is
 ordinary application code initialized with the provider SDK. A channel module
 may also export application-owned tools or helper functions.
 
-See the [Ecosystem](/docs/ecosystem/#channels) for first-party packages
+See the [Ecosystem](/ecosystem/#channels) for first-party packages
 and provider-specific setup.
 
 ## Custom Channel
@@ -122,7 +122,7 @@ This publishes the Slack Events API route at
 routes, but it cannot relocate one discovered channel independently.
 
 Use an application-owned Hono route instead when a provider requires a fully
-custom URL. See [Routing](/docs/guide/routing/).
+custom URL. See [Routing](/guide/routing/).
 
 ## Handle verified events
 
@@ -234,8 +234,8 @@ If a caller can select an agent id through another route, authorize that id
 before deriving provider destinations or outbound tools from it.
 
 A dispatched event is an operation inside an agent session. It is not a
-workflow run. See [Agents](/docs/guide/building-agents/) for continuing agent
-state and [Workflows](/docs/guide/workflows/) for finite invocations.
+workflow run. See [Agents](/guide/building-agents/) for continuing agent
+state and [Workflows](/guide/workflows/) for finite invocations.
 
 ## Use provider SDKs
 
@@ -338,8 +338,8 @@ its adapter and state boundary, while application handlers call
 
 ## Next steps
 
-- [Ecosystem](/docs/ecosystem/#channels) — choose a first-party provider.
-- [Agents](/docs/guide/building-agents/) — deliver events into continuing agent
+- [Ecosystem](/ecosystem/#channels) — choose a first-party provider.
+- [Agents](/guide/building-agents/) — deliver events into continuing agent
   sessions.
-- [Routing](/docs/guide/routing/) — compose channels with application routes,
+- [Routing](/guide/routing/) — compose channels with application routes,
   middleware, and a shared prefix.

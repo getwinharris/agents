@@ -3,12 +3,12 @@
 	"private": true,
 	"type": "module",
 	"dependencies": {
-		"@bapX/runtime": "workspace:*",
+		"@bapX/runtime": "*",
 		"agents": "^0.14.2",
 		"just-bash": "^3.0.1"
 	},
 	"devDependencies": {
-		"@bapX/cli": "workspace:*",
+		"@bapX/cli": "*",
 		"wrangler": "^4.97.0"
 	}
 }

@@ -24,7 +24,7 @@
 		"check:types": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@bapX/sdk": "workspace:*",
+		"@bapX/sdk": "*",
 		"ink": "^7.1.0",
 		"ink-text-input": "^6.0.0",
 		"react": "^19.2.6",

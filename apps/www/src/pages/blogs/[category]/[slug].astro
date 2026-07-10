@@ -1,0 +1,20 @@
+---
+import { getCollection, render } from 'astro:content';
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import { blogsSection } from '../../../lib/blogs-navigation';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blogs');
+	return posts.map((post) => {
+		const [category, slug] = post.id.split('/');
+		return { params: { category, slug }, props: { post } };
+	});
+}
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+---
+
+<DocsLayout title={post.data.title} description={post.data.description} currentSlug={post.id} headings={headings} navigationSection={blogsSection} headerSections={[blogsSection]} publicBaseUrl="https://blogs.bapx.in/" markdownUrl={`/${post.id}/index.md`}>
+	<p class="mb-6 text-sm text-[var(--docs-muted)]">{post.data.author ? `By ${post.data.author} · ` : ''}{post.data.pubDate.toLocaleDateString('en-US', { dateStyle: 'long', timeZone: 'UTC' })}</p>
+	<Content />
+</DocsLayout>

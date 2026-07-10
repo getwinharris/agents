@@ -29,7 +29,7 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@bapX/runtime": "workspace:*"
+		"@bapX/runtime": "*"
 	},
 	"devDependencies": {
 		"@electric-sql/pglite": "^0.2.17",

@@ -1,60 +1,48 @@
 ---
 title: Why bapX?
-description: Build autonomous AI agents and powerful workflows with a programmable TypeScript harness, and run them anywhere.
-# lastReviewedAt: 2026-05-29
+description: The cloud agent automation platform for businesses and teams. Deploy agents that automate workflows, operations, and collaboration.
 ---
 
-**bapX** is the TypeScript framework for building **autonomous AI agents** and the workflows around them. bapX is best-known for giving any model the same [harness-driven architecture](/docs/concepts/agents/) used by Claude Code and other coding agents: sessions, tools, skills, instructions, filesystem access, and a secure sandbox to work in. If you need agents that can do more than produce a single response—agents that operate in an environment your code defines, then run anywhere from local CI to a Node.js server to Cloudflare—then bapX is for you.
+**bapX** is a cloud platform for deploying AI agents that automate your business operations. Unlike open-source agent frameworks that require infrastructure setup, CLI tools, and manual deployment, bapX is a fully managed platform — create agents from your browser, connect them to your tools, and let your team collaborate on agent-driven workflows.
 
-## Features
+## What bapX solves
 
-**bapX is a complete framework for agentic software.** It includes everything you need to build, run, and deploy agents, built-in. It also connects to the wider ecosystem—MCP servers, sandbox adapters, chat surfaces, and observability backends—so you can customize a project to your exact use case and needs.
+Teams building with agent frameworks face the same problems:
+- Setting up runtimes and infrastructure
+- Managing API keys and secrets
+- Building UIs for agent interaction
+- Handling team permissions and access
+- Connecting agents to Slack, GitHub, email, etc.
+- Monitoring agent activity and debugging failures
 
-Some highlights include:
+bapX eliminates all of this. Your agents run in our cloud, connected to your tools, accessible to your team — from day one.
 
-- **[Agents](/docs/concepts/agents/):** Autonomous agents that keep context across conversations and events.
-- **[Workflows](/docs/guide/workflows/):** Structured automations from a clear input to a finished result.
-- **[Sandboxes](/docs/guide/sandboxes/):** A secure environment where agents act and run code.
-- **[CLI](/docs/cli/overview/):** Develop locally, run applications or jobs, and build them for deployment.
-- **[Subagents](/docs/guide/subagents/):** Delegate specialized tasks to the right expert.
-- **[Tools](/docs/guide/tools/):** Typed actions for calling APIs and changing data.
-- **[Skills](/docs/guide/skills/):** Reusable expertise agents load on demand.
-- **[MCP Servers](/docs/guide/tools/#connect-mcp-servers):** Connect tools and services over the open MCP ecosystem.
-- **[Observability](/docs/guide/observability/):** Export telemetry with [OpenTelemetry](/docs/ecosystem/tooling/opentelemetry/), [Braintrust](/docs/ecosystem/tooling/braintrust/), [Sentry](/docs/ecosystem/tooling/sentry/), or your own observer.
-- **[Channels](/docs/guide/channels/):** Receive verified provider events and connect them to agents or application code.
+## Platform features
 
-## Design Principles
+- **Managed agents** — Create, deploy, and run agents from your browser. No servers, no CLI, no DevOps.
+- **Team collaboration** — Invite team members, assign roles, share agents across your organisation.
+- **Channels** — Connect agents to Slack, GitHub, Linear, email, Discord, and more with one click.
+- **MCP Gateway** — Give your agents access to external tools and services through the Model Context Protocol at `api.bapx.in/mcp`.
+- **Workflows** — Define structured automations that run alongside your autonomous agents.
+- **Usage & billing** — $5/mo per workspace (5GB agent runtime), $1/GB for additional scaling. No hidden costs.
+- **Observability** — Monitor agent activity, review conversation logs, and debug issues from your dashboard.
 
-Here are three core design principles to help explain why we built bapX, the problems that it exists to solve, and why bapX may be the best choice for your project or team.
+## For teams
 
-bapX is…
+bapX is built for teams that need agents to do real work:
 
-1. **[Harness-first](#harness-first):** A model pointed at a harness, not a script.
-2. **[Open by default](#open-by-default):** Open models, sandboxes, and deploys—no lock-in.
-3. **[AI-first](#ai-first):** Built to be used with your coding agent.
+- **Customer support** — Agents that handle tickets, process refunds, and escalate when needed
+- **Engineering** — Agents that triage issues, review PRs, and automate CI workflows
+- **Operations** — Agents that process data, generate reports, and manage project workflows
+- **Sales** — Agents that qualify leads, follow up with prospects, and update CRM records
 
-### Harness-first
+## Platform principles
 
-**The harness is essential to building autonomous agents.** Instead of scripting an agent's steps, you fill its harness with context: instructions, tools, skills, sessions, files, resources, MCP server connections, etc. etc. Then you point a model at it and tell it to go solve the task. No scripting required.
+1. **Managed, not self-hosted** — Your agents run in our cloud. We handle scaling, uptime, and infrastructure.
+2. **Team-first** — Agents are shared resources in your workspace, not scripts on your laptop.
+3. **Connected** — Agents integrate with the tools your team already uses — Slack, GitHub, email, and more.
+4. **Transparent** — You own your data, your API keys, and your model choices. No lock-in.
 
-Without a harness, the model is confined too tightly to the API calls you've written for it. An agent without a harness is not a real agent.
+## Get started
 
-This idea sits at the center of bapX. Read [What is an agent?](/docs/concepts/agents/) for a deep dive into the subject.
-
-### Open by default
-
-**bapX is open at every layer — models, sandboxes, and deployment targets — so you are never locked in.** Many agent frameworks and SDKs are closed in some direction: they assume their own models, run only in their own sandbox, or deploy only to their own cloud. We think that's backwards.
-
-bapX is deliberately open:
-
-- **Open models:** Connect to any supported LLM provider.
-- **Open sandboxes:** Connect to a remote provider, or use the built-in virtual sandbox.
-- **Open deploys:** Build your agent for Node.js, Cloudflare, GitHub, GitLab, etc.
-
-See [Sandboxes](/docs/guide/sandboxes/) and the [CLI overview](/docs/cli/overview/) for more details.
-
-### AI-first
-
-**bapX is designed to be used with your coding agent.** This one borders on cliché for a product like ours, and one day it may be obvious enough to drop. For now, we want to be explicit: bapX is an AI-first framework, meant to be used by the developer alongside a coding agent like Claude Code or Codex.
-
-That assumption shapes the experience. Setup, scaffolding, and several workflows are designed around handing a prompt to your coding agent and letting it do the work—and some flows are expected to work best, or only, with a coding agent available. That's by design, not a gap. If you're new to bapX, the fastest path is to point your coding agent at the [Getting Started](/docs/getting-started/quickstart/) guide and build alongside it.
+[Sign up for a workspace](https://platform.bapx.in) and deploy your first agent in minutes — no code required.

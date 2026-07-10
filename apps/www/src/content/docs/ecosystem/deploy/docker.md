@@ -4,7 +4,7 @@ description: Package the Bapx Node.js build as a portable container image.
 lastReviewedAt: 2026-06-20
 ---
 
-Package the Bapx Node.js build as a container image that runs on any platform that takes one. For the underlying build and runtime behavior, see [Deploy Agents on Node.js](/docs/ecosystem/deploy/node/).
+Package the Bapx Node.js build as a container image that runs on any platform that takes one. For the underlying build and runtime behavior, see [Deploy Agents on Node.js](/ecosystem/deploy/node/).
 
 Bapx's Node target is a long-running HTTP server, not a function. The container must stay up to hold agent sessions and serve streamed responses; deploy it as a service, not a scale-to-zero invocation.
 
@@ -60,7 +60,7 @@ docker run --init -p 8080:8080 \
 
 ## Persistence
 
-Without a `db.ts` adapter the server keeps canonical agent conversations, attachments, accepted submissions, and workflow-run records in process-local memory, so a restart or redeploy loses them. Add a Postgres-backed [`PersistenceAdapter`](/docs/guide/database/) for replacement recovery and shared workflow history. Multiple replicas must still route each agent instance to one live owner; shared storage does not enable active-active same-instance execution:
+Without a `db.ts` adapter the server keeps canonical agent conversations, attachments, accepted submissions, and workflow-run records in process-local memory, so a restart or redeploy loses them. Add a Postgres-backed [`PersistenceAdapter`](/guide/database/) for replacement recovery and shared workflow history. Multiple replicas must still route each agent instance to one live owner; shared storage does not enable active-active same-instance execution:
 
 ```typescript title=".bapX/db.ts"
 import { postgres } from '@bapX/postgres';
@@ -74,7 +74,7 @@ Bapx discovers `db.ts` at build time and wires it into the generated server. Pro
 
 Bapx does not generate a health endpoint. If your platform health-checks the container, define the route it expects (commonly `/health`) in your `app.ts`.
 
-Exposed workflow runs use long-lived `GET /runs/:runId` reads (long-poll/SSE). Ensure the platform's request and idle-connection timeouts allow them. Workflow admission returns `runId`; clients can reconnect to that run and resume with a stream offset. Agent admission returns `streamUrl`, `offset`, and `submissionId`. See [Streaming Protocol](/docs/api/streaming-protocol/).
+Exposed workflow runs use long-lived `GET /runs/:runId` reads (long-poll/SSE). Ensure the platform's request and idle-connection timeouts allow them. Workflow admission returns `runId`; clients can reconnect to that run and resume with a stream offset. Agent admission returns `streamUrl`, `offset`, and `submissionId`. See [Streaming Protocol](/api/streaming-protocol/).
 
 ## References
 

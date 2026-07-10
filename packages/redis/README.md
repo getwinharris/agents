@@ -115,7 +115,7 @@ and reject project-owned `db.ts` adapters.
 ## Installation
 
 ```sh
-pnpm add @bapX/redis redis
+npm install @bapX/redis redis
 ```
 
 The `redis` package above is one possible application driver. It is only a

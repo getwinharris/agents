@@ -18,7 +18,7 @@ bapX add tooling vitest-evals
 
 The tooling blueprint creates `createBapxAgentHarness(...)`, which prompts an HTTP-exposed agent through `@bapX/sdk` and records its response, model usage, costs, and tool calls in the format expected by `vitest-evals`. Each eval case gets a fresh agent instance, so saved conversation history cannot affect other cases. To evaluate a workflow instead, create a harness around `client.workflows.invoke(...)` and return the workflow result as its output.
 
-For protected deployments, configure the SDK client with the required token or headers. See [Vitest Evals tooling](/docs/ecosystem/tooling/vitest-evals/) for setup and reporting details.
+For protected deployments, configure the SDK client with the required token or headers. See [Vitest Evals tooling](/ecosystem/tooling/vitest-evals/) for setup and reporting details.
 
 In addition to ordinary Vitest assertions and case tables, `vitest-evals` supports model-based and deterministic judges, normalized transcripts and tool calls, tool replay, JSON reports, a local report UI, and GitHub reporting. See the [`vitest-evals` documentation](https://vitest-evals.sentry.dev/docs) for the complete feature set and API.
 
@@ -53,23 +53,23 @@ Some qualities—such as whether an explanation is clear or a summary preserves 
 Start the Bapx application in one terminal:
 
 ```sh
-pnpm exec bapX dev
+npx bapX dev
 ```
 
 Run the eval suite in another:
 
 ```sh
-pnpm run evals
+npm run evals
 ```
 
 The agent uses the same provider credentials as the rest of your Bapx application. The eval exits non-zero when an assertion or gated judge fails, so the same command can be used in CI.
 
-Run `pnpm run evals:json` to save the normalized runs in `vitest-results.json`. That artifact can be opened with `vitest-evals serve vitest-results.json` or passed to the `getsentry/vitest-evals` GitHub Action for job summaries and annotations.
+Run `npm run evals:json` to save the normalized runs in `vitest-results.json`. That artifact can be opened with `vitest-evals serve vitest-results.json` or passed to the `getsentry/vitest-evals` GitHub Action for job summaries and annotations.
 
 Set `FLUE_BASE_URL` to evaluate a deployed application instead of the local development server:
 
 ```sh
-FLUE_BASE_URL=https://your-app.example.com pnpm run evals
+FLUE_BASE_URL=https://your-app.example.com npm run evals
 ```
 
 The harness uses the agent's public HTTP route, so the module under test must export `route`. When evaluating a protected deployment, pass the required request headers to `createBapxClient(...)`.
@@ -78,7 +78,7 @@ A complete runnable version of the agent, harness, and eval is available in [`ex
 
 ## Braintrust
 
-[Braintrust](https://www.braintrust.dev) provides a hosted platform for datasets, experiments, scoring, and comparing eval results over time. You can run Braintrust evals against the same public Bapx agent and workflow APIs used in this guide. Bapx also provides a [Braintrust tooling integration](/docs/ecosystem/tooling/braintrust/) that exports model, tool, task, usage, and error traces from the application. Experiment results and runtime traces serve different purposes, but identifiers such as `runId`, `instanceId`, and `submissionId` can connect a failed case to the execution that produced it.
+[Braintrust](https://www.braintrust.dev) provides a hosted platform for datasets, experiments, scoring, and comparing eval results over time. You can run Braintrust evals against the same public Bapx agent and workflow APIs used in this guide. Bapx also provides a [Braintrust tooling integration](/ecosystem/tooling/braintrust/) that exports model, tool, task, usage, and error traces from the application. Experiment results and runtime traces serve different purposes, but identifiers such as `runId`, `instanceId`, and `submissionId` can connect a failed case to the execution that produced it.
 
 ## Bring your own evals
 

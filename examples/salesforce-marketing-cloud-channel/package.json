@@ -9,12 +9,12 @@
 		"test": "vitest run --config vitest.config.ts && vitest run --config vitest.workerd.config.ts"
 	},
 	"dependencies": {
-		"@bapX/runtime": "workspace:*",
-		"@bapX/salesforce": "workspace:*"
+		"@bapX/runtime": "*",
+		"@bapX/salesforce": "*"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "0.16.15",
-		"@bapX/cli": "workspace:*",
+		"@bapX/cli": "*",
 		"@types/node": "^22.10.10",
 		"agents": "^0.14.2",
 		"typescript": "^6.0.3",

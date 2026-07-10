@@ -6,11 +6,11 @@ lastReviewedAt: 2026-07-01
 
 The Cloudflare target builds your agents and workflows for the Cloudflare platform. Generated agents and workflows run inside Durable Objects, using the Agents SDK, Workers AI, Cloudflare Sandbox, Cloudflare Shell, and other Worker primitives where appropriate. Durable Objects give each agent instance its own persistent state, durable execution, and global addressability out of the box.
 
-For a deployment walkthrough, see [Deploy Agents on Cloudflare](/docs/ecosystem/deploy/cloudflare/).
+For a deployment walkthrough, see [Deploy Agents on Cloudflare](/ecosystem/deploy/cloudflare/).
 
 ## Generated Durable Objects
 
-Bapx generates a Durable Object class and a Wrangler binding for each discovered agent and workflow. Agents are discovered from `src/agents/` and workflows from `src/workflows/` (see [Project Layout](/docs/guide/project-layout/) for supported alternatives):
+Bapx generates a Durable Object class and a Wrangler binding for each discovered agent and workflow. Agents are discovered from `src/agents/` and workflows from `src/workflows/` (see [Project Layout](/guide/project-layout/) for supported alternatives):
 
 ```txt
 src/agents/support-chat.ts   ->  BapxSupportChatAgent
@@ -109,7 +109,7 @@ The submitting connection observes the work but does not own it. If a client dis
 
 When a Durable Object resumes after interruption, Bapx decides what to do next from the stored input and canonical conversation progress. It requeues only when it can prove the input was not applied, recognizes already-completed output, and records an interruption instead of blindly repeating uncertain model or tool work.
 
-For the full recovery model, see [Durable Agents](/docs/concepts/durable-execution/).
+For the full recovery model, see [Durable Agents](/concepts/durable-execution/).
 
 ## Calling a private agent over a service binding
 
@@ -161,7 +161,7 @@ No API key is needed. Authorization and billing follow the Worker account, inclu
 
 Bapx also enables [AI Gateway](https://developers.cloudflare.com/ai-gateway/) by default for all `cloudflare/...` models, giving you caching, request logging, rate limiting, and budget controls in the Cloudflare dashboard out of the box.
 
-To customize the gateway, disable it, or target a named gateway, re-register the `cloudflare` provider in `app.ts`. See [Cloudflare Workers AI](/docs/guide/models/#cloudflare-workers-ai-cloudflare-only) for examples.
+To customize the gateway, disable it, or target a named gateway, re-register the `cloudflare` provider in `app.ts`. See [Cloudflare Workers AI](/guide/models/#cloudflare-workers-ai-cloudflare-only) for examples.
 
 ## Cloudflare Sandbox
 
@@ -181,7 +181,7 @@ export default defineAgent<Env>(({ id, env }) => ({
 }));
 ```
 
-See [Cloudflare Sandbox](/docs/ecosystem/sandboxes/cloudflare/) for container configuration and lifecycle guidance.
+See [Cloudflare Sandbox](/ecosystem/sandboxes/cloudflare/) for container configuration and lifecycle guidance.
 
 ## Codemode
 
@@ -192,7 +192,7 @@ By default, Bapx agents use a lightweight in-memory virtual sandbox. This is fas
 Add the sandbox adapter to your project:
 
 ```bash
-pnpm exec bapX add sandbox cloudflare-shell
+npx bapX add sandbox cloudflare-shell
 ```
 
 Then import its helpers from your generated sandbox adapter file, not from `@bapX/runtime/cloudflare`:
@@ -201,7 +201,7 @@ Then import its helpers from your generated sandbox adapter file, not from `@bap
 import { getDefaultWorkspace, getShellSandbox } from '../sandboxes/cloudflare-shell';
 ```
 
-Use Cloudflare Shell when a durable Workspace and structured code operations are enough. Use Cloudflare Sandbox when you need a full Linux environment with arbitrary shell access. See [Cloudflare Shell](/docs/ecosystem/sandboxes/cloudflare-shell/) for setup details.
+Use Cloudflare Shell when a durable Workspace and structured code operations are enough. Use Cloudflare Sandbox when you need a full Linux environment with arbitrary shell access. See [Cloudflare Shell](/ecosystem/sandboxes/cloudflare-shell/) for setup details.
 
 ## Extending Agents and Workflows on Cloudflare
 
@@ -276,7 +276,7 @@ export default {
 
 Use `app.ts` for custom HTTP routes and middleware. `cloudflare.ts` must not define a default `fetch` handler because Bapx keeps HTTP composition in `app.ts`.
 
-Use `cloudflare.ts` for Worker-level events such as inbound email, queues, or cron handlers that are not owned by a specific generated agent or workflow class. To start a Bapx Workflow from one of these handlers, import its discovered default export and call `invoke(workflow, { input })`. Ambient invocation creates a real Workflow Run, does not require an exported HTTP `route`, and bypasses HTTP middleware. Do not call the Workflow's Action or `run(...)` callback directly. See [Schedules](/docs/guide/schedules/) for a Cron Trigger example and [Workflows](/docs/guide/workflows/#application-code) for invocation semantics.
+Use `cloudflare.ts` for Worker-level events such as inbound email, queues, or cron handlers that are not owned by a specific generated agent or workflow class. To start a Bapx Workflow from one of these handlers, import its discovered default export and call `invoke(workflow, { input })`. Ambient invocation creates a real Workflow Run, does not require an exported HTTP `route`, and bypasses HTTP middleware. Do not call the Workflow's Action or `run(...)` callback directly. See [Schedules](/guide/schedules/) for a Cron Trigger example and [Workflows](/guide/workflows/#application-code) for invocation semantics.
 
 ## Reference
 

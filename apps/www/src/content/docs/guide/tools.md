@@ -6,7 +6,7 @@ lastReviewedAt: 2026-05-29
 
 Tools let an agent retrieve information or perform actions while it works. Define tools when an agent needs to call your application's data layer or services, such as looking up an order, creating a ticket, or approving a request.
 
-A [skill](/docs/guide/skills/) provides reusable instructions; a tool executes application code. File and command access in an agent's workspace comes from its configured [sandbox](/docs/guide/sandboxes/) rather than from a custom application tool.
+A [skill](/guide/skills/) provides reusable instructions; a tool executes application code. File and command access in an agent's workspace comes from its configured [sandbox](/guide/sandboxes/) rather than from a custom application tool.
 
 ## Custom tools
 
@@ -64,7 +64,7 @@ export default defineAgent(() => ({
 
 When this agent receives a request, the model can call `lookup_order_status` if it needs the current status before composing its answer. The call and returned text become part of the session context so the agent can continue working with the result.
 
-Attach tools this way when they are part of an agent's ordinary capabilities. When a tool is needed for only one bounded action, you can instead provide it in the options for `session.prompt(...)`, `session.skill(...)`, or `session.task(...)`; see the [Agent API](/docs/api/agent-api/).
+Attach tools this way when they are part of an agent's ordinary capabilities. When a tool is needed for only one bounded action, you can instead provide it in the options for `session.prompt(...)`, `session.skill(...)`, or `session.task(...)`; see the [Agent API](/api/agent-api/).
 
 ## Protect access
 
@@ -95,7 +95,7 @@ export default defineAgent(({ id: customerId }) => ({
 }));
 ```
 
-In this example, the model may choose an order ID to look up, but it cannot choose the customer used in the query. Your route must still authenticate the caller and ensure that they may access the selected agent `id`; see [Agents](/docs/guide/building-agents/) and [Routing](/docs/guide/routing/).
+In this example, the model may choose an order ID to look up, but it cannot choose the customer used in the query. Your route must still authenticate the caller and ensure that they may access the selected agent `id`; see [Agents](/guide/building-agents/) and [Routing](/guide/routing/).
 
 The same principle applies in workflows. Configure bounded tools on the workflow's agent, and pass invocation-specific authorized identifiers through the Action input:
 
@@ -210,12 +210,12 @@ Tools are most useful when:
 - trusted application code must control credentials, authorization scope, or destinations;
 - the model should decide whether and when to call a bounded function.
 
-For application-controlled, multi-step agent work, use an [Action](/docs/guide/actions/). For reusable instructions and resources, use a [skill](/docs/guide/skills/).
+For application-controlled, multi-step agent work, use an [Action](/guide/actions/). For reusable instructions and resources, use a [skill](/guide/skills/).
 
 ## Next steps
 
-- [Agents](/docs/guide/building-agents/) — configure continuing agents that use tools.
-- [Workflows](/docs/guide/workflows/) — initialize agent work with invocation-specific tools.
-- [Skills](/docs/guide/skills/) — add reusable instructions that may direct an agent to use its tools.
-- [Sandboxes](/docs/guide/sandboxes/) — control the workspace and command boundary available to agent work.
-- [Agent API](/docs/api/agent-api/) — look up operation options, including tools supplied for one call.
+- [Agents](/guide/building-agents/) — configure continuing agents that use tools.
+- [Workflows](/guide/workflows/) — initialize agent work with invocation-specific tools.
+- [Skills](/guide/skills/) — add reusable instructions that may direct an agent to use its tools.
+- [Sandboxes](/guide/sandboxes/) — control the workspace and command boundary available to agent work.
+- [Agent API](/api/agent-api/) — look up operation options, including tools supplied for one call.

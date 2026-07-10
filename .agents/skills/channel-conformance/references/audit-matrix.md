@@ -88,10 +88,10 @@ test.
 Typical focused commands:
 
 ```sh
-pnpm --filter @bapX/<provider> run build
-pnpm --filter @bapX/<provider> run check:types
-pnpm --filter @bapX/<provider> run test
-pnpm --filter @bapX/<provider> run test:workerd
+npm run build --workspace @bapX/<provider>
+npm run check:types --workspace @bapX/<provider>
+npm run test --workspace @bapX/<provider>
+npm run test:workerd --workspace @bapX/<provider>
 ```
 
 Adapt to the package's actual scripts.
@@ -119,10 +119,10 @@ Adapt to the package's actual scripts.
 Typical focused commands:
 
 ```sh
-pnpm --filter <provider>-channel-example run check:types
-pnpm --filter <provider>-channel-example run test
-pnpm --filter <provider>-channel-example run build
-pnpm --dir packages/cli exec bapX build --target cloudflare
+npm run check:types --workspace <provider>-channel-example
+npm run test --workspace <provider>-channel-example
+npm run build --workspace <provider>-channel-example
+npm exec --workspace /cli -- bapX build --target cloudflare
 ```
 
 Run the Cloudflare build from the example directory or use its configured

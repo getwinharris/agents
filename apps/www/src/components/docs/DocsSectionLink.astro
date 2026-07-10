@@ -5,18 +5,22 @@ interface Props {
 	section: DocsSection;
 	active: boolean;
 	mobile?: boolean;
+	baseUrl?: string;
 }
 
-const { section, active, mobile = false } = Astro.props;
+const { section, active, mobile = false, baseUrl } = Astro.props;
+const href = baseUrl
+	? new URL(`${section.landingSlug}${section.landingSlug ? '/' : ''}`, baseUrl).href
+	: docsHref(section.landingSlug);
 ---
 
 <a
 	class:list={[
-		mobile ? 'text-sm font-medium' : 'relative flex h-full items-center gap-2 hover:text-blue-600',
-		active ? 'text-blue-600' : 'text-docs-muted',
-		{ 'after:absolute after:right-0 after:-bottom-px after:left-0 after:h-0.5 after:bg-blue-500 after:content-[\'\']': active && !mobile },
+		mobile ? 'text-sm font-medium' : 'relative flex h-full items-center gap-2 hover:text-[var(--docs-accent-deep)]',
+		active ? 'text-[var(--docs-accent-deep)]' : 'text-[var(--docs-muted)]',
+		{ 'after:absolute after:right-0 after:-bottom-px after:left-0 after:h-0.5 after:bg-[var(--docs-accent-deep)] after:content-[\'\']': active && !mobile },
 	]}
-	href={docsHref(section.landingSlug)}
+	href={href}
 >
 	{section.title}
 </a>

@@ -10,7 +10,7 @@
 #   BUCKET=prod ./seed-r2.sh           # seeds the remote prod bucket
 #   REMOTE=0 ./seed-r2.sh              # seeds wrangler's local R2 store
 #
-# Requires pnpm dependencies installed and wrangler authenticated.
+# Requires npm dependencies installed and wrangler authenticated.
 set -euo pipefail
 
 BUCKET="${BUCKET:-dev}"
@@ -55,5 +55,5 @@ REMOTE_FLAG=()
 if [[ "$REMOTE" != "0" ]]; then
   REMOTE_FLAG=(--remote)
 fi
-pnpm exec wrangler r2 object put "$BUCKET_NAME/$SKILL_KEY" --file "$TMP" ${REMOTE_FLAG+"${REMOTE_FLAG[@]}"}
+npm exec wrangler r2 object put "$BUCKET_NAME/$SKILL_KEY" --file "$TMP" ${REMOTE_FLAG+"${REMOTE_FLAG[@]}"}
 echo "Done."

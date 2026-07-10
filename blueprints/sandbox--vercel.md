@@ -189,7 +189,7 @@ add it:
 npm install @vercel/sandbox@^2.2.1
 ```
 
-(Use the user's package manager — `pnpm add`, `yarn add`, etc. if their
+(Use the user's package manager — `npm install`, `yarn add`, etc. if their
 lockfile indicates a different one.)
 
 ## Authentication

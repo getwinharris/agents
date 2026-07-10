@@ -30,14 +30,14 @@
 		"prebuild": "tsx scripts/generate-blueprint-index.ts",
 		"build": "tsdown && mv dist/bapX.mjs dist/bapX.js",
 		"check:types": "tsc --noEmit",
-		"pretest": "pnpm run build",
+		"pretest": "npm run build",
 		"test": "node --test test/*.test.mjs && vitest run",
 		"test:integration:cloudflare": "vitest run --config vitest.integration.cloudflare.config.ts --no-file-parallelism"
 	},
 	"dependencies": {
 		"@cloudflare/vite-plugin": "^1.39.2",
-		"@bapX/runtime": "workspace:*",
-		"@bapX/sdk": "workspace:*",
+		"@bapX/runtime": "*",
+		"@bapX/sdk": "*",
 		"@hono/node-server": "^2.0.3",
 		"@vercel/detect-agent": "^1.2.3",
 		"debug": "^4.4.3",

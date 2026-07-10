@@ -17,7 +17,7 @@ export interface DocsNavGroup {
 }
 
 export interface DocsSection {
-	key: 'guide' | 'api' | 'cli' | 'sdk' | 'ecosystem' | 'platform' | 'mcp' | 'okf' | 'blog';
+	key: string;
 	title: string;
 	landingSlug: string;
 	groups: DocsNavGroup[];
@@ -36,7 +36,10 @@ export const docsSections: DocsSection[] = [
 					{ title: 'Why bapX?', slug: 'introduction/why-bapX' },
 					{ title: 'What is an agent?', slug: 'concepts/agents' },
 					{ title: 'Durable Agents', slug: 'concepts/durable-execution' },
-					{ title: 'Changelog', href: 'https://github.com/getwinharris/agents/blob/main/CHANGELOG.md' },
+					{
+						title: 'Changelog',
+						href: 'https://github.com/getwinharris/agents/blob/main/CHANGELOG.md',
+					},
 				],
 			},
 			{
@@ -116,6 +119,7 @@ export const docsSections: DocsSection[] = [
 					{ title: 'add', slug: 'cli/add' },
 					{ title: 'update', slug: 'cli/update' },
 					{ title: 'docs', slug: 'cli/docs' },
+					{ title: 'map', slug: 'cli/map' },
 				],
 			},
 		],
@@ -260,34 +264,13 @@ export const docsSections: DocsSection[] = [
 		key: 'platform',
 		title: 'Platform',
 		landingSlug: 'platform/overview',
-		groups: [
-			{
-				title: 'Platform',
-				items: [
-					{ title: 'Overview', slug: 'platform/overview' },
-					{ title: 'Billing', slug: 'platform/billing' },
-					{ title: 'API Keys', slug: 'platform/api-keys' },
-					{ title: 'Organisations', slug: 'platform/organisations' },
-					{ title: 'Projects', slug: 'platform/projects' },
-				],
-			},
-		],
+		groups: [{ title: 'Platform', items: [{ title: 'Overview', slug: 'platform/overview' }] }],
 	},
 	{
 		key: 'mcp',
 		title: 'MCP',
 		landingSlug: 'mcp/overview',
-		groups: [
-			{
-				title: 'MCP',
-				items: [
-					{ title: 'Overview', slug: 'mcp/overview' },
-					{ title: 'Gateway', slug: 'mcp/gateway' },
-					{ title: 'Tools', slug: 'mcp/tools' },
-					{ title: 'Servers', slug: 'mcp/servers' },
-				],
-			},
-		],
+		groups: [{ title: 'MCP', items: [{ title: 'Overview', slug: 'mcp/overview' }] }],
 	},
 	{
 		key: 'okf',
@@ -298,26 +281,7 @@ export const docsSections: DocsSection[] = [
 				title: 'OKF',
 				items: [
 					{ title: 'Overview', slug: 'okf/overview' },
-					{ title: 'Schema', slug: 'okf/schema' },
-					{ title: 'Frontmatter', slug: 'okf/frontmatter' },
-					{ title: 'Index Files', slug: 'okf/index-files' },
-					{ title: 'Knowledge Graph', slug: 'okf/knowledge-graph' },
-				],
-			},
-		],
-	},
-	{
-		key: 'blog',
-		title: 'Blog',
-		landingSlug: 'blog',
-		groups: [
-			{
-				title: 'Categories',
-				items: [
-					{ title: 'Announcements', slug: 'blog/announcement' },
-					{ title: 'Releases', slug: 'blog/release' },
-					{ title: 'Research', slug: 'blog/research' },
-					{ title: 'Tutorials', slug: 'blog/tutorials' },
+					{ title: 'Workspace Maps', slug: 'okf/workspace-maps' },
 				],
 			},
 		],

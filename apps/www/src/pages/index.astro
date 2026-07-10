@@ -4,11 +4,6 @@ import { Code } from "astro:components";
 import { HERO, COPY_PROMPT } from "../code-snippets";
 import { homepageEcosystemItems } from "../../../ecosystem-catalog";
 
-const heroAnnouncement = {
-  label: '1.0 Beta',
-  message: 'Read the announcement',
-  href: '/blog/bapX-1-0-beta/',
-};
 ---
 
 <html lang="en">
@@ -21,22 +16,22 @@ const heroAnnouncement = {
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="generator" content={Astro.generator} />
-    <title>bapX — Agent Harness &amp; Workflows</title>
-    <meta name="description" content="Build durable AI agents and workflows with bapX's programmable TypeScript harness. Write once, deploy anywhere, use any LLM." />
+    <title>bapX — Cloud Agent Automation for Teams</title>
+    <meta name="description" content="Deploy AI agents that automate your business operations, team workflows, and customer operations — no infrastructure required." />
     <meta name="theme-color" content="#0a0a0a" />
     <link rel="canonical" href="https://bapx.in/" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="bapX" />
-    <meta property="og:title" content="bapX — Agent Harness &amp; Workflows" />
-    <meta property="og:description" content="Build durable AI agents and workflows with bapX's programmable TypeScript harness. Write once, deploy anywhere, use any LLM." />
+    <meta property="og:title" content="bapX — Cloud Agent Automation for Teams" />
+    <meta property="og:description" content="Deploy AI agents that automate your business operations, team workflows, and customer operations." />
     <meta property="og:url" content="https://bapx.in/" />
     <meta property="og:image" content="https://bapx.in/og3.jpg" />
     <meta property="og:image:alt" content="bapX logo" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="bapX — Agent Harness &amp; Workflows" />
-    <meta name="twitter:description" content="Build durable AI agents and workflows with bapX's programmable TypeScript harness. Write once, deploy anywhere, use any LLM." />
+    <meta name="twitter:title" content="bapX — Cloud Agent Automation for Teams" />
+    <meta name="twitter:description" content="Deploy AI agents that automate your business operations, team workflows, and customer operations." />
     <meta name="twitter:image" content="https://bapx.in/og3.jpg" />
     <meta name="twitter:image:alt" content="bapX logo" />
 
@@ -54,7 +49,6 @@ const heroAnnouncement = {
           <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
             <a href="/" class="active">Home</a>
             <a href="https://docs.bapx.in/getting-started/quickstart/">Docs</a>
-            <a href="/blog/">Blog</a>
             <a href="/platform/">Platform</a>
           </div>
         </div>
@@ -69,77 +63,57 @@ const heroAnnouncement = {
       <!-- HERO -->
       <section class="page-section page-header">
         <div class="section-inner" style="max-width: 1200px;">
-          <a href={heroAnnouncement.href} class="mono-label" style="display: inline-flex; align-items: center; gap: .25rem; transition: color .15s;">
-            {heroAnnouncement.label} — {heroAnnouncement.message} &rarr;
-          </a>
-          <h1 class="display-xl" style="margin-top: 1.75rem; max-width: 14ch;">
-            The bapX Agent Harness
+          <h1 class="display-xl" style="max-width: 14ch;">
+            Agent automation for your team.
           </h1>
           <p class="body-lg" style="margin-top: 1.5rem; max-width: 560px;">
-            Build durable AI agents and workflows with bapX's programmable TypeScript harness. Write once, deploy anywhere, use any LLM.
+            Deploy AI agents that automate your business operations, team workflows, and customer support — all managed from the cloud, no infrastructure required.
           </p>
           <div class="hero-actions">
-            <a href="https://docs.bapx.in/getting-started/quickstart/" class="bapx-pill bapx-pill-primary">Get Started</a>
-            <a href="/blog/bapX-1-0-beta/" class="bapx-pill">Read the announcement</a>
+            <a href="https://platform.bapx.in/" class="bapx-pill bapx-pill-primary">Get started free</a>
+            <a href="https://docs.bapx.in/getting-started/quickstart/" class="bapx-pill">Read the docs</a>
           </div>
         </div>
       </section>
 
-      <!-- HERO CODE SNIPPET -->
-      <section class="page-section" style="padding-top: 0;">
-        <div class="section-inner" style="max-width: 800px;">
-          <div style="border: 1px solid var(--hairline); border-radius: 8px; overflow: hidden; background: var(--canvas-card);">
-            <div style="display: flex; align-items: center; padding: .75rem 1rem; border-bottom: 1px solid var(--hairline);">
-              <span class="mono-label" style="display: inline-flex; align-items: center; gap: .5rem; text-transform: none; color: var(--body-mid);">
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                agents/triage.ts
-              </span>
-            </div>
-            <div class="blog-content" style="max-width: none;">
-              <Code code={HERO} lang="typescript" theme="material-theme-palenight" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Powered by Pi -->
+      <!-- Why bapX -->
       <section class="page-section">
         <div class="section-inner">
           <div class="section-heading">
             <div>
-              <h2 class="display-md">Powered by Pi, the open agent harness.</h2>
+              <h2 class="display-md">Agent automation, managed for you.</h2>
               <p class="body-lg" style="margin-top: 1.5rem;">
-                bapX is powered by Pi, the trusted agent harness used by OpenClaw and millions worldwide. Pi gives you the tools you need to unlock real agent autonomy, moving beyond simple chatbots.
+                bapX is a cloud platform for deploying AI agents that automate your business operations. Create agents from your browser, connect them to your tools, and collaborate with your team — no servers, no infrastructure.
               </p>
               <p class="body-lg" style="margin-top: 1.5rem;">
-                Pi is the core of our open tech stack including <a href="https://durablestreams.com/" style="color: var(--ink); text-decoration: underline; text-decoration-color: var(--body-mid); text-underline-offset: 2px;">Durable Streams</a>, <a href="https://vite.dev/" style="color: var(--ink); text-decoration: underline; text-decoration-color: var(--body-mid); text-underline-offset: 2px;">Vite</a>, and a flexible <a href="https://docs.bapx.in/guide/sandboxes/" style="color: var(--ink); text-decoration: underline; text-decoration-color: var(--body-mid); text-underline-offset: 2px;">Sandbox API</a>.
+                Your agents run in our cloud with built-in scaling, monitoring, and team access. Connect any LLM provider, integrate with <a href="https://docs.bapx.in/guide/channels/" style="color: var(--ink); text-decoration: underline; text-decoration-color: var(--body-mid); text-underline-offset: 2px;">Slack, GitHub, email, and more</a>.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Durability -->
+      <!-- Platform features -->
       <section class="page-section">
         <div class="section-inner">
           <div class="section-heading compact">
-            <h2 class="display-md">Durability. Recovery. It's all handled for you.</h2>
+            <h2 class="display-md">Everything your team needs.</h2>
             <p class="body-lg">
-              Agents can't die when the server goes down. bapX records every session in a durable stream, then safely resumes interrupted work when the runtime comes back online.
+              Create, deploy, and manage agents as a team. bapX handles the infrastructure so you can focus on what your agents do.
             </p>
           </div>
           <div class="card-grid-3" style="margin-top: 2rem;">
             <div class="card">
-              <span class="mono-label">Durable</span>
-              <p class="body-sm" style="margin-top: .75rem; color: var(--ink);">Accepted work is never lost</p>
+              <span class="mono-label">Workspace</span>
+              <p class="body-sm" style="margin-top: .75rem; color: var(--ink);">Create agents from your browser. No CLI, no DevOps, no setup.</p>
             </div>
             <div class="card">
-              <span class="mono-label">Recovery</span>
-              <p class="body-sm" style="margin-top: .75rem; color: var(--ink);">Interrupted sessions resume automatically</p>
+              <span class="mono-label">Channels</span>
+              <p class="body-sm" style="margin-top: .75rem; color: var(--ink);">Connect agents to Slack, GitHub, Linear, email, and more.</p>
             </div>
             <div class="card">
-              <span class="mono-label">Resilient</span>
-              <p class="body-sm" style="margin-top: .75rem; color: var(--ink);">Clients reconnect without starting over</p>
+              <span class="mono-label">Teams</span>
+              <p class="body-sm" style="margin-top: .75rem; color: var(--ink);">Invite your team, assign roles, share agents across your org.</p>
             </div>
           </div>
         </div>
@@ -149,11 +123,11 @@ const heroAnnouncement = {
       <section class="page-section">
         <div class="section-inner">
           <div class="section-heading compact">
-            <h2 class="display-md">Bring the stack you already love.</h2>
+            <h2 class="display-md">Connect to the tools you already use.</h2>
             <p class="body-lg">
-              bapX integrates with the tools, databases, and platforms you already use.
+              bapX integrates with your team's workflow through channels, APIs, and managed integrations.
             </p>
-            <a href="https://docs.bapx.in/ecosystem/" class="bapx-pill" style="margin-top: 1rem;">Explore our ecosystem</a>
+            <a href="https://docs.bapx.in/ecosystem/" class="bapx-pill" style="margin-top: 1rem;">View all integrations</a>
           </div>
           <div class="client-grid">
             {homepageEcosystemItems.slice(0, 12).map((app) => (
@@ -165,7 +139,7 @@ const heroAnnouncement = {
                 )}
               </a>
             ))}
-            <a href="https://docs.bapx.in/ecosystem/" class="client-card" style="display: flex; align-items: center; justify-content: center; min-height: 120px;">
+            <a href="/docs/ecosystem/" class="client-card" style="display: flex; align-items: center; justify-content: center; min-height: 120px;">
               <span style="color: var(--body-mid); font-size: .875rem;">View all &rarr;</span>
             </a>
           </div>
@@ -176,54 +150,49 @@ const heroAnnouncement = {
       <section class="page-section">
         <div class="section-inner">
           <div class="section-heading compact">
-            <h2 class="display-md">Features</h2>
-            <p class="body-lg">Build agents that can safely take action, maintain continuity, and connect to the systems where work already happens.</p>
+            <h2 class="display-md">One platform for every team.</h2>
+            <p class="body-lg">Deploy agents for customer support, engineering, operations, and sales — all from one workspace.</p>
           </div>
           <div class="card-grid-auto" style="margin-top: 3rem;">
-            <a href="https://docs.bapx.in/concepts/agents/" class="card">
-              <span class="mono-label">Agent</span>
-              <h3 class="display-md" style="margin-top: .5rem;">Agents</h3>
-              <p class="body-sm" style="margin-top: .75rem;">Build agents that keep context across conversations and work autonomously toward a goal.</p>
+            <a href="/docs/platform/overview/" class="card">
+              <span class="mono-label">Managed</span>
+              <h3 class="display-md" style="margin-top: .5rem;">Workspace</h3>
+              <p class="body-sm" style="margin-top: .75rem;">Create and manage agents from your browser. No infrastructure to set up.</p>
             </a>
-            <a href="https://docs.bapx.in/guide/workflows/" class="card">
-              <span class="mono-label">Workflow</span>
-              <h3 class="display-md" style="margin-top: .5rem;">Workflows</h3>
-              <p class="body-sm" style="margin-top: .75rem;">Structured automations where your code guides agent reasoning from input to result.</p>
-            </a>
-            <a href="https://docs.bapx.in/guide/sandboxes/" class="card">
-              <span class="mono-label">Runtime</span>
-              <h3 class="display-md" style="margin-top: .5rem;">Sandboxes</h3>
-              <p class="body-sm" style="margin-top: .75rem;">Secure environments where agents use tools, modify files, and complete real work.</p>
-            </a>
-            <a href="https://docs.bapx.in/guide/subagents/" class="card">
-              <span class="mono-label">Scale</span>
-              <h3 class="display-md" style="margin-top: .5rem;">Subagents</h3>
-              <p class="body-sm" style="margin-top: .75rem;">Define specialized roles, let your agent delegate to the right expert.</p>
-            </a>
-            <a href="https://docs.bapx.in/guide/tools/" class="card">
-              <span class="mono-label">Tooling</span>
-              <h3 class="display-md" style="margin-top: .5rem;">Tools</h3>
-              <p class="body-sm" style="margin-top: .75rem;">Typed actions for calling APIs, querying data, and making controlled changes.</p>
-            </a>
-            <a href="https://docs.bapx.in/guide/skills/" class="card">
-              <span class="mono-label">Skills</span>
-              <h3 class="display-md" style="margin-top: .5rem;">Skills</h3>
-              <p class="body-sm" style="margin-top: .75rem;">Package reusable expertise agents load when tasks need specialized guidance.</p>
-            </a>
-            <a href="https://docs.bapx.in/guide/observability/" class="card">
-              <span class="mono-label">Monitoring</span>
-              <h3 class="display-md" style="margin-top: .5rem;">Observability</h3>
-              <p class="body-sm" style="margin-top: .75rem;">Monitor agents with OpenTelemetry, Braintrust, Sentry, or your own observer.</p>
-            </a>
-            <a href="https://docs.bapx.in/guide/channels/" class="card">
-              <span class="mono-label">Channels</span>
+            <a href="/docs/guide/channels/" class="card">
+              <span class="mono-label">Connect</span>
               <h3 class="display-md" style="margin-top: .5rem;">Channels</h3>
-              <p class="body-sm" style="margin-top: .75rem;">Connect agents to Slack, GitHub, Linear, Discord, and more.</p>
+              <p class="body-sm" style="margin-top: .75rem;">Connect agents to Slack, GitHub, email, Discord, and more.</p>
             </a>
-            <a href="https://docs.bapx.in/getting-started/quickstart/" class="card" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; background: var(--canvas-mid);">
+            <a href="/docs/platform/organisations/" class="card">
+              <span class="mono-label">Team</span>
+              <h3 class="display-md" style="margin-top: .5rem;">Organisations</h3>
+              <p class="body-sm" style="margin-top: .75rem;">Invite your team, assign roles, and collaborate on agents.</p>
+            </a>
+            <a href="/docs/mcp/overview/" class="card">
+              <span class="mono-label">MCP</span>
+              <h3 class="display-md" style="margin-top: .5rem;">MCP Gateway</h3>
+              <p class="body-sm" style="margin-top: .75rem;">Give agents access to external tools via the Model Context Protocol.</p>
+            </a>
+            <a href="/docs/platform/billing/" class="card">
+              <span class="mono-label">Usage</span>
+              <h3 class="display-md" style="margin-top: .5rem;">Billing & Scaling</h3>
+              <p class="body-sm" style="margin-top: .75rem;">$5/mo per workspace. Scale as your team grows.</p>
+            </a>
+            <a href="/docs/guide/observability/" class="card">
+              <span class="mono-label">Monitor</span>
+              <h3 class="display-md" style="margin-top: .5rem;">Observability</h3>
+              <p class="body-sm" style="margin-top: .75rem;">View agent activity, conversation logs, and usage from your dashboard.</p>
+            </a>
+            <a href="/docs/api/overview/" class="card">
+              <span class="mono-label">API</span>
+              <h3 class="display-md" style="margin-top: .5rem;">Platform API</h3>
+              <p class="body-sm" style="margin-top: .75rem;">Programmatic access to your agents, workspaces, and billing.</p>
+            </a>
+            <a href="/docs/getting-started/quickstart/" class="card" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; background: var(--canvas-mid);">
               <span class="mono-label" style="color: var(--body);">Get Started</span>
-              <h3 class="display-md" style="margin-top: .5rem;">Explore the docs <span style="display: inline-block; transition: transform .15s;">&rarr;</span></h3>
-              <p class="body-sm" style="margin-top: .75rem;">Learn how to build, run, deploy, and scale production-ready agents.</p>
+              <h3 class="display-md" style="margin-top: .5rem;">Sign up free <span style="display: inline-block; transition: transform .15s;">&rarr;</span></h3>
+              <p class="body-sm" style="margin-top: .75rem;">Create your workspace and deploy your first agent in minutes.</p>
             </a>
           </div>
         </div>
@@ -232,7 +201,7 @@ const heroAnnouncement = {
 
     <footer class="page-footer">
       <div class="section-inner">
-      <span>bapX — the open agent harness.</span>
+      <span>bapX — Cloud Agent Automation for Teams.</span>
       <span>&copy; {new Date().getFullYear()}</span>
       </div>
     </footer>

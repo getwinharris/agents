@@ -23,4 +23,4 @@ filtering deliveries by business account or phone number, access tokens,
 outbound clients, tools, dispatch policy, and deduplication.
 
 See the prepared package docs or
-<https://bapx.in/docs/ecosystem/channels/whatsapp/>.
+<https://docs.bapx.in/ecosystem/channels/whatsapp/>.

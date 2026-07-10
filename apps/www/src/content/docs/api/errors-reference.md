@@ -59,7 +59,7 @@ The following categories are stable for framework-owned transport failures. HTTP
 
 Durable Streams reads use the same framework envelope for invalid query parameters and missing streams. A stream may still terminate through transport behavior rather than a JSON error body, such as a client disconnect during SSE.
 
-See [Events Reference](/docs/api/events-reference/) for runtime event types.
+See [Events Reference](/api/events-reference/) for runtime event types.
 
 ### Workflow-run streams
 
@@ -137,11 +137,11 @@ CLI diagnostics are human-oriented messages written to stderr. They do not curre
 | `bapX dev` initial build | Reports the build failure and exits.                                                                                            |
 | `bapX dev` rebuild       | Reports the rebuild failure and keeps watching for a later fix.                                                                 |
 
-Use the actionable diagnostic prose when resolving these errors. Do not parse it as a stable API. See [`bapX build`](/docs/cli/build/) and [`bapX dev`](/docs/cli/dev/) for command behavior.
+Use the actionable diagnostic prose when resolving these errors. Do not parse it as a stable API. See [`bapX build`](/cli/build/) and [`bapX dev`](/cli/dev/) for command behavior.
 
 ## Application-owned responses
 
-An authored [`app.ts`](/docs/api/routing-api/) owns its request pipeline. Custom routes and middleware may return arbitrary statuses and bodies, including authorization responses. Bapx does not impose an `unauthorized` transport category on application-owned responses.
+An authored [`app.ts`](/api/routing-api/) owns its request pipeline. Custom routes and middleware may return arbitrary statuses and bodies, including authorization responses. Bapx does not impose an `unauthorized` transport category on application-owned responses.
 
 ## Stability boundary
 

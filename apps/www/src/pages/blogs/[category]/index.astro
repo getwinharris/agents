@@ -1,0 +1,18 @@
+---
+import { getCollection } from 'astro:content';
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import { blogsSection } from '../../../lib/blogs-navigation';
+
+export function getStaticPaths() {
+	const categories = ['announcement', 'release', 'research', 'tutorials'] as const;
+	return categories.map((category) => ({ params: { category }, props: { category } }));
+}
+const { category } = Astro.props;
+const posts = (await getCollection('blogs')).filter((post) => post.data.category === category).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const title = category === 'tutorials' ? 'Tutorials' : `${category[0].toUpperCase()}${category.slice(1)}s`;
+---
+
+<DocsLayout title={title} description={`bapX ${title.toLowerCase()}.`} currentSlug={category} headings={[]} showTableOfContents={false} variant="directory" navigationSection={blogsSection} headerSections={[blogsSection]} publicBaseUrl="https://blogs.bapx.in/" markdownUrl="">
+	<header class="mb-10"><h1 class="m-0 text-5xl font-bold leading-[1.08] tracking-[-0.05em] text-gray-950">{title}</h1></header>
+	{posts.length === 0 ? <p>No posts published yet.</p> : <ul class="m-0 list-none p-0" role="list">{posts.map((post) => <li class="border-t border-[var(--hairline)] py-6"><h2 class="text-2xl font-semibold"><a href={`/${post.id}/`}>{post.data.title}</a></h2><p class="mt-2 text-[var(--docs-muted)]">{post.data.description}</p></li>)}</ul>}
+</DocsLayout>

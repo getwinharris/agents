@@ -19,7 +19,7 @@ app.route('/', bapX());
 export default app;
 ```
 
-See [Routing](/docs/guide/routing/) for middleware, custom routes, prefixes, and application-owned dispatch.
+See [Routing](/guide/routing/) for middleware, custom routes, prefixes, and application-owned dispatch.
 
 #### `Fetchable`
 
@@ -55,7 +55,7 @@ Creates a mountable Hono sub-app for Bapx's public HTTP API. Routes are relative
 
 Agent routes and workflow invocation routes are available only when the corresponding module exports `route`. A workflow's existing run resources are available only when its module separately exports `runs`. Discovered channel files export a named `channel` binding whose provider-declared routes are always mounted beneath `/channels/<filename>`. Direct agent prompts and dispatched agent inputs are not runs.
 
-`POST /agents/:name/:id` accepts a [`DeliveredMessage`](/docs/api/agent-api/#deliveredmessage) as its JSON body — the same unified shape `dispatch()` admits. A chat turn is `{ "kind": "user", "body": string, "attachments"?: attachment[] }` with optional `{ type: 'image', data, mimeType, filename? }` attachments, where `data` is base64-encoded image content (capped at 14 MiB of base64 characters per image) for vision-capable models. A structured event is `{ "kind": "signal", "type": string, "body": string, "attributes"?, "tagName"? }`. `POST /workflows/:name` accepts the workflow input as its JSON body.
+`POST /agents/:name/:id` accepts a [`DeliveredMessage`](/api/agent-api/#deliveredmessage) as its JSON body — the same unified shape `dispatch()` admits. A chat turn is `{ "kind": "user", "body": string, "attachments"?: attachment[] }` with optional `{ type: 'image', data, mimeType, filename? }` attachments, where `data` is base64-encoded image content (capped at 14 MiB of base64 characters per image) for vision-capable models. A structured event is `{ "kind": "signal", "type": string, "body": string, "attributes"?, "tagName"? }`. `POST /workflows/:name` accepts the workflow input as its JSON body.
 
 ```bash
 # Start a prompt on an HTTP-exposed agent instance.
@@ -76,7 +76,7 @@ For an existing run, Bapx invokes its owning workflow's `runs` middleware with a
 
 ## Compose your own admin endpoints
 
-Bapx ships no admin HTTP surface. Build deployment-inspection endpoints from the server-side primitives exported by `@bapX/runtime` — [`listRuns()`, `getRun()`, and `listAgents()`](/docs/api/data-persistence-api/#inspection-primitives) — behind your own authorization:
+Bapx ships no admin HTTP surface. Build deployment-inspection endpoints from the server-side primitives exported by `@bapX/runtime` — [`listRuns()`, `getRun()`, and `listAgents()`](/api/data-persistence-api/#inspection-primitives) — behind your own authorization:
 
 ```ts title="src/app.ts"
 import { listAgents, listRuns } from '@bapX/runtime';

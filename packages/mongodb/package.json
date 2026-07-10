@@ -30,7 +30,7 @@
 		"check:lint": "biome lint ."
 	},
 	"dependencies": {
-		"@bapX/runtime": "workspace:*"
+		"@bapX/runtime": "*"
 	},
 	"devDependencies": {
 		"mongodb": "^6.17.0",

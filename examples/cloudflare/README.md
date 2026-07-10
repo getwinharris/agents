@@ -18,7 +18,7 @@ workflows use the project-owned sandbox adapter at `src/sandboxes/cloudflare-she
 Install deps:
 
 ```bash
-pnpm install
+npm install
 ```
 
 Build the runtime + cli once (the local workspace `dist/` directories are
@@ -26,13 +26,13 @@ what `bapX dev`/`run` consume; a fresh checkout has stale ones — see L1
 in the cf-shell adoption plan):
 
 ```bash
-pnpm run build -F @bapX/runtime -F @bapX/cli
+npm run build -F @bapX/runtime -F @bapX/cli
 ```
 
 The agents in this example use the Workers AI binding, so no provider API
 keys are required. If you switch them to a non-Cloudflare model, put the
 matching provider key in `.env` at the project root (see
-[the Cloudflare deployment guide](https://bapx.in/docs/ecosystem/deploy/cloudflare/) for the full story).
+[the Cloudflare deployment guide](https://docs.bapx.in/ecosystem/deploy/cloudflare/) for the full story).
 
 ## Worker Loader requirement (skills-from-r2, skills-from-git)
 
@@ -78,8 +78,8 @@ If you want to use different bucket names, edit `wrangler.jsonc` and the
 
 ```bash
 # Build + serve (one of these, depending on Loader access for the agent you want)
-pnpm exec bapX dev --target cloudflare
-pnpm exec wrangler dev --remote                  # if needed for cf-shell agents
+npx bapX dev --target cloudflare
+npx wrangler dev --remote                  # if needed for cf-shell agents
 
 # Trigger an agent
 curl -X POST http://localhost:3583/agents/with-cloudflare-binding/test-1 \

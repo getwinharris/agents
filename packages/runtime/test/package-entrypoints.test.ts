@@ -12,7 +12,7 @@ vi.mock('cloudflare:workers', () => ({
 
 beforeAll(() => {
 	if (!existsSync('dist/internal.mjs')) {
-		execFileSync('pnpm', ['run', 'build'], { cwd: process.cwd(), stdio: 'pipe' });
+		execFileSync('npm', ['run', 'build'], { cwd: process.cwd(), stdio: 'pipe' });
 	}
 });
 

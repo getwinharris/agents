@@ -314,7 +314,7 @@ For `--target cloudflare`:
 npm install @struktoai/mirage-browser@^0.0.2
 ```
 
-(Use the user's package manager — `pnpm add`, `yarn add`, etc. if their
+(Use the user's package manager — `npm install`, `yarn add`, etc. if their
 lockfile indicates a different one.)
 
 ## Authentication

@@ -661,7 +661,7 @@ npm install ssh2@^1.17.0
 npm install -D @types/ssh2@^1.15.5
 ```
 
-(Use the user's package manager — `pnpm add`, `yarn add`, etc. if their
+(Use the user's package manager — `npm install`, `yarn add`, etc. if their
 lockfile indicates a different one.)
 
 ## Authentication

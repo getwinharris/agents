@@ -10,7 +10,7 @@ By the end, you will have a Bapx agent running on Cloudflare Workers, and you wi
 
 ## Project layout
 
-The project root is your project directory. Bapx selects authored source from `.bapX/`, then `src/`, then the project root. The first matching directory wins, and layouts never mix. See [Project Layout](/docs/guide/project-layout/) for the full convention.
+The project root is your project directory. Bapx selects authored source from `.bapX/`, then `src/`, then the project root. The first matching directory wins, and layouts never mix. See [Project Layout](/guide/project-layout/) for the full convention.
 
 By default `bapX build` writes to `./dist/` at the project root; pass `--output <path>` to redirect the build elsewhere. `wrangler.jsonc` and any `Dockerfile` you ship live at the project root, regardless of where the build lands. Examples in this guide use the `./.bapX/` layout.
 
@@ -344,7 +344,7 @@ The examples above all run on virtual sandboxes — no container needed. But for
 
 Cloudflare has native container support via [`@cloudflare/sandbox`](https://developers.cloudflare.com/containers/). Each session gets its own isolated container with a persistent filesystem, shell, and full Linux userspace.
 
-If you'd rather connect to an external provider — e.g. Daytona — instead of running the sandbox on Cloudflare, see [Connect a Daytona Sandbox](/docs/ecosystem/sandboxes/daytona/).
+If you'd rather connect to an external provider — e.g. Daytona — instead of running the sandbox on Cloudflare, see [Connect a Daytona Sandbox](/ecosystem/sandboxes/daytona/).
 
 ### Setup
 
@@ -479,7 +479,7 @@ For agents, generated Cloudflare applications store one append-only canonical co
 
 Filesystem durability remains a separate decision. The default lightweight sandbox uses an in-memory filesystem and must not be treated as durable merely because conversation state is stored in a Durable Object. Use a durable workspace or container-backed integration when files or installed artifacts must survive later activity.
 
-Agent clients read materialized history or projected updates at `GET /agents/:name/:id`; see the [Streaming Protocol](/docs/api/streaming-protocol/).
+Agent clients read materialized history or projected updates at `GET /agents/:name/:id`; see the [Streaming Protocol](/api/streaming-protocol/).
 
 ## Interruption and recovery semantics
 
@@ -501,7 +501,7 @@ External effects remain application-owned. An interruption can leave the outcome
 
 Bapx persists workflow inputs with workflow run records before admitted work starts so operators can inspect the original input after an interruption. Bapx does not automatically retry interrupted workflows. The caller or application should decide whether retry is appropriate and explicitly invoke the workflow again when needed. Use an application-level idempotency key when a repeated invocation may encounter external side effects from an earlier attempt. Agent submission payloads are likewise durable application data while queued and running. Settled submission data is retained indefinitely in this beta release. Dispatch receipt rows persist indefinitely as well, providing duplicate-delivery protection for repeated forwarding of one `dispatchId`; there is no public submission lookup API. Treat persisted inputs as sensitive: do not submit secrets unless your application retention and access policy permits storing them.
 
-When Bapx terminalizes an admitted interrupted workflow run, it emits `run_resume` before `run_end`, including when the interruption happened before live observers received `run_start`. This is recovery of terminal handling, not resumed or retried workflow code. Bapx does not automatically propagate a trace carrier with dispatched input or preserve the original attached direct request after durable admission. For trace interpretation and application-owned HTTP extraction, see [OpenTelemetry](/docs/ecosystem/tooling/opentelemetry/#attach-application-trace-context).
+When Bapx terminalizes an admitted interrupted workflow run, it emits `run_resume` before `run_end`, including when the interruption happened before live observers received `run_start`. This is recovery of terminal handling, not resumed or retried workflow code. Bapx does not automatically propagate a trace carrier with dispatched input or preserve the original attached direct request after durable admission. For trace interpretation and application-owned HTTP extraction, see [OpenTelemetry](/ecosystem/tooling/opentelemetry/#attach-application-trace-context).
 
 Bapx workflows do not resume from checkpointed durable steps after Durable Object interruption. For jobs that require durable step-level continuation, implement those steps with [Cloudflare Workflows](https://developers.cloudflare.com/workflows/).
 
@@ -570,7 +570,7 @@ curl https://my-support-agent.<your-subdomain>.workers.dev/workflows/translate?w
   -d '{"text": "Hello world", "language": "French"}'
 ```
 
-Stream events from a deployed agent with `GET https://my-support-agent.<your-subdomain>.workers.dev/agents/chat/customer-123?offset=-1&live=sse`. Live reads require an `offset` — use `-1` to replay from the start, or `now` for future events only (see the [Streaming Protocol](/docs/api/streaming-protocol/)).
+Stream events from a deployed agent with `GET https://my-support-agent.<your-subdomain>.workers.dev/agents/chat/customer-123?offset=-1&live=sse`. Live reads require an `offset` — use `-1` to replay from the start, or `now` for future events only (see the [Streaming Protocol](/api/streaming-protocol/)).
 
 ### Choosing a sandbox strategy
 

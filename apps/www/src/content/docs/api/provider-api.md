@@ -4,7 +4,7 @@ description: Register custom model providers and override built-in provider tran
 lastReviewedAt: 2026-05-31
 ---
 
-The provider API configures model connection paths at runtime. Import ordinary provider APIs from `@bapX/runtime`. For model selection, authentication setup, and Workers AI examples, see [Models & Providers](/docs/guide/models/).
+The provider API configures model connection paths at runtime. Import ordinary provider APIs from `@bapX/runtime`. For model selection, authentication setup, and Workers AI examples, see [Models & Providers](/guide/models/).
 
 ## Imports
 
@@ -111,4 +111,4 @@ import {
 
 `CloudflareAIBindingRegistration` registers a provider backed by an `env.AI` Workers AI binding instead of an HTTP endpoint. Its optional `gateway` setting forwards AI Gateway options to each `env.AI.run(...)` call; set `gateway: false` to omit the gateway option.
 
-Cloudflare builds register the `cloudflare` provider ID automatically unless `app.ts` registers it first. Register that provider ID in `app.ts` when you intentionally want an authored binding registration to take precedence over the generated default. See [Cloudflare Workers AI](/docs/guide/models/#cloudflare-workers-ai-cloudflare-only) for setup and gateway examples.
+Cloudflare builds register the `cloudflare` provider ID automatically unless `app.ts` registers it first. Register that provider ID in `app.ts` when you intentionally want an authored binding registration to take precedence over the generated default. See [Cloudflare Workers AI](/guide/models/#cloudflare-workers-ai-cloudflare-only) for setup and gateway examples.

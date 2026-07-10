@@ -31,7 +31,7 @@
 		"react": ">=18"
 	},
 	"devDependencies": {
-		"@bapX/sdk": "workspace:*",
+		"@bapX/sdk": "*",
 		"@testing-library/react": "^16.3.0",
 		"@types/react": "^19.1.8",
 		"happy-dom": "^18.0.1",

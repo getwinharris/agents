@@ -43,7 +43,7 @@ interface DeliveredAttachment {
 }
 ```
 
-This is the same unified shape a server-side `dispatch()` call admits. A `kind: 'user'` message is a direct chat turn — `attachments` carry base64-encoded images (`data`, capped at 14 MiB of base64 characters each; `mimeType` such as `image/png`) for vision-capable models. A `kind: 'signal'` message is a structured event; see the [agent API reference](/docs/api/agent-api/#deliveredmessage) for when to use each kind.
+This is the same unified shape a server-side `dispatch()` call admits. A `kind: 'user'` message is a direct chat turn — `attachments` carry base64-encoded images (`data`, capped at 14 MiB of base64 characters each; `mimeType` such as `image/png`) for vision-capable models. A `kind: 'signal'` message is a structured event; see the [agent API reference](/api/agent-api/#deliveredmessage) for when to use each kind.
 
 ### `AgentSendResult`
 

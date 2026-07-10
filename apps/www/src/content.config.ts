@@ -29,9 +29,9 @@ export const collections = {
 				.optional(),
 		}),
 	}),
-	blog: defineCollection({
+	blogs: defineCollection({
 		loader: glob({
-			base: './src/content/blog',
+			base: './src/content/blogs',
 			pattern: '**/[^_]*.{md,mdx}',
 		}),
 		schema: z.object({
@@ -40,7 +40,9 @@ export const collections = {
 			pubDate: z.coerce.date(),
 			author: z.string().optional(),
 			authorUrl: z.string().optional(),
-			category: z.enum(['release', 'research', 'announcement', 'tutorials']).default('announcement'),
+			category: z
+				.enum(['release', 'research', 'announcement', 'tutorials'])
+				.default('announcement'),
 			tags: z.array(z.string()).optional(),
 		}),
 	}),

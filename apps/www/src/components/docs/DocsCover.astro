@@ -9,7 +9,7 @@ const config = variant === 'agents'
 	: { shape: 'sphere', scale: '1.02', patternId: 'workflowsCoverGrid' };
 ---
 
-<div class="relative mb-8 flex h-[200px] items-center justify-center overflow-hidden rounded-sm border border-slate-300 bg-[#e9eef4] max-docs-desktop:mb-6 max-docs-desktop:h-[168px]" aria-hidden="true">
+<div class="relative mb-8 flex h-[200px] items-center justify-center overflow-hidden rounded-sm border border-[var(--docs-border)] bg-[var(--docs-surface-soft)] max-docs-desktop:mb-6 max-docs-desktop:h-[168px]" aria-hidden="true">
 	<svg class="absolute inset-0 size-full">
 		<defs>
 			<pattern id={config.patternId} width="20" height="20" patternUnits="userSpaceOnUse">

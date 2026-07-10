@@ -35,7 +35,7 @@ The catalog, page Markdown, and search JSON print to stdout; usage hints and err
 ```bash
 bapX docs read guide/sandboxes
 bapX docs read /docs/guide/sandboxes/
-bapX docs read https://bapx.in/docs/guide/sandboxes/
+bapX docs read https://docs.bapx.in/guide/sandboxes/
 ```
 
 Unknown pages exit with status `1`.

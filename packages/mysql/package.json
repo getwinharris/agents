@@ -29,7 +29,7 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@bapX/runtime": "workspace:*"
+		"@bapX/runtime": "*"
 	},
 	"devDependencies": {
 		"mysql2": "^3.22.5",

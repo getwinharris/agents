@@ -1,14 +1,14 @@
 import type { APIRoute } from 'astro';
 
 const DEPLOY_GUIDES = [
-	['Deploy on Node.js', 'https://bapx.in/docs/ecosystem/deploy/node/index.md'],
-	['Deploy on Cloudflare', 'https://bapx.in/docs/ecosystem/deploy/cloudflare/index.md'],
+	['Deploy on Node.js', 'https://docs.bapx.in/ecosystem/deploy/node/index.md'],
+	['Deploy on Cloudflare', 'https://docs.bapx.in/ecosystem/deploy/cloudflare/index.md'],
 	[
 		'Deploy on GitHub Actions',
-		'https://bapx.in/docs/ecosystem/deploy/github-actions/index.md',
+		'https://docs.bapx.in/ecosystem/deploy/github-actions/index.md',
 	],
-	['Deploy on GitLab CI/CD', 'https://bapx.in/docs/ecosystem/deploy/gitlab-ci/index.md'],
-	['Deploy on Render', 'https://bapx.in/docs/ecosystem/deploy/render/index.md'],
+	['Deploy on GitLab CI/CD', 'https://docs.bapx.in/ecosystem/deploy/gitlab-ci/index.md'],
+	['Deploy on Render', 'https://docs.bapx.in/ecosystem/deploy/render/index.md'],
 ] as const;
 
 const DEPLOY_GUIDE_LIST = DEPLOY_GUIDES.map(([title, url]) => `   - ${title}: ${url}`).join('\n');
@@ -22,7 +22,7 @@ You are helping the user create their first Bapx agent. Start with one agent mod
 First, fetch and read the Bapx homepage and quickstart:
 
 https://bapx.in/
-https://bapx.in/docs/getting-started/quickstart/index.md
+https://docs.bapx.in/getting-started/quickstart/index.md
 
 ## Step 2: Discover Requirements
 

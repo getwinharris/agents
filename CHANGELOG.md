@@ -21,6 +21,12 @@
 
 ### Fixes & Other Changes
 
+- Consolidated developer documentation into the single `apps/www` build, restored raw `index.md` responses beside rendered docs, removed the duplicate `apps/docs` application, and corrected subdomain asset and 404 handling.
+- Rebuilt the blog as YAML-frontmatter Markdown under `src/content/blogs`, rendered it with the documentation theme, added category and raw `index.md` routes, and moved the public surface to `blogs.bapx.in`.
+- Standardized repository-owned installation, workspace, CI, test, demo, example, release, and documentation workflows on npm workspaces with one root `package-lock.json`.
+- Documented the bapX workspace operating contract for agents: root and repo `AGENTS.md` files now require map-first diagnosis, AGENTS-chain reads, existing-source extension instead of disconnected tools, browser validation for UI, GitHub issue/PR workflow, and canonical demo/example usage without a fake `users/demo` scaffold.
+- Prepared the v1.1.0 release-readiness contract: docs must be updated with product changes, tools must live in `packages/cli`, package scripts, admin surfaces, or demo source, and the canonical demo now carries `OKF.md`, `map.mmd`, `docs/index.md`, and `docs/map.mmd` for pre-release validation.
+- Reworked the OKF workspace profile around real user git repositories with business folders at `users/<username>/<business-slug>/`, business-level `DESIGN.md`, `brand.css`, `logos/`, project-level `docs/map.mmd`, and local CLI/YAML/JSON-schema query examples instead of BigQuery table examples.
 - Terminalizing a durable agent submission (retry exhaustion, timeout, post-input interruption, or abort) now settles its conversation to a deterministic rest state instead of leaving dangling tool calls behind. Every tool call without a confirmed outcome gets an explicit interrupted-error `tool_outcome` and the batch is committed — recorded outcomes are preserved and nothing is re-executed or resumed — so a `task` tool call can no longer rest as "still running" forever in history projections, and the settled turn stays visible to future model context instead of being silently dropped. For a `task` call the marker includes the retained child conversation id; the child transcript itself is untouched. An interrupted in-progress assistant stream is likewise completed as aborted at terminalization. The terminal advisory now carries the interrupted-call list as structured `attributes.interruptedTools` (also on `SubmissionRetryExhaustedError`/`SubmissionInterruptedError` `meta`), so apps can settle their own run state without parsing text. Conversations already left dangling by earlier versions self-heal on their next prompt: a new submission settles abandoned trailing state before appending its input (#419).
 - MCP tool connections no longer crash on Cloudflare Workers when a connected server advertises a tool `outputSchema`. JSON Schema validation now uses a codegen-free strategy compatible with the workerd runtime instead of runtime code generation (#400).
 - Completed assistant messages now preserve their `submissionId` in `client.agents.history()` snapshots, so clients that group a user turn with its assistant answer by submission id keep that grouping after reload (#402).
@@ -41,7 +47,7 @@
 
 ## 1.0.0-beta.8 - 2026-06-29
 
-This pre-1.0 release reworks how an agent's conversation is durably recorded and communicated to clients, replacing the beta session-store model with one append-only canonical stream per instance behind a single client-facing protocol. The breaking surface is concentrated in this conversation layer; agent execution, models, tools, and workflows are unchanged. Because the persisted format changed, stores are reset-only (schema v4) with no migration from beta formats, so existing data must be cleared before upgrading. For guides and API reference, see the [documentation](https://bapx.in/docs/).
+This pre-1.0 release reworks how an agent's conversation is durably recorded and communicated to clients, replacing the beta session-store model with one append-only canonical stream per instance behind a single client-facing protocol. The breaking surface is concentrated in this conversation layer; agent execution, models, tools, and workflows are unchanged. Because the persisted format changed, stores are reset-only (schema v4) with no migration from beta formats, so existing data must be cleared before upgrading. For guides and API reference, see the [documentation](https://docs.bapx.in/).
 
 ### Breaking Changes
 
@@ -206,7 +212,7 @@ This pre-1.0 release reworks how an agent's conversation is durably recorded and
 
 ### New Features
 
-- **`bapX docs` browses the documentation offline.** The docs markdown already shipped inside `@bapX/cli` is now reachable from the command line: `bapX docs` lists every page, `bapX docs read <path>` prints one page as Markdown, and `bapX docs search <query>` prints ranked JSON results. Content requires no network access and always matches the installed CLI version. Designed for coding agents (search → read), per [Documentation](https://bapx.in/docs/cli/docs/).
+- **`bapX docs` browses the documentation offline.** The docs markdown already shipped inside `@bapX/cli` is now reachable from the command line: `bapX docs` lists every page, `bapX docs read <path>` prints one page as Markdown, and `bapX docs search <query>` prints ranked JSON results. Content requires no network access and always matches the installed CLI version. Designed for coding agents (search → read), per [Documentation](https://docs.bapx.in/cli/docs/).
 
 ### Fixes & Other Changes
 
@@ -253,7 +259,7 @@ This pre-1.0 release reworks how an agent's conversation is durably recorded and
 
 ## 0.10.0 - 2026-06-08
 
-This is a large pre-1.0 release that establishes Bapx's durability model across Node.js and Cloudflare. Rather than cataloging every intermediate beta change, this entry highlights the final APIs and the most important upgrade work. For guides and API reference, see the [documentation](https://bapx.in/docs/).
+This is a large pre-1.0 release that establishes Bapx's durability model across Node.js and Cloudflare. Rather than cataloging every intermediate beta change, this entry highlights the final APIs and the most important upgrade work. For guides and API reference, see the [documentation](https://docs.bapx.in/).
 
 ### Breaking Changes
 
@@ -309,7 +315,7 @@ This is a large pre-1.0 release that establishes Bapx's durability model across 
 - Cloudflare agent WebSockets now return a correlated error frame when persisted session restoration fails before a prompt.
 - Cloudflare WebSocket attachments strip query strings and fragments before persistence so URL-carried handshake credentials are not retained.
 - Agent and workflow WebSocket frames reject blank or whitespace-only `requestId` values, including optional agent ping IDs.
-- Published the Message-Driven Agents guide, Sandbox Connector API, and Daytona integration guide on the documentation site. Replace saved root-guide or raw GitHub links with [Message-Driven Agents](https://bapx.in/docs/guide/message-driven-agents/), [Sandbox Connector API](https://bapx.in/docs/api/sandbox-api/), and [Daytona](https://bapx.in/docs/ecosystem/sandboxes/daytona/).
+- Published the Message-Driven Agents guide, Sandbox Connector API, and Daytona integration guide on the documentation site. Replace saved root-guide or raw GitHub links with [Message-Driven Agents](https://docs.bapx.in/guide/message-driven-agents/), [Sandbox Connector API](https://docs.bapx.in/api/sandbox-api/), and [Daytona](https://docs.bapx.in/ecosystem/sandboxes/daytona/).
 - Refreshed homepage and documentation canonical URLs and social-preview metadata.
 - **Cloudflare: Extend generated deployments and addressable agents.** Add an optional source-root `cloudflare.ts` module to export application-owned Durable Objects and compose non-HTTP Worker handlers. Addressable agent modules may export `cloudflare = extend({ base, wrap })` from `@bapX/runtime/cloudflare` to add native Agents SDK lifecycle hooks beneath Bapx-owned routing or wrap the final generated Durable Object class with integrations such as Sentry.
 - **Cloudflare Sandbox exports are now explicit.** Export Cloudflare Sandbox aliases from your source-root `cloudflare.ts` module instead of relying on the removed `Sandbox`-suffix auto-wiring.
@@ -359,7 +365,7 @@ This is a large pre-1.0 release that establishes Bapx's durability model across 
 
 ## 0.8.0 - 2026-05-27
 
-This is a large pre-1.0 release that establishes Bapx's model for building persistent agents and finite workflows. Rather than cataloging every intermediate beta change, this entry highlights the final APIs and the most important upgrade work. For guides and API reference, see the [documentation](https://bapx.in/docs/).
+This is a large pre-1.0 release that establishes Bapx's model for building persistent agents and finite workflows. Rather than cataloging every intermediate beta change, this entry highlights the final APIs and the most important upgrade work. For guides and API reference, see the [documentation](https://docs.bapx.in/).
 
 ### New Features
 
@@ -671,7 +677,7 @@ Big release! We are working hard to stabilize our APIs and add any missing and e
 
 - **`Skill.instructions` field removed from the public type.** Skill bodies are no longer cached in memory — at call time the model reads `SKILL.md` from disk via its filesystem tools. This means relative references inside a skill resolve correctly, and edits are picked up mid-session without re-init. If you were reading `skill.instructions` from the SDK types, read the file from disk yourself.
 
-- **Sandbox connector contract: `SandboxApi.exec` is now timeout-primary, signal-optional.** Connectors are expected to forward `timeout` to their provider's native timeout option (E2B `timeoutMs`, Daytona `timeout`, etc.); signal-aware SDKs may additionally forward `signal` for true mid-flight cancellation. `BashLike.exec` options gained `signal?: AbortSignal`. If you maintain a sandbox connector, see [Sandbox Connector API](https://bapx.in/docs/api/sandbox-api/) for the dual contract.
+- **Sandbox connector contract: `SandboxApi.exec` is now timeout-primary, signal-optional.** Connectors are expected to forward `timeout` to their provider's native timeout option (E2B `timeoutMs`, Daytona `timeout`, etc.); signal-aware SDKs may additionally forward `signal` for true mid-flight cancellation. `BashLike.exec` options gained `signal?: AbortSignal`. If you maintain a sandbox connector, see [Sandbox Connector API](https://docs.bapx.in/api/sandbox-api/) for the dual contract.
 
 - **Long-running agents on Node no longer time out at ~300s.** The generated Node server now sets `requestTimeout: 0` on the underlying `http.Server` and emits a 25s SSE heartbeat, which keeps undici's `bodyTimeout` and reverse-proxy idle timers satisfied. Multi-minute `bash` calls and other long handlers that emit no Bapx-level events for >300s no longer abort with `[bapX] Agent error: terminated`.
 

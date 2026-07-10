@@ -82,22 +82,19 @@ jobs:
       - name: Checkout (base ref only — never the PR head)
         uses: actions/checkout@v4
 
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v4
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: pnpm
+          cache: npm
 
       - name: Install deps
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Build Bapx runtime + SDK + CLI
         # Only the packages the agent imports from. Other workspaces
         # don't need to build.
-        run: pnpm --filter @bapX/runtime --filter @bapX/sdk --filter @bapX/cli build
+        run: npm run build --workspace @bapX/runtime --workspace @bapX/sdk --workspace @bapX/cli
 
       - name: Run pr-redirect workflow
         env:

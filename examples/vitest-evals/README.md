@@ -5,13 +5,13 @@ This example evaluates an HTTP-exposed Bapx agent through a custom `vitest-evals
 Set `ANTHROPIC_API_KEY`, then start the Bapx server:
 
 ```sh
-pnpm --filter example-vitest-evals dev
+npm run dev --workspace example-vitest-evals
 ```
 
 In another terminal, run the eval:
 
 ```sh
-pnpm --filter example-vitest-evals evals
+npm run evals --workspace example-vitest-evals
 ```
 
 Use `evals:info` for detailed tool and usage output, or `evals:json` to write `vitest-results.json` for CI and the local report UI. Set `FLUE_BASE_URL` to evaluate a deployed Bapx application instead of the local server.

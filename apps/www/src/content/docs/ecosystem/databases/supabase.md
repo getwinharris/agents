@@ -56,7 +56,7 @@ discovers the file at build time and wires it into the generated Node server.
 
 This integration is **Node.js only**. The Cloudflare target uses Durable Object
 SQLite automatically and rejects `db.ts` at build time. See
-[Database](/docs/guide/database/) for persistence by target.
+[Database](/guide/database/) for persistence by target.
 
 Copy a connection string from **Supabase Dashboard > Connect** and provide it at
 runtime as `SUPABASE_DATABASE_URL`:
@@ -140,8 +140,8 @@ A Bapx database stores runtime state, not the application's whole data model.
 | Durable submission claims and leases, workflow-run records, persisted events, and run indexes | Provider credentials or secrets          |
 | Recovery state for accepted work                                               | Provider credentials or secrets          |
 
-See [Durable Agents](/docs/concepts/durable-execution/) for recovery behavior
-and the [Data Persistence API](/docs/api/data-persistence-api/) for the adapter
+See [Durable Agents](/concepts/durable-execution/) for recovery behavior
+and the [Data Persistence API](/api/data-persistence-api/) for the adapter
 contract.
 
 ## Verify
@@ -159,4 +159,4 @@ Choose Supabase when your persistent Node deployment needs durable shared Bapx
 state and Supabase already provides its managed Postgres. Use the direct
 connection where IPv6 is available, or session-mode shared pooling for an
 IPv4-only server. For another managed or self-hosted Postgres deployment, use
-the general [Postgres guide](/docs/ecosystem/databases/postgres/).
+the general [Postgres guide](/ecosystem/databases/postgres/).

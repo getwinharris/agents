@@ -8,14 +8,14 @@
 		"test": "vitest run --config vitest.workerd.config.ts"
 	},
 	"dependencies": {
-		"@bapX/github": "workspace:*",
-		"@bapX/runtime": "workspace:*",
+		"@bapX/github": "*",
+		"@bapX/runtime": "*",
 		"@octokit/rest": "*",
 		"valibot": "^1.0.0"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "0.16.15",
-		"@bapX/cli": "workspace:*",
+		"@bapX/cli": "*",
 		"agents": "^0.14.2",
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.6"

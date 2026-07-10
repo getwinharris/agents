@@ -1,20 +1,22 @@
 ---
 import DocsSectionLink from './DocsSectionLink.astro';
 import DocsSidebar from './DocsSidebar.astro';
-import { docsSections, type DocsNavGroup } from '../../lib/docs-navigation';
+import { docsSections, type DocsNavGroup, type DocsSection } from '../../lib/docs-navigation';
 
 interface Props {
 	groups: DocsNavGroup[];
 	currentSlug: string;
 	sectionTitle: string;
+	sections?: DocsSection[];
+	baseUrl?: string;
 }
 
-const { groups, currentSlug, sectionTitle } = Astro.props;
+const { groups, currentSlug, sectionTitle, sections = docsSections, baseUrl } = Astro.props;
 ---
 
-<div id="mobile-docs-menu" class="fixed inset-x-0 top-[var(--docs-header-height)] bottom-0 z-10 hidden overflow-y-auto bg-white px-4 py-4 docs-desktop:hidden" data-mobile-menu aria-hidden="true">
+<div id="mobile-docs-menu" class="fixed inset-x-0 top-[var(--docs-header-height)] bottom-0 z-10 hidden overflow-y-auto bg-[var(--canvas)] px-4 py-4 docs-desktop:hidden" data-mobile-menu aria-hidden="true">
 	<nav class="mb-4 flex gap-4 border-b border-docs-border pb-3" aria-label="Documentation sections">
-		{docsSections.map((section) => <DocsSectionLink section={section} active={section.title === sectionTitle} mobile />)}
+		{sections.map((section) => <DocsSectionLink section={section} active={section.title === sectionTitle} mobile baseUrl={baseUrl} />)}
 	</nav>
 	<DocsSidebar groups={groups} currentSlug={currentSlug} mobile />
 </div>

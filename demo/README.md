@@ -31,6 +31,24 @@ starting point rather than a finished product.
 Vite, React 19, TypeScript, Tailwind v4, shadcn/ui, TanStack Router, `streamdown`
 (streaming Markdown), and the workspace packages `@bapX/sdk` and `@bapX/react`.
 
+## OKF and project map
+
+The demo is also the canonical product demo for bapX workspace structure:
+
+- `OKF.md` is copied from `/root/bapx.in/OKF.md`.
+- `map.mmd` is generated from the demo source layout.
+- `docs/index.md` explains the demo source ownership.
+- `docs/map.mmd` maps the demo docs folder.
+
+Do not create `users/demo`. Real user workspaces live under `users/<username>/`, with businesses at `users/<username>/<business-slug>/` and projects at `users/<username>/<business-slug>/projects/<project-name-slug>/`.
+The demo stays here and is adapted into real user projects only when explicitly needed.
+
+Validate the demo map with:
+
+```sh
+npm run map:check --workspace bapX-demo
+```
+
 ## Running it
 
 You need two processes: a Bapx dev server (the backend) and this SPA.
@@ -57,9 +75,9 @@ agent, and `hello-world` exposes `session-test`.
 ### 2. Start the SPA
 
 ```sh
-pnpm --filter bapX-demo dev
+npm run dev --workspace bapX-demo
 # or, from this directory:
-pnpm dev
+npm run dev
 ```
 
 Open the printed URL (e.g. `http://localhost:5174`).
@@ -69,11 +87,11 @@ Open the printed URL (e.g. `http://localhost:5174`).
 Open **Settings** (the gear button, bottom-left) and set the **Agent URL** — the whole
 target is one URL, and everything after `/agents/` is the agent name:
 
-| Target                          | Agent URL                                  | Needs key |
-| ------------------------------- | ------------------------------------------ | --------- |
-| hello-world (session-test)      | `http://localhost:3583/agents/session-test`| yes       |
-| react-chat (assistant, faux)    | `http://localhost:3583/api/agents/assistant`| no       |
-| react-chat (helper, live model) | `http://localhost:3583/api/agents/helper`  | yes       |
+| Target                          | Agent URL                                    | Needs key |
+| ------------------------------- | -------------------------------------------- | --------- |
+| hello-world (session-test)      | `http://localhost:3583/agents/session-test`  | yes       |
+| react-chat (assistant, faux)    | `http://localhost:3583/api/agents/assistant` | no        |
+| react-chat (helper, live model) | `http://localhost:3583/api/agents/helper`    | yes       |
 
 The same dialog also selects the **live transport** (default live or explicit long-poll)
 and holds an optional **bearer token** for agents behind a `route` auth check.

@@ -93,14 +93,14 @@ Workflows are the only Bapx executions represented as runs. Direct or dispatched
 
 ## Sensitive content
 
-Braintrust's observer is content-bearing. Braintrust 3.17 does not currently read Bapx's public `run_start.input`, but it can export workflow results, model messages and output, reasoning, system prompts, tool definitions and values, task content, errors, and correlation metadata. Use Braintrust's masking support and review retention and access requirements before enabling it for sensitive workloads. See the [Braintrust ecosystem guide](https://bapx.in/docs/ecosystem/tooling/braintrust/).
+Braintrust's observer is content-bearing. Braintrust 3.17 does not currently read Bapx's public `run_start.input`, but it can export workflow results, model messages and output, reasoning, system prompts, tool definitions and values, task content, errors, and correlation metadata. Use Braintrust's masking support and review retention and access requirements before enabling it for sensitive workloads. See the [Braintrust ecosystem guide](https://docs.bapx.in/ecosystem/tooling/braintrust/).
 
 ## Running it
 
 From the repository root, install workspace dependencies:
 
 ```bash
-pnpm install
+npm install
 ```
 
 Set credentials for Braintrust trace export and Anthropic model calls:
@@ -114,7 +114,7 @@ export ANTHROPIC_API_KEY='<anthropic-api-key>'
 From this example directory, start the Node dev server:
 
 ```bash
-pnpm exec bapX dev
+npx bapX dev
 ```
 
 Trigger the example workflows:
@@ -136,6 +136,6 @@ curl -X POST 'http://localhost:3583/workflows/task?wait=result' \
 Run the compatibility checks with:
 
 ```bash
-pnpm run check:types
-pnpm run build
+npm run check:types
+npm run build
 ```

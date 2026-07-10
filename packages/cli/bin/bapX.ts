@@ -104,6 +104,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  bapX add   [<kind> <name|url>] [--print]\n' +
 			'  bapX update <kind> <name|url> [--print]\n' +
 			'  bapX docs  [read <path> | search <query>]\n' +
+			'  bapX map   [--root <path>] [--check] [--profile <user-workspace|business-workspace|user-project|demo-project>]\n' +
 			'\n' +
 			'Commands:\n' +
 			'  dev    Long-running watch-mode dev server. Rebuilds and reloads on file changes.\n' +
@@ -113,6 +114,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  add    Fetch a blueprint implementation guide for an AI coding agent to follow.\n' +
 			'  update Fetch an updated blueprint implementation guide for an AI coding agent to follow.\n' +
 			'  docs   Browse the Bapx docs. No args lists pages; `read` prints a page as markdown; `search` prints JSON results.\n' +
+			'  map    Generate or validate the project root map.mmd from the real directory layout.\n' +
 			'\n' +
 			'Flags:\n' +
 			'  --root <path>        Project root. Default: current working directory.\n' +
@@ -125,6 +127,8 @@ function printUsage(log: (message: string) => void = console.error) {
 			'                       Without --env, these commands load <project>/.env when present. Shell values win.\n' +
 			'  --print              (bapX add/update) Print the raw blueprint Markdown to stdout regardless of whether the caller is an agent.\n' +
 			'  --force              (bapX init) Overwrite an existing bapX.config.* in the target directory.\n' +
+			'  --check              (bapX map) Validate map.mmd without writing it.\n' +
+			'  --profile <name>     (bapX map) Also validate required bapX workspace/project files.\n' +
 			'\n' +
 			'Examples:\n' +
 			'  bapX dev --target node\n' +
@@ -144,6 +148,9 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  bapX docs\n' +
 			'  bapX docs read guide/sandboxes\n' +
 			'  bapX docs search "durable execution"\n' +
+			'  bapX map --root ./my-app\n' +
+			'  bapX map --root ./my-business --check --profile business-workspace\n' +
+			'  bapX map --root ./my-business/projects/my-app --check --profile user-project\n' +
 			'\n' +
 			'Note: set the model in `defineAgent(() => ({ model: "provider-id/model-id" }))` ' +
 			'or per-call `{ model: ... }` on prompt/skill/task.',
@@ -224,7 +231,20 @@ interface InitArgs {
 	force: boolean;
 }
 
-type ParsedArgs = RunArgs | BuildArgs | DevArgs | BlueprintCommandArgs | DocsArgs | InitArgs;
+interface MapArgs {
+	command: 'map';
+	/** Explicit --root value, or undefined to default to cwd. Absolute when set. */
+	explicitRoot: string | undefined;
+	check: boolean;
+	profile:
+		| 'user-workspace'
+		| 'business-workspace'
+		| 'user-project'
+		| 'demo-project'
+		| undefined;
+}
+
+type ParsedArgs = RunArgs | BuildArgs | DevArgs | BlueprintCommandArgs | DocsArgs | InitArgs | MapArgs;
 
 type ParsedOptionToken = Extract<
 	NonNullable<ReturnType<typeof parseNodeArgs>['tokens']>[number],
@@ -244,6 +264,8 @@ const SHARED_PARSE_OPTIONS = {
 	config: { type: 'string' },
 	port: { type: 'string' },
 	env: { type: 'string', multiple: true },
+	check: { type: 'boolean' },
+	profile: { type: 'string' },
 } as const;
 
 /** Every flag `parseFlags` knows how to parse, across all commands that use it. */
@@ -498,6 +520,44 @@ function parseInitArgs(rest: string[]): InitArgs {
 	};
 }
 
+function parseMapArgs(rest: string[]): MapArgs {
+	const { positionals, values } = parseCommandOptions(
+		'map',
+		rest,
+		{
+			root: { type: 'string' },
+			check: { type: 'boolean' },
+			profile: { type: 'string' },
+		},
+		new Set(['--root', '--check', '--profile']),
+	);
+
+	for (const positional of positionals) {
+		fail(`Unexpected argument for \`bapX map\`: ${positional}`, true);
+	}
+
+	const profile = stringFlag(values, 'profile', 'Missing value for --profile');
+	if (
+		profile !== undefined &&
+		profile !== 'user-workspace' &&
+		profile !== 'business-workspace' &&
+		profile !== 'user-project' &&
+		profile !== 'demo-project'
+	) {
+		fail(
+			`Invalid profile: "${profile}". Supported profiles: user-workspace, business-workspace, user-project, demo-project`,
+			true,
+		);
+	}
+
+	return {
+		command: 'map',
+		explicitRoot: pathFlag(values, 'root', 'Missing value for --root'),
+		check: booleanFlag(values, 'check', '--check'),
+		profile,
+	};
+}
+
 function parseArgs(argv: string[]): ParsedArgs {
 	const [command, ...rest] = argv;
 
@@ -521,6 +581,10 @@ function parseArgs(argv: string[]): ParsedArgs {
 
 	if (command === 'init') {
 		return parseInitArgs(rest);
+	}
+
+	if (command === 'map') {
+		return parseMapArgs(rest);
 	}
 
 	// `--target` is optional at parse time — the config file may supply it.
@@ -628,6 +692,226 @@ function parseArgs(argv: string[]): ParsedArgs {
 
 	printUsage();
 	process.exit(1);
+}
+
+const MAP_TOP_LEVEL_ORDER = [
+	'apps',
+	'packages',
+	'examples',
+	'demo',
+	'projects',
+	'docs',
+	'content',
+	'src',
+	'agents',
+	'workflows',
+	'assets',
+	'public',
+	'tests',
+	'test',
+	'blueprints',
+	'skills',
+	'scripts',
+	'.bapX',
+	'.agents',
+	'.github',
+] as const;
+
+const MAP_CHILD_DIRECTORIES = new Set(['apps', 'packages', 'examples', 'projects', 'docs']);
+const MAP_SKIPPED_DIRECTORIES = new Set([
+	'.git',
+	'.turbo',
+	'node_modules',
+	'dist',
+	'build',
+	'test-results',
+]);
+
+function mapNodeId(relPath: string): string {
+	return `n_${relPath.replace(/[^A-Za-z0-9]/g, '_').replace(/^_+/, '')}`;
+}
+
+function mapNodeLabel(relPath: string): string {
+	return relPath.replace(/"/g, '\\"');
+}
+
+function isDirectory(absPath: string): boolean {
+	try {
+		return fs.statSync(absPath).isDirectory();
+	} catch {
+		return false;
+	}
+}
+
+function listMapChildDirs(root: string, relPath: string): string[] {
+	return fs
+		.readdirSync(path.join(root, relPath), { withFileTypes: true })
+		.filter((entry) => entry.isDirectory() && !MAP_SKIPPED_DIRECTORIES.has(entry.name))
+		.map((entry) => entry.name)
+		.sort((a, b) => a.localeCompare(b));
+}
+
+function generateDemoProjectMap(): string {
+	return [
+		'flowchart TD',
+		'  root["demo"]',
+		'  okf["OKF.md"]',
+		'  docs["docs"]',
+		'  docsIndex["docs/index.md"]',
+		'  docsMap["docs/map.mmd"]',
+		'  readme["README.md"]',
+		'  packageJson["package.json"]',
+		'  src["src"]',
+		'  main["src/main.tsx"]',
+		'  router["src/router.tsx"]',
+		'  components["src/components"]',
+		'  state["src/state"]',
+		'  lib["src/lib"]',
+		'  styles["src/styles"]',
+		'  public["public"]',
+		'',
+		'  root --> okf',
+		'  root --> docs',
+		'  docs --> docsIndex',
+		'  docs --> docsMap',
+		'  root --> readme',
+		'  root --> packageJson',
+		'  root --> src',
+		'  src --> main',
+		'  src --> router',
+		'  src --> components',
+		'  src --> state',
+		'  src --> lib',
+		'  src --> styles',
+		'  root --> public',
+		'',
+		'%% Generated by `bapX map --profile demo-project`. Do not edit by hand.',
+		'',
+	].join('\n');
+}
+
+function generateProjectMap(root: string, profile: MapArgs['profile']): string {
+	if (profile === 'demo-project') return generateDemoProjectMap();
+
+	const lines = ['flowchart TD', `  root["${mapNodeLabel(path.basename(root) || root)}"]`];
+
+	for (const topLevel of MAP_TOP_LEVEL_ORDER) {
+		if (!isDirectory(path.join(root, topLevel))) continue;
+
+		const parentId = mapNodeId(topLevel);
+		lines.push(`  ${parentId}["${mapNodeLabel(topLevel)}"]`);
+		lines.push(`  root --> ${parentId}`);
+
+		if (!MAP_CHILD_DIRECTORIES.has(topLevel)) continue;
+
+		for (const child of listMapChildDirs(root, topLevel)) {
+			const childPath = `${topLevel}/${child}`;
+			const childId = mapNodeId(childPath);
+			lines.push(`  ${childId}["${mapNodeLabel(childPath)}"]`);
+			lines.push(`  ${parentId} --> ${childId}`);
+		}
+	}
+
+	lines.push('');
+	lines.push('%% Generated by `bapX map`. Do not edit by hand.');
+	return `${lines.join('\n')}\n`;
+}
+
+function validatePathRequirement(
+	root: string,
+	relPath: string,
+	kind: 'file' | 'dir',
+): string | undefined {
+	const absPath = path.join(root, relPath);
+	if (kind === 'file') {
+		return fs.existsSync(absPath) && fs.statSync(absPath).isFile() ? undefined : relPath;
+	}
+	return isDirectory(absPath) ? undefined : relPath;
+}
+
+function validateMapProfile(root: string, profile: MapArgs['profile']): string[] {
+	if (profile === undefined) return [];
+
+	const requirements: Array<[string, 'file' | 'dir']> =
+		profile === 'user-workspace'
+			? [
+					['.git', 'dir'],
+					['OKF.md', 'file'],
+					['index.md', 'file'],
+					['map.mmd', 'file'],
+				]
+			: profile === 'business-workspace'
+				? [
+						['index.md', 'file'],
+						['map.mmd', 'file'],
+						['DESIGN.md', 'file'],
+						['brand.css', 'file'],
+						['logos', 'dir'],
+						['logos/index.md', 'file'],
+						['logos/map.mmd', 'file'],
+						['projects', 'dir'],
+						['projects/index.md', 'file'],
+						['projects/map.mmd', 'file'],
+					]
+			: profile === 'demo-project'
+				? [
+						['OKF.md', 'file'],
+						['README.md', 'file'],
+						['map.mmd', 'file'],
+						['docs', 'dir'],
+						['docs/index.md', 'file'],
+						['docs/map.mmd', 'file'],
+						['src', 'dir'],
+						['src/lib/bapX-client.ts', 'file'],
+					]
+			: [
+					['index.md', 'file'],
+					['map.mmd', 'file'],
+					['docs', 'dir'],
+					['docs/index.md', 'file'],
+					['docs/map.mmd', 'file'],
+				];
+
+	return requirements
+		.map(([relPath, kind]) => validatePathRequirement(root, relPath, kind))
+		.filter((missing): missing is string => missing !== undefined);
+}
+
+function mapCommand(args: MapArgs) {
+	const root = args.explicitRoot ?? process.cwd();
+	if (!isDirectory(root)) fail(`[bapX] Project root does not exist or is not a directory: ${root}`);
+
+	const mapPath = path.join(root, 'map.mmd');
+	const generated = generateProjectMap(root, args.profile);
+
+	if (args.check) {
+		if (!fs.existsSync(mapPath)) {
+			fail(`[bapX] Missing project map: ${mapPath}\nRun \`bapX map --root ${shellQuote(root)}\`.`);
+		}
+		const current = fs.readFileSync(mapPath, 'utf8');
+		if (current !== generated) {
+			fail(
+				`[bapX] Stale project map: ${mapPath}\nRun \`bapX map --root ${shellQuote(root)}\` and commit the updated map.mmd.`,
+			);
+		}
+		const missing = validateMapProfile(root, args.profile);
+		if (missing.length > 0) {
+			fail(
+				`[bapX] ${args.profile} is missing required path(s):\n${missing.map((item) => `  - ${item}`).join('\n')}`,
+			);
+		}
+		console.error(success(`map.mmd is current for ${root}`));
+		return;
+	}
+
+	fs.writeFileSync(mapPath, generated);
+	const missing = validateMapProfile(root, args.profile);
+	if (missing.length > 0) {
+		fail(
+			`[bapX] ${args.profile} is missing required path(s):\n${missing.map((item) => `  - ${item}`).join('\n')}`,
+		);
+	}
+	console.error(success(`wrote ${path.relative(process.cwd(), mapPath) || mapPath}`));
 }
 
 // ─── Main ───────────────────────────────────────────────────────────────────
@@ -961,7 +1245,7 @@ function initCommand(args: InitArgs) {
 // ─── `bapX add` ─────────────────────────────────────────────────────────────
 
 // Default blueprint registry base. FLUE_REGISTRY_URL is an internal-only
-// override used for local development against `pnpm --filter @bapX/www dev`.
+// override used for local development against `npm run dev --workspace @bapX/www`.
 const DEFAULT_REGISTRY_URL = 'https://bapx.in/cli/blueprints';
 
 function registryUrlFor(slug: string): string {
@@ -1418,6 +1702,8 @@ async function main() {
 		docsCommand(args);
 	} else if (args.command === 'init') {
 		initCommand(args);
+	} else if (args.command === 'map') {
+		mapCommand(args);
 	} else if (args.command === 'run') {
 		await run(args);
 	}

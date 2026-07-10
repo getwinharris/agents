@@ -11,12 +11,12 @@
 		"evals:json": "vitest run --config vitest.evals.config.ts --reporter=vitest-evals/reporter --reporter=json --outputFile.json=vitest-results.json"
 	},
 	"dependencies": {
-		"@bapX/runtime": "workspace:*",
+		"@bapX/runtime": "*",
 		"valibot": "^1.0.0"
 	},
 	"devDependencies": {
-		"@bapX/cli": "workspace:*",
-		"@bapX/sdk": "workspace:*",
+		"@bapX/cli": "*",
+		"@bapX/sdk": "*",
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.6",
 		"vitest-evals": "^0.13.1"

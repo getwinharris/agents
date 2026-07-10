@@ -197,7 +197,7 @@ access.
 
 Use `channel.conversationKey(ref)` when a Discord destination should continue
 the same agent instance. Conversation keys are identifiers, not authorization
-capabilities. See the shared [Channels guide](/docs/guide/channels/) for dispatch,
+capabilities. See the shared [Channels guide](/guide/channels/) for dispatch,
 authorization, and deduplication guidance.
 
 ## Outbound REST

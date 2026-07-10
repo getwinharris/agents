@@ -62,8 +62,8 @@ fail-closed Fetch implementations. The workerd client suite runs with Bapx's
 required `nodejs_compat` configuration:
 
 ```sh
-pnpm run check:types
-pnpm run test
-pnpm run build
-pnpm run build:cloudflare
+npm run check:types
+npm run test
+npm run build
+npm run build:cloudflare
 ```

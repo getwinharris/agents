@@ -1,16 +1,17 @@
 @import 'tailwindcss';
+@import './bapx.css';
 
 @theme inline {
 	--color-docs-border: var(--docs-border);
 	--color-docs-text: var(--docs-text);
 	--color-docs-muted: var(--docs-muted);
-	--color-docs-subtle: #92939b;
+	--color-docs-subtle: #6b6f76;
 	--color-docs-accent-deep: var(--docs-accent-deep);
 	--color-docs-code: var(--docs-code);
-	--color-docs-tip: #eefbf5;
-	--color-docs-tip-border: #ade4c8;
-	--color-docs-warning: #fff9ed;
-	--color-docs-warning-border: #f4d08c;
+	--color-docs-tip: #0a1f14;
+	--color-docs-tip-border: #1a6b3e;
+	--color-docs-warning: #1f1800;
+	--color-docs-warning-border: #8a6d00;
 	--breakpoint-docs-desktop: 47.5625rem;
 }
 
@@ -18,12 +19,12 @@
 	--docs-header-height: calc(3.5rem + 1px);
 	--docs-frame-width: 81.875rem;
 	--docs-aside-top: 2rem;
-	--docs-border: #e7e7eb;
-	--docs-text: #1b1b1f;
-	--docs-muted: #61636b;
-	--docs-accent-deep: #2563eb;
-	--docs-surface-soft: #f7f8fa;
-	--docs-code: #f6f6f7;
+	--docs-border: #212327;
+	--docs-text: #dadbdf;
+	--docs-muted: #7d8187;
+	--docs-accent-deep: #60a5fa;
+	--docs-surface-soft: #191919;
+	--docs-code: #191919;
 	--font-sans:
 		Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 	--font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -38,7 +39,7 @@
 
 	body {
 		margin: 0;
-		background: #ffffff;
+		background: var(--canvas);
 		color: var(--docs-text);
 		font-family: var(--font-sans);
 		font-size: 15px;
@@ -76,12 +77,12 @@
 
 .search-result:hover,
 .search-result:focus-visible {
-	background: var(--docs-code);
+	background: var(--docs-surface-soft);
 }
 
 .search-result strong {
 	display: block;
-	color: var(--docs-text);
+	color: var(--ink);
 	font-size: 0.92rem;
 	font-weight: 600;
 }
@@ -95,7 +96,7 @@
 
 .search-result mark {
 	border-radius: 0.18rem;
-	background: #ede9fe;
+	background: rgba(96, 165, 250, 0.2);
 	color: var(--docs-accent-deep);
 }
 
@@ -126,7 +127,7 @@
 
 .docs-content h2,
 .docs-content h3 {
-	color: #1b1b1f;
+	color: var(--ink);
 	font-weight: 600;
 	letter-spacing: -0.025em;
 	line-height: 1.35;
@@ -238,10 +239,10 @@
 }
 
 .docs-content :not(pre) > code {
-	border: 1px solid #e2e5eb;
+	border: 1px solid var(--hairline);
 	border-radius: 0.32rem;
-	background: #f1f3f7;
-	color: #5133bf;
+	background: var(--docs-code);
+	color: #93c5fd;
 	font-family: var(--font-mono);
 	font-size: 0.84em;
 	padding: 0.12rem 0.32rem;
@@ -299,7 +300,7 @@
 
 .docs-content th {
 	background: var(--docs-surface-soft);
-	color: #374151;
+	color: var(--body);
 	font-size: 0.78rem;
 	font-weight: 650;
 	letter-spacing: 0.04em;

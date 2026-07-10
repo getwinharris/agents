@@ -5,11 +5,11 @@ description: Understand the Node.js-specific runtime behavior and APIs for Bapx 
 
 The Node.js target builds your agents and workflows as a standard Node.js server. The generated server runs anywhere Node runs: a local machine, a container, a VM, a CI runner, or a managed hosting service. Node is also the target where agents can operate directly on the host filesystem and shell through `local()`.
 
-For a deployment walkthrough, see [Deploy Agents on Node.js](/docs/ecosystem/deploy/node/). To run agents or workflows on a cron schedule, see [Schedules](/docs/guide/schedules/).
+For a deployment walkthrough, see [Deploy Agents on Node.js](/ecosystem/deploy/node/). To run agents or workflows on a cron schedule, see [Schedules](/guide/schedules/).
 
 ## Generated server
 
-Bapx discovers agents from `src/agents/` and workflows from `src/workflows/` and generates a single server entry at `dist/server.mjs`. See [Project Layout](/docs/guide/project-layout/) for supported source directories.
+Bapx discovers agents from `src/agents/` and workflows from `src/workflows/` and generates a single server entry at `dist/server.mjs`. See [Project Layout](/guide/project-layout/) for supported source directories.
 
 The server owns HTTP, agent dispatch, workflow admission, and event streaming routes. Build and start it with:
 
@@ -34,7 +34,7 @@ Node does not get Cloudflare's automatic Durable Object wake or Fiber recovery. 
 
 That reconciliation covers agent submissions only. Node currently has no recovery path that terminalizes a workflow run interrupted by a crash or closes its event stream. With a durable adapter the run record and its events survive the restart, but the interrupted run remains listed as `active` and the orphaned `runs/<id>` stream persists in an open state, so live Durable Streams readers — long-poll, SSE, or `client.runs.stream()` — wait indefinitely for events that will never arrive. Use `client.runs.events()` or a raw catch-up read to inspect events persisted before the crash. On Cloudflare, Fiber recovery terminalizes interrupted runs and closes their streams.
 
-See [Database](/docs/guide/database/) for `db.ts`, SQLite, Postgres, and custom adapters. See [Durable Agents](/docs/concepts/durable-execution/) for recovery behavior.
+See [Database](/guide/database/) for `db.ts`, SQLite, Postgres, and custom adapters. See [Durable Agents](/concepts/durable-execution/) for recovery behavior.
 
 ## `local()` sandbox
 
@@ -67,9 +67,9 @@ Passing `env: { ...process.env }` exposes the full host environment to the model
 
 ## Remote sandboxes
 
-When agent work needs per-session isolation, a Linux toolchain, or a provider-managed environment, use a remote sandbox adapter instead of `local()`. Remote sandboxes run on external infrastructure and connect through the [Sandbox Adapter API](/docs/api/sandbox-api/).
+When agent work needs per-session isolation, a Linux toolchain, or a provider-managed environment, use a remote sandbox adapter instead of `local()`. Remote sandboxes run on external infrastructure and connect through the [Sandbox Adapter API](/api/sandbox-api/).
 
-See the Ecosystem [Sandboxes](/docs/ecosystem/#sandboxes) catalog for available integrations, including [Daytona](/docs/ecosystem/sandboxes/daytona/), [E2B](/docs/ecosystem/sandboxes/e2b/), and [Modal](/docs/ecosystem/sandboxes/modal/).
+See the Ecosystem [Sandboxes](/ecosystem/#sandboxes) catalog for available integrations, including [Daytona](/ecosystem/sandboxes/daytona/), [E2B](/ecosystem/sandboxes/e2b/), and [Modal](/ecosystem/sandboxes/modal/).
 
 ## Environment and secrets
 

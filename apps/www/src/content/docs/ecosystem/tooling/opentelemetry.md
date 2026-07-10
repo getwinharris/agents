@@ -15,7 +15,7 @@ The package implements the Development GenAI conventions pinned at commit `4c8ad
 Install the adapter and OpenTelemetry API alongside an SDK and exporter compatible with your deployment target:
 
 ```sh
-pnpm add @bapX/opentelemetry @opentelemetry/api
+npm install @bapX/opentelemetry @opentelemetry/api
 ```
 
 Configure the SDK first, then register one instrumentation instance:

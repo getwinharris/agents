@@ -77,4 +77,4 @@ const agent = defineAgent(() => ({
 
 Configure images, snapshots, regions, environment variables, and volumes through the Daytona SDK before passing the sandbox to `daytona(...)`. For a narrower working directory, configure `cwd` on the agent definition; Bapx resolves it once against the adapter's provider-owned base directory during `init()`.
 
-See [Sandboxes](/docs/guide/sandboxes/#remote-sandboxes), [Sandbox Adapter API](/docs/api/sandbox-api/), and [Daytona's TypeScript SDK reference](https://www.daytona.io/docs/en/typescript-sdk/daytona/).
+See [Sandboxes](/guide/sandboxes/#remote-sandboxes), [Sandbox Adapter API](/api/sandbox-api/), and [Daytona's TypeScript SDK reference](https://www.daytona.io/docs/en/typescript-sdk/daytona/).

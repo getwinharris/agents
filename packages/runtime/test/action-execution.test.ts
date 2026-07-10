@@ -101,7 +101,7 @@ describe('model-called Actions', () => {
 			input: v.object({ repository: v.string() }),
 			output: v.object({ status: v.string() }),
 			async run({ harness, input }) {
-				expect(input).toEqual({ repository: 'getwinharris/bapX' });
+				expect(input).toEqual({ repository: 'getwinharris/agents' });
 				const defaultSession = await harness.session();
 				const namedSession = await harness.session('notes');
 				expect(defaultSession.name).toBe('default');
@@ -113,7 +113,7 @@ describe('model-called Actions', () => {
 			fauxAssistantMessage(
 				fauxToolCall(
 					'review_repository',
-					{ repository: 'getwinharris/bapX' },
+					{ repository: 'getwinharris/agents' },
 					{ id: 'call-action-1' },
 				),
 				{ stopReason: 'toolUse' },
@@ -368,9 +368,7 @@ describe('Action model tools', () => {
 				return undefined;
 			},
 		});
-		const harness = await createContext(
-			provider,
-		).initializeRootHarness(
+		const harness = await createContext(provider).initializeRootHarness(
 			defineAgent(() => ({
 				model: `${provider.getModel().provider}/${provider.getModel().id}`,
 				actions: [lookup],
@@ -391,9 +389,7 @@ describe('Action model tools', () => {
 	it('rejects adapter framework-reserved names regardless of active result or skill tools', async () => {
 		for (const name of ['task', 'activate_skill', 'read_skill_resource', 'finish', 'give_up']) {
 			const provider = createProvider();
-			const harness = await createContext(
-				provider,
-				).initializeRootHarness(
+			const harness = await createContext(provider).initializeRootHarness(
 				defineAgent(() => ({
 					model: `${provider.getModel().provider}/${provider.getModel().id}`,
 					sandbox: {
@@ -411,9 +407,7 @@ describe('Action model tools', () => {
 
 		for (const name of ['task', 'activate_skill', 'read_skill_resource', 'finish', 'give_up']) {
 			const provider = createProvider();
-			const harness = await createContext(
-				provider,
-				).initializeRootHarness(
+			const harness = await createContext(provider).initializeRootHarness(
 				defineAgent(() => ({
 					model: `${provider.getModel().provider}/${provider.getModel().id}`,
 					skills: [{ name: 'review', description: 'Review inputs.' }],
@@ -452,9 +446,7 @@ describe('Action model tools', () => {
 				return fauxAssistantMessage('Done.');
 			},
 		]);
-		const harness = await createContext(
-			provider,
-		).initializeRootHarness(
+		const harness = await createContext(provider).initializeRootHarness(
 			defineAgent(() => ({
 				model: `${provider.getModel().provider}/${provider.getModel().id}`,
 				actions: [action],
@@ -498,9 +490,7 @@ describe('Action model tools', () => {
 				return fauxAssistantMessage('Rejected unsafe outputs.');
 			},
 		]);
-		const harness = await createContext(
-			provider,
-		).initializeRootHarness(
+		const harness = await createContext(provider).initializeRootHarness(
 			defineAgent(() => ({
 				model: `${provider.getModel().provider}/${provider.getModel().id}`,
 				actions: [nonFinite, dateOutput],
@@ -538,9 +528,7 @@ describe('Action model tools', () => {
 				return fauxAssistantMessage('Done.');
 			},
 		]);
-		const harness = await createContext(
-			provider,
-		).initializeRootHarness(
+		const harness = await createContext(provider).initializeRootHarness(
 			defineAgent(() => ({
 				model: `${provider.getModel().provider}/${provider.getModel().id}`,
 				actions: [optionalOutput],
@@ -587,9 +575,7 @@ describe('Action model tools', () => {
 				return fauxAssistantMessage('Cyclic handled.');
 			},
 		]);
-		const harness = await createContext(
-			provider,
-		).initializeRootHarness(
+		const harness = await createContext(provider).initializeRootHarness(
 			defineAgent(() => ({
 				model: `${provider.getModel().provider}/${provider.getModel().id}`,
 				actions: [invalid, cyclic],

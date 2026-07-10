@@ -74,8 +74,8 @@ controls remain application-owned. The tests use original synthetic payloads
 and fail-closed Fetch implementations; they never contact Salesforce:
 
 ```sh
-pnpm run check:types
-pnpm run test
-pnpm run build
-pnpm run build:cloudflare
+npm run check:types
+npm run test
+npm run build
+npm run build:cloudflare
 ```

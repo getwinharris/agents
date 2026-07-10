@@ -6,7 +6,7 @@ lastReviewedAt: 2026-06-22
 
 Agents are useful when your application needs a model to keep working within a continuing context. This guide covers creating an agent, configuring its capabilities and environment, and exposing it safely to users.
 
-For the underlying mental model, start with [What is an agent?](/docs/concepts/agents/). If you need single-use or background work instead of a continuing agent, see [Workflows](/docs/guide/workflows/).
+For the underlying mental model, start with [What is an agent?](/concepts/agents/). If you need single-use or background work instead of a continuing agent, see [Workflows](/guide/workflows/).
 
 ## Creating a new agent
 
@@ -28,11 +28,11 @@ export default defineAgent(() => ({
 In this example:
 
 - **The filename:** This gives the agent its name: `joke-teller`.
-- `description`: This optional static description is collected into the deployment manifest at build time and returned by [`listAgents()`](/docs/api/data-persistence-api/#inspection-primitives). When present, it must be a non-empty string.
+- `description`: This optional static description is collected into the deployment manifest at build time and returned by [`listAgents()`](/api/data-persistence-api/#inspection-primitives). When present, it must be a non-empty string.
 - `route`: This exposes the agent over HTTP at `POST /agents/joke-teller/:id`. Event streaming is available at `GET /agents/joke-teller/:id`.
 - `defineAgent(...)`: This defines the agent's behavior and environment.
 
-See [Project Layout](/docs/guide/project-layout/) and [Models & Providers](/docs/guide/models/) for more information.
+See [Project Layout](/guide/project-layout/) and [Models & Providers](/guide/models/) for more information.
 
 ## Agent configuration
 
@@ -56,7 +56,7 @@ export default defineAgent(() => ({
 }));
 ```
 
-Actions let the model call finite agent-backed operations, tools execute bounded application functions, and skills provide reusable guidance. For more details, see [Actions](/docs/guide/actions/), [Tools](/docs/guide/tools/), [Skills](/docs/guide/skills/), [Sandboxes](/docs/guide/sandboxes/), and [Database](/docs/guide/database/).
+Actions let the model call finite agent-backed operations, tools execute bounded application functions, and skills provide reusable guidance. For more details, see [Actions](/guide/actions/), [Tools](/guide/tools/), [Skills](/guide/skills/), [Sandboxes](/guide/sandboxes/), and [Database](/guide/database/).
 
 ### Markdown instructions
 
@@ -72,7 +72,7 @@ export default defineAgent(() => ({
 }));
 ```
 
-The attribute is required — a `.md` import without it fails the build. `SKILL.md` files are not plain markdown and must use `with { type: 'skill' }` instead; see [Skills](/docs/guide/skills/).
+The attribute is required — a `.md` import without it fails the build. `SKILL.md` files are not plain markdown and must use `with { type: 'skill' }` instead; see [Skills](/guide/skills/).
 
 ## Agent ID
 
@@ -148,7 +148,7 @@ export default defineAgent(() => ({
 
 Here, `policy-assistant` can use its built-in task capability to delegate source lookup to `policy_researcher` before answering a policy question. The subagent is available to its parent for delegated work. It does not receive its own public endpoint because it is not exported as the agent for that file.
 
-For more information, see [Subagents](/docs/guide/subagents/).
+For more information, see [Subagents](/guide/subagents/).
 
 ## Interacting with your agent
 
@@ -168,7 +168,7 @@ Content-Type: application/json
 }
 ```
 
-The body may also carry an optional `images` array of `{ "type": "image", "data": "<base64>", "mimeType": "image/png" }` attachments for vision-capable models. See the [Routing API](/docs/api/routing-api/) for the full request contract.
+The body may also carry an optional `images` array of `{ "type": "image", "data": "<base64>", "mimeType": "image/png" }` attachments for vision-capable models. See the [Routing API](/api/routing-api/) for the full request contract.
 
 Use the `route` handler to protect direct HTTP access to an agent instance:
 
@@ -192,7 +192,7 @@ export default defineAgent(({ id }) => ({
 }));
 ```
 
-For more information, see [Routing](/docs/guide/routing/) and [SDK](/docs/sdk/overview/).
+For more information, see [Routing](/guide/routing/) and [SDK](/sdk/overview/).
 
 ## `dispatch()`
 
@@ -227,15 +227,15 @@ app.route('/', bapX());
 export default app;
 ```
 
-Your application chooses the agent instance before dispatching the event. `dispatch(...)` accepts it for asynchronous processing rather than waiting for an agent response. See [Channels](/docs/guide/channels/) for verified provider ingress and application-owned outbound behavior.
+Your application chooses the agent instance before dispatching the event. `dispatch(...)` accepts it for asynchronous processing rather than waiting for an agent response. See [Channels](/guide/channels/) for verified provider ingress and application-owned outbound behavior.
 
 ## Next steps
 
-- [Agent API](/docs/api/agent-api/) — look up session operations and their results.
-- [Actions](/docs/guide/actions/), [Tools](/docs/guide/tools/), [Skills](/docs/guide/skills/), and [Sandboxes](/docs/guide/sandboxes/) — configure what an agent can do and where it works.
-- [Subagents](/docs/guide/subagents/) — delegate focused work to specialist profiles.
-- [Routing](/docs/guide/routing/) — expose agent HTTP surfaces inside an authenticated application.
-- [Workflows](/docs/guide/workflows/) — run single-use or background agent work.
-- [Schedules](/docs/guide/schedules/) — invoke finite workflows or dispatch continuing agent input on a schedule.
-- [Channels](/docs/guide/channels/) — deliver verified provider events into agent sessions.
-- [Observability](/docs/guide/observability/) — inspect agent activity.
+- [Agent API](/api/agent-api/) — look up session operations and their results.
+- [Actions](/guide/actions/), [Tools](/guide/tools/), [Skills](/guide/skills/), and [Sandboxes](/guide/sandboxes/) — configure what an agent can do and where it works.
+- [Subagents](/guide/subagents/) — delegate focused work to specialist profiles.
+- [Routing](/guide/routing/) — expose agent HTTP surfaces inside an authenticated application.
+- [Workflows](/guide/workflows/) — run single-use or background agent work.
+- [Schedules](/guide/schedules/) — invoke finite workflows or dispatch continuing agent input on a schedule.
+- [Channels](/guide/channels/) — deliver verified provider events into agent sessions.
+- [Observability](/guide/observability/) — inspect agent activity.

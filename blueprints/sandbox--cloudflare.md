@@ -67,7 +67,7 @@ You don't need an adapter file. Bapx's runtime package already exports the wirin
 and the deploy guide's "Connecting a remote sandbox" section is the
 canonical blueprint. Steer the user there:
 
-> https://bapx.in/docs/ecosystem/deploy/cloudflare/#connecting-a-remote-sandbox
+> https://docs.bapx.in/ecosystem/deploy/cloudflare/#connecting-a-remote-sandbox
 
 The short version, for your reference:
 
@@ -77,7 +77,7 @@ The short version, for your reference:
    npm install @cloudflare/sandbox@^0.11.0
    ```
 
-   (Use the user's package manager — `pnpm add`, `yarn add`, etc.)
+   (Use the user's package manager — `npm install`, `yarn add`, etc.)
 
 2. Export the Sandbox class from the user's Cloudflare deployment module.
    Put `cloudflare.ts` in the selected Bapx source root: `.bapX/cloudflare.ts`
@@ -204,7 +204,7 @@ platform migration.
 If the user does say yes to migrating, **do not try to do the whole
 migration in one shot**. Direct them at the canonical guide instead:
 
-> https://bapx.in/docs/ecosystem/deploy/cloudflare/
+> https://docs.bapx.in/ecosystem/deploy/cloudflare/
 
 That document walks through the migration end-to-end:
 

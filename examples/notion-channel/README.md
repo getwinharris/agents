@@ -56,10 +56,10 @@ against fake Fetch implementations that throw on every unexpected destination.
 They do not contact Notion:
 
 ```sh
-pnpm run check:types
-pnpm run test
-pnpm run build
-pnpm run build:cloudflare
+npm run check:types
+npm run test
+npm run build
+npm run build:cloudflare
 ```
 
 `@types/node` is a development dependency because the official SDK declarations

@@ -39,9 +39,9 @@ export default defineWorkflow({
 });
 ```
 
-`log.info(...)`, `log.warn(...)`, and `log.error(...)` accept structured attributes. Use attributes for values that you may later search, aggregate, or forward to a monitoring system. See [`ActionContext`](/docs/api/action-api/#actioncontext) for the Action logging contract.
+`log.info(...)`, `log.warn(...)`, and `log.error(...)` accept structured attributes. Use attributes for values that you may later search, aggregate, or forward to a monitoring system. See [`ActionContext`](/api/action-api/#actioncontext) for the Action logging contract.
 
-When a workflow invoked through a running application reports its `runId`, and its module exposes `runs` middleware, use SDK [`client.runs`](/docs/sdk/runs/) to retrieve its record and events or follow its live stream. Configure application-required credentials on the SDK client. The raw [`/runs` APIs](/docs/api/streaming-protocol/) provide the same HTTP surface. Run inspection applies only to workflows; direct prompts and `dispatch(...)` inputs belong to continuing agent sessions instead.
+When a workflow invoked through a running application reports its `runId`, and its module exposes `runs` middleware, use SDK [`client.runs`](/sdk/runs/) to retrieve its record and events or follow its live stream. Configure application-required credentials on the SDK client. The raw [`/runs` APIs](/api/streaming-protocol/) provide the same HTTP surface. Run inspection applies only to workflows; direct prompts and `dispatch(...)` inputs belong to continuing agent sessions instead.
 
 A workflow's `startedAt` timestamp is captured before durable admission finishes. Live observers receive `run_start` after admission setup, immediately before workflow code begins. This distinction matters when admission itself takes time: `startedAt` describes the admitted invocation's full lifetime, while `run_start` marks the beginning of live workflow execution.
 
@@ -86,9 +86,9 @@ Streaming deltas are best-effort live progress; use `message_end` as the authori
 
 | Provider                                                | Choose it when                                                                                                      |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| [OpenTelemetry](/docs/ecosystem/tooling/opentelemetry/) | You need vendor-neutral traces or already operate an OpenTelemetry-compatible backend.                              |
-| [Braintrust](/docs/ecosystem/tooling/braintrust/)       | You want content-bearing agent traces, model usage, costs, and evaluation-oriented debugging.                       |
-| [Sentry](/docs/ecosystem/tooling/sentry/)               | You primarily want actionable workflow failures and explicit error logs without exporting model content by default. |
+| [OpenTelemetry](/ecosystem/tooling/opentelemetry/) | You need vendor-neutral traces or already operate an OpenTelemetry-compatible backend.                              |
+| [Braintrust](/ecosystem/tooling/braintrust/)       | You want content-bearing agent traces, model usage, costs, and evaluation-oriented debugging.                       |
+| [Sentry](/ecosystem/tooling/sentry/)               | You primarily want actionable workflow failures and explicit error logs without exporting model content by default. |
 
 You can also consume `observe(...)` directly when these integrations do not match your telemetry or data-handling requirements.
 
@@ -102,7 +102,7 @@ Restrict subscriptions to required event types and review the retention, access,
 
 ## Next steps
 
-- [Events reference](/docs/api/events-reference/) — inspect the complete observable event contract.
-- [Workflows](/docs/guide/workflows/) — create finite operations whose run history can be inspected.
-- [Agents](/docs/guide/building-agents/) — create continuing agent instances and deliver direct or dispatched input.
-- [Routing](/docs/guide/routing/) — add the application entrypoint where telemetry observers are registered.
+- [Events reference](/api/events-reference/) — inspect the complete observable event contract.
+- [Workflows](/guide/workflows/) — create finite operations whose run history can be inspected.
+- [Agents](/guide/building-agents/) — create continuing agent instances and deliver direct or dispatched input.
+- [Routing](/guide/routing/) — add the application entrypoint where telemetry observers are registered.

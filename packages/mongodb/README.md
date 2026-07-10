@@ -3,7 +3,7 @@
 MongoDB persistence for Bapx Node-target projects. It requires a replica set, Atlas deployment, or transaction-capable sharded cluster; standalone MongoDB is rejected before schema stamping.
 
 ```sh
-pnpm add @bapX/mongodb mongodb
+npm install @bapX/mongodb mongodb
 ```
 
 The package has no production driver dependency. Supply a `MongoRunner` backed by your configured driver. The runner must use snapshot read concern, majority write concern, one `ClientSession` for every callback operation, sequential callback operations, bounded whole-transaction retries for `TransientTransactionError`, and commit-only retries for `UnknownTransactionCommitResult`.

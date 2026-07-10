@@ -96,4 +96,4 @@ Use islo when an application can rely on a host-installed CLI and wants to conne
 
 The adapter runs remote shell/file work through the CLI; ensure its host process, credentials, and agent inputs match your intended trust boundary.
 
-See [Deploy on Node.js](/docs/ecosystem/deploy/node/), [Sandboxes](/docs/guide/sandboxes/), and [Sandbox Adapter API](/docs/api/sandbox-api/).
+See [Deploy on Node.js](/ecosystem/deploy/node/), [Sandboxes](/guide/sandboxes/), and [Sandbox Adapter API](/api/sandbox-api/).

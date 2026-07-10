@@ -46,4 +46,4 @@ bapX dev --target cloudflare --port 8787
 bapX dev --env .env.staging
 ```
 
-See the [CLI overview](/docs/cli/overview/) for the complete development workflow.
+See the [CLI overview](/cli/overview/) for the complete development workflow.
