@@ -1,0 +1,119 @@
+name: Approve Contributor
+
+on:
+  issue_comment:
+    types: [created]
+  discussion_comment:
+    types: [created]
+
+jobs:
+  approve:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Open contributor approval PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const path = '.github/APPROVED_CONTRIBUTORS';
+            const commenter = context.payload.comment.user.login;
+            const command = (context.payload.comment.body || '').trim();
+            const match = /^lgtm\+(?: @?([a-z0-9-]+))?$/i.exec(command);
+
+            if (!match) return;
+
+            const { data: access } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: commenter,
+            });
+
+            if (!['admin', 'maintain'].includes(access.role_name)) return;
+
+            const discussion = context.payload.discussion;
+            if (discussion && !match[1]) {
+              core.setFailed('Discussion approvals require an explicit username.');
+              return;
+            }
+
+            let author;
+            if (match[1]) {
+              const { data: user } = await github.rest.users.getByUsername({ username: match[1] });
+              author = user.login;
+            } else {
+              author = context.payload.issue.user?.login;
+              if (!author) {
+                core.setFailed('The original author no longer has a GitHub account.');
+                return;
+              }
+            }
+
+            const base = context.payload.repository.default_branch;
+            const { data: baseRef } = await github.rest.git.getRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `heads/${base}`,
+            });
+            const baseSha = baseRef.object.sha;
+            const { data: file } = await github.rest.repos.getContent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path,
+              ref: baseSha,
+            });
+
+            if (!('content' in file) || typeof file.content !== 'string') {
+              throw new Error(`Expected file content for ${path}`);
+            }
+
+            const content = Buffer.from(file.content, 'base64').toString('utf8');
+            const approved = content
+              .split('\n')
+              .map((line) => line.trim().toLowerCase())
+              .filter((line) => line && !line.startsWith('#'));
+
+            if (approved.includes(author.toLowerCase())) {
+              core.notice(`${author} is already an approved contributor.`);
+              return;
+            }
+
+            const branch = `approve-contributor/${author.toLowerCase()}-${context.payload.comment.id}`;
+
+            await github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/heads/${branch}`,
+              sha: baseSha,
+            });
+
+            try {
+              await github.rest.repos.createOrUpdateFileContents({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path,
+                branch,
+                sha: file.sha,
+                message: `chore: approve contributor ${author}`,
+                content: Buffer.from(`${content.trimEnd()}\n${author}\n`).toString('base64'),
+              });
+
+              const { data: pullRequest } = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                base,
+                head: branch,
+                title: `chore: approve contributor ${author}`,
+                body: `Requested by @${commenter} via \`lgtm+\`.`,
+              });
+
+              core.notice(`Opened ${pullRequest.html_url}`);
+            } catch (error) {
+              await github.rest.git.deleteRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `heads/${branch}`,
+              });
+              throw error;
+            }
