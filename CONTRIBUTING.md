@@ -17,6 +17,18 @@ We accept the following contributions:
 
 No other contributions are accepted at this time. Exception are rare and will be made at lead maintainers discretion.
 
+## Documentation and Shipping Contract
+
+Documentation is part of the implementation, not a follow-up task:
+
+- Public developer and customer contracts belong in `apps/www/src/content/docs/` and are published on `docs.bapx.in`.
+- Internal implementation and operations guidance belongs in `internal-docs/` and is for repository agents and maintainers only.
+- Code changes must update every affected documentation class, map, demo document, and `CHANGELOG.md` in the same branch.
+- Before commit, pull request, merge, or shipping, compare the code diff with both documentation surfaces. PR validation must list the updated documents or explain why each documentation class is not applicable.
+- Do not publish incomplete wiring, VPS-only mechanics, credentials, or maintainer procedures as external developer contracts.
+
+The complete checklist is in `internal-docs/shipping.md`.
+
 Pull Requests will be automatically closed and converted into one of those two approved contribution types.
 
 ## Context: How Bapx is Built

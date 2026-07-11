@@ -23,7 +23,7 @@ export interface DocsSection {
 	groups: DocsNavGroup[];
 }
 
-export const docsSections: DocsSection[] = [
+const allDocsSections: DocsSection[] = [
 	{
 		key: 'guide',
 		title: 'Guide',
@@ -40,139 +40,6 @@ export const docsSections: DocsSection[] = [
 						title: 'Changelog',
 						href: 'https://github.com/getwinharris/agents/blob/main/CHANGELOG.md',
 					},
-				],
-			},
-			{
-				title: 'Guides',
-				items: [
-					{ title: 'Project Layout', slug: 'guide/project-layout' },
-					{ title: 'Routing', slug: 'guide/routing' },
-					{ title: 'Database', slug: 'guide/database' },
-					{ title: 'Agents', slug: 'guide/building-agents' },
-					{ title: 'Workflows', slug: 'guide/workflows' },
-					{ title: 'Actions', slug: 'guide/actions' },
-					{ title: 'LLM', slug: 'guide/models' },
-					{ title: 'Tools', slug: 'guide/tools' },
-					{ title: 'Skills', slug: 'guide/skills' },
-					{ title: 'Subagents', slug: 'guide/subagents' },
-					{ title: 'Sandboxes', slug: 'guide/sandboxes' },
-					{ title: 'Schedules', slug: 'guide/schedules' },
-					{ title: 'Channels', slug: 'guide/channels' },
-					{ title: 'Evals', slug: 'guide/evals' },
-					{ title: 'Observability', slug: 'guide/observability' },
-				],
-			},
-			{
-				title: 'Frontend',
-				items: [{ title: 'React', slug: 'guide/react' }],
-			},
-			{
-				title: 'Targets',
-				items: [
-					{ title: 'Cloudflare', slug: 'guide/targets/cloudflare' },
-					{ title: 'Node.js', slug: 'guide/targets/node' },
-				],
-			},
-		],
-	},
-	{
-		key: 'api',
-		title: 'Reference',
-		landingSlug: 'api/agent-api',
-		groups: [
-			{
-				title: 'Runtime',
-				items: [
-					{ title: 'Contributing', slug: 'reference/contributing' },
-					{ title: 'Configuration', slug: 'reference/configuration' },
-					{ title: 'Errors Reference', slug: 'api/errors-reference' },
-					{ title: 'Agent API', slug: 'api/agent-api' },
-					{ title: 'Action API', slug: 'api/action-api' },
-					{ title: 'Workflow API', slug: 'api/workflow-api' },
-					{ title: 'Provider API', slug: 'api/provider-api' },
-					{ title: 'Routing API', slug: 'api/routing-api' },
-					{ title: 'Streaming Protocol', slug: 'api/streaming-protocol' },
-					{ title: 'Events Reference', slug: 'api/events-reference' },
-				],
-			},
-			{
-				title: 'Advanced',
-				items: [
-					{ title: 'Sandbox Adapter API', slug: 'api/sandbox-api' },
-					{ title: 'Data Persistence API', slug: 'api/data-persistence-api' },
-				],
-			},
-		],
-	},
-	{
-		key: 'cli',
-		title: 'CLI',
-		landingSlug: 'cli/overview',
-		groups: [
-			{
-				title: 'CLI',
-				items: [
-					{ title: 'Overview', slug: 'cli/overview' },
-					{ title: 'init', slug: 'cli/init' },
-					{ title: 'dev', slug: 'cli/dev' },
-					{ title: 'run', slug: 'cli/run' },
-					{ title: 'build', slug: 'cli/build' },
-					{ title: 'add', slug: 'cli/add' },
-					{ title: 'update', slug: 'cli/update' },
-					{ title: 'docs', slug: 'cli/docs' },
-					{ title: 'map', slug: 'cli/map' },
-				],
-			},
-		],
-	},
-	{
-		key: 'sdk',
-		title: 'SDK',
-		landingSlug: 'sdk/overview',
-		groups: [
-			{
-				title: 'SDK',
-				items: [
-					{ title: 'Overview', slug: 'sdk/overview' },
-					{
-						title: 'createBapxClient(...)',
-						slug: 'sdk/client',
-						items: [
-							{
-								title: 'CreateBapxClientOptions',
-								slug: 'sdk/client',
-								anchor: 'createbapXclientoptions',
-							},
-							{ title: 'RequestHeaders', slug: 'sdk/client', anchor: 'requestheaders' },
-						],
-					},
-					{
-						title: 'client.agents',
-						slug: 'sdk/agents',
-						items: [
-							{ title: 'prompt(...)', slug: 'sdk/agents', anchor: 'clientagentsprompt' },
-							{ title: 'send(...)', slug: 'sdk/agents', anchor: 'clientagentssend' },
-							{ title: 'stream(...)', slug: 'sdk/agents', anchor: 'clientagentsstream' },
-						],
-					},
-					{
-						title: 'client.workflows',
-						slug: 'sdk/workflows',
-						items: [
-							{ title: 'invoke(...)', slug: 'sdk/workflows', anchor: 'clientworkflowsinvoke' },
-						],
-					},
-					{
-						title: 'client.runs',
-						slug: 'sdk/runs',
-						items: [
-							{ title: 'get(...)', slug: 'sdk/runs', anchor: 'clientrunsget' },
-							{ title: 'events(...)', slug: 'sdk/runs', anchor: 'clientrunsevents' },
-							{ title: 'stream(...)', slug: 'sdk/runs', anchor: 'clientrunsstream' },
-						],
-					},
-					{ title: 'Events and records', slug: 'sdk/events' },
-					{ title: 'Errors', slug: 'sdk/errors' },
 				],
 			},
 		],
@@ -268,6 +135,12 @@ export const docsSections: DocsSection[] = [
 		groups: [{ title: 'Platform', items: [{ title: 'Overview', slug: 'platform/overview' }] }],
 	},
 	{
+		key: 'ecosystem',
+		title: 'Ecosystem',
+		landingSlug: 'customer-ecosystem/overview',
+		groups: [{ title: 'Ecosystem', items: [{ title: 'Overview', slug: 'customer-ecosystem/overview' }] }],
+	},
+	{
 		key: 'mcp',
 		title: 'MCP',
 		landingSlug: 'mcp/overview',
@@ -288,6 +161,10 @@ export const docsSections: DocsSection[] = [
 		],
 	},
 ];
+
+export const docsSections = allDocsSections.filter((section, index, sections) =>
+	section.key !== 'ecosystem' || index === sections.findLastIndex((candidate) => candidate.key === 'ecosystem'),
+);
 
 export function docsHref(slug: string, anchor?: string) {
 	return `${import.meta.env.BASE_URL}${slug}/${anchor ? `#${anchor}` : ''}`;

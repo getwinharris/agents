@@ -1,9 +1,9 @@
 ---
 title: Why bapX?
-description: The cloud agent automation platform for businesses and teams. Deploy agents that automate workflows, operations, and collaboration.
+description: Fifteen years of marketing and branding operations, packaged as hosted agents for your business.
 ---
 
-**bapX** is a cloud platform for deploying AI agents that automate your business operations. Unlike open-source agent frameworks that require infrastructure setup, CLI tools, and manual deployment, bapX is a fully managed platform — create agents from your browser, connect them to your tools, and let your team collaborate on agent-driven workflows.
+**bapX** packages 15+ years of marketing and branding operations into hosted agents. The platform is the delivery and control layer: your business owns its people, projects, brand assets, documents, provider credentials, connections, agents, and automations inside one OKF workspace.
 
 ## What bapX solves
 
@@ -24,17 +24,17 @@ bapX eliminates all of this. Your agents run in our cloud, connected to your too
 - **Channels** — Connect agents to Slack, GitHub, Linear, email, Discord, and more with one click.
 - **MCP Gateway** — Give your agents access to external tools and services through the Model Context Protocol at `api.bapx.in/mcp`.
 - **Workflows** — Define structured automations that run alongside your autonomous agents.
-- **Usage & billing** — $5/mo per workspace (5GB agent runtime), $1/GB for additional scaling. No hidden costs.
+- **Usage & billing** — $5/month includes 5 GB storage, hosting, TTS, and STT. Additional storage is $1/GB/month; bring your own AI-provider tokens and connector credentials. There is no free bapX plan.
 - **Observability** — Monitor agent activity, review conversation logs, and debug issues from your dashboard.
 
-## For teams
+## For marketing and branding operations
 
-bapX is built for teams that need agents to do real work:
+bapX starts with the work its operating team already knows deeply:
 
-- **Customer support** — Agents that handle tickets, process refunds, and escalate when needed
-- **Engineering** — Agents that triage issues, review PRs, and automate CI workflows
-- **Operations** — Agents that process data, generate reports, and manage project workflows
-- **Sales** — Agents that qualify leads, follow up with prospects, and update CRM records
+- **Brand operations** — Research, strategy, guidelines, assets, and consistency checks
+- **Campaign operations** — Planning, production, channel coordination, and reporting
+- **Content and media** — Briefs, calendars, production workflows, publishing, and measurement
+- **Business delivery** — Projects, approvals, client collaboration, product work, and operational reporting
 
 ## Platform principles
 

@@ -217,7 +217,7 @@ export async function resolveConfig(opts: ResolveConfigOptions): Promise<Resolve
 
 	// Explicit `--config <path>` is resolved relative to the caller's cwd
 	// (matches the help text: "(relative to cwd)"). Auto-discovery still
-	// scans `searchFrom` so `--root` continues to inbapXnce where we look
+	// scans `searchFrom` so `--root` continues to influence where we look
 	// when no `--config` was provided.
 	const configPath =
 		opts.configFile !== undefined

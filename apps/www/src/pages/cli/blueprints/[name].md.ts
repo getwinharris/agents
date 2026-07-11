@@ -37,8 +37,7 @@ async function listBlueprintEntries(): Promise<BlueprintEntry[]> {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-	const entries = await listBlueprintEntries();
-	return entries.map(({ slug }) => ({ params: { name: slug } }));
+	return [];
 };
 
 function stripFrontmatter(source: string): string {

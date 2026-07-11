@@ -1,14 +1,14 @@
 ---
 title: Getting Started
-description: Create your bapX account and deploy your first cloud agent for your business or team.
-lastReviewedAt: 2026-07-09
+description: Create your paid bapX account, business workspace, and first hosted agent project.
+lastReviewedAt: 2026-07-11
 ---
 
-**bapX** is a cloud agent automation platform for businesses and teams. Deploy AI agents that automate workflows, handle customer operations, manage projects, and collaborate across your organisation — without managing infrastructure.
+**bapX** turns 15+ years of marketing and branding operations into hosted agents that work inside your business and project structure. The platform manages the workspace, hosting, people, credentials, and observability; you bring the AI-provider and connector credentials you choose.
 
 ## Prerequisites
 
-- **A bapX account** — [Sign up](https://platform.bapx.in) for a workspace.
+- **A paid bapX account** — [Sign up](https://platform.bapx.in). $5/month includes 5 GB storage, agent and workflow hosting, TTS, and STT; additional storage is $1/GB/month.
 - **An LLM provider key** — Connect your preferred model provider (Anthropic, OpenAI, Google, etc.) in your workspace settings.
 - **Team members** (optional) — Invite your team to collaborate on agents and workflows.
 
@@ -16,7 +16,7 @@ lastReviewedAt: 2026-07-09
 
 ### 1. Create your workspace
 
-Go to [platform.bapx.in](https://platform.bapx.in) and sign up. You'll get a workspace with 5GB of agent runtime, ready to go. No servers to set up, no CLI to install.
+Go to [platform.bapx.in](https://platform.bapx.in) and sign up. bapX creates your user-level OKF workspace and first business. New projects and imported GitHub repositories live under `users/<username>/<business-slug>/projects/<project-slug>/`; importing a repository does not bypass the OKF structure.
 
 ### 2. Create your first agent
 
