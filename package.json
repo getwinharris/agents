@@ -3,16 +3,22 @@
 	"type": "module",
 	"private": true,
 	"license": "Apache-2.0",
-	"packageManager": "pnpm@11.1.1",
+	"packageManager": "npm@11.6.2",
 	"engines": {
-		"node": ">=22",
-		"pnpm": ">=11 <12"
+		"node": ">=24",
+		"npm": ">=11 <12"
 	},
+	"workspaces": [
+		"apps/www",
+		"demo",
+		"examples/*",
+		"packages/*"
+	],
 	"scripts": {
 		"dev": "turbo dev",
 		"build": "turbo build",
 		"test": "turbo test",
-		"test:integration": "pnpm --dir packages/cli run test:integration:cloudflare",
+		"test:integration": "npm run test:integration:cloudflare --workspace @bapX/cli",
 		"check": "turbo run build check:lint check:types && turbo run test",
 		"check:lint": "biome lint . && knip",
 		"check:knip": "knip",
@@ -22,22 +28,21 @@
 		"format:style": "prettier . --cache --write --list-different"
 	},
 	"devDependencies": {
+		"@bapX/runtime": "*",
 		"@biomejs/biome": "^2.2.0",
-		"@bapX/runtime": "workspace:*",
 		"@types/node": "^22.10.10",
 		"bgproc": "^0.3.0",
 		"knip": "^6.14.2",
 		"prettier": "^3.4.2",
 		"turbo": "^2.3.3",
-		"typescript": "^6.0.3"
+		"typescript": "6.0.3",
+		"unrun": "^0.3.1"
 	},
 	"dependencies": {
 		"just-bash": "^3.0.1",
 		"valibot": "^1.1.0"
 	},
-	"pnpm": {
-		"overrides": {
-			"typescript": "6.0.3"
-		}
+	"overrides": {
+		"typescript": "6.0.3"
 	}
 }

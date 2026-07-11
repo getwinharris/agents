@@ -289,7 +289,7 @@ on it directly. If their `package.json` does not already list it, add it:
 npm install modal@^0.8.0
 ```
 
-(Use the user's package manager — `pnpm add`, `yarn add`, etc. if their
+(Use the user's package manager — `npm install`, `yarn add`, etc. if their
 lockfile indicates a different one.)
 
 The Modal JS SDK requires Node 22 or later.

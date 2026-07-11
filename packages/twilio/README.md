@@ -27,4 +27,4 @@ narrow, or coerce Twilio's fields. Applications own credentials, outbound Fetch
 clients, tools, dispatch policy, and deduplication.
 
 See the prepared package docs or
-<https://bapx.in/docs/ecosystem/channels/twilio/>.
+<https://docs.bapx.in/ecosystem/channels/twilio/>.

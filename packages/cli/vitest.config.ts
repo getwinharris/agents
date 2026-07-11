@@ -4,7 +4,7 @@ export default defineConfig({
 	test: {
 		include: ['test/**/*.test.{ts,tsx}'],
 		// `*.integration.test.ts` files run only via their dedicated configs
-		// (e.g. `pnpm run test:integration:cloudflare`), which control
+		// (e.g. `npm run test:integration:cloudflare`), which control
 		// parallelism for workerd-backed fixtures.
 		exclude: ['test/**/*.integration.test.ts'],
 	},

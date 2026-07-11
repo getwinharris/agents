@@ -37,5 +37,5 @@ so claim `delivery.message.messageId` in durable storage before dispatch and use
 `delivery.deliveryAttempt` only as retry metadata. The package verifies and
 forwards the wrapper but does not deduplicate deliveries.
 
-`pnpm test` executes the real project-owned client in both Node and workerd
+`npm test` executes the real project-owned client in both Node and workerd
 against an injected fake Fetch transport; it never contacts Google.

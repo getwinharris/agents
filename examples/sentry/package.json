@@ -3,11 +3,11 @@
 	"private": true,
 	"type": "module",
 	"dependencies": {
-		"@bapX/runtime": "workspace:*",
+		"@bapX/runtime": "*",
 		"@sentry/node": "*",
 		"hono": "^4.7.0"
 	},
 	"devDependencies": {
-		"@bapX/cli": "workspace:*"
+		"@bapX/cli": "*"
 	}
 }

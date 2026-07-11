@@ -120,7 +120,7 @@ bapX add database turso    # hosted Turso
 ```
 
 Both install this package and write the `db.ts` for the chosen target. See the
-[libSQL guide](https://bapx.in/docs/ecosystem/databases/libsql/) and
-[Turso guide](https://bapx.in/docs/ecosystem/databases/turso/) for
-setup and the [Data Persistence API](https://bapx.in/docs/api/data-persistence-api/)
+[libSQL guide](https://docs.bapx.in/ecosystem/databases/libsql/) and
+[Turso guide](https://docs.bapx.in/ecosystem/databases/turso/) for
+setup and the [Data Persistence API](https://docs.bapx.in/api/data-persistence-api/)
 for the adapter contract.

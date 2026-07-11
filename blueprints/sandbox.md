@@ -45,7 +45,7 @@ modified the implementation.
 Read these before writing code.
 
 - **Spec** (the `SandboxFactory` / `SandboxApi` contract):
-  `https://bapx.in/docs/api/sandbox-api/index.md`
+  `https://docs.bapx.in/api/sandbox-api/index.md`
 - **Worked example** (the Daytona adapter — one example of a finished
   adapter; your provider's shape may be quite different):
   `https://bapx.in/cli/blueprints/daytona.md`

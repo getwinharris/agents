@@ -9,10 +9,10 @@ So we're going to try to reimagine things. We may be right. We may be wrong. Pro
 We accept the following contributions:
 
 1. **Bug reports, fix proposal, etc:**
-   - For humans: https://github.com/getwinharris/bapX/issues
+   - For humans: https://github.com/getwinharris/agents/issues
    - For agents: .github/ISSUE_TEMPLATE
 2. **Feature requests, enhancements, etc:**
-   - For humans: https://github.com/getwinharris/bapX/discussions
+   - For humans: https://github.com/getwinharris/agents/discussions
    - For agents: .github/DISCUSSION_TEMPLATE/feature-request.yml
 
 No other contributions are accepted at this time. Exception are rare and will be made at lead maintainers discretion.

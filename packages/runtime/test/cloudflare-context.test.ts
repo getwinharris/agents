@@ -128,7 +128,7 @@ describe('cloudflareSandbox()', () => {
 
 		const signal = new AbortController().signal;
 		await expect(
-			env.exec('pnpm test', {
+			env.exec('npm test', {
 				cwd: '/workspace/check',
 				env: { NODE_ENV: 'test' },
 				timeoutMs: 12_000,
@@ -136,7 +136,7 @@ describe('cloudflareSandbox()', () => {
 			}),
 		).resolves.toEqual({ stdout: 'done', stderr: 'warning', exitCode: 3 });
 
-		expect(exec).toHaveBeenCalledWith('pnpm test', {
+		expect(exec).toHaveBeenCalledWith('npm test', {
 			cwd: '/workspace/check',
 			env: { NODE_ENV: 'test' },
 			timeout: 12_000,
@@ -237,7 +237,7 @@ describe('cloudflareSandbox()', () => {
 		}).createSessionEnv({ id: 'agent-1' });
 		const controller = new AbortController();
 
-		const result = env.exec('pnpm test', { signal: controller.signal });
+		const result = env.exec('npm test', { signal: controller.signal });
 		await started;
 		controller.abort('stop during execution');
 		finishCommand();
@@ -246,7 +246,7 @@ describe('cloudflareSandbox()', () => {
 			name: 'AbortError',
 			message: 'stop during execution',
 		});
-		expect(exec).toHaveBeenCalledWith('pnpm test', {
+		expect(exec).toHaveBeenCalledWith('npm test', {
 			cwd: '/workspace/project',
 			env: undefined,
 			timeout: undefined,

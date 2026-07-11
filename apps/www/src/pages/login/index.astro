@@ -1,0 +1,298 @@
+---
+import "../../styles/global.css";
+import { channels } from "../../../../ecosystem-catalog";
+
+const featuredChannels = [
+  'WhatsApp',
+  'Slack',
+  'GitHub',
+  'Google Chat',
+  'Discord',
+  'Telegram',
+  'Microsoft Teams',
+  'Linear',
+  'Notion',
+  'Resend',
+  'Twilio',
+  'Zendesk',
+];
+
+const signupChannels = featuredChannels
+  .map((name) => channels.find((channel) => channel.name === name))
+  .filter(Boolean);
+
+const oauthConnectors = [
+  {
+    id: 'google',
+    name: 'Google',
+    label: 'Connect Google Workspace',
+    detail: 'Required for Gmail, Calendar, Chat, Drive context, and scheduled agent actions.',
+    action: '/api/auth/oauth/google',
+  },
+  {
+    id: 'github',
+    name: 'GitHub',
+    label: 'Connect GitHub',
+    detail: 'Required for issue comments, pull-request work, repository events, and engineering agents.',
+    action: '/api/auth/oauth/github',
+  },
+  {
+    id: 'openai',
+    name: 'OpenAI',
+    label: 'Connect OpenAI',
+    detail: 'Required so bapX agents can call your approved LLM provider and model workspace.',
+    action: '/api/auth/oauth/openai',
+  },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign In or Sign Up | bapX</title>
+    <meta name="description" content="Sign in to bapX or create a workspace with brand identity, OAuth, and channel setup." />
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script is:inline>
+      if (new URLSearchParams(window.location.search).get('signup') === '1') {
+        document.documentElement.classList.add('signup-mode');
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
+      <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+        <div class="flex h-full items-center gap-8">
+          <a href="/" class="flex items-center gap-2">
+            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
+          </a>
+          <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
+            <a href="/">Home</a>
+            <a href="https://docs.bapx.in/getting-started/quickstart/">Docs</a>
+            <a href="https://blogs.bapx.in/">Blog</a>
+            <a href="/platform/">Platform</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="#signin" class="bapx-pill">Sign in</a>
+          <a href="#signup" class="bapx-pill bapx-pill-primary">Sign up</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="auth-shell">
+      <section class="auth-hero" aria-labelledby="auth-title">
+        <div class="auth-copy">
+          <span class="mono-label">Workspace onboarding</span>
+          <h1 id="auth-title" class="display-lg">Create the agent workspace around your business DNA.</h1>
+          <p class="body-lg">
+            bapX signup starts by learning your organisation, brand identity, mandatory OAuth access, and the channels your agents will operate in.
+          </p>
+        </div>
+        <aside class="auth-summary" aria-label="Signup flow summary">
+          <span class="mono-label">Flow</span>
+          <ol>
+            <li><span>01</span> Account and organisation</li>
+            <li><span>02</span> Brand identity and social URLs</li>
+            <li><span>03</span> Required Google, GitHub, OpenAI OAuth</li>
+            <li><span>04</span> Channel selection</li>
+            <li><span>05</span> Review and create workspace</li>
+          </ol>
+        </aside>
+      </section>
+
+      <section class="auth-grid" aria-label="Authentication">
+        <div id="signin" class="auth-panel">
+          <span class="mono-label">Existing workspace</span>
+          <h2 class="display-md">Sign in</h2>
+          <p class="body-sm">Use your workspace email, or continue through a connected provider.</p>
+          <form action="/api/auth/login" method="POST" class="auth-form">
+            <label class="auth-field">
+              <span>Email</span>
+              <input name="email" type="email" required autocomplete="email" placeholder="you@company.com" />
+            </label>
+            <button type="submit" class="bapx-pill bapx-pill-primary">Continue with email</button>
+          </form>
+          <div class="auth-oauth-row" aria-label="Provider sign in">
+            <a href="/api/auth/oauth/google" class="bapx-pill">Google</a>
+            <a href="/api/auth/oauth/github" class="bapx-pill">GitHub</a>
+            <a href="/api/auth/oauth/openai" class="bapx-pill">OpenAI</a>
+          </div>
+        </div>
+
+        <form id="signup" action="/api/auth/signup" method="POST" class="signup-flow auth-panel">
+          <div class="signup-heading">
+            <span class="mono-label">New workspace</span>
+            <h2 class="display-md">Sign up step by step</h2>
+            <p class="body-sm">All required fields are captured before workspace creation so agents can act with the right identity, tools, and permissions.</p>
+          </div>
+
+          <section class="signup-step" aria-labelledby="step-account">
+            <div class="signup-step-head">
+              <span class="mono-label">Step 01</span>
+              <h3 id="step-account">Account and organisation</h3>
+            </div>
+            <div class="auth-field-grid">
+              <label class="auth-field">
+                <span>Full name</span>
+                <input name="name" required autocomplete="name" placeholder="Aarav Shah" />
+              </label>
+              <label class="auth-field">
+                <span>Work email</span>
+                <input name="email" type="email" required autocomplete="email" placeholder="you@company.com" />
+              </label>
+              <label class="auth-field">
+                <span>WhatsApp number</span>
+                <input name="whatsapp" type="tel" required autocomplete="tel" placeholder="+91 98765 43210" />
+              </label>
+              <label class="auth-field">
+                <span>Organisation name</span>
+                <input name="organisation" required autocomplete="organization" placeholder="Acme Operations" />
+              </label>
+            </div>
+          </section>
+
+          <section class="signup-step" aria-labelledby="step-brand">
+            <div class="signup-step-head">
+              <span class="mono-label">Step 02</span>
+              <h3 id="step-brand">Brand identity</h3>
+            </div>
+            <div class="auth-field-grid">
+              <label class="auth-field auth-field-wide">
+                <span>Website or product URL</span>
+                <input name="website" type="url" required placeholder="https://company.com" />
+              </label>
+              <label class="auth-field">
+                <span>Logo</span>
+                <input name="logo" type="file" accept="image/*" />
+              </label>
+              <label class="auth-field">
+                <span>Primary social URL</span>
+                <input name="social_primary" type="url" placeholder="https://linkedin.com/company/acme" />
+              </label>
+              <label class="auth-field">
+                <span>X / Twitter URL</span>
+                <input name="social_x" type="url" placeholder="https://x.com/acme" />
+              </label>
+              <label class="auth-field">
+                <span>Instagram URL</span>
+                <input name="social_instagram" type="url" placeholder="https://instagram.com/acme" />
+              </label>
+              <label class="auth-field auth-field-wide">
+                <span>Brand notes</span>
+                <textarea name="brand_notes" rows="4" placeholder="Tone, colours, audience, products, offers, and words agents should or should not use."></textarea>
+              </label>
+            </div>
+            <div class="dna-preview">
+              <span class="mono-label">Output</span>
+              <p>Generate a workspace `DESIGN.md`: logo, colour palette, tone of voice, social links, products, and channel policy.</p>
+            </div>
+          </section>
+
+          <section class="signup-step" aria-labelledby="step-oauth">
+            <div class="signup-step-head">
+              <span class="mono-label">Step 03</span>
+              <h3 id="step-oauth">Mandatory OAuth</h3>
+            </div>
+            <p class="body-sm">These three connections are required before signup can finish. They let agents use mail, calendar, GitHub comments, and approved OpenAI models.</p>
+            <div class="oauth-grid">
+              {oauthConnectors.map((connector) => (
+                <div class="oauth-card" data-required-oauth={connector.id}>
+                  <div>
+                    <span class="mono-label">{connector.name}</span>
+                    <h4>{connector.label}</h4>
+                    <p>{connector.detail}</p>
+                  </div>
+                  <button type="button" class="bapx-pill" data-oauth-toggle={connector.id} data-action={connector.action}>
+                    Connect {connector.name}
+                  </button>
+                  <input type="hidden" name={`oauth_${connector.id}`} value="pending" data-oauth-value={connector.id} />
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section class="signup-step" aria-labelledby="step-channels">
+            <div class="signup-step-head">
+              <span class="mono-label">Step 04</span>
+              <h3 id="step-channels">Channels agents should operate in</h3>
+            </div>
+            <div class="channel-picker">
+              {signupChannels.map((channel) => (
+                <label class="channel-choice">
+                  <input type="checkbox" name="channels" value={channel!.name.toLowerCase().replaceAll(' ', '-')} />
+                  <span class="channel-icon" style={`background: ${channel!.background};`}>
+                    {channel!.icon ? (
+                      <img src={channel!.icon} alt="" loading="lazy" />
+                    ) : (
+                      <span>{channel!.name.slice(0, 2)}</span>
+                    )}
+                  </span>
+                  <span>{channel!.name}</span>
+                </label>
+              ))}
+            </div>
+          </section>
+
+          <section class="signup-step" aria-labelledby="step-review">
+            <div class="signup-step-head">
+              <span class="mono-label">Step 05</span>
+              <h3 id="step-review">Create workspace</h3>
+            </div>
+            <div class="review-strip">
+              <span>Brand DNA captured</span>
+              <span>OAuth required</span>
+              <span>Channels selected</span>
+            </div>
+            <p id="signup-status" class="auth-status" role="status">Connect Google, GitHub, and OpenAI to unlock workspace creation.</p>
+            <button type="submit" class="bapx-pill bapx-pill-primary signup-submit" disabled>Create bapX workspace</button>
+          </section>
+        </form>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <div class="section-inner">
+        <span>bapX — Cloud Agent Automation for Teams.</span>
+        <span>&copy; {new Date().getFullYear()}</span>
+      </div>
+    </footer>
+
+    <script>
+      const required = ['google', 'github', 'openai'];
+      const labels = { google: 'Google', github: 'GitHub', openai: 'OpenAI' };
+      const connected = new Set();
+      const status = document.querySelector('#signup-status');
+      const submit = document.querySelector('.signup-submit');
+
+      function syncOAuthState() {
+        const missing = required.filter((id) => !connected.has(id));
+        submit.disabled = missing.length > 0;
+        status.textContent = missing.length
+          ? `Still required: ${missing.map((id) => labels[id]).join(', ')}.`
+          : 'Required OAuth connected. Workspace creation is ready.';
+      }
+
+      document.querySelectorAll('[data-oauth-toggle]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const id = button.dataset.oauthToggle;
+          const value = document.querySelector(`[data-oauth-value="${id}"]`);
+          connected.add(id);
+          value.value = 'connected';
+          button.textContent = `${button.textContent.replace('Connect ', '')} connected`;
+          button.classList.add('bapx-pill-primary');
+          button.setAttribute('aria-pressed', 'true');
+          syncOAuthState();
+        });
+      });
+
+      syncOAuthState();
+
+    </script>
+  </body>
+</html>

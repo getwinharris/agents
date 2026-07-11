@@ -9,13 +9,13 @@
 		"test": "vitest run --config vitest.config.ts && vitest run --config vitest.workerd.config.ts"
 	},
 	"dependencies": {
-		"@bapX/resend": "workspace:*",
-		"@bapX/runtime": "workspace:*",
+		"@bapX/resend": "*",
+		"@bapX/runtime": "*",
 		"resend": "*"
 	},
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "0.16.15",
-		"@bapX/cli": "workspace:*",
+		"@bapX/cli": "*",
+		"@cloudflare/vitest-pool-workers": "0.16.20",
 		"@types/node": "^22.10.10",
 		"@types/react": "^19.2.17",
 		"agents": "^0.14.2",

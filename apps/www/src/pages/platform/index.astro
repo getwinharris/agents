@@ -1,0 +1,103 @@
+---
+import "../../styles/global.css";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Platform | bapX</title>
+    <meta name="description" content="Manage your bapX account, billing, API keys, and organisations." />
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
+      <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+        <div class="flex h-full items-center gap-8">
+          <a href="/" class="flex items-center gap-2">
+            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
+          </a>
+          <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
+            <a href="/">Home</a>
+            <a href="https://docs.bapx.in/getting-started/quickstart/">Docs</a>
+            <a href="https://blogs.bapx.in/">Blog</a>
+            <a href="/platform/" class="active">Platform</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="https://agents.bapx.in/" class="bapx-pill">Agents</a>
+          <a href="/login/" class="bapx-pill bapx-pill-primary">Sign in</a>
+        </div>
+      </div>
+    </nav>
+
+    <main>
+      <section class="page-section page-header">
+        <div class="section-inner" style="max-width: 800px;">
+          <span class="mono-label">Platform</span>
+          <h1 class="display-lg" style="margin-top: 1rem;">Platform Dashboard</h1>
+          <p class="body-lg" style="margin-top: .75rem; color: var(--body-mid); max-width: 560px;">Manage your account, billing, API keys, and organisations.</p>
+
+          <div class="card-grid-2" style="margin-top: 3rem;">
+            <div class="card">
+              <span class="mono-label">Account</span>
+              <h2 class="display-md" style="margin-top: .5rem;">Profile & Settings</h2>
+              <p class="body-sm" style="margin-top: .5rem; color: var(--body-mid);">Manage your name, email, and account preferences.</p>
+              <div class="pill-links" style="margin-top: 1rem;">
+                <a href="/login/">Sign in to manage profile</a>
+              </div>
+            </div>
+
+            <div class="card">
+              <span class="mono-label">Billing</span>
+              <h2 class="display-md" style="margin-top: .5rem;">Plans & Payments</h2>
+              <p class="body-sm" style="margin-top: .5rem; color: var(--body-mid);">$5/mo per workspace, $1/GB for scaling. No lock-in.</p>
+              <div class="pill-links" style="margin-top: 1rem;">
+                <a href="/login/">Sign in to manage billing</a>
+              </div>
+            </div>
+
+            <div class="card">
+              <span class="mono-label">API</span>
+              <h2 class="display-md" style="margin-top: .5rem;">API Keys</h2>
+              <p class="body-sm" style="margin-top: .5rem; color: var(--body-mid);">Manage keys for programmatic access to the bapX API and MCP gateway.</p>
+              <div class="pill-links" style="margin-top: 1rem;">
+                <a href="/login/">Sign in to manage keys</a>
+              </div>
+            </div>
+
+            <div class="card">
+              <span class="mono-label">Organisations</span>
+              <h2 class="display-md" style="margin-top: .5rem;">Teams & Orgs</h2>
+              <p class="body-sm" style="margin-top: .5rem; color: var(--body-mid);">Create and manage organisations to collaborate on agents and workflows.</p>
+              <div class="pill-links" style="margin-top: 1rem;">
+                <a href="/login/">Sign in to manage orgs</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 2rem;">
+            <span class="mono-label">Agent Gateway</span>
+            <h2 class="display-md" style="margin-top: .5rem;">api.bapx.in/mcp</h2>
+            <p class="body-sm" style="margin-top: .5rem; color: var(--body-mid);">Connect your agents via the MCP gateway. All API access is authenticated through your API keys.</p>
+            <div class="pill-links" style="margin-top: 1rem;">
+              <a href="https://docs.bapx.in/getting-started/quickstart/">Read the docs</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <div class="section-inner">
+        <span>bapX — Cloud Agent Automation for Teams.</span>
+        <span>&copy; {new Date().getFullYear()}</span>
+      </div>
+    </footer>
+  </body>
+</html>

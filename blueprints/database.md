@@ -49,7 +49,7 @@ Read these before writing code.
 
 - **Spec** (the `PersistenceAdapter` contract — canonical stream, attachment,
   submission, run, and event-stream stores):
-  `https://bapx.in/docs/api/data-persistence-api/index.md`
+  `https://docs.bapx.in/api/data-persistence-api/index.md`
 - **Worked example** (the Postgres adapter — one complete implementation of
   the full contract; your backend's shape may be quite different):
   `https://bapx.in/cli/blueprints/postgres.md`

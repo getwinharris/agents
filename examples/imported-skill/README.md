@@ -8,14 +8,14 @@ This example shows two supported contracts:
 Run the imported skill on Node with an Anthropic key:
 
 ```bash
-pnpm exec bapX run with-imported-skill --target node --env ../../.env
+npx bapX run with-imported-skill --target node --env ../../.env
 ```
 
 Run the deterministic custom-sandbox workflow on Node or Cloudflare local development:
 
 ```bash
-pnpm exec bapX run with-custom-bash --target node
-pnpm exec bapX dev --target cloudflare
+npx bapX run with-custom-bash --target node
+npx bapX dev --target cloudflare
 ```
 
 Cloudflare builds and local development use the official Vite/workerd integration.

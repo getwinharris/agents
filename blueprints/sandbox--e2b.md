@@ -196,7 +196,7 @@ it directly. If their `package.json` does not already list it, add it:
 npm install e2b@^2.30.0
 ```
 
-(Use the user's package manager — `pnpm add`, `yarn add`, etc. if their
+(Use the user's package manager — `npm install`, `yarn add`, etc. if their
 lockfile indicates a different one.)
 
 If the user is specifically building a Jupyter-style code interpreter

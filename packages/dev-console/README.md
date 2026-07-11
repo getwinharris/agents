@@ -9,23 +9,23 @@ This package is intentionally separate from `@bapX/cli`. It does not discover pr
 Start the application in one terminal:
 
 ```sh
-pnpm exec bapX dev
+npx bapX dev
 ```
 
 Attach in another terminal:
 
 ```sh
-pnpm exec bapX-dev-console agent:support --server http://127.0.0.1:3583
+npx bapX-dev-console agent:support --server http://127.0.0.1:3583
 ```
 
 Resources must be qualified as `agent:<name>` or `workflow:<name>`.
 
 ```sh
-pnpm exec bapX-dev-console agent:support \
+npx bapX-dev-console agent:support \
   --server http://127.0.0.1:3583/api/bapX \
   --id support-demo
 
-pnpm exec bapX-dev-console workflow:deploy \
+npx bapX-dev-console workflow:deploy \
   --server http://127.0.0.1:3583/api/bapX \
   --input '{"environment":"staging"}'
 ```

@@ -8,14 +8,14 @@
 		"test": "vitest run --config vitest.workerd.config.ts"
 	},
 	"dependencies": {
-		"@bapX/runtime": "workspace:*",
-		"@bapX/slack": "workspace:*",
+		"@bapX/runtime": "*",
+		"@bapX/slack": "*",
 		"@slack/web-api": "^8.0.0-rc.1",
 		"valibot": "^1.0.0"
 	},
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "0.16.15",
-		"@bapX/cli": "workspace:*",
+		"@bapX/cli": "*",
+		"@cloudflare/vitest-pool-workers": "0.16.20",
 		"agents": "^0.14.2",
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.6"

@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import { blogsSection } from '../../lib/blogs-navigation';
+
+const posts = (await getCollection('blogs')).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<DocsLayout
+	title="Blogs"
+	description="Announcements, releases, research, and tutorials from bapX."
+	currentSlug=""
+	headings={[]}
+	showTableOfContents={false}
+	variant="directory"
+	navigationSection={blogsSection}
+	headerSections={[blogsSection]}
+	publicBaseUrl="https://blogs.bapx.in/"
+	markdownUrl=""
+>
+	<header class="blog-directory-header">
+		<h1 class="blog-directory-title">Blogs</h1>
+		<p class="blog-directory-description">Announcements, releases, research, and tutorials from the bapX team.</p>
+	</header>
+	<ul class="m-0 list-none p-0" role="list">
+		{posts.map((post) => (
+			<li class="border-t border-[var(--hairline)] py-6">
+				<p class="m-0 text-sm text-[var(--docs-muted)]">{post.data.category} · {post.data.pubDate.toLocaleDateString('en-US', { dateStyle: 'long', timeZone: 'UTC' })}</p>
+				<h2 class="mt-2 text-2xl font-semibold"><a href={`/${post.id}/`}>{post.data.title}</a></h2>
+				{post.data.description && <p class="mt-2 text-base text-[var(--docs-muted)]">{post.data.description}</p>}
+			</li>
+		))}
+	</ul>
+</DocsLayout>
+
+<style>
+	.blog-directory-header { margin-bottom: 2.5rem; }
+	.blog-directory-title { margin: 0; color: var(--docs-text); font-size: 3rem; font-weight: 700; line-height: 1.08; letter-spacing: -0.05em; }
+	.blog-directory-description { margin-top: 1rem; color: var(--docs-muted); font-size: 1rem; line-height: 1.75; }
+</style>

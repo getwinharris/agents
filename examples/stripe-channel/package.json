@@ -5,18 +5,18 @@
 	"scripts": {
 		"build": "bapX build --target node",
 		"check:types": "tsc --noEmit",
-		"test": "pnpm run test:node && pnpm run test:workerd",
+		"test": "npm run test:node && npm run test:workerd",
 		"test:node": "vitest run",
 		"test:workerd": "vitest run --config vitest.workerd.config.ts"
 	},
 	"dependencies": {
-		"@bapX/runtime": "workspace:*",
-		"@bapX/stripe": "workspace:*",
+		"@bapX/runtime": "*",
+		"@bapX/stripe": "*",
 		"stripe": "*"
 	},
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "0.16.15",
-		"@bapX/cli": "workspace:*",
+		"@bapX/cli": "*",
+		"@cloudflare/vitest-pool-workers": "0.16.20",
 		"@types/node": "^22.10.10",
 		"agents": "^0.14.2",
 		"typescript": "^6.0.3",

@@ -44,25 +44,25 @@ Agents like Claude Code and Codex broke the mold. These were _real agents._ Auto
 
 Build agents that can safely take action, maintain continuity, and connect to the systems where work already happens.
 
-- **[Agents](https://bapx.in/docs/guide/building-agents/)** — Build agents that can keep context across conversations and events as they autonomously work toward a goal.
-- **[Workflows](https://bapx.in/docs/guide/workflows/)** — Run structured automations where your code guides agent reasoning from a clear input to a finished result.
-- **[Sandboxes](https://bapx.in/docs/guide/sandboxes/)** — Give agents a secure environment where they can use tools, modify files, and autonomously complete real work.
-- **[Durable Execution](https://bapx.in/docs/guide/durable-execution/)** — Learn how agents preserve progress through failures and restarts with durable recovery for accepted work.
-- **[Subagents](https://bapx.in/docs/guide/subagents/)** — Define specialized roles for different tasks, then let your agent delegate work to the right expert.
-- **[Tools](https://bapx.in/docs/guide/tools/)** — Give agents typed actions for calling APIs, querying data, and making controlled changes through your application.
-- **[Skills](https://bapx.in/docs/guide/skills/)** — Package reusable expertise and workflows that agents can load whenever a task needs specialized guidance.
-- **[MCP Servers](https://bapx.in/docs/guide/tools/#connect-mcp-tools)** — Connect agents to authenticated tools and services through the open Model Context Protocol ecosystem.
-- **[Observability](https://bapx.in/docs/guide/observability/)** — Monitor your agents and export telemetry with [OpenTelemetry](https://bapx.in/docs/ecosystem/tooling/opentelemetry/), [Braintrust](https://bapx.in/docs/ecosystem/tooling/braintrust/), [Sentry](https://bapx.in/docs/ecosystem/tooling/sentry/), or your own observer.
-- **[Channels](https://bapx.in/docs/guide/channels/)** — Receive verified events from Slack, Teams, Discord, GitHub, and more.
+- **[Agents](https://docs.bapx.in/guide/building-agents/)** — Build agents that can keep context across conversations and events as they autonomously work toward a goal.
+- **[Workflows](https://docs.bapx.in/guide/workflows/)** — Run structured automations where your code guides agent reasoning from a clear input to a finished result.
+- **[Sandboxes](https://docs.bapx.in/guide/sandboxes/)** — Give agents a secure environment where they can use tools, modify files, and autonomously complete real work.
+- **[Durable Execution](https://docs.bapx.in/guide/durable-execution/)** — Learn how agents preserve progress through failures and restarts with durable recovery for accepted work.
+- **[Subagents](https://docs.bapx.in/guide/subagents/)** — Define specialized roles for different tasks, then let your agent delegate work to the right expert.
+- **[Tools](https://docs.bapx.in/guide/tools/)** — Give agents typed actions for calling APIs, querying data, and making controlled changes through your application.
+- **[Skills](https://docs.bapx.in/guide/skills/)** — Package reusable expertise and workflows that agents can load whenever a task needs specialized guidance.
+- **[MCP Servers](https://docs.bapx.in/guide/tools/#connect-mcp-tools)** — Connect agents to authenticated tools and services through the open Model Context Protocol ecosystem.
+- **[Observability](https://docs.bapx.in/guide/observability/)** — Monitor your agents and export telemetry with [OpenTelemetry](https://docs.bapx.in/ecosystem/tooling/opentelemetry/), [Braintrust](https://docs.bapx.in/ecosystem/tooling/braintrust/), [Sentry](https://docs.bapx.in/ecosystem/tooling/sentry/), or your own observer.
+- **[Channels](https://docs.bapx.in/guide/channels/)** — Receive verified events from Slack, Teams, Discord, GitHub, and more.
 
 ## Deploy Anywhere
 
-- **[Node.js](https://bapx.in/docs/ecosystem/deploy/node/)**
-- **[Cloudflare Workers](https://bapx.in/docs/ecosystem/deploy/cloudflare/)**
-- **[GitHub Actions](https://bapx.in/docs/ecosystem/deploy/github-actions/)**
-- **[GitLab CI/CD](https://bapx.in/docs/ecosystem/deploy/gitlab-ci/)**
-- **[Daytona](https://bapx.in/docs/ecosystem/sandboxes/daytona/)**
-- **[Render](https://bapx.in/docs/ecosystem/deploy/render/)**
+- **[Node.js](https://docs.bapx.in/ecosystem/deploy/node/)**
+- **[Cloudflare Workers](https://docs.bapx.in/ecosystem/deploy/cloudflare/)**
+- **[GitHub Actions](https://docs.bapx.in/ecosystem/deploy/github-actions/)**
+- **[GitLab CI/CD](https://docs.bapx.in/ecosystem/deploy/gitlab-ci/)**
+- **[Daytona](https://docs.bapx.in/ecosystem/sandboxes/daytona/)**
+- **[Render](https://docs.bapx.in/ecosystem/deploy/render/)**
 
 ## Packages
 

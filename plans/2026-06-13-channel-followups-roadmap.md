@@ -1910,7 +1910,7 @@ Portfolio validation:
 - Documentation diagnostics report zero errors, warnings, or hints. The
   production docs build emits 99 pages, and the connector site builds every
   named channel recipe.
-- `pnpm install --frozen-lockfile` and `node scripts/prepare-publish.mjs`
+- `npm install --frozen-lockfile` and `node scripts/prepare-publish.mjs`
   pass.
 - Every channel package packs to an intentional 103-file artifact containing
   its manifest, built runtime, declarations, README, license, and prepared

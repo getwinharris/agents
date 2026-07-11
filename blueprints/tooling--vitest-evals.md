@@ -181,24 +181,24 @@ For a workflow, create a project-specific harness around `client.workflows.invok
 The eval process does not start the Bapx application. For local evaluation, start the server in one terminal and wait until it is ready:
 
 ```sh
-pnpm exec bapX dev
+npx bapX dev
 ```
 
 Then run the evals from a second terminal:
 
 ```sh
-pnpm run evals
+npm run evals
 ```
 
 To evaluate an existing deployment instead, do not start a local server. Point the suite at the deployed application:
 
 ```sh
-FLUE_BASE_URL=https://preview.example.com pnpm run evals
+FLUE_BASE_URL=https://preview.example.com npm run evals
 ```
 
 Use the project's package-manager equivalents. Provider credentials belong to the Bapx server process. Authentication credentials for a protected Bapx route belong to the SDK client configuration; do not commit either kind of secret.
 
-`pnpm run evals:json` writes `vitest-results.json`. Inspect it with `pnpm exec vitest-evals serve vitest-results.json`, or publish it with the `getsentry/vitest-evals` GitHub Action. `vitest-evals` has no built-in Braintrust reporter. Bapx's Braintrust tooling may be enabled independently to trace the application execution, but it does not replace eval cases, assertions, judges, or CI gates.
+`npm run evals:json` writes `vitest-results.json`. Inspect it with `npx vitest-evals serve vitest-results.json`, or publish it with the `getsentry/vitest-evals` GitHub Action. `vitest-evals` has no built-in Braintrust reporter. Bapx's Braintrust tooling may be enabled independently to trace the application execution, but it does not replace eval cases, assertions, judges, or CI gates.
 
 ## Verify
 

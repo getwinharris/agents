@@ -318,14 +318,14 @@ At plan creation, after prototype corrections, these commands passed:
 
 ```bash
 # packages/runtime
-pnpm run check:types
-pnpm run build
-pnpm run test                    # 192 tests passed
-pnpm run test:spike:cloudflare   # 2 tests passed
+npm run check:types
+npm run build
+npm run test                    # 192 tests passed
+npm run test:spike:cloudflare   # 2 tests passed
 
 # packages/cli
-pnpm run check:types
-pnpm run build
+npm run check:types
+npm run build
 ```
 
 These results prove the candidate's vertical slices; they do not mean production target selection or full feature parity has already migrated.
@@ -535,14 +535,14 @@ spike: prove Vite skill references and Cloudflare integration
 
 ```bash
 # packages/runtime
-pnpm run check:types
-pnpm run build
-pnpm run test
-pnpm run test:spike:cloudflare
+npm run check:types
+npm run build
+npm run test
+npm run test:spike:cloudflare
 
 # packages/cli
-pnpm run check:types
-pnpm run build
+npm run check:types
+npm run build
 ```
 
 5. Record any changed test counts or dependency/version drift in the implementation handoff/commit description.
@@ -926,14 +926,14 @@ Use repository scripts as they exist at execution time. At plan creation, the kn
 
 ```bash
 # packages/runtime
-pnpm run check:types
-pnpm run build
-pnpm run test
-pnpm run test:spike:cloudflare  # rename/re-purpose as production integration test when migration lands
+npm run check:types
+npm run build
+npm run test
+npm run test:spike:cloudflare  # rename/re-purpose as production integration test when migration lands
 
 # packages/cli
-pnpm run check:types
-pnpm run build
+npm run check:types
+npm run build
 ```
 
 If a lint command exists or is added in repository guidance/package scripts, run it before completing each implementation milestone.

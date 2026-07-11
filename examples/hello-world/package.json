@@ -4,13 +4,13 @@
 	"type": "module",
 	"dependencies": {
 		"@daytona/sdk": "*",
-		"@bapX/runtime": "workspace:*",
+		"@bapX/runtime": "*",
 		"agents": "^0.14.2",
 		"hono": "^4.7.0",
 		"just-bash": "^3.0.1",
 		"valibot": "^1.0.0"
 	},
 	"devDependencies": {
-		"@bapX/cli": "workspace:*"
+		"@bapX/cli": "*"
 	}
 }

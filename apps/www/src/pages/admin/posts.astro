@@ -1,0 +1,93 @@
+---
+import "../../styles/global.css";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Posts | bapX Admin</title>
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
+      <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+        <div class="flex h-full items-center gap-8">
+          <a href="/" class="flex items-center gap-2">
+            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
+          </a>
+          <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
+            <a href="/admin/">Dashboard</a>
+            <a href="/admin/posts/" class="active">Posts</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="/admin/editor/" class="bapx-pill bapx-pill-primary">New Post</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="page-section page-header">
+      <div class="section-inner" style="max-width: 960px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <span class="mono-label">Admin</span>
+            <h1 class="display-lg" style="margin-top: .5rem;">Posts</h1>
+          </div>
+          <a href="/admin/editor/" class="bapx-pill bapx-pill-primary">New Post</a>
+        </div>
+
+        <div id="posts-list" style="margin-top: 3rem; display: grid; gap: .875rem;">
+          <p style="color: var(--body-mid);">Loading...</p>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      function deletePost(slug) {
+        if (!confirm('Delete this post?')) return;
+        fetch('/api/posts/' + encodeURIComponent(slug), { method: 'DELETE' })
+          .then(r => {
+            if (r.ok) renderPosts();
+            else alert('Delete failed');
+          })
+          .catch(() => alert('Delete failed'));
+      }
+
+      function renderPosts() {
+        fetch('/api/posts')
+          .then(r => r.json())
+          .then(data => {
+            const el = document.getElementById('posts-list');
+            const posts = data.posts || [];
+            if (posts.length === 0) {
+              el.innerHTML = '<p style="color: var(--body-mid);">No posts yet. <a href="/admin/editor/" style="color: #60a5fa;">Create one</a></p>';
+              return;
+            }
+            el.innerHTML = posts.map(p => `
+              <div class="card" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                <div>
+                  <strong style="color: var(--ink);">${p.title || p.slug}</strong>
+                  <div class="mono-label" style="margin-top: .25rem;">${p.date || ''}${p.category ? ' · ' + p.category : ''}${p.published ? '' : ' · <span style="color: #f59e0b;">Draft</span>'}</div>
+                </div>
+                <div style="display: flex; gap: .5rem;">
+                  <a href="/admin/editor/?slug=${encodeURIComponent(p.slug)}" class="bapx-pill">Edit</a>
+                  <button onclick="deletePost('${p.slug}')" class="bapx-pill" style="cursor: pointer; background: none;">Delete</button>
+                </div>
+              </div>
+            `).join('');
+          })
+          .catch(() => {
+            document.getElementById('posts-list').innerHTML = '<p style="color: var(--body-mid);">Failed to load posts.</p>';
+          });
+      }
+
+      renderPosts();
+    </script>
+  </body>
+</html>

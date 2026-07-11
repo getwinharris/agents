@@ -3,24 +3,24 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "pnpm run build:ui && bapX dev",
-		"build": "pnpm run build:ui && bapX build",
+		"dev": "npm run build:ui && bapX dev",
+		"build": "npm run build:ui && bapX build",
 		"build:ui": "vite build",
 		"check:types": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@bapX/react": "*",
+		"@bapX/runtime": "*",
+		"@bapX/sdk": "*",
 		"@earendil-works/pi-ai": "^0.80.2",
-		"@bapX/react": "workspace:*",
-		"@bapX/runtime": "workspace:*",
-		"@bapX/sdk": "workspace:*",
 		"@hono/node-server": "^2.0.3",
-		"hono": "4.12.22",
+		"hono": "4.12.29",
 		"react": "^19.1.1",
 		"react-dom": "^19.2.6",
 		"valibot": "^1.0.0"
 	},
 	"devDependencies": {
-		"@bapX/cli": "workspace:*",
+		"@bapX/cli": "*",
 		"@types/node": "^22.10.10",
 		"@types/react": "^19.1.8",
 		"@types/react-dom": "^19.1.6",

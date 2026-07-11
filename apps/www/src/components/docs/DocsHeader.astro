@@ -1,0 +1,37 @@
+---
+import DocsSearch from './DocsSearch.astro';
+import DocsSectionLink from './DocsSectionLink.astro';
+import { docsSections, getDocsSection, type DocsSection } from '../../lib/docs-navigation';
+
+interface Props {
+	currentSlug: string;
+	sections?: DocsSection[];
+	activeSection?: DocsSection;
+	baseUrl?: string;
+}
+
+const { currentSlug, sections = docsSections, activeSection, baseUrl } = Astro.props;
+const githubUrl = 'https://github.com/getwinharris/agents';
+const selectedSection = activeSection ?? getDocsSection(currentSlug);
+---
+
+<header class="sticky top-0 z-20 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
+	<div class="mx-auto flex h-14 w-[min(100%,var(--docs-frame-width))] items-center justify-between px-5">
+		<div class="flex h-full shrink-0 items-center gap-8">
+			<div class="shrink-0">
+				<a href="https://bapx.in" class="flex items-center gap-2" aria-label="bapX homepage">
+					<img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
+				</a>
+			</div>
+			<nav class="hidden h-full items-center gap-7 text-sm font-medium docs-desktop:flex" aria-label="Documentation sections">
+				{sections.map((section) => <DocsSectionLink section={section} active={section.key === selectedSection.key} baseUrl={baseUrl} />)}
+			</nav>
+		</div>
+		<div class="ml-auto flex min-w-0 flex-1 items-center justify-end gap-3 pl-6 docs-desktop:gap-5 docs-desktop:pl-0">
+			<DocsSearch />
+			<button class="inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg text-[var(--body)] transition-colors hover:bg-[var(--docs-surface-soft)] docs-desktop:hidden" type="button" data-mobile-menu-toggle aria-label="Open documentation menu" aria-expanded="false" aria-controls="mobile-docs-menu">
+				<svg class="size-6 fill-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.8]" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+			</button>
+		</div>
+	</div>
+</header>

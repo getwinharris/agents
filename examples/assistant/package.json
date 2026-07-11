@@ -4,10 +4,10 @@
 	"type": "module",
 	"dependencies": {
 		"@cloudflare/sandbox": "*",
-		"@bapX/runtime": "workspace:*",
+		"@bapX/runtime": "*",
 		"agents": "^0.14.2"
 	},
 	"devDependencies": {
-		"@bapX/cli": "workspace:*"
+		"@bapX/cli": "*"
 	}
 }

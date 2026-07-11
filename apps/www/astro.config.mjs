@@ -8,6 +8,7 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
 	site: 'https://bapx.in',
 	output: 'static',
+	trailingSlash: 'always',
 	integrations: [mdx()],
 	markdown: {
 		shikiConfig: {

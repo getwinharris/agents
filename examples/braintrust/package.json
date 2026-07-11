@@ -7,12 +7,12 @@
 		"check:types": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@bapX/runtime": "workspace:*",
+		"@bapX/runtime": "*",
 		"braintrust": "3.17.0",
 		"hono": "^4.7.0",
 		"valibot": "^1.0.0"
 	},
 	"devDependencies": {
-		"@bapX/cli": "workspace:*"
+		"@bapX/cli": "*"
 	}
 }

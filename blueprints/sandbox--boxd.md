@@ -274,7 +274,7 @@ add it:
 npm install @boxd-sh/sdk@^0.1.5
 ```
 
-(Use the user's package manager — `pnpm add`, `yarn add`, etc. if their
+(Use the user's package manager — `npm install`, `yarn add`, etc. if their
 lockfile indicates a different one.)
 
 ## Authentication

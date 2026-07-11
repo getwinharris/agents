@@ -3,10 +3,10 @@
 React hooks for live Bapx agent conversations and workflow runs. `@bapX/react` manages UI state; `@bapX/sdk` handles HTTP and Durable Streams transport.
 
 ```sh
-pnpm add @bapX/react @bapX/sdk
+npm install @bapX/react @bapX/sdk
 ```
 
-Requires React 18 or later. For examples, see the [React guide](https://bapx.in/docs/guide/react/). Relative `baseUrl` values such as `/api` require a browser; use an absolute URL when creating the client during SSR.
+Requires React 18 or later. For examples, see the [React guide](https://docs.bapx.in/guide/react/). Relative `baseUrl` values such as `/api` require a browser; use an absolute URL when creating the client during SSR.
 
 ## Setup
 

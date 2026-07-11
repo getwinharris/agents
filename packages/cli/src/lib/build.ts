@@ -460,7 +460,7 @@ function getCLIDir(): string {
  * `require.resolve` would be cleaner, but `@bapX/runtime`'s `package.json`
  * isn't part of the package's `exports` map and its subpaths are
  * ESM-only, both of which trip up `createRequire`. Walking the
- * `node_modules` chain is what npm/pnpm/yarn all do internally for
+ * `node_modules` chain is what npm/npm/yarn all do internally for
  * resolution anyway. Returns the package directory, or `undefined` if
  * the project doesn't have `@bapX/runtime` installed yet.
  */

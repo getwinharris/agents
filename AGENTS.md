@@ -16,6 +16,16 @@ use skills (search, deploy, browser), and collaborate via built-in team features
 
 ---
 
+## AGENTS Contract
+
+`AGENTS.md` files are binding work contracts for their subtrees.
+
+1. Read `/root/bapx.in/AGENTS.md` first when working inside the VPS workspace.
+2. Every repository or independently managed project must have exactly one `AGENTS.md` at its root. The root `AGENTS.md` governs the entire repository or project.
+3. After meaningful edits, re-check changed paths against the active root `AGENTS.md`.
+4. Update the owning root `AGENTS.md` when purpose, structure, workflow, artifacts, contracts, or durable preferences change.
+5. Keep AGENTS docs concise and operational. Delete stale or contradictory instructions instead of narrating history.
+
 ## Framework
 
 The underlying framework (forked from Bapx) compiles agent and workflow projects
@@ -44,6 +54,10 @@ A blueprint is a Markdown implementation guide returned by `bapX add`; its kind 
 
 ## Project Structure
 
+- `map.mmd` — Generated root map for admin/user overviews. Regenerate with `bapX map --root .`; validate with `bapX map --root . --check`.
+- `apps/www/` — Tracked Astro web surface for `bapx.in`, `docs.bapx.in`, `blogs.bapx.in`, `platform.bapx.in`, `admin.bapx.in`, and related public pages. Do not create another frontend root for the same surfaces.
+- `demo/` — Canonical demo app source. Do not duplicate it as `users/demo`; adapt it only into real user projects when explicitly needed.
+- `examples/` — Canonical integration examples. Do not duplicate examples under `users/` or `apps/`.
 - `packages/runtime/` — Runtime library (`@bapX/runtime`): sessions, agent harnesses, tools, and sandbox plumbing.
 - `packages/cli/` — CLI and build/dev tooling (`@bapX/cli`): Vite build graph, target integration, discovery, and configuration.
 - `examples/hello-world/` — General runtime integration fixture.
@@ -52,19 +66,84 @@ A blueprint is a Markdown implementation guide returned by `bapX add`; its kind 
 
 Agent and workflow sources use either `<root>/.bapX/` or `<root>/`; when `.bapX/` exists, the bare `agents/` and `workflows/` layout is ignored.
 
+## Source-Grounded Work Order
+
+For meaningful code, UI, docs, CLI, map, workflow, or structure changes:
+
+1. Read the workspace and repo `AGENTS.md` chain.
+2. Read `map.mmd` and follow affected nodes to source files.
+3. Search with `rg` and inspect existing implementations before creating any file, route, command, service, view, workflow, generator, or navigation item.
+4. Extend the existing owning source. Do not create unlinked helper scripts, parallel map generators, duplicate frontends, duplicate admin surfaces, or orphaned tools.
+5. If functionality is a product operation, wire it into `packages/cli`, repo scripts, the admin surface, or the documented runtime workflow.
+6. Update docs/content only from the repo's content sources, not from generated `dist/`.
+7. Before finishing, check touched workflows for placeholders, dead buttons, duplicated fallbacks, stale labels, incomplete wiring, and missing docs/map updates.
+
+## Product Development Docs
+
+When product behavior changes, update docs in the same change:
+
+- CLI/runtime/API behavior: update `apps/www/src/content/docs/`.
+- Demo behavior: update `demo/README.md`, `demo/docs/index.md`, and `demo/map.mmd`.
+- Workspace/user/project structure: update `/root/bapx.in/OKF.md`, `/root/bapx.in/AGENTS.md`, workspace maps, and `apps/www/src/content/docs/okf/`.
+- Release-facing changes: update `CHANGELOG.md`.
+
+Do not leave documentation, maps, or release notes stale after product changes.
+
+## GitHub Workflow
+
+For meaningful repo changes when GitHub is available:
+
+Follow `CONTRIBUTING.md` for accepted contribution types and repository-specific GitHub policy. Repository maintainers and authorized agents may create implementation branches, commits, and pull requests after the required issue or discussion exists; external contributions follow the intake paths documented there.
+
+1. Diagnose first: inspect or reproduce the behavior and identify affected files and line references.
+2. Search existing GitHub issues.
+3. Use an existing matching issue or create one with evidence, affected paths, cause, intended scope, and acceptance checks.
+4. Branch from the current worktree state without reverting unrelated user changes.
+5. Commit only after validation.
+6. Create a PR with validation evidence.
+7. Merge only when the task requires completing the change end-to-end and repo policy/credentials allow it.
+
+Do not create an issue for read-only diagnosis, trivial questions, or when the user explicitly declines issue tracking.
+
+## Project Map
+
+`map.mmd` is the single repository root map artifact for this repo. Do not add parallel map files or map generators.
+
+Use the CLI map command:
+
+```bash
+bapX map --root .
+bapX map --root . --check
+```
+
+For user projects:
+
+```bash
+bapX map --root /root/bapx.in/users/<user>/<business-slug> --check --profile business-workspace
+bapX map --root /root/bapx.in/users/<user>/<business-slug>/projects/<project-name-slug> --check --profile user-project
+```
+
+For the canonical demo:
+
+```bash
+bapX map --root demo --check --profile demo-project
+```
+
+Map validation alone is incomplete. For every affected map path, verify the source route/page, package command, generated output, rendered UI, docs navigation, and shared surface that actually implement the behavior.
+
 ## Development
 
 Build runtime before CLI or examples:
 
 ```
-pnpm run build          # in packages/runtime/
-pnpm run build          # in packages/cli/
+npm run build          # in packages/runtime/
+npm run build          # in packages/cli/
 ```
 
 Type-check runtime changes with:
 
 ```
-pnpm run check:types    # in packages/runtime/
+npm run check:types    # in packages/runtime/
 ```
 
 When using `task` to delegate to subagents, you MUST include a notice that the subagent must not spawn its own subagents.
@@ -74,6 +153,45 @@ Treat `review` task feedback as input, not requirements. The primary agent is re
 A single `review` task is enough review for most work. Additional reviews are allowed for complex work, but otherwise just spot-check your post-review fixes without doing an entirely fresh review. When performing additional reviews, remember that fresh subagents do not know prior findings/context outside of what the prompt includes; either restate each concern and the relevant expected behavior when asking for confirmation, or ask for an independent scoped review without implying it can confirm prior concerns.
 
 When writing new plans to disk, write them to `plans/` (gitignored intentionally) with a `YYYY-MM-DD` filename prefix.
+
+## Browser and UI Validation
+
+For UI changes:
+
+1. Use the real served page, not only static code inspection.
+2. Prefer the in-app browser/browser-control workflow when available.
+3. Use Playwright only as fallback or for repeatable regression checks.
+4. Verify desktop and mobile-relevant layout, navigation, sign-in/sign-up flows, visible copy, and click behavior.
+5. Capture or summarize the exact route, viewport, and visible result in the final/PR validation.
+
+Do not call UI work done when only the Astro build passed.
+
+## CLI and Tooling
+
+Do not create disconnected tools. New repo operations belong in one of:
+
+- `packages/cli/bin/bapX.ts` for user-facing CLI commands.
+- The nearest package `scripts` block for package-local build/test/dev operations.
+- `demo/` source and `demo/package.json` scripts for demo-only tools and validation.
+- The admin UI/API when the operation is an operator workflow.
+- Existing docs/content generation paths when the operation is documentation publishing.
+
+If a temporary script is unavoidable during investigation, remove it or promote it into the owning command surface before finishing.
+
+## Release Readiness
+
+Release work requires an explicit `patch`, `minor`, `major`, or exact version from the user. Treat `v1.1` as exact version `1.1.0`.
+
+Before a v1.1.0 release can be tagged or published:
+
+1. Update `CHANGELOG.md` and docs for the product changes.
+2. Validate `map.mmd` and `demo/map.mmd`.
+3. Run `npm run build --workspace bapX-demo` and `npm run lint --workspace bapX-demo`.
+4. Run the repo build/check commands that are not blocked by pre-existing source breakage.
+5. Run browser validation for UI-visible changes.
+6. Record blocked checks with exact errors instead of silently skipping them.
+
+Do not publish, tag, or claim release completion while validation is blocked.
 
 ## Errors
 

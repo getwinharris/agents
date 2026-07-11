@@ -187,7 +187,7 @@ Final validation:
 - A clean packed-package consumer compiled strict TypeScript with custom Hono
   bindings and variables and without `@flue/runtime`.
 - Scoped Biome/Prettier formatting, Knip, `git diff --check`, stale-claim
-  searches, and the root `pnpm run check` all passed.
+  searches, and the root `npm run check` all passed.
 - A final fresh pack of all three provider packages after the last type-only
   cleanup again confirmed that their tarballs contain the ingress build and
   declarations but no removed client/component modules or `@flue/runtime`
@@ -1148,7 +1148,7 @@ pnpm --dir packages/cli run build
 pnpm --dir packages/cli run test
 pnpm --dir apps/docs run check
 pnpm --dir apps/docs run build
-pnpm run check
+npm run check
 ```
 
 Also:

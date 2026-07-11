@@ -14,12 +14,6 @@ export default {
 			},
 		},
 		{
-			files: ['**/pnpm-lock.yaml'],
-			options: {
-				requirePragma: true,
-			},
-		},
-		{
 			files: ['**/*.jsonc'],
 			options: {
 				trailingComma: 'none',

@@ -105,6 +105,6 @@ bapX add database postgres
 ```
 
 `bapX add database postgres` installs the package, helps you pick a driver, and writes
-the `db.ts`. See the [Postgres guide](https://bapx.in/docs/ecosystem/databases/postgres/)
-for setup and the [Data Persistence API](https://bapx.in/docs/api/data-persistence-api/)
+the `db.ts`. See the [Postgres guide](https://docs.bapx.in/ecosystem/databases/postgres/)
+for setup and the [Data Persistence API](https://docs.bapx.in/api/data-persistence-api/)
 for the adapter contract.

@@ -108,6 +108,6 @@ bapX add database mysql
 ```
 
 The blueprint installs `@bapX/mysql` and `mysql2`, then writes `db.ts`. See the
-[MySQL guide](https://bapx.in/docs/ecosystem/databases/mysql/) for
-setup and the [Data Persistence API](https://bapx.in/docs/api/data-persistence-api/)
+[MySQL guide](https://docs.bapx.in/ecosystem/databases/mysql/) for
+setup and the [Data Persistence API](https://docs.bapx.in/api/data-persistence-api/)
 for the adapter contract.
