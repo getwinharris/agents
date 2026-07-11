@@ -21,6 +21,7 @@
 
 ### Fixes & Other Changes
 
+- Restored the documentation frame, sidebar, header, and article spacing to the original reference geometry by isolating docs styles from the landing-page reset, and replaced every public favicon format with the current bapX icon.
 - Consolidated developer documentation into the single `apps/www` build, restored raw `index.md` responses beside rendered docs, removed the duplicate `apps/docs` application, and corrected subdomain asset and 404 handling.
 - Rebuilt the blog as YAML-frontmatter Markdown under `src/content/blogs`, rendered it with the documentation theme, added category and raw `index.md` routes, and moved the public surface to `blogs.bapx.in`.
 - Standardized repository-owned installation, workspace, CI, test, demo, example, release, and documentation workflows on npm workspaces with one root `package-lock.json`.
