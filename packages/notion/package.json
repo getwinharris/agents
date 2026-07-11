@@ -30,14 +30,14 @@
 		"test:workerd": "vitest run --config vitest.workerd.config.ts"
 	},
 	"dependencies": {
-		"hono": "4.12.22"
+		"hono": "4.12.29"
 	},
 	"peerDependencies": {
-		"@types/node": ">=18",
-		"@notionhq/client": "^5.22.0"
+		"@notionhq/client": "^5.22.0",
+		"@types/node": ">=18"
 	},
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "0.16.15",
+		"@cloudflare/vitest-pool-workers": "0.16.20",
 		"@notionhq/client": "5.22.0",
 		"@types/node": "^22.10.10",
 		"tsdown": "^0.22.0",

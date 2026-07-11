@@ -31,10 +31,10 @@
 	},
 	"dependencies": {
 		"@octokit/webhooks-types": "7.6.1",
-		"hono": "4.12.22"
+		"hono": "4.12.29"
 	},
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "0.16.15",
+		"@cloudflare/vitest-pool-workers": "0.16.20",
 		"tsdown": "^0.22.0",
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.6"

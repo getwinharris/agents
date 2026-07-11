@@ -18,9 +18,9 @@ const posts = (await getCollection('blogs')).sort((a, b) => b.data.pubDate.value
 	publicBaseUrl="https://blogs.bapx.in/"
 	markdownUrl=""
 >
-	<header class="mb-10">
-		<h1 class="m-0 text-5xl font-bold leading-[1.08] tracking-[-0.05em] text-gray-950">Blogs</h1>
-		<p class="mt-4 text-base leading-7 text-gray-600">Announcements, releases, research, and tutorials from the bapX team.</p>
+	<header class="blog-directory-header">
+		<h1 class="blog-directory-title">Blogs</h1>
+		<p class="blog-directory-description">Announcements, releases, research, and tutorials from the bapX team.</p>
 	</header>
 	<ul class="m-0 list-none p-0" role="list">
 		{posts.map((post) => (
@@ -32,3 +32,9 @@ const posts = (await getCollection('blogs')).sort((a, b) => b.data.pubDate.value
 		))}
 	</ul>
 </DocsLayout>
+
+<style>
+	.blog-directory-header { margin-bottom: 2.5rem; }
+	.blog-directory-title { margin: 0; color: var(--docs-text); font-size: 3rem; font-weight: 700; line-height: 1.08; letter-spacing: -0.05em; }
+	.blog-directory-description { margin-top: 1rem; color: var(--docs-muted); font-size: 1rem; line-height: 1.75; }
+</style>

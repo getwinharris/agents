@@ -14,8 +14,8 @@
 		"intercom-client": "*"
 	},
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "0.16.15",
 		"@bapX/cli": "*",
+		"@cloudflare/vitest-pool-workers": "0.16.20",
 		"@types/node": "^22.10.10",
 		"agents": "^0.14.2",
 		"typescript": "^6.0.3",

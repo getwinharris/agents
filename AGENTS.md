@@ -93,6 +93,8 @@ Do not leave documentation, maps, or release notes stale after product changes.
 
 For meaningful repo changes when GitHub is available:
 
+Follow `CONTRIBUTING.md` for accepted contribution types and repository-specific GitHub policy. Repository maintainers and authorized agents may create implementation branches, commits, and pull requests after the required issue or discussion exists; external contributions follow the intake paths documented there.
+
 1. Diagnose first: inspect or reproduce the behavior and identify affected files and line references.
 2. Search existing GitHub issues.
 3. Use an existing matching issue or create one with evidence, affected paths, cause, intended scope, and acceptance checks.

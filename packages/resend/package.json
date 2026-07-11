@@ -30,7 +30,7 @@
 		"test:workerd": "vitest run --config vitest.workerd.config.ts"
 	},
 	"dependencies": {
-		"hono": "4.12.22"
+		"hono": "4.12.29"
 	},
 	"peerDependencies": {
 		"@types/node": ">=20",
@@ -38,7 +38,7 @@
 		"resend": "^6.12.4"
 	},
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "0.16.15",
+		"@cloudflare/vitest-pool-workers": "0.16.20",
 		"@types/node": "^22.10.10",
 		"resend": "6.12.4",
 		"tsdown": "^0.22.0",
