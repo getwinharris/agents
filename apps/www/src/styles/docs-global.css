@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-@import './bapx.css';
 
 @theme inline {
 	--color-docs-border: var(--docs-border);
@@ -16,6 +15,14 @@
 }
 
 :root {
+	--ink: #ffffff;
+	--body: #dadbdf;
+	--body-mid: #7d8187;
+	--hairline: #212327;
+	--canvas: #0a0a0a;
+	--canvas-card: #191919;
+	--canvas-mid: #363a3f;
+	--shadow-rgb: 0 0 0;
 	--docs-header-height: calc(3.5rem + 1px);
 	--docs-frame-width: 81.875rem;
 	--docs-aside-top: 2rem;
