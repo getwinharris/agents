@@ -900,7 +900,7 @@ function mapCommand(args: MapArgs) {
 				`[bapX] ${args.profile} is missing required path(s):\n${missing.map((item) => `  - ${item}`).join('\n')}`,
 			);
 		}
-		console.error(success(`map.mmd is current for ${root}`));
+		success(`map.mmd is current for ${root}`);
 		return;
 	}
 
@@ -911,7 +911,7 @@ function mapCommand(args: MapArgs) {
 			`[bapX] ${args.profile} is missing required path(s):\n${missing.map((item) => `  - ${item}`).join('\n')}`,
 		);
 	}
-	console.error(success(`wrote ${path.relative(process.cwd(), mapPath) || mapPath}`));
+	success(`wrote ${path.relative(process.cwd(), mapPath) || mapPath}`);
 }
 
 // ─── Main ───────────────────────────────────────────────────────────────────

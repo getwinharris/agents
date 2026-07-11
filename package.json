@@ -10,6 +10,7 @@
 	},
 	"workspaces": [
 		"apps/www",
+		"apps/www/admin",
 		"demo",
 		"examples/*",
 		"packages/*"

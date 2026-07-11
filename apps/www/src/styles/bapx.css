@@ -7,7 +7,12 @@
   --canvas-card: #191919;
   --canvas-mid: #363a3f;
   --accent-sunset: #ff7a17;
-  --accent-dusk: #7c3aed;
+  --accent-deep-violet: #5a50cd;
+  --accent-indigo-violet: #714fd2;
+  --accent-purple: #8851d9;
+  --accent-bright-purple: #a155e1;
+  --accent-light-orchid: #b16be4;
+  --logo-white: #f6f4f9;
 }
 
 /* Override Tailwind gray palette inside bapX-themed containers */
@@ -83,6 +88,40 @@ img[src="/brand/bapx-logo-main.svg"] {
 .bapx-nav a:hover,
 .bapx-nav a.active { color: var(--ink); }
 
+.landing-menu-toggle {
+  display: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,.24);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.landing-menu-toggle svg { width: 1.125rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.landing-mobile-menu {
+  position: absolute;
+  inset: 3.5rem 0 auto;
+  z-index: 60;
+  border-bottom: 1px solid var(--hairline);
+  background: rgba(10,10,10,.98);
+  padding: .75rem 1.25rem 1.25rem;
+}
+.landing-mobile-menu[hidden] { display: none; }
+.landing-mobile-menu a {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--body);
+  font-size: .9375rem;
+}
+.landing-mobile-menu a:last-child { border-bottom: 0; }
+.landing-mobile-menu a:hover,
+.landing-mobile-menu a.active { color: var(--ink); }
+
 .bapx-pill {
   display: inline-flex; align-items: center; min-height: 2.25rem;
   border: 1px solid rgba(255,255,255,.24); border-radius: 9999px;
@@ -92,6 +131,16 @@ img[src="/brand/bapx-logo-main.svg"] {
 .bapx-pill:hover { color: var(--canvas); background: var(--ink); }
 .bapx-pill-primary { background: var(--ink); color: var(--canvas); border-color: var(--ink); }
 .bapx-pill-primary:hover { background: transparent; color: var(--ink); }
+
+@media (max-width: 1023px) {
+  .landing-menu-toggle { display: inline-flex; }
+  .landing-desktop-action { display: none; }
+  body > nav > div { padding-inline: 1rem; }
+}
+
+@media (min-width: 1024px) {
+  .landing-mobile-menu { display: none !important; }
+}
 
 /* ── Typography ──────────────────────────────────────────────────────────── */
 
@@ -533,8 +582,8 @@ img[src="/brand/bapx-logo-main.svg"] {
   line-height: 1.3; margin: 2rem 0 .5rem;
 }
 .blog-content p { margin: 1rem 0; line-height: 1.75; }
-.blog-content a { color: #60a5fa; transition: color .15s; }
-.blog-content a:hover { color: #93c5fd; text-decoration: underline; }
+.blog-content a { color: var(--accent-bright-purple); transition: color .15s; }
+.blog-content a:hover { color: var(--accent-light-orchid); text-decoration: underline; }
 .blog-content code {
   background: var(--canvas-card); padding: .125rem .375rem;
   border-radius: 4px; font-size: .875em; font-family: 'JetBrains Mono', monospace;

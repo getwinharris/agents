@@ -9,7 +9,7 @@ harness and `@bapX/agent` package (forked from Bapx):
 - **Primary package**: `@bapX/agent`
 - **GitHub source**: `getwinharris/agents`
 - **Gateway**: `api.bapx.in/mcp`
-- **Pricing**: $5/mo (5GB workspace), $1/GB scaling
+- **Pricing**: $5/month includes 5 GB workspace storage and agent/workflow hosting; additional storage is $1/GB/month. TTS and STT are included. Customers bring their own AI-provider and connector credentials.
 
 Agents are TypeScript modules (`agents/<name>.ts`). Build agents that can spawn sub-agents,
 use skills (search, deploy, browser), and collaborate via built-in team features.
@@ -56,10 +56,15 @@ A blueprint is a Markdown implementation guide returned by `bapX add`; its kind 
 
 - `map.mmd` — Generated root map for admin/user overviews. Regenerate with `bapX map --root .`; validate with `bapX map --root . --check`.
 - `apps/www/` — Tracked Astro web surface for `bapx.in`, `docs.bapx.in`, `blogs.bapx.in`, `platform.bapx.in`, `admin.bapx.in`, and related public pages. Do not create another frontend root for the same surfaces.
+- `apps/www/admin/` — Admin subdomain application copied from the canonical demo by explicit product direction. It builds through the `apps-www` workspace into `apps/www/dist/admin/`; keep the copied Admin implementation aligned with relevant demo chat/runtime improvements without copying generated `dist` artifacts.
+- `internal-docs/` — Repository-internal implementation and operations documentation for bapX agents and maintainers. It is not published on `docs.bapx.in`.
+- `platform.bapx.in` — Account and business control plane. Every account owns a user-level OKF workspace; every new or imported project lives under `users/<username>/<business-slug>/projects/<project-slug>/`. Platform owns authentication, businesses, members, projects, storage, billing, API keys, connectors, MCP configuration, and business/project observability.
+- `admin.bapx.in` — The bapX business operating surface scoped to `/root/bapx.in`. Reuse the canonical demo's real React agent conversation inside the existing `apps/www` build; preserve the workspace editor under Projects and follow `internal-docs/admin-surface.md`. Its integration menu is MCPs, not Plugins. Do not create a duplicate admin frontend.
+- `agents.bapx.in` — The customer business operating surface scoped to `users/<username>/<business-slug>/` and its projects. It uses the same people, agents, automations, projects, and tool model as admin with customer-level authority.
 - `demo/` — Canonical demo app source. Do not duplicate it as `users/demo`; adapt it only into real user projects when explicitly needed.
 - `examples/` — Canonical integration examples. Do not duplicate examples under `users/` or `apps/`.
 - `packages/runtime/` — Runtime library (`@bapX/runtime`): sessions, agent harnesses, tools, and sandbox plumbing.
-- `packages/cli/` — CLI and build/dev tooling (`@bapX/cli`): Vite build graph, target integration, discovery, and configuration.
+- `packages/cli/` — Internal bapX build, operations, map, development, and maintenance tooling. It is not an installable customer product and must not be presented on `docs.bapx.in` as an external workflow.
 - `examples/hello-world/` — General runtime integration fixture.
 - `examples/cloudflare/` — Cloudflare integration fixture.
 - `examples/imported-skill/` — Packaged skill and release fixture.
@@ -80,14 +85,22 @@ For meaningful code, UI, docs, CLI, map, workflow, or structure changes:
 
 ## Product Development Docs
 
-When product behavior changes, update docs in the same change:
+Keep the two documentation audiences separate:
 
-- CLI/runtime/API behavior: update `apps/www/src/content/docs/`.
+- `apps/www/src/content/docs/` is public documentation for external developers and customers. Document stable, supported Platform, MCP, API, connector, agent-operation, and workspace contracts. Do not publish internal CLI/build procedures, package-installation journeys, secrets, VPS-only mechanics, incomplete wiring, or maintainer procedures there.
+- `internal-docs/` is internal documentation for agents and maintainers working on this repository. Document source ownership, implementation topology, filesystem and deployment mechanics, current wiring, incomplete surfaces, operational checks, and shipping procedures.
+
+When behavior changes, update every applicable documentation class in the same change:
+
+- Customer-visible Platform/MCP/API/runtime behavior: update `apps/www/src/content/docs/`.
+- Internal CLI/build/map/development behavior: update `internal-docs/` and the owning package tests; do not add it to public docs navigation.
+- Implementation, ownership, persistence, deployment, or incomplete-wiring changes: update `internal-docs/`.
 - Demo behavior: update `demo/README.md`, `demo/docs/index.md`, and `demo/map.mmd`.
 - Workspace/user/project structure: update `/root/bapx.in/OKF.md`, `/root/bapx.in/AGENTS.md`, workspace maps, and `apps/www/src/content/docs/okf/`.
 - Release-facing changes: update `CHANGELOG.md`.
+- Public release, announcement, research, tutorial, or SEO publishing: update YAML-frontmatter Markdown in `apps/www/src/content/blogs/` under exactly one of `announcement`, `release`, `research`, or `tutorials`; follow `internal-docs/blog-publishing.md`.
 
-Do not leave documentation, maps, or release notes stale after product changes.
+Before commit, PR, merge, or shipping, inspect the code diff and record which public docs, internal docs, maps, demo docs, and changelog entries changed. If a class is not applicable, state why in the PR validation evidence. Do not leave documentation, maps, or release notes stale after code changes.
 
 ## GitHub Workflow
 
@@ -166,11 +179,13 @@ For UI changes:
 
 Do not call UI work done when only the Astro build passed.
 
-## CLI and Tooling
+## Internal CLI and Tooling
+
+The CLI is an internal bapX operations surface. Customers use the hosted Platform, Agents, Admin-equivalent business workspace, API, MCP, and connectors; do not instruct customers to install `@bapX/cli` or run `npx bapX`.
 
 Do not create disconnected tools. New repo operations belong in one of:
 
-- `packages/cli/bin/bapX.ts` for user-facing CLI commands.
+- `packages/cli/bin/bapX.ts` for internal bapX operations commands.
 - The nearest package `scripts` block for package-local build/test/dev operations.
 - `demo/` source and `demo/package.json` scripts for demo-only tools and validation.
 - The admin UI/API when the operation is an operator workflow.

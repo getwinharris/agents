@@ -5,7 +5,15 @@ export const collections = {
 	docs: defineCollection({
 		loader: glob({
 			base: './src/content/docs',
-			pattern: '**/[^_]*.{markdown,mdown,mkdn,mkd,mdwn,md,mdx}',
+			pattern: [
+				'**/[^_]*.{markdown,mdown,mkdn,mkd,mdwn,md,mdx}',
+				'!cli/**',
+				'!guide/**',
+				'!api/**',
+				'!sdk/**',
+				'!ecosystem/**',
+				'!reference/**',
+			],
 		}),
 		schema: z.object({
 			title: z.string(),

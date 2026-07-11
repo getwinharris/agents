@@ -2,6 +2,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createPlatformStore } from './src/server/platform-store.mjs';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(dirname, 'dist');
@@ -9,6 +10,7 @@ const port = parseInt(process.env.PORT || '3002', 10);
 const dataDir = path.resolve(dirname, 'data');
 const postsFile = path.join(dataDir, 'posts.json');
 const workspaceRoot = process.env.WORKSPACE_ROOT || path.resolve(dirname, '../../..');
+const platformStore = createPlatformStore({ workspaceRoot });
 
 // Hostname -> path prefix mapping for subdomain-based serving.
 const HOST_PREFIX = {
@@ -109,13 +111,61 @@ function parseBody(req) {
 		});
 		req.on('end', () => {
 			try {
-				resolve(JSON.parse(body));
+				const type = req.headers['content-type'] || '';
+				if (type.includes('application/x-www-form-urlencoded')) {
+					resolve(Object.fromEntries(new URLSearchParams(body)));
+				} else resolve(JSON.parse(body));
 			} catch {
 				reject(new Error('Invalid JSON'));
 			}
 		});
 		req.on('error', reject);
 	});
+}
+
+function redirect(res, location) {
+	res.writeHead(303, { Location: location });
+	res.end();
+}
+
+function setSessionCookie(res, token) {
+	res.setHeader('Set-Cookie', `bapx_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000`);
+}
+
+async function handleAuthAPI(req, res, urlPath) {
+	if (req.method === 'POST' && urlPath === '/api/auth/signup') {
+		try {
+			const body = await parseBody(req);
+			const socialLinks = {};
+			for (const [key, value] of Object.entries(body)) if (key.startsWith('social_') && value) socialLinks[key.slice(7)] = value;
+			const result = await platformStore.signup({
+				username: body.username, name: body.name, email: body.email, password: body.password,
+				business: { name: body.business_name, slug: body.business_slug, website: body.website || null, socialLinks },
+			});
+			setSessionCookie(res, platformStore.createSession(result.account.id).token);
+			redirect(res, 'https://platform.bapx.in/');
+		} catch (error) {
+			redirect(res, `/signup/?error=${encodeURIComponent(error.message)}`);
+		}
+		return true;
+	}
+	if (req.method === 'POST' && urlPath === '/api/auth/login') {
+		const body = await parseBody(req).catch(() => ({}));
+		const account = await platformStore.authenticatePassword(body.identity, body.password);
+		if (!account) redirect(res, '/login/?error=Invalid%20username%2C%20email%2C%20or%20password');
+		else {
+			setSessionCookie(res, platformStore.createSession(account.id).token);
+			redirect(res, 'https://platform.bapx.in/');
+		}
+		return true;
+	}
+	if (req.method === 'GET' && urlPath === '/api/auth/session') {
+		const token = String(req.headers.cookie || '').split(';').map((part) => part.trim()).find((part) => part.startsWith('bapx_session='))?.slice(13);
+		const account = platformStore.getSessionAccount(token);
+		jsonResponse(res, account ? 200 : 401, { account });
+		return true;
+	}
+	return false;
 }
 
 // --- Workspace API router ---
@@ -309,14 +359,18 @@ http
 		const host = req.headers.host?.toLowerCase().replace(/:\d+$/, '') ?? 'bapx.in';
 		const prefix = HOST_PREFIX[host] ?? '';
 		const urlPath = req.url?.split('?')[0] ?? '';
+		if (urlPath.startsWith('/api/auth/')) {
+			const handled = await handleAuthAPI(req, res, urlPath);
+			if (handled) return;
+		}
 
 		// Admin API routes
 		if (prefix === '/admin' && urlPath.startsWith('/api/')) {
-			if (urlPath.startsWith('/admin/api/ws/')) {
+			if (urlPath.startsWith('/api/ws/')) {
 				const handled = await handleWorkspaceAPI(req, res, urlPath);
 				if (handled) return;
 			}
-			const handled = await handleAdminAPI(req, res, urlPath);
+			const handled = await handleAdminAPI(req, res, `/admin${urlPath}`);
 			if (handled) return;
 		}
 
@@ -331,6 +385,10 @@ http
 		let finalPath = candidates.find(
 			(candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isFile(),
 		);
+		if (!finalPath && prefix === '/admin' && req.method === 'GET' && !path.extname(urlPath)) {
+			const adminEntry = path.join(root, 'admin', 'index.html');
+			if (fs.existsSync(adminEntry)) finalPath = adminEntry;
+		}
 
 		if (!finalPath) {
 			res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });

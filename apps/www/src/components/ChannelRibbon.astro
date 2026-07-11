@@ -16,7 +16,7 @@ const items = channels.filter((channel) => channel.icon);
       {items.map((app, index) => (
         <a href={app.href} aria-label={app.name} title={app.name} class:list={["group block w-full max-w-[64px]", index >= 12 && "hidden sm:block"]}>
           <span
-            class="grid aspect-square place-items-center overflow-hidden rounded-[22%] border border-gray-950/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.24),0_1px_2px_rgba(17,24,39,0.12),0_4px_10px_rgba(17,24,39,0.1)] transition duration-200 group-hover:scale-105 group-hover:border-blue-600/60"
+            class="grid aspect-square place-items-center overflow-hidden rounded-[22%] border border-gray-950/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.24),0_1px_2px_rgba(17,24,39,0.12),0_4px_10px_rgba(17,24,39,0.1)] transition duration-200 group-hover:scale-105 group-hover:border-[#A155E1]/60"
             style={`background: ${app.background}`}
           >
             <img

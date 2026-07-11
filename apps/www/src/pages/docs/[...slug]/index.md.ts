@@ -4,7 +4,8 @@ import { loadMarkdownSources } from '../../../lib/markdown-source';
 
 export function getStaticPaths() {
 	const root = path.resolve('src/content/docs');
-	return loadMarkdownSources(root).map(({ id, source }) => ({
+	const internalPrefixes = ['cli/', 'guide/', 'api/', 'sdk/', 'ecosystem/', 'reference/'];
+	return loadMarkdownSources(root).filter(({ id }) => !internalPrefixes.some((prefix) => id.startsWith(prefix))).map(({ id, source }) => ({
 		params: { slug: id },
 		props: { source },
 	}));
