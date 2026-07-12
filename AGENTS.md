@@ -56,6 +56,7 @@ A blueprint is a Markdown implementation guide returned by `bapX add`; its kind 
 
 - `map.mmd` — Generated root map for admin/user overviews. Regenerate with `bapX map --root .`; validate with `bapX map --root . --check`.
 - `apps/www/` — Tracked Astro web surface for `bapx.in`, `docs.bapx.in`, `blogs.bapx.in`, `platform.bapx.in`, `admin.bapx.in`, and related public pages. Do not create another frontend root for the same surfaces.
+- `apps/ecosystem-catalog.ts` — Canonical connection catalog shared by the landing and public Ecosystem. Every catalog entry must resolve to a customer-facing rendered page and raw Markdown route; internal install/build details remain excluded.
 - `apps/www/admin/` — Admin subdomain application copied from the canonical demo by explicit product direction. It builds through the `apps-www` workspace into `apps/www/dist/admin/`; keep the copied Admin implementation aligned with relevant demo chat/runtime improvements without copying generated `dist` artifacts.
 - `internal-docs/` — Repository-internal implementation and operations documentation for bapX agents and maintainers. It is not published on `docs.bapx.in`.
 - `platform.bapx.in` — Account and business control plane. Every account owns a user-level OKF workspace; every new or imported project lives under `users/<username>/<business-slug>/projects/<project-slug>/`. Platform owns authentication, businesses, members, projects, storage, billing, API keys, connectors, MCP configuration, and business/project observability.

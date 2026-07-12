@@ -1,13 +1,11 @@
 ---
 import DocsLayout from '../../../layouts/DocsLayout.astro';
 import { channels, databases, deploy, sandboxes, tooling } from '../../../../../ecosystem-catalog';
-
-return Astro.redirect('/mcp/overview/', 302);
 ---
 
 <DocsLayout
 	title="Ecosystem"
-	description="Browse deployment guides, channels, databases, sandbox adapters, and developer tooling for Bapx applications."
+	description="Browse business connectors, data services, agent workspaces, hosting connections, and observability tools available across the bapX ecosystem."
 	currentSlug="ecosystem"
 	headings={[]}
 	showTableOfContents={false}
@@ -15,25 +13,25 @@ return Astro.redirect('/mcp/overview/', 302);
 >
 	<div class="ecosystem-directory">
 		<header class="mb-4">
-			<h1 class="m-0 text-5xl font-bold leading-[1.08] tracking-[-0.05em] text-gray-950 max-docs-desktop:text-[2.375rem]">Ecosystem</h1>
-			<p class="mt-4 max-w-175 text-base leading-7 text-gray-600">Deploy Bapx applications and extend them with channels, databases, sandbox environments, and the tools your agents already use.</p>
+			<h1 class="m-0 text-5xl font-bold leading-[1.08] tracking-[-0.05em] text-[var(--ink)] max-docs-desktop:text-[2.375rem]">Ecosystem</h1>
+			<p class="mt-4 max-w-175 text-base leading-7 text-[var(--body)]">Connect your bapX business to communication channels, data services, isolated agent workspaces, hosting providers, and observability tools. No bapX CLI installation is required.</p>
 		</header>
 
 		<label class="relative mb-14 block" for="ecosystem-search">
 			<span class="sr-only">Search ecosystem</span>
-			<svg class="pointer-events-none absolute top-1/2 left-3.5 size-4.5 -translate-y-1/2 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+			<svg class="pointer-events-none absolute top-1/2 left-3.5 size-4.5 -translate-y-1/2 text-[var(--body-mid)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 				<circle cx="11" cy="11" r="7"></circle>
 				<path d="m20 20-3.8-3.8"></path>
 			</svg>
-			<input id="ecosystem-search" class="h-11 w-full rounded-lg border border-transparent bg-docs-code pr-3.5 pl-10.5 text-base leading-none text-gray-950 outline-none transition-colors duration-150 placeholder:text-gray-500 hover:border-gray-300 focus:border-gray-500 focus:bg-white" type="search" placeholder="Search ecosystem..." autocomplete="off" />
+			<input id="ecosystem-search" class="h-11 w-full rounded-lg border border-transparent bg-docs-code pr-3.5 pl-10.5 text-base leading-none text-[var(--ink)] outline-none transition-colors duration-150 placeholder:text-[var(--body-mid)] hover:border-[var(--canvas-mid)] focus:border-[#8851d9]" type="search" placeholder="Search ecosystem..." autocomplete="off" />
 		</label>
 
 		<section class="ecosystem-section mb-14" data-ecosystem-section>
-			<h2 id="channels" class="mb-6 scroll-mt-20 text-3xl font-semibold tracking-[-0.03em] text-gray-950">Channels</h2>
+			<h2 id="channels" class="mb-6 scroll-mt-20 text-3xl font-semibold tracking-[-0.03em] text-[var(--ink)]">Channels and connectors</h2>
 			<ul class="ecosystem-grid" role="list">
 				{channels.map((item) => (
 					<li data-ecosystem-item data-search={`${item.name} ${item.keywords ?? ''}`.toLowerCase()}>
-						<a class="ecosystem-item group" href={item.href} aria-label={item.name}>
+						<a class="ecosystem-item group" href={item.href.replace(/^\/docs/, '')} aria-label={item.name}>
 							<span class="ecosystem-icon" style={`--ecosystem-icon-bg: ${item.background}`}>
 								{item.icon ? (
 									<img class:list={['ecosystem-logo', item.iconClass]} src={item.icon} alt="" loading="lazy" />
@@ -64,11 +62,11 @@ return Astro.redirect('/mcp/overview/', 302);
 		</section>
 
 		<section class="ecosystem-section mb-14" data-ecosystem-section>
-			<h2 id="sandboxes" class="mb-6 scroll-mt-20 text-3xl font-semibold tracking-[-0.03em] text-gray-950">Sandboxes</h2>
+			<h2 id="sandboxes" class="mb-6 scroll-mt-20 text-3xl font-semibold tracking-[-0.03em] text-[var(--ink)]">Agent workspaces</h2>
 			<ul class="ecosystem-grid" role="list">
 				{sandboxes.map((item) => (
 					<li data-ecosystem-item data-search={`${item.name} ${item.keywords ?? ''}`.toLowerCase()}>
-						<a class="ecosystem-item group" href={item.href} aria-label={item.name}>
+						<a class="ecosystem-item group" href={item.href.replace(/^\/docs/, '')} aria-label={item.name}>
 							<span class="ecosystem-icon" style={`--ecosystem-icon-bg: ${item.background}`}>
 								{
 									item.icon ? (
@@ -119,11 +117,11 @@ return Astro.redirect('/mcp/overview/', 302);
 		</section>
 
 		<section class="ecosystem-section mb-14" data-ecosystem-section>
-			<h2 id="deploy" class="mb-6 scroll-mt-20 text-3xl font-semibold tracking-[-0.03em] text-gray-950">Deploy</h2>
+			<h2 id="deploy" class="mb-6 scroll-mt-20 text-3xl font-semibold tracking-[-0.03em] text-[var(--ink)]">Hosting and infrastructure</h2>
 			<ul class="ecosystem-grid" role="list">
 				{deploy.map((item) => (
 					<li data-ecosystem-item data-search={`${item.name} ${item.keywords ?? ''}`.toLowerCase()}>
-						<a class="ecosystem-item group" href={item.href} aria-label={item.name}>
+						<a class="ecosystem-item group" href={item.href.replace(/^\/docs/, '')} aria-label={item.name}>
 							<span class="ecosystem-icon" style={`--ecosystem-icon-bg: ${item.background}`}>
 								{item.icon ? (
 									<img class:list={['ecosystem-logo', item.iconClass]} src={item.icon} alt="" loading="lazy" />
@@ -139,11 +137,11 @@ return Astro.redirect('/mcp/overview/', 302);
 		</section>
 
 		<section class="ecosystem-section mb-14" data-ecosystem-section>
-			<h2 id="databases" class="mb-6 scroll-mt-20 text-3xl font-semibold tracking-[-0.03em] text-gray-950">Databases</h2>
+			<h2 id="databases" class="mb-6 scroll-mt-20 text-3xl font-semibold tracking-[-0.03em] text-[var(--ink)]">Data and storage</h2>
 			<ul class="ecosystem-grid" role="list">
 				{databases.map((item) => (
 					<li data-ecosystem-item data-search={`${item.name} ${item.keywords ?? ''}`.toLowerCase()}>
-						<a class="ecosystem-item group" href={item.href} aria-label={item.name}>
+						<a class="ecosystem-item group" href={item.href.replace(/^\/docs/, '')} aria-label={item.name}>
 							<span class="ecosystem-icon" style={`--ecosystem-icon-bg: ${item.background}`}>
 								{item.icon ? (
 									<img class:list={['ecosystem-logo', item.iconClass]} src={item.icon} alt="" loading="lazy" />
@@ -176,11 +174,11 @@ return Astro.redirect('/mcp/overview/', 302);
 		</section>
 
 		<section class="ecosystem-section mb-14" data-ecosystem-section>
-			<h2 id="tooling" class="mb-6 scroll-mt-20 text-3xl font-semibold tracking-[-0.03em] text-gray-950">Tooling</h2>
+			<h2 id="tooling" class="mb-6 scroll-mt-20 text-3xl font-semibold tracking-[-0.03em] text-[var(--ink)]">Observability and quality</h2>
 			<ul class="ecosystem-grid" role="list">
 				{tooling.map((item) => (
 					<li data-ecosystem-item data-search={`${item.name} ${item.keywords ?? ''}`.toLowerCase()}>
-						<a class="ecosystem-item group" href={item.href} aria-label={item.name}>
+						<a class="ecosystem-item group" href={item.href.replace(/^\/docs/, '')} aria-label={item.name}>
 							<span class="ecosystem-icon" style={`--ecosystem-icon-bg: ${item.background}`}>
 								{item.icon ? (
 									<img class:list={['ecosystem-logo', item.iconClass]} src={item.icon} alt="" loading="lazy" />
@@ -196,7 +194,7 @@ return Astro.redirect('/mcp/overview/', 302);
 		</section>
 
 
-		<p class="ecosystem-empty hidden rounded-2xl border border-dashed border-gray-300 py-12 text-center text-gray-500" data-ecosystem-empty>No ecosystem integrations match that search.</p>
+		<p class="ecosystem-empty hidden rounded-2xl border border-dashed border-[var(--hairline)] py-12 text-center text-[var(--body-mid)]" data-ecosystem-empty>No ecosystem connections match that search.</p>
 	</div>
 </DocsLayout>
 
@@ -274,7 +272,7 @@ return Astro.redirect('/mcp/overview/', 302);
 
 	.ecosystem-item:hover .ecosystem-icon,
 	.ecosystem-item:focus-visible .ecosystem-icon {
-		border-color: rgb(37 99 235 / 0.65);
+		border-color: rgb(136 81 217 / 0.7);
 		box-shadow:
 			inset 0 1px 0 rgb(255 255 255 / 0.24),
 			0 1px 2px rgb(17 24 39 / 0.14),
@@ -371,7 +369,7 @@ return Astro.redirect('/mcp/overview/', 302);
 
 	.ecosystem-name {
 		max-width: none;
-		color: #25262b;
+		color: var(--body);
 		font-size: 0.74rem;
 		font-weight: 500;
 		line-height: 1.2;

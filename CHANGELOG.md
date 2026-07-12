@@ -28,6 +28,7 @@
 
 ### Fixes & Other Changes
 
+- Restored the customer-facing Ecosystem directory and all catalog connection URLs for channels/connectors, data services, agent workspaces, hosting providers, and observability tools. Public pages describe hosted ownership, credentials, MCP access, and truthful availability while internal npm, CLI, build, and adapter instructions remain private (#27).
 - Corrected the Durable Execution links in the root and internal CLI READMEs to the published `/concepts/durable-execution/` page (#12).
 - The landing header now exposes the complete primary navigation through an accessible mobile disclosure instead of hiding Docs, Blogs, Media Hub, Platform, and Agents below the desktop breakpoint (#24).
 - `bapX map` no longer prints a stray `undefined` line after successful map generation or validation.
