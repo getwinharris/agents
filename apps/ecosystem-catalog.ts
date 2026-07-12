@@ -11,6 +11,10 @@ export interface EcosystemItem {
 	homepageRank?: number;
 }
 
+export function ecosystemPublicHref(item: EcosystemItem): string {
+	return `https://docs.bapx.in${item.href.replace(/^\/docs/, '')}`;
+}
+
 function sortEcosystemItems(a: EcosystemItem, b: EcosystemItem): number {
 	return (a.sortName ?? a.name).localeCompare(b.sortName ?? b.name);
 }

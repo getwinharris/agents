@@ -46,3 +46,5 @@ The dashboard controls for creating and observing these automations are not yet 
 The $5/month plan includes 5 GB storage, agent/workflow hosting, TTS, and STT. Additional storage costs $1/GB/month. Customers bring their own AI-provider tokens and external connector credentials.
 
 Continue with [Platform overview](/platform/overview/) or [MCP overview](/mcp/overview/).
+
+Browse every available connection in the [Ecosystem directory](/ecosystem/).

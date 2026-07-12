@@ -2,7 +2,7 @@
 import "../styles/global.css";
 import { Code } from "astro:components";
 import { HERO, COPY_PROMPT } from "../code-snippets";
-import { homepageEcosystemItems } from "../../../ecosystem-catalog";
+import { ecosystemPublicHref, homepageEcosystemItems } from "../../../ecosystem-catalog";
 
 ---
 
@@ -144,7 +144,7 @@ import { homepageEcosystemItems } from "../../../ecosystem-catalog";
           </div>
           <div class="client-grid">
             {homepageEcosystemItems.slice(0, 12).map((app) => (
-              <a href={app.href} class="client-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100px; padding: 1rem; text-align: center;">
+              <a href={ecosystemPublicHref(app)} class="client-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100px; padding: 1rem; text-align: center;">
                 {app.icon ? (
                   <img src={app.icon} alt={app.name} style="max-height: 2.5rem; max-width: 80%; filter: brightness(0) invert(1); opacity: .6;" />
                 ) : (
@@ -152,7 +152,7 @@ import { homepageEcosystemItems } from "../../../ecosystem-catalog";
                 )}
               </a>
             ))}
-            <a href="/docs/ecosystem/" class="client-card" style="display: flex; align-items: center; justify-content: center; min-height: 120px;">
+            <a href="https://docs.bapx.in/ecosystem/" class="client-card" style="display: flex; align-items: center; justify-content: center; min-height: 120px;">
               <span style="color: var(--body-mid); font-size: .875rem;">View all &rarr;</span>
             </a>
           </div>

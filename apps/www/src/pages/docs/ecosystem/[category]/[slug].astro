@@ -1,0 +1,50 @@
+---
+import DocsLayout from '../../../../layouts/DocsLayout.astro';
+import { customerEcosystemEntries, type CustomerEcosystemEntry } from '../../../../lib/customer-ecosystem';
+
+export function getStaticPaths() {
+	return customerEcosystemEntries.map((entry) => ({
+		params: { category: entry.category, slug: entry.slug },
+		props: { entry },
+	}));
+}
+
+const { entry } = Astro.props as { entry: CustomerEcosystemEntry };
+const currentSlug = `ecosystem/${entry.category}/${entry.slug}`;
+---
+
+<DocsLayout
+	title={entry.item.name}
+	description={entry.purpose}
+	lastReviewedAt={new Date('2026-07-12')}
+	currentSlug={currentSlug}
+	headings={[]}
+	showTableOfContents={false}
+>
+	<article class="blog-content">
+		<p class="body-lg">{entry.purpose}</p>
+
+		<h2>How it fits into bapX</h2>
+		<p>
+			{entry.item.name} is listed under <strong>{entry.categoryTitle}</strong>. Connections belong to a business and are scoped to the projects, people, agents, and automations that the business authorises.
+		</p>
+		<p>
+			Use Platform to manage connection ownership and credentials. Use Agents to select the connection during business work, and use MCP permissions when the capability is exposed through an MCP server or tool.
+		</p>
+
+		<h2>Credentials and access</h2>
+		<ul>
+			<li>Bring credentials for the external provider when the connection requires them.</li>
+			<li>Keep credentials at business or project scope; do not place secrets in project Markdown, source files, or chat messages.</li>
+			<li>Grant only the agents, automations, and people that need this connection.</li>
+			<li>Review connection activity through business and project observability when that control is available.</li>
+		</ul>
+
+		<h2>Availability</h2>
+		<p>
+			This page records the supported bapX ecosystem capability. Self-service connection controls are being enabled incrementally in Platform. Until a control appears in your business workspace, contact the bapX team rather than installing an internal bapX package or CLI.
+		</p>
+
+		<p><a href="/ecosystem/">Return to the Ecosystem</a> · <a href="/platform/overview/">Platform overview</a> · <a href="/mcp/overview/">MCP overview</a></p>
+	</article>
+</DocsLayout>

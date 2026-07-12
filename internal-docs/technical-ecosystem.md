@@ -16,6 +16,8 @@ This is the internal entry point for bapX agents and team members building and o
 
 The source Markdown remains valuable technical documentation even when it is not part of the public content collection. Update it with the owning code until it is migrated into dedicated internal paths. Never restore it to public navigation merely because an internal source exists.
 
+Customer-facing Ecosystem pages are generated from `apps/ecosystem-catalog.ts` by `apps/www/src/pages/docs/ecosystem/`. They intentionally describe business purpose, Platform/MCP ownership, credentials, and availability without copying internal installation or adapter instructions. A catalog item is incomplete if its rendered page or raw `index.md` route is missing.
+
 ## Customer boundary
 
 Customers use hosted bapX surfaces: Platform, Agents, MCPs, connectors, supported hosted APIs, and their business/project workspace. They are not instructed to install `@bapX/cli`, build the runtime, operate deployment targets, or install internal SDK packages.

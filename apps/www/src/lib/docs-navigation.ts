@@ -53,7 +53,7 @@ const allDocsSections: DocsSection[] = [
 				items: [{ title: 'Overview', slug: 'ecosystem', icon: 'home' }],
 			},
 			{
-				title: 'Channels',
+				title: 'Channels and connectors',
 				items: [
 					{ title: 'Discord', slug: 'ecosystem/channels/discord' },
 					{ title: 'Facebook', slug: 'ecosystem/channels/messenger' },
@@ -75,7 +75,7 @@ const allDocsSections: DocsSection[] = [
 				],
 			},
 			{
-				title: 'Sandboxes',
+				title: 'Agent workspaces',
 				items: [
 					{ title: 'boxd', slug: 'ecosystem/sandboxes/boxd' },
 					{ title: 'Cloudflare Shell', slug: 'ecosystem/sandboxes/cloudflare-shell' },
@@ -86,11 +86,12 @@ const allDocsSections: DocsSection[] = [
 					{ title: 'islo', slug: 'ecosystem/sandboxes/islo' },
 					{ title: 'Mirage', slug: 'ecosystem/sandboxes/mirage' },
 					{ title: 'Modal', slug: 'ecosystem/sandboxes/modal' },
+					{ title: 'smolvm', slug: 'ecosystem/sandboxes/smolvm' },
 					{ title: 'Vercel Sandbox', slug: 'ecosystem/sandboxes/vercel' },
 				],
 			},
 			{
-				title: 'Deploy',
+				title: 'Hosting and infrastructure',
 				items: [
 					{ title: 'AWS', slug: 'ecosystem/deploy/aws' },
 					{ title: 'Cloudflare', slug: 'ecosystem/deploy/cloudflare' },
@@ -105,7 +106,7 @@ const allDocsSections: DocsSection[] = [
 				],
 			},
 			{
-				title: 'Databases',
+				title: 'Data and storage',
 				items: [
 					{ title: 'libSQL', slug: 'ecosystem/databases/libsql' },
 					{ title: 'MongoDB', slug: 'ecosystem/databases/mongodb' },
@@ -118,7 +119,7 @@ const allDocsSections: DocsSection[] = [
 				],
 			},
 			{
-				title: 'Tooling',
+				title: 'Observability and quality',
 				items: [
 					{ title: 'Braintrust', slug: 'ecosystem/tooling/braintrust' },
 					{ title: 'OpenTelemetry', slug: 'ecosystem/tooling/opentelemetry' },
@@ -133,12 +134,6 @@ const allDocsSections: DocsSection[] = [
 		title: 'Platform',
 		landingSlug: 'platform/overview',
 		groups: [{ title: 'Platform', items: [{ title: 'Overview', slug: 'platform/overview' }] }],
-	},
-	{
-		key: 'ecosystem',
-		title: 'Ecosystem',
-		landingSlug: 'customer-ecosystem/overview',
-		groups: [{ title: 'Ecosystem', items: [{ title: 'Overview', slug: 'customer-ecosystem/overview' }] }],
 	},
 	{
 		key: 'mcp',
@@ -162,9 +157,7 @@ const allDocsSections: DocsSection[] = [
 	},
 ];
 
-export const docsSections = allDocsSections.filter((section, index, sections) =>
-	section.key !== 'ecosystem' || index === sections.findLastIndex((candidate) => candidate.key === 'ecosystem'),
-);
+export const docsSections = allDocsSections;
 
 export function docsHref(slug: string, anchor?: string) {
 	return `${import.meta.env.BASE_URL}${slug}/${anchor ? `#${anchor}` : ''}`;
