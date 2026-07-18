@@ -4,6 +4,7 @@
 
 ### Fixes & Other Changes
 
+- Synchronized the npm lockfile from a clean Node 24/npm 11.6.2 environment so a clean `npm ci` includes required optional and transitive packages; documented the reproducible container validation workflow and ownership of remaining upstream deprecation warnings.
 - The Media Hub services grid now collapses on mobile without horizontal overflow, and the docs subdomain root immediately redirects to the quickstart with the correct public host.
 
 ### Breaking Changes
