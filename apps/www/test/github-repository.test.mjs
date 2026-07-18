@@ -32,6 +32,29 @@ test('preserves canonical GitHub owner and repository spelling', () => {
 	});
 });
 
+test('enforces GitHub repository name length after removing the clone suffix', () => {
+	const maximumLengthName = 'a'.repeat(100);
+	const overLengthName = 'a'.repeat(101);
+
+	for (const reference of [
+		`https://github.com/getwinharris/${maximumLengthName}.git`,
+		`git@github.com:getwinharris/${maximumLengthName}.git`,
+		`ssh://git@github.com/getwinharris/${maximumLengthName}.git`,
+	]) {
+		const result = resolveGitHubRepositoryReference(reference);
+		assert.equal(result.repository, maximumLengthName);
+		assert.equal(result.fullName, `getwinharris/${maximumLengthName}`);
+	}
+
+	for (const reference of [
+		`https://github.com/getwinharris/${overLengthName}.git`,
+		`git@github.com:getwinharris/${overLengthName}.git`,
+		`ssh://git@github.com/getwinharris/${overLengthName}.git`,
+	]) {
+		assertReferenceError(reference, 'invalid_repository');
+	}
+});
+
 test('rejects non-GitHub hosts and unsupported protocols', () => {
 	assertReferenceError('https://gitlab.com/getwinharris/agents', 'unsupported_host');
 	assertReferenceError('git://github.com/getwinharris/agents.git', 'unsupported_protocol');
