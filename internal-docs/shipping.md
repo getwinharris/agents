@@ -28,6 +28,22 @@ Update every applicable owner. Do not copy internal implementation notes into pu
 - Use a real browser for UI-visible behavior.
 - Search for stale terms, contradicted pricing, placeholders, dead links/buttons, and claims about incomplete wiring.
 
+### Supported clean-install environment
+
+The root package contract is Node 24 with the exact npm version declared by `packageManager` in `package.json`. When the VPS host does not provide that toolchain, validate a clean install in the pinned container without changing host packages:
+
+```bash
+docker run --rm \
+  -v "$PWD:/work" \
+  -w /work \
+  node:24-alpine \
+  sh -lc 'npx --yes npm@11.6.2 ci --no-audit --no-fund'
+```
+
+Regenerate `package-lock.json` only from a checkout with no `node_modules/` directory. A stale install tree can cause `npm install --package-lock-only` to preserve missing optional or transitive entries. Review the lockfile diff, then prove it with `npm ci` in a second clean environment.
+
+The current install warnings are owned upstream: `scmp@2.1.0` comes through the Twilio development package; `prebuild-install@7.1.3` comes through optional MongoDB zstd support; `node-domexception@1.0.0` comes through the Google GenAI dependency chain; and `uuid@10.0.0` comes through Microsoft Bot Framework schema. Track upgrades at those direct owners instead of adding root overrides that can violate their supported ranges.
+
 ## 4. Record evidence
 
 The commit/PR/ship evidence must include:
