@@ -359,6 +359,13 @@ http
 		const host = req.headers.host?.toLowerCase().replace(/:\d+$/, '') ?? 'bapx.in';
 		const prefix = HOST_PREFIX[host] ?? '';
 		const urlPath = req.url?.split('?')[0] ?? '';
+		if (host === 'docs.bapx.in' && urlPath === '/') {
+			res.writeHead(302, {
+				Location: 'https://docs.bapx.in/getting-started/quickstart/',
+			});
+			res.end();
+			return;
+		}
 		if (urlPath.startsWith('/api/auth/')) {
 			const handled = await handleAuthAPI(req, res, urlPath);
 			if (handled) return;
