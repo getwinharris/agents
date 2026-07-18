@@ -74,7 +74,8 @@ function inspectRawUrl(value) {
 	const protocol = rawProtocol.toLowerCase();
 	if (!['https', 'ssh'].includes(protocol)) return { protocol, authority, rawPath };
 
-	if (authority.includes(':')) {
+	const hostAuthority = authority.slice(authority.lastIndexOf('@') + 1);
+	if (hostAuthority.includes(':')) {
 		invalid('ambiguous_reference', 'GitHub repository URL cannot include a port, query, or fragment');
 	}
 	if (protocol === 'ssh' && authority.toLowerCase() !== `git@${GITHUB_HOST}`) {
