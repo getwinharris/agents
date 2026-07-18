@@ -37,13 +37,25 @@ test('rejects non-GitHub hosts and unsupported protocols', () => {
 	assertReferenceError('git://github.com/getwinharris/agents.git', 'unsupported_protocol');
 });
 
-test('rejects credentials, page URLs, ports, queries, and fragments', () => {
+test('rejects credentials, missing SSH users, ports, queries, and fragments', () => {
 	assertReferenceError('https://token@github.com/getwinharris/agents.git', 'embedded_credentials');
 	assertReferenceError('git@github.com:password/getwinharris/agents.git', 'unsupported_path');
-	assertReferenceError('https://github.com/getwinharris/agents/issues/35', 'unsupported_path');
+	assertReferenceError('ssh://github.com/getwinharris/agents.git', 'embedded_credentials');
+	assertReferenceError('ssh://user@github.com/getwinharris/agents.git', 'embedded_credentials');
+	assertReferenceError('https://github.com:443/getwinharris/agents.git', 'ambiguous_reference');
+	assertReferenceError('ssh://git@github.com:22/getwinharris/agents.git', 'ambiguous_reference');
 	assertReferenceError('https://github.com:444/getwinharris/agents.git', 'ambiguous_reference');
 	assertReferenceError('https://github.com/getwinharris/agents?tab=readme', 'ambiguous_reference');
 	assertReferenceError('https://github.com/getwinharris/agents#readme', 'ambiguous_reference');
+});
+
+test('rejects page URLs, repeated separators, and empty path segments', () => {
+	assertReferenceError('https://github.com/getwinharris/agents/issues/35', 'unsupported_path');
+	assertReferenceError('https://github.com//getwinharris/agents.git', 'unsupported_path');
+	assertReferenceError('https://github.com/getwinharris//agents.git', 'unsupported_path');
+	assertReferenceError('https://github.com/getwinharris/agents.git//', 'unsupported_path');
+	assertReferenceError('git@github.com:getwinharris//agents.git', 'unsupported_path');
+	assertReferenceError('git@github.com:getwinharris/agents.git//', 'unsupported_path');
 });
 
 test('rejects traversal, malformed identities, and ambiguous input', () => {
