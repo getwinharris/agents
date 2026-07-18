@@ -30,12 +30,21 @@ function normalizeIdentity(owner, repository) {
 	};
 }
 
+function isTraversalSegment(segment) {
+	try {
+		const decoded = decodeURIComponent(segment);
+		return decoded === '.' || decoded === '..';
+	} catch {
+		invalid('ambiguous_reference', 'GitHub repository reference contains invalid encoding');
+	}
+}
+
 function parseExactPath(pathValue, message) {
 	if (!pathValue || pathValue.startsWith('/') || pathValue.endsWith('/') || pathValue.includes('//')) {
 		invalid('unsupported_path', message);
 	}
 	const segments = pathValue.split('/');
-	if (segments.length !== 2 || segments.some((segment) => !segment || segment === '.' || segment === '..')) {
+	if (segments.length !== 2 || segments.some((segment) => !segment || isTraversalSegment(segment))) {
 		invalid('unsupported_path', message);
 	}
 	return segments;
