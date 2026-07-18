@@ -85,6 +85,8 @@ For meaningful code, UI, docs, CLI, map, workflow, or structure changes:
 6. Update docs/content only from the repo's content sources, not from generated `dist/`.
 7. Before finishing, check touched workflows for placeholders, dead buttons, duplicated fallbacks, stale labels, incomplete wiring, and missing docs/map updates.
 
+Before acting, identify the capabilities and limitations of the current execution environment. A remote agent may expose any task-relevant tools or skills, so discover and use the available capabilities intelligently instead of assuming a fixed toolset or local checkout. When repository work runs through a connector-hosted environment, use its available GitHub connector or equivalent repository-management capability as the canonical path for reading and writing repository state. Check available capabilities before declaring work unavailable; never fabricate command output, repository state, browser results, or validation. Preserve the same `AGENTS.md`, architecture, GitHub workflow, documentation, and validation contracts in every environment.
+
 ## Product Development Docs
 
 Keep the two documentation audiences separate:
