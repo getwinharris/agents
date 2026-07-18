@@ -59,6 +59,7 @@ A blueprint is a Markdown implementation guide returned by `bapX add`; its kind 
 - `apps/ecosystem-catalog.ts` — Canonical connection catalog shared by the landing and public Ecosystem. Every catalog entry must resolve to a customer-facing rendered page and raw Markdown route; internal install/build details remain excluded.
 - `apps/www/admin/` — Admin subdomain application copied from the canonical demo by explicit product direction. It builds through the `apps-www` workspace into `apps/www/dist/admin/`; keep the copied Admin implementation aligned with relevant demo chat/runtime improvements without copying generated `dist` artifacts.
 - `internal-docs/` — Repository-internal implementation and operations documentation for bapX agents and maintainers. It is not published on `docs.bapx.in`.
+- `docs/scheduled-research/` — Internal, source-grounded research records produced by approved recurring research workflows. Use plain Markdown without YAML frontmatter, maintain `index.md`, and organize records by durable category rather than provider-specific duplication.
 - `platform.bapx.in` — Account and business control plane. Every account owns a user-level OKF workspace; every new or imported project lives under `users/<username>/<business-slug>/projects/<project-slug>/`. Platform owns authentication, businesses, members, projects, storage, billing, API keys, connectors, MCP configuration, and business/project observability.
 - `admin.bapx.in` — The bapX business operating surface scoped to `/root/bapx.in`. Reuse the canonical demo's real React agent conversation inside the existing `apps/www` build; preserve the workspace editor under Projects and follow `internal-docs/admin-surface.md`. Its integration menu is MCPs, not Plugins. Do not create a duplicate admin frontend.
 - `agents.bapx.in` — The customer business operating surface scoped to `users/<username>/<business-slug>/` and its projects. It uses the same people, agents, automations, projects, and tool model as admin with customer-level authority.
@@ -102,6 +103,21 @@ When behavior changes, update every applicable documentation class in the same c
 - Public release, announcement, research, tutorial, or SEO publishing: update YAML-frontmatter Markdown in `apps/www/src/content/blogs/` under exactly one of `announcement`, `release`, `research`, or `tutorials`; follow `internal-docs/blog-publishing.md`.
 
 Before commit, PR, merge, or shipping, inspect the code diff and record which public docs, internal docs, maps, demo docs, and changelog entries changed. If a class is not applicable, state why in the PR validation evidence. Do not leave documentation, maps, or release notes stale after code changes.
+
+## Scheduled Research
+
+`docs/scheduled-research/` is the repository-owned evidence archive for approved recurring research and architecture comparison workflows. It is internal working documentation, not public blog content.
+
+1. Read the complete active `AGENTS.md` chain, `map.mmd`, `README.md`, `CONTRIBUTING.md`, relevant internal/public docs, package manifests, source code, tests, open issues, pull requests, review threads, issue comments, recent commits, and Actions evidence before writing or changing research.
+2. Compare the verified repository state only with current official primary sources and official repositories. Record source title, owner, retrieval date, and durable URL in the research document. Separate provider-specific behavior from cross-provider or industry conventions.
+3. Search `docs/scheduled-research/`, issues, pull requests, and current implementation before adding a finding. Update the existing record when the same subject already exists; do not create duplicate category files, findings, issues, or design proposals.
+4. Write plain Markdown without YAML frontmatter. Each research record must state scope, repository evidence with paths, external evidence, cross-verification status, confirmed gaps, rejected or uncertain hypotheses, issue/PR links, and the next verification step.
+5. Treat findings as unconfirmed until repository evidence and at least one applicable authoritative external source agree. For security-sensitive, interoperability, protocol, or provider-compatibility claims, cross-check more than one primary source when available.
+6. Create or update a GitHub issue only for a confirmed actionable implementation or documentation gap. Use a clearly labelled design/RFC issue for architecture choices requiring consensus when Discussions are unavailable. Link the research record and include acceptance criteria, tests, documentation, migration, security, and dependency considerations.
+7. Read and incorporate material replies from linked issues, pull requests, review threads, and maintainer comments. Record whether feedback confirms, narrows, rejects, supersedes, or completes the finding so future work follows the latest accepted direction precisely.
+8. Maintain `docs/scheduled-research/index.md` as the category and status index. When adding a durable category, update the owning source structure and regenerate `map.mmd` with `bapX map --root .`; never hand-edit generated map nodes.
+9. Do not commit generated summaries, copied vendor documentation, speculative feature lists, secrets, or unsupported recommendations. Prefer concise evidence and links over duplicated source text.
+10. If no new verified evidence exists, do not create a meaningless daily file or touch the repository.
 
 ## GitHub Workflow
 
