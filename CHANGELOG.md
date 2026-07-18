@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Authentication
+
+- bapX signup and login now use GitHub identity only. Password and Google identity controls are removed, verified GitHub identities create the user workspace and first organisation, and device sessions persist until logout.
+
 ### Fixes & Other Changes
 
 - The Media Hub services grid now collapses on mobile without horizontal overflow, and the docs subdomain root immediately redirects to the quickstart with the correct public host.

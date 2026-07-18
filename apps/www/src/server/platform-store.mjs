@@ -2,9 +2,6 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { promisify } from 'node:util';
-
-const scrypt = promisify(crypto.scrypt);
 
 function readJson(file, fallback) {
 	try {
@@ -23,20 +20,6 @@ function writeJson(file, value) {
 
 function validSlug(value) {
 	return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
-}
-
-async function hashPassword(password) {
-	const salt = crypto.randomBytes(16);
-	const digest = await scrypt(password, salt, 64);
-	return `scrypt:${salt.toString('base64')}:${Buffer.from(digest).toString('base64')}`;
-}
-
-async function verifyPassword(password, encoded) {
-	const [algorithm, saltText, digestText] = String(encoded).split(':');
-	if (algorithm !== 'scrypt' || !saltText || !digestText) return false;
-	const expected = Buffer.from(digestText, 'base64');
-	const actual = Buffer.from(await scrypt(password, Buffer.from(saltText, 'base64'), expected.length));
-	return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
 }
 
 function markdown(title, description) {
@@ -90,8 +73,8 @@ export function createPlatformStore({ workspaceRoot }) {
 		type: 'object',
 		required: ['schemaVersion', 'accounts'],
 		properties: {
-			schemaVersion: { const: 1 },
-			accounts: { type: 'array', items: { type: 'object', required: ['id', 'username', 'name', 'email', 'passwordHash', 'providers', 'createdAt', 'updatedAt'] } },
+			schemaVersion: { const: 2 },
+			accounts: { type: 'array', items: { type: 'object', required: ['id', 'username', 'name', 'email', 'providers', 'createdAt', 'updatedAt'] } },
 		},
 	});
 	writeJson(path.join(platformRoot, 'schemas', 'sessions.schema.json'), {
@@ -100,43 +83,43 @@ export function createPlatformStore({ workspaceRoot }) {
 		type: 'object',
 		required: ['schemaVersion', 'sessions'],
 		properties: {
-			schemaVersion: { const: 1 },
-			sessions: { type: 'array', items: { type: 'object', required: ['token', 'accountId', 'createdAt', 'expiresAt'] } },
+			schemaVersion: { const: 2 },
+			sessions: { type: 'array', items: { type: 'object', required: ['token', 'accountId', 'createdAt'] } },
 		},
 	});
 
 	return {
-		async signup(input) {
-			const username = String(input.username ?? '').trim().toLowerCase();
-			const email = String(input.email ?? '').trim().toLowerCase();
-			const password = String(input.password ?? '');
-			const slug = String(input.business?.slug ?? '').trim().toLowerCase();
-			if (!validSlug(username) || !validSlug(slug)) throw new Error('Username and business slug must use lowercase letters, numbers, and hyphens');
-			if (!email.includes('@')) throw new Error('A valid email is required');
-			if (password.length < 12) throw new Error('Password must be at least 12 characters');
-			const accounts = readJson(accountsFile, { schemaVersion: 1, accounts: [] });
-			if (accounts.accounts.some((item) => item.email === email || item.username === username)) throw new Error('Account already exists');
+		async loginWithGitHub(profile) {
+			const providerId = String(profile.id ?? '');
+			const username = String(profile.login ?? '').trim().toLowerCase();
+			const email = String(profile.email ?? '').trim().toLowerCase();
+			if (!providerId || !validSlug(username) || !email.includes('@')) throw new Error('GitHub returned an invalid identity');
+			const stored = readJson(accountsFile, { schemaVersion: 2, accounts: [] });
+			const accounts = { schemaVersion: 2, accounts: stored.accounts.map(({ passwordHash: _, ...account }) => account) };
+			const existing = accounts.accounts.find((item) => item.providers?.some((provider) => provider.name === 'github' && provider.id === providerId));
+			if (existing) return { account: existing, business: null, created: false };
+			const emailAccount = accounts.accounts.find((item) => item.email === email);
+			if (emailAccount) {
+				if (emailAccount.providers?.some((provider) => provider.name === 'github')) throw new Error('GitHub identity conflicts with an existing account');
+				emailAccount.providers = [...(emailAccount.providers || []), { name: 'github', id: providerId, login: username }];
+				writeJson(accountsFile, accounts);
+				return { account: emailAccount, business: null, created: false };
+			}
+			if (accounts.accounts.some((item) => item.username === username)) throw new Error('GitHub username conflicts with an existing account');
 			const now = new Date().toISOString();
-			const account = { id: crypto.randomUUID(), username, name: String(input.name ?? '').trim(), email, passwordHash: await hashPassword(password), providers: [], createdAt: now, updatedAt: now };
-			const business = { id: crypto.randomUUID(), name: String(input.business?.name ?? '').trim(), slug, owner: username, website: input.business?.website || null, socialLinks: input.business?.socialLinks || {}, createdAt: now, updatedAt: now };
+			const name = String(profile.name ?? '').trim() || username;
+			const account = { id: crypto.randomUUID(), username, name, email, providers: [{ name: 'github', id: providerId, login: username }], createdAt: now, updatedAt: now };
+			const business = { id: crypto.randomUUID(), name: `${name} Workspace`, slug: 'workspace', owner: username, website: null, socialLinks: {}, createdAt: now, updatedAt: now };
 			ensureUserWorkspace(workspaceRoot, account, business);
 			accounts.accounts.push(account);
 			writeJson(accountsFile, accounts);
-			return { account, business };
-		},
-
-		async authenticatePassword(identity, password) {
-			const normalized = String(identity).trim().toLowerCase();
-			const accounts = readJson(accountsFile, { accounts: [] });
-			const account = accounts.accounts.find((item) => item.email === normalized || item.username === normalized);
-			if (!account || !(await verifyPassword(String(password), account.passwordHash))) return null;
-			return account;
+			return { account, business, created: true };
 		},
 
 		createSession(accountId) {
-			const sessions = readJson(sessionsFile, { schemaVersion: 1, sessions: [] });
-			const session = { token: crypto.randomBytes(32).toString('base64url'), accountId, createdAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() };
-			sessions.sessions = sessions.sessions.filter((item) => new Date(item.expiresAt).getTime() > Date.now());
+			const sessions = readJson(sessionsFile, { schemaVersion: 2, sessions: [] });
+			const session = { token: crypto.randomBytes(32).toString('base64url'), accountId, createdAt: new Date().toISOString() };
+			sessions.schemaVersion = 2;
 			sessions.sessions.push(session);
 			writeJson(sessionsFile, sessions);
 			return session;
@@ -144,12 +127,21 @@ export function createPlatformStore({ workspaceRoot }) {
 
 		getSessionAccount(token) {
 			if (!token) return null;
-			const session = readJson(sessionsFile, { sessions: [] }).sessions.find((item) => item.token === token && new Date(item.expiresAt).getTime() > Date.now());
+			const session = readJson(sessionsFile, { sessions: [] }).sessions.find((item) => item.token === token);
 			if (!session) return null;
 			const account = readJson(accountsFile, { accounts: [] }).accounts.find((item) => item.id === session.accountId);
 			if (!account) return null;
-			const { passwordHash, ...safeAccount } = account;
-			return safeAccount;
+			return account;
+		},
+
+		deleteSession(token) {
+			const sessions = readJson(sessionsFile, { schemaVersion: 2, sessions: [] });
+			const before = sessions.sessions.length;
+			sessions.schemaVersion = 2;
+			sessions.sessions = sessions.sessions.filter((item) => item.token !== token);
+			if (before === sessions.sessions.length) return false;
+			writeJson(sessionsFile, sessions);
+			return true;
 		},
 	};
 }

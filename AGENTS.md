@@ -60,7 +60,7 @@ A blueprint is a Markdown implementation guide returned by `bapX add`; its kind 
 - `apps/www/` — Tracked Astro web surface for `bapx.in`, `docs.bapx.in`, `blogs.bapx.in`, `platform.bapx.in`, `admin.bapx.in`, and related public pages. Do not create another frontend root for the same surfaces.
 - `apps/ecosystem-catalog.ts` — Canonical connection catalog shared by the landing and public Ecosystem. Every catalog entry must resolve to a customer-facing rendered page and raw Markdown route; internal install/build details remain excluded.
 - `apps/www/admin/` — Admin subdomain application copied from the canonical demo by explicit product direction. It builds through the `apps-www` workspace into `apps/www/dist/admin/`; keep the copied Admin implementation aligned with relevant demo chat/runtime improvements without copying generated `dist` artifacts.
-- `internal-docs/` — Repository-internal implementation and operations documentation for bapX agents and maintainers. It is not published on `docs.bapx.in`.
+- `internal-docs/` — Source documentation for agents and maintainers. Publish its non-sensitive developer and CLI contracts on `docs.bapx.in`; keep secrets, private host details, incident procedures, and exploitable operations restricted.
 - `docs/scheduled-research/` — Internal, source-grounded research records produced by approved recurring research workflows. Use plain Markdown without YAML frontmatter, maintain `index.md`, and organize records by durable category rather than provider-specific duplication.
 - `platform.bapx.in` — Account and business control plane. Every account owns a user-level OKF workspace; every new or imported project lives under `users/<username>/<business-slug>/projects/<project-slug>/`. Platform owns authentication, businesses, members, projects, storage, billing, API keys, connectors, MCP configuration, and business/project observability.
 - `admin.bapx.in` — The bapX business operating surface scoped to `/root/bapx.in`. Reuse the canonical demo's real React agent conversation inside the existing `apps/www` build; preserve the workspace editor under Projects and follow `internal-docs/admin-surface.md`. Its integration menu is MCPs, not Plugins. Do not create a duplicate admin frontend.
@@ -93,13 +93,13 @@ Before acting, identify the capabilities and limitations of the current executio
 
 Keep the two documentation audiences separate:
 
-- `apps/www/src/content/docs/` is public documentation for external developers and customers. Document stable, supported Platform, MCP, API, connector, agent-operation, and workspace contracts. Do not publish internal CLI/build procedures, package-installation journeys, secrets, VPS-only mechanics, incomplete wiring, or maintainer procedures there.
+- `apps/www/src/content/docs/` is public documentation for customers and developers, including supported CLI, build, architecture, extension, and maintainer contracts. Never publish secrets, private host details, incident procedures, or exploitable VPS mechanics.
 - `internal-docs/` is internal documentation for agents and maintainers working on this repository. Document source ownership, implementation topology, filesystem and deployment mechanics, current wiring, incomplete surfaces, operational checks, and shipping procedures.
 
 When behavior changes, update every applicable documentation class in the same change:
 
 - Customer-visible Platform/MCP/API/runtime behavior: update `apps/www/src/content/docs/`.
-- Internal CLI/build/map/development behavior: update `internal-docs/` and the owning package tests; do not add it to public docs navigation.
+- CLI/build/map/development behavior: update `internal-docs/`, its non-sensitive public counterpart, and the owning package tests.
 - Implementation, ownership, persistence, deployment, or incomplete-wiring changes: update `internal-docs/`.
 - Demo behavior: update `demo/README.md`, `demo/docs/index.md`, and `demo/map.mmd`.
 - Workspace/user/project structure: update `/root/bapx.in/OKF.md`, `/root/bapx.in/AGENTS.md`, workspace maps, and `apps/www/src/content/docs/okf/`.
