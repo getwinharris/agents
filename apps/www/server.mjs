@@ -433,6 +433,11 @@ http
 			if (handled) return;
 		}
 		const sessionAccount = getSessionAccount(req);
+		if (prefix === '/agents' && req.method === 'HEAD' && urlPath === '/') {
+			res.writeHead(200, { 'Cache-Control': 'no-store' });
+			res.end();
+			return;
+		}
 		if (prefix === '/agents' && !sessionAccount) {
 			const returnTo = encodeURIComponent(`https://agents.bapx.in${req.url || '/'}`);
 			redirect(res, `https://bapx.in/login/?returnTo=${returnTo}`);
