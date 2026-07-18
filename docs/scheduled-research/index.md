@@ -8,9 +8,7 @@ Research records use ordinary Markdown without YAML frontmatter. Add a category 
 
 ## Categories
 
-### Agent standards
-
-- [`agent-standards/repository-agent-conventions.md`](agent-standards/repository-agent-conventions.md) — Verifies the established repository instruction and portable Agent Skills conventions that bapX should adopt without inventing parallel structures.
+No research categories have been added yet.
 
 ## Workflow
 
@@ -18,7 +16,7 @@ Research records use ordinary Markdown without YAML frontmatter. Add a category 
 2. Inspect the current implementation, maps, documentation, issues, pull requests, review replies, commits, and Actions evidence.
 3. Cross-check the subject against current official primary sources.
 4. Search existing research and GitHub tracking before adding or updating a record.
-5. Write the evidence into the applicable existing category.
+5. Write the evidence into the applicable existing category only after the topic and category name are verified.
 6. Link confirmed actionable gaps to focused GitHub issues and implementation pull requests.
 7. Regenerate `map.mmd` through `bapX map --root .`; never hand-edit generated map nodes.
 8. Report the research file, issue, branch, pull request, validation, and result after successful work.
