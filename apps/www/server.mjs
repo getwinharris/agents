@@ -12,6 +12,7 @@ const dataDir = path.resolve(dirname, 'data');
 const postsFile = path.join(dataDir, 'posts.json');
 const workspaceRoot = process.env.WORKSPACE_ROOT || path.resolve(dirname, '../../..');
 const platformStore = createPlatformStore({ workspaceRoot });
+const agentsRuntimeOrigin = new URL(process.env.AGENTS_RUNTIME_ORIGIN || 'http://127.0.0.1:3003');
 
 // Hostname -> path prefix mapping for subdomain-based serving.
 const HOST_PREFIX = {
@@ -54,9 +55,10 @@ const ALLOWED_EXTENSIONS = [
 
 // --- Workspace file API ---
 
-function resolveSafePath(filePath) {
-	const resolved = path.resolve(workspaceRoot, filePath);
-	if (!resolved.startsWith(workspaceRoot)) return null;
+function resolveSafePath(filePath, scopeRoot = workspaceRoot) {
+	const rootPath = path.resolve(scopeRoot);
+	const resolved = path.resolve(rootPath, filePath);
+	if (resolved !== rootPath && !resolved.startsWith(`${rootPath}${path.sep}`)) return null;
 	return resolved;
 }
 
@@ -137,11 +139,30 @@ function getCookie(req, name) {
 	return String(req.headers.cookie || '').split(';').map((part) => part.trim()).find((part) => part.startsWith(`${name}=`))?.slice(name.length + 1);
 }
 
+function getSessionAccount(req) {
+	return platformStore.getSessionAccount(getCookie(req, 'bapx_session'));
+}
+
+function safeReturnTo(value) {
+	if (!value) return null;
+	try {
+		const target = new URL(value);
+		if (target.protocol !== 'https:' || target.username || target.password) return null;
+		if (!['agents.bapx.in', 'platform.bapx.in'].includes(target.hostname)) return null;
+		return target.href;
+	} catch {
+		return null;
+	}
+}
+
 async function handleAuthAPI(req, res, urlPath) {
 	if (req.method === 'GET' && urlPath === '/api/auth/oauth/github') {
 		try {
 			const authorization = githubAuthorization();
-			res.setHeader('Set-Cookie', `bapx_oauth_state=${authorization.state}; Path=/api/auth/oauth/github; HttpOnly; Secure; SameSite=Lax; Max-Age=600`);
+			const returnTo = safeReturnTo(new URL(req.url, 'https://bapx.in').searchParams.get('returnTo'));
+			const cookies = [`bapx_oauth_state=${authorization.state}; Path=/api/auth/oauth/github; HttpOnly; Secure; SameSite=Lax; Max-Age=600`];
+			if (returnTo) cookies.push(`bapx_oauth_return_to=${encodeURIComponent(returnTo)}; Path=/api/auth/oauth/github; HttpOnly; Secure; SameSite=Lax; Max-Age=600`);
+			res.setHeader('Set-Cookie', cookies);
 			redirect(res, authorization.url);
 		} catch (error) {
 			redirect(res, `/login/?error=${encodeURIComponent(error.message)}`);
@@ -154,7 +175,8 @@ async function handleAuthAPI(req, res, urlPath) {
 			if (!url.searchParams.get('state') || url.searchParams.get('state') !== getCookie(req, 'bapx_oauth_state')) throw new Error('GitHub login state is invalid or expired');
 			const { account } = await platformStore.loginWithGitHub(await githubIdentity(url.searchParams.get('code')));
 			setSessionCookie(res, platformStore.createSession(account.id).token);
-			redirect(res, 'https://platform.bapx.in/');
+			const returnTo = safeReturnTo(decodeURIComponent(getCookie(req, 'bapx_oauth_return_to') || ''));
+			redirect(res, returnTo || 'https://platform.bapx.in/');
 		} catch (error) {
 			redirect(res, `/login/?error=${encodeURIComponent(error.message)}`);
 		}
@@ -178,7 +200,7 @@ async function handleAuthAPI(req, res, urlPath) {
 
 // --- Workspace API router ---
 
-async function handleWorkspaceAPI(req, res, urlPath) {
+async function handleWorkspaceAPI(req, res, urlPath, scopeRoot = workspaceRoot) {
 	res.setHeader('Access-Control-Allow-Origin', '*');
 	res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
 	res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -197,7 +219,7 @@ async function handleWorkspaceAPI(req, res, urlPath) {
 	// GET /admin/api/ws/tree - list directory
 	if (req.method === 'GET' && segments[0] === 'tree') {
 		const subPath = segments.slice(1).join('/') || '';
-		const targetPath = resolveSafePath(subPath);
+		const targetPath = resolveSafePath(subPath, scopeRoot);
 		if (!targetPath) {
 			jsonResponse(res, 403, { error: 'Forbidden' });
 			return true;
@@ -211,7 +233,7 @@ async function handleWorkspaceAPI(req, res, urlPath) {
 	if (req.method === 'GET' && segments[0] === 'file') {
 		const parsed = new URL(req.url, `http://${req.headers.host}`);
 		const filePath = parsed.searchParams.get('path') || '';
-		const targetPath = resolveSafePath(filePath);
+		const targetPath = resolveSafePath(filePath, scopeRoot);
 		if (!targetPath) {
 			jsonResponse(res, 403, { error: 'Forbidden' });
 			return true;
@@ -231,7 +253,7 @@ async function handleWorkspaceAPI(req, res, urlPath) {
 		try {
 			const body = await parseBody(req);
 			const filePath = body.path || '';
-			const targetPath = resolveSafePath(filePath);
+			const targetPath = resolveSafePath(filePath, scopeRoot);
 			if (!targetPath) {
 				jsonResponse(res, 403, { error: 'Forbidden' });
 				return true;
@@ -246,6 +268,38 @@ async function handleWorkspaceAPI(req, res, urlPath) {
 	}
 
 	return false;
+}
+
+function customerWorkspaceRoot(account) {
+	return path.join(workspaceRoot, 'users', account.username, 'workspace');
+}
+
+function proxyAgentAPI(req, res, account) {
+	return new Promise((resolve) => {
+		const upstream = http.request({
+			protocol: agentsRuntimeOrigin.protocol,
+			hostname: agentsRuntimeOrigin.hostname,
+			port: agentsRuntimeOrigin.port,
+			method: req.method,
+			path: req.url,
+			headers: {
+				...req.headers,
+				host: agentsRuntimeOrigin.host,
+				'x-bapx-account': account.username,
+				'x-bapx-runtime-token': process.env.BAPX_RUNTIME_TOKEN || '',
+			},
+		}, (upstreamResponse) => {
+			res.writeHead(upstreamResponse.statusCode || 502, upstreamResponse.headers);
+			upstreamResponse.pipe(res);
+			upstreamResponse.on('end', resolve);
+		});
+		upstream.on('error', () => {
+			if (!res.headersSent) jsonResponse(res, 503, { error: 'The main agent is temporarily unavailable.' });
+			else res.end();
+			resolve();
+		});
+		req.pipe(upstream);
+	});
 }
 
 // --- Admin API router ---
@@ -378,6 +432,29 @@ http
 			const handled = await handleAuthAPI(req, res, urlPath);
 			if (handled) return;
 		}
+		const sessionAccount = getSessionAccount(req);
+		if (prefix === '/agents' && !sessionAccount) {
+			const returnTo = encodeURIComponent(`https://agents.bapx.in${req.url || '/'}`);
+			redirect(res, `https://bapx.in/login/?returnTo=${returnTo}`);
+			return;
+		}
+		if ((prefix === '/agents' || prefix === '/admin') && urlPath.startsWith('/api/agents/')) {
+			if (!sessionAccount) {
+				jsonResponse(res, 401, { error: 'Sign in to use the main agent.' });
+				return;
+			}
+			await proxyAgentAPI(req, res, sessionAccount);
+			return;
+		}
+		if (prefix === '/agents' && urlPath.startsWith('/api/ws/')) {
+			const handled = await handleWorkspaceAPI(
+				req,
+				res,
+				urlPath,
+				customerWorkspaceRoot(sessionAccount),
+			);
+			if (handled) return;
+		}
 
 		// Admin API routes
 		if (prefix === '/admin' && urlPath.startsWith('/api/')) {
@@ -394,15 +471,23 @@ http
 			urlPath.startsWith('/_astro/') ||
 			urlPath.startsWith('/brand/') ||
 			/^\/(favicon|apple-touch-icon|site\.webmanifest|web-app-manifest|og\d)/.test(urlPath);
+		const operatingSurface = prefix === '/admin' || prefix === '/agents';
 		const candidates = sharedAsset
 			? [path.join(root, urlPath, suffix), path.join(root, prefix, urlPath, suffix)]
-			: [path.join(root, prefix, urlPath, suffix), path.join(root, urlPath, suffix)];
+			: operatingSurface
+				? [path.join(root, prefix, urlPath, suffix)]
+				: [path.join(root, prefix, urlPath, suffix), path.join(root, urlPath, suffix)];
 		let finalPath = candidates.find(
 			(candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isFile(),
 		);
-		if (!finalPath && prefix === '/admin' && req.method === 'GET' && !path.extname(urlPath)) {
-			const adminEntry = path.join(root, 'admin', 'index.html');
-			if (fs.existsSync(adminEntry)) finalPath = adminEntry;
+		if (
+			!finalPath &&
+			operatingSurface &&
+			req.method === 'GET' &&
+			!path.extname(urlPath)
+		) {
+			const operatingSurfaceEntry = path.join(root, 'admin', 'index.html');
+			if (fs.existsSync(operatingSurfaceEntry)) finalPath = operatingSurfaceEntry;
 		}
 
 		if (!finalPath) {

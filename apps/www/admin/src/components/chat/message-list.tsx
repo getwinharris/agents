@@ -1,4 +1,5 @@
 import type { AgentStatus, FailedSend, BapxConversationMessage } from '@bapX/react'
+import { Shimmer } from '@/components/ai-elements/shimmer'
 import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/marker'
 import {
   MessageScroller,
@@ -158,7 +159,7 @@ export function MessageList({
                   <MarkerIcon>
                     <Spinner />
                   </MarkerIcon>
-                  <MarkerContent className="shimmer">Thinking…</MarkerContent>
+                  <MarkerContent><Shimmer duration={1}>Thinking…</Shimmer></MarkerContent>
                 </Marker>
               </MessageScrollerItem>
             ) : null}

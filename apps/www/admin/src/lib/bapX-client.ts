@@ -3,7 +3,7 @@ import type { Connection } from './types'
 
 /** bapX Admin defaults to the business's main operating agent. */
 export const DEFAULT_CONNECTION: Connection = {
-  agentUrl: 'https://agents.bapx.in/api/agents/main',
+  agentUrl: `${globalThis.location?.origin ?? 'https://agents.bapx.in'}/api/agents/main`,
   live: 'sse',
 }
 

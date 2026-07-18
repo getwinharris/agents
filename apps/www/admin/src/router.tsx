@@ -10,6 +10,7 @@ import { ChatView } from '@/components/chat/chat-view'
 import { NewChat } from '@/components/new-chat'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { operatingSurface } from '@/lib/operating-surface.mjs'
 
 function RootLayout() {
   return (
@@ -47,7 +48,7 @@ const surfaces = {
   },
   'pull-requests': {
     title: 'Pull requests',
-    description: 'Repository review and delivery work across projects in /root/bapx.in.',
+    description: `Repository review and delivery work across ${operatingSurface.projectScope}.`,
   },
   chat: {
     title: 'Chat',

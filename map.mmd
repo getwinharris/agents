@@ -2,6 +2,8 @@ flowchart TD
   root["agents"]
   n_apps["apps"]
   root --> n_apps
+  n_apps_agents_runtime["apps/agents-runtime"]
+  n_apps --> n_apps_agents_runtime
   n_apps_www["apps/www"]
   n_apps --> n_apps_www
   n_packages["packages"]
