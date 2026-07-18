@@ -52,21 +52,40 @@ Signup initializes a real user Git repository and first business. It copies the 
 
 ## Current signup surface
 
-The current four-step form collects:
+GitHub is the only bapX identity provider. The login and signup pages both start the same
+GitHub authorization flow; bapX does not collect a password. A verified GitHub identity
+creates or resumes the account and persistent device session. Business onboarding remains
+a separate Platform operation after authentication.
 
-1. owner name, username, email, and password;
-2. business name, business slug, and optional website;
-3. selectable business social networks;
-4. URLs only for the selected business pages.
+OpenAI, Google, Anthropic, and other providers are connectors or model providers. They are
+not bapX login methods.
 
-The supported selection list currently includes Facebook, Instagram, TikTok, WeChat, LINE, Discord, Medium, Reddit, Pinterest, LinkedIn, YouTube, and X.
+## Production GitHub configuration
+
+The `flue-www` service receives these values from the VPS deployment environment:
+
+| Variable | Purpose |
+| --- | --- |
+| `GITHUB_CLIENT_ID` | Public client identifier for the bapX GitHub App. |
+| `GITHUB_CLIENT_SECRET` | Server-only secret used to exchange the callback code. Never commit or log it. |
+| `GITHUB_OAUTH_CALLBACK_URL` | Exact callback URL; production uses `https://bapx.in/api/auth/oauth/github/callback`. |
+
+The GitHub App is owned by the approved GitHub account or organization and is configured
+through GitHub settings. Repository installation authorization is separate from identity
+authorization. Do not persist GitHub access tokens in account collections or workspace files.
+
+After changing credentials, recreate the `flue-www` container and verify that the start
+endpoint redirects to `github.com/login/oauth/authorize`, the callback returns to the exact
+configured URL, a verified identity reaches Platform, and no credential appears in HTML,
+logs, account data, or the repository.
 
 ## Incomplete wiring
 
 Do not describe these as working externally until implemented and validated:
 
-- Google, GitHub, and OpenAI OAuth callbacks and provider-account linking;
-- logout, password reset, email verification, CSRF protection, and rate limiting;
+- GitHub App registration and production credentials;
+- explicit logout UI, CSRF protection beyond the OAuth state check, and rate limiting;
+- provider-account and connector linking for OpenAI, Google, Anthropic, and other services;
 - the intended conversational 10–15-step onboarding flow;
 - website or Google Business discovery and brand analysis;
 - logo, asset, PDF, presentation, spreadsheet, and document upload;
