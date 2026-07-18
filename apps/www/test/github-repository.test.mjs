@@ -39,6 +39,7 @@ test('rejects non-GitHub hosts and unsupported protocols', () => {
 
 test('rejects credentials, missing SSH users, ports, queries, and fragments', () => {
 	assertReferenceError('https://token@github.com/getwinharris/agents.git', 'embedded_credentials');
+	assertReferenceError('https://user:pass@github.com/getwinharris/agents.git', 'embedded_credentials');
 	assertReferenceError('git@github.com:password/getwinharris/agents.git', 'unsupported_path');
 	assertReferenceError('ssh://github.com/getwinharris/agents.git', 'embedded_credentials');
 	assertReferenceError('ssh://user@github.com/getwinharris/agents.git', 'embedded_credentials');
