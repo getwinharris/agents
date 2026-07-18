@@ -1,4 +1,5 @@
 const GITHUB_HOST = 'github.com';
+const MAX_REPOSITORY_NAME_LENGTH = 100;
 const OWNER_PATTERN = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/;
 const REPOSITORY_PATTERN = /^[A-Za-z0-9._-]+$/;
 
@@ -19,7 +20,13 @@ function normalizeIdentity(owner, repository) {
 	if (!OWNER_PATTERN.test(owner) || owner.includes('--')) {
 		invalid('invalid_owner', 'GitHub repository owner is invalid');
 	}
-	if (!cleanRepository || !REPOSITORY_PATTERN.test(cleanRepository) || cleanRepository === '.' || cleanRepository === '..') {
+	if (
+		!cleanRepository ||
+		cleanRepository.length > MAX_REPOSITORY_NAME_LENGTH ||
+		!REPOSITORY_PATTERN.test(cleanRepository) ||
+		cleanRepository === '.' ||
+		cleanRepository === '..'
+	) {
 		invalid('invalid_repository', 'GitHub repository name is invalid');
 	}
 	return {
