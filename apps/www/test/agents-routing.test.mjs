@@ -121,6 +121,13 @@ describe('Agents host routing', () => {
 		assert.equal(response.headers.location, 'https://bapx.in/login/?returnTo=https%3A%2F%2Fagents.bapx.in%2F');
 	});
 
+	it('answers an unauthenticated Agents HEAD health check without serving the shell', async () => {
+		const response = await request(port, { method: 'HEAD' });
+
+		assert.equal(response.status, 200);
+		assert.equal(response.body, '');
+	});
+
 	it('carries an allowlisted Agents destination into the GitHub OAuth flow', async () => {
 		const returnTo = 'https://agents.bapx.in/conversation/customer-check';
 		const response = await request(port, {
