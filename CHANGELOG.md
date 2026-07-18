@@ -5,9 +5,11 @@
 ### Authentication
 
 - bapX signup and login now use GitHub identity only. Password and Google identity controls are removed, verified GitHub identities create the user workspace and first organisation, and device sessions persist until logout.
+- Agents sign-in now preserves an allowlisted `agents.bapx.in` return destination through GitHub OAuth while rejecting external return URLs.
 
 ### Fixes & Other Changes
 
+- Restored `agents.bapx.in` with the shared Admin/Agents React operating surface, an authenticated same-origin gateway to the hosted main-agent runtime, customer-rooted workspace APIs, useful runtime-unavailable responses, and official AI Elements rendering for streamed text, reasoning, tools, loading, cancellation, and failures.
 - Synchronized the npm lockfile from a clean Node 24/npm 11.6.2 environment so a clean `npm ci` includes required optional and transitive packages; documented the reproducible container validation workflow and ownership of remaining upstream deprecation warnings.
 - The Media Hub services grid now collapses on mobile without horizontal overflow, and the docs subdomain root immediately redirects to the quickstart with the correct public host.
 

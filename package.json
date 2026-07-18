@@ -9,6 +9,7 @@
 		"npm": ">=11 <12"
 	},
 	"workspaces": [
+		"apps/agents-runtime",
 		"apps/www",
 		"apps/www/admin",
 		"demo",

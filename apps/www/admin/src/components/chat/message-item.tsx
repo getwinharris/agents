@@ -1,8 +1,11 @@
 import type { BapxConversationMessage } from '@bapX/react'
 import { AlertCircle, Bot, Check, Copy, Square } from 'lucide-react'
 import { useState } from 'react'
+import {
+  Message as AIMessage,
+  MessageContent as AIMessageContent,
+} from '@/components/ai-elements/message'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Bubble, BubbleContent } from '@/components/ui/bubble'
 import { Button } from '@/components/ui/button'
 import {
   Message,
@@ -10,7 +13,6 @@ import {
   MessageContent,
   MessageFooter,
 } from '@/components/ui/message'
-import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/marker'
 import { isVisiblePart } from '@/lib/parts'
 import { usePreferences } from '@/state/preferences'
 import { MessagePart } from './message-parts'
@@ -56,20 +58,24 @@ function UserGroup({
           return (
             <div key={message.id} className="flex flex-col items-end gap-1.5">
               {text ? (
-                <Bubble align="end" className={failure ? 'border border-destructive' : undefined}>
-                  <BubbleContent>
+                <AIMessage from="user">
+                  <AIMessageContent className={failure ? 'border border-destructive' : undefined}>
                     <p className="whitespace-pre-wrap break-words">{text}</p>
-                  </BubbleContent>
-                </Bubble>
+                  </AIMessageContent>
+                </AIMessage>
               ) : null}
               {attachments.map((part, index) => (
                 <MessagePart key={index} part={part} />
               ))}
               {failure ? (
-                <span className="flex items-center gap-1 text-xs text-destructive">
-                  <AlertCircle className="size-3.5" />
-                  Failed to send. {failure.message}
-                </span>
+                <AIMessage from="user">
+                  <AIMessageContent className="border border-destructive bg-destructive/10 text-xs text-destructive">
+                    <span className="flex items-center gap-1">
+                      <AlertCircle className="size-3.5" />
+                      Failed to send. {failure.message}
+                    </span>
+                  </AIMessageContent>
+                </AIMessage>
               ) : null}
             </div>
           )
@@ -120,12 +126,14 @@ function AssistantGroup({
               .map(({ part, key }) => <MessagePart key={key} part={part} />),
           )}
           {event ? (
-            <Marker variant="border" className="my-1.5">
-              <MarkerIcon>
-                <Square className="size-3.5 fill-current" />
-              </MarkerIcon>
-              <MarkerContent>{event.text}</MarkerContent>
-            </Marker>
+            <AIMessage from="assistant" className="my-1.5">
+              <AIMessageContent className="rounded-md border px-3 py-2 text-muted-foreground">
+                <span className="flex items-center gap-2">
+                  <Square className="size-3.5 fill-current" />
+                  {event.text}
+                </span>
+              </AIMessageContent>
+            </AIMessage>
           ) : null}
         </div>
         {/* The footer (and its hover affordance) appears only once the reply has

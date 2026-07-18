@@ -1,0 +1,21 @@
+{
+  "name": "bapX-agents-runtime",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bapX build",
+    "check:types": "tsc --noEmit",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@bapX/runtime": "*",
+    "@earendil-works/pi-ai": "^0.80.2",
+    "hono": "4.12.29",
+    "valibot": "^1.1.0"
+  },
+  "devDependencies": {
+    "@bapX/cli": "*",
+    "@types/node": "^22.10.10",
+    "typescript": "6.0.3"
+  }
+}

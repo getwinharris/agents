@@ -1,22 +1,24 @@
 import type { BapxConversationPart } from '@bapX/react'
-import { Brain, ChevronRight, FileText } from 'lucide-react'
-import { useState } from 'react'
+import { FileText } from 'lucide-react'
+import { MessageResponse } from '@/components/ai-elements/message'
+import {
+  Reasoning,
+  ReasoningContent,
+  ReasoningTrigger,
+} from '@/components/ai-elements/reasoning'
+import {
+  Tool,
+  ToolContent,
+  ToolHeader,
+  ToolInput,
+  ToolOutput,
+} from '@/components/ai-elements/tool'
 import {
   Attachment,
   AttachmentContent,
   AttachmentMedia,
   AttachmentTitle,
 } from '@/components/ui/attachment'
-import { Bubble, BubbleContent } from '@/components/ui/bubble'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/marker'
-import { Spinner } from '@/components/ui/spinner'
-import { cn } from '@/lib/utils'
-import { Markdown } from './markdown'
 import { describeToolCall } from './tool-display'
 import { useSmoothedText } from './use-smoothed-text'
 
@@ -29,12 +31,10 @@ function StreamingCaret() {
 function TextPart({ text, streaming }: { text: string; streaming: boolean }) {
   const shown = useSmoothedText(text, streaming)
   return (
-    <Bubble variant="ghost">
-      <BubbleContent>
-        <Markdown>{shown}</Markdown>
-        {streaming || shown.length < text.length ? <StreamingCaret /> : null}
-      </BubbleContent>
-    </Bubble>
+    <div className="py-1 text-sm">
+      <MessageResponse isAnimating={streaming}>{shown}</MessageResponse>
+      {streaming || shown.length < text.length ? <StreamingCaret /> : null}
+    </div>
   )
 }
 
@@ -44,30 +44,12 @@ function TextPart({ text, streaming }: { text: string; streaming: boolean }) {
  * "Reasoning" disclosure.
  */
 function ReasoningPart({ text, streaming }: { text: string; streaming: boolean }) {
-  const [open, setOpen] = useState(true)
   const shown = useSmoothedText(text, streaming)
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className="my-1">
-      <Marker asChild className="text-muted-foreground hover:text-foreground">
-        <CollapsibleTrigger className="cursor-pointer">
-          <MarkerIcon>
-            <ChevronRight className={cn('size-3.5 transition-transform', open && 'rotate-90')} />
-          </MarkerIcon>
-          <MarkerIcon>
-            <Brain className="size-3.5" />
-          </MarkerIcon>
-          <MarkerContent className={cn(streaming && 'shimmer')}>
-            {streaming ? 'Thinking…' : 'Reasoning'}
-          </MarkerContent>
-        </CollapsibleTrigger>
-      </Marker>
-      <CollapsibleContent>
-        <div className="mt-1.5 border-l-2 border-border pl-3 text-sm text-muted-foreground">
-          <Markdown>{shown}</Markdown>
-          {streaming || shown.length < text.length ? <StreamingCaret /> : null}
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
+    <Reasoning isStreaming={streaming} className="my-1">
+      <ReasoningTrigger />
+      <ReasoningContent>{shown}</ReasoningContent>
+    </Reasoning>
   )
 }
 
@@ -107,50 +89,18 @@ function FilePart({ part }: { part: Extract<BapxConversationPart, { type: 'file'
 }
 
 function ToolPart({ part }: { part: Extract<BapxConversationPart, { type: 'dynamic-tool' }> }) {
-  const [open, setOpen] = useState(false)
-  const running = part.state === 'input-available'
-  const errored = part.state === 'output-error'
-  const { icon: Icon, summary } = describeToolCall(part)
+  const { summary } = describeToolCall(part)
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className="my-1.5">
-      <Marker asChild variant="border" className={cn(errored && 'text-destructive')}>
-        <CollapsibleTrigger className="cursor-pointer">
-          <MarkerIcon>
-            <ChevronRight className={cn('size-3.5 transition-transform', open && 'rotate-90')} />
-          </MarkerIcon>
-          <MarkerIcon>{running ? <Spinner /> : <Icon className="size-3.5" />}</MarkerIcon>
-          <MarkerContent className={cn('min-w-0', running && 'shimmer')}>{summary}</MarkerContent>
-          {running ? (
-            <span className="ml-auto text-xs text-muted-foreground">running…</span>
-          ) : errored ? (
-            <span className="ml-auto text-xs text-destructive">error</span>
-          ) : null}
-        </CollapsibleTrigger>
-      </Marker>
-      <CollapsibleContent>
-        <div className="mt-1.5 space-y-2 rounded-md border border-border bg-muted/30 p-2.5 text-xs">
-          <ToolPayload label="Input" value={part.input} />
-          {part.state === 'output-available' ? (
-            <ToolPayload label="Output" value={part.output} />
-          ) : null}
-          {part.state === 'output-error' ? (
-            <ToolPayload label="Error" value={part.errorText} />
-          ) : null}
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
-  )
-}
-
-function ToolPayload({ label, value }: { label: string; value: unknown }) {
-  const text = typeof value === 'string' ? value : JSON.stringify(value, null, 2)
-  return (
-    <div>
-      <div className="mb-1 font-medium text-muted-foreground">{label}</div>
-      <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-[0.78rem] leading-relaxed">
-        {text}
-      </pre>
-    </div>
+    <Tool className="my-1.5">
+      <ToolHeader type="dynamic-tool" toolName={part.toolName} state={part.state} title={summary} />
+      <ToolContent>
+        <ToolInput input={part.input} />
+        <ToolOutput
+          output={part.state === 'output-available' ? part.output : undefined}
+          errorText={part.state === 'output-error' ? part.errorText : undefined}
+        />
+      </ToolContent>
+    </Tool>
   )
 }
 

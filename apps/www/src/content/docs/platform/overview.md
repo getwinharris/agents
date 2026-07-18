@@ -24,3 +24,7 @@ The base workspace costs **$5 per month** and includes **5 GB** of storage, host
 - **Storage and billing**: Included and additional filesystem storage
 
 Platform manages ownership and configuration. `agents.bapx.in` operates the selected business and project; `admin.bapx.in` uses the same operating model with bapX-wide authority.
+
+### Agents workspace
+
+Opening `agents.bapx.in` requires the same GitHub-backed bapX session. After sign-in, the customer operating surface uses the business main-agent conversation and limits workspace file operations to that account's `users/<username>/workspace` directory. The initial hosted main agent streams a connection check, reasoning, and a scoped workspace-status tool result; selecting and storing customer AI-provider credentials remains a Platform-owned configuration step.
