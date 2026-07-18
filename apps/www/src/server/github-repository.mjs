@@ -42,6 +42,7 @@ function parseExactPath(pathValue, message) {
 }
 
 function resolveScpReference(value) {
+	if (value.includes('://')) return null;
 	const match = value.match(/^([^@\s]+)@([^:\s]+):(.+)$/);
 	if (!match) return null;
 	const [, user, host, pathValue] = match;
