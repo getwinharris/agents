@@ -54,6 +54,8 @@ A blueprint is a Markdown implementation guide returned by `bapX add`; its kind 
 
 ## Project Structure
 
+- `OBJECTIVE.md` — Canonical product objective, surface ownership, Admin-to-Agents promotion model, GitHub adaptation, compatibility, browser, telemetry, documentation, and industrial delivery contracts.
+- `TODO.md` — Evidence-gated product delivery sequence. A checked capability must be implemented, validated, documented, reviewed, and deployed to its stated surface; static navigation or planning does not count as shipped.
 - `map.mmd` — Generated root map for admin/user overviews. Regenerate with `bapX map --root .`; validate with `bapX map --root . --check`.
 - `apps/www/` — Tracked Astro web surface for `bapx.in`, `docs.bapx.in`, `blogs.bapx.in`, `platform.bapx.in`, `admin.bapx.in`, and related public pages. Do not create another frontend root for the same surfaces.
 - `apps/ecosystem-catalog.ts` — Canonical connection catalog shared by the landing and public Ecosystem. Every catalog entry must resolve to a customer-facing rendered page and raw Markdown route; internal install/build details remain excluded.
@@ -78,7 +80,7 @@ Agent and workflow sources use either `<root>/.bapX/` or `<root>/`; when `.bapX/
 For meaningful code, UI, docs, CLI, map, workflow, or structure changes:
 
 1. Read the workspace and repo `AGENTS.md` chain.
-2. Read `map.mmd` and follow affected nodes to source files.
+2. Read `OBJECTIVE.md` and `TODO.md` for product work, then read `map.mmd` and follow affected nodes to source files.
 3. Search with `rg` and inspect existing implementations before creating any file, route, command, service, view, workflow, generator, or navigation item.
 4. Extend the existing owning source. Do not create unlinked helper scripts, parallel map generators, duplicate frontends, duplicate admin surfaces, or orphaned tools.
 5. If functionality is a product operation, wire it into `packages/cli`, repo scripts, the admin surface, or the documented runtime workflow.
