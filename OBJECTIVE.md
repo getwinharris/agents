@@ -4,6 +4,8 @@
 
 bapX is a hosted, organization-scoped operating system for people and agents. A user signs in, creates or joins an organization, creates or imports projects inside that organization, and directs a generic main agent that can use approved tools, skills, automations, browser sessions, repositories, and role-specific agents to complete reviewable work.
 
+The existing pi-based runtime is the agent harness. OpenAI, Codex, Claude, and other model providers are user-authorized model accounts or API-token sources; they do not replace the bapX harness or create separate agent runtimes.
+
 The framework, runtime, demo conversation, filesystem workspace, GitHub channel, maps, OpenTelemetry adapter, Admin, Agents, Platform, and documentation surfaces already exist. Product work must orchestrate these owners into one reliable system rather than build a parallel framework.
 
 ## Product hierarchy
@@ -84,6 +86,18 @@ The inbuilt browser is an approved bapX tool, not a third-party remote-control d
 - Provide visible navigation, page state, screenshots, downloads, and approval boundaries through the bapX Admin/Agents experience.
 - Treat arbitrary page content as untrusted input and preserve tool-call audit evidence.
 - Desktop packaging is a later delivery stage after the hosted Admin browser workflow is proven.
+
+One Browser skill owns web research and interactive browser work. Firecrawl supplies search, scrape, crawl, structured retrieval, and an optional remote sandbox when configured; Browser Use supplies fast persistent CDP interaction; the pinned Playwright CLI supplies deterministic browser tests, traces, and repeatable UI validation. Main and role-specific agents may activate this shared skill under policy. Do not create a separate browser or research agent merely to expose these tools.
+
+## CLI capability objective
+
+External CLIs are project-scoped tools invoked through the existing skill and typed-tool runtime, not replacements for the internal bapX CLI or new orchestration systems.
+
+- GitHub CLI owns authorized GitHub issues, pull requests, workflows, releases, and API operations.
+- CodeRabbit CLI owns local or self-hosted-endpoint review output; its structured agent output is review evidence, never implementation authority.
+- Supabase, Stripe, Razorpay, Google Workspace, and Vercel CLIs expose their provider operations only after the user or organization authorizes the matching connector.
+- Each executable is version-pinned, health-checked, permission-scoped, secret-redacted, and reported through the shared capability manifest.
+- A service catalog entry and a CLI execution capability are different facets of one integration. Adding a CLI must extend an existing GitHub, Stripe, Supabase, Google, or Vercel integration instead of duplicating it.
 
 ## Telemetry and audit objective
 

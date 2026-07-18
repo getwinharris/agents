@@ -104,6 +104,10 @@ Tracking: [Discussion #34](https://github.com/getwinharris/agents/discussions/34
 - [ ] Display compatibility, provenance, permissions, validation results, and activation scope.
 - [ ] Add fixtures based on official VS Code-recognized structures and the Agent Skills open standard.
 - [ ] Document the supported compatibility subset precisely.
+- [ ] Keep the pi-based runtime as the single agent harness; model-provider OAuth and API tokens supply user-authorized inference without creating provider-specific agent runtimes.
+- [ ] Register GitHub, CodeRabbit, Supabase, Stripe, Razorpay, Google Workspace, and Vercel CLIs as versioned, health-checked tools behind existing skills and connector permissions.
+- [ ] Reuse existing GitHub, Stripe, Supabase, Google Chat, and Vercel Sandbox catalog ownership; add full Google Workspace and Vercel deployment facets only when their real connector operations and pages ship.
+- [ ] Consume CodeRabbit `--agent` JSON as review evidence and support an organization-configured self-hosted endpoint without claiming the CodeRabbit engine is bundled with bapX.
 
 ## Stage 5 — Automations and scheduled work
 
@@ -118,6 +122,9 @@ Tracking: [Discussion #34](https://github.com/getwinharris/agents/discussions/34
 ## Stage 6 — Inbuilt browser and desktop experience
 
 - [ ] Pin Playwright and install its matching Chromium through the owning npm workspace/package lifecycle.
+- [ ] Implement one Browser skill that selects Firecrawl for search/scrape/crawl/remote sandbox, Browser Use for fast persistent CDP interaction, and pinned Playwright for deterministic tests/traces; do not create a separate browser or research agent.
+- [ ] Pin and health-check Firecrawl CLI, Browser Use CLI, and Playwright CLI through an owning tracked package/runtime lifecycle rather than copying third-party skill files or relying on global, untracked binaries.
+- [ ] Normalize Firecrawl accessibility refs (`@e1`) and Browser Use element indices (`[0]`) into typed observations while preserving source adapter and screenshot/trace evidence.
 - [ ] Allocate isolated persistent profiles by authorized user/agent context; never reuse a personal Chrome profile implicitly.
 - [ ] Implement browser session creation, navigation, tabs, screenshots, downloads, permissions, and teardown as typed bapX tools.
 - [ ] Treat all page content as untrusted and expose approval boundaries for authentication, uploads, downloads, payments, publication, and destructive actions.
