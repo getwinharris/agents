@@ -199,6 +199,13 @@ img[src="/brand/bapx-logo-main.svg"] {
 /* ── Media Board ─────────────────────────────────────────────────────────── */
 
 .media-board { display: grid; grid-template-columns: repeat(2, 1fr); gap: .875rem; }
+.mediahub-services {
+  display: grid;
+  grid-template-columns: minmax(300px, .75fr) minmax(0, 1fr);
+  gap: clamp(2.125rem, 6vw, 5.75rem);
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
 .media-card { min-height: 210px; padding: 1.5rem; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas-card); }
 .media-card.large {
   grid-row: span 2; min-height: 434px;
@@ -627,6 +634,7 @@ img[src="/brand/bapx-logo-main.svg"] {
   body > nav > div { padding: 0 1.25rem; }
   .client-grid { grid-template-columns: 1fr; }
   .card-grid-3, .card-grid-2, .media-board { grid-template-columns: 1fr; }
+  .mediahub-services { grid-template-columns: 1fr; }
   .auth-shell { padding: 3rem 1rem; }
   .auth-field-grid,
   .oauth-grid,

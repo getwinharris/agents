@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes & Other Changes
+
+- The Media Hub services grid now collapses on mobile without horizontal overflow, and the docs subdomain root immediately redirects to the quickstart with the correct public host.
+
 ### Breaking Changes
 
 - **`dispatch()` takes a structured `message`, not an opaque `input`.** `AgentDispatchRequest.input: unknown` is replaced by `message: DeliveredMessage`, the same unified shape a direct HTTP prompt uses internally: `{ kind: 'user', body: string, attachments?: DeliveredAttachment[] }` for a real chat turn, or `{ kind: 'signal', type: string, body: string, attributes?: Record<string, string>, tagName?: string }` for a structured event/webhook payload. `body` is always a string — JSON-stringify structured payloads yourself. `dispatch()` can now deliver a `kind: 'user'` message with image attachments, the same way a direct HTTP prompt does (attachments on `kind: 'signal'` are not supported). `message` is validated the same way as a direct prompt's body (a malformed `message` throws `InvalidRequestError`) instead of being forwarded unchecked. On the adapter surface, the submission input types collapse into one `AgentSubmissionInput` interface (`{ kind: 'dispatch' | 'direct', submissionId, agent, id, message, acceptedAt }`) — `DispatchAgentSubmissionInput` and `DirectAgentSubmissionInput` are removed, a dispatched submission's persisted input no longer duplicates `dispatchId` (it always equaled `submissionId`; the public `DispatchReceipt.dispatchId` is unchanged), and the persisted-attachment helpers exported from `@bapX/runtime/adapter` are renamed: `prepareDirectSubmission` → `prepareSubmissionAttachments`, `hydratePersistedDirectSubmission` → `hydratePersistedSubmissionAttachments`, `matchesPersistedDirectSubmission` → `matchesPersistedSubmissionAttachments`. Every first-party channel example and blueprint is updated to the new shape, following one convention: `body` carries the message itself and structured metadata (sender identity, ids, titles) goes in `attributes` as flat strings.
