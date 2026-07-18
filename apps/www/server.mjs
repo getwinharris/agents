@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPlatformStore } from './src/server/platform-store.mjs';
+import { githubAuthorization, githubIdentity } from './src/server/github-oauth.mjs';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(dirname, 'dist');
@@ -129,39 +130,46 @@ function redirect(res, location) {
 }
 
 function setSessionCookie(res, token) {
-	res.setHeader('Set-Cookie', `bapx_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000`);
+	res.setHeader('Set-Cookie', `bapx_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=34560000`);
+}
+
+function getCookie(req, name) {
+	return String(req.headers.cookie || '').split(';').map((part) => part.trim()).find((part) => part.startsWith(`${name}=`))?.slice(name.length + 1);
 }
 
 async function handleAuthAPI(req, res, urlPath) {
-	if (req.method === 'POST' && urlPath === '/api/auth/signup') {
+	if (req.method === 'GET' && urlPath === '/api/auth/oauth/github') {
 		try {
-			const body = await parseBody(req);
-			const socialLinks = {};
-			for (const [key, value] of Object.entries(body)) if (key.startsWith('social_') && value) socialLinks[key.slice(7)] = value;
-			const result = await platformStore.signup({
-				username: body.username, name: body.name, email: body.email, password: body.password,
-				business: { name: body.business_name, slug: body.business_slug, website: body.website || null, socialLinks },
-			});
-			setSessionCookie(res, platformStore.createSession(result.account.id).token);
-			redirect(res, 'https://platform.bapx.in/');
+			const authorization = githubAuthorization();
+			res.setHeader('Set-Cookie', `bapx_oauth_state=${authorization.state}; Path=/api/auth/oauth/github; HttpOnly; Secure; SameSite=Lax; Max-Age=600`);
+			redirect(res, authorization.url);
 		} catch (error) {
-			redirect(res, `/signup/?error=${encodeURIComponent(error.message)}`);
+			redirect(res, `/login/?error=${encodeURIComponent(error.message)}`);
 		}
 		return true;
 	}
-	if (req.method === 'POST' && urlPath === '/api/auth/login') {
-		const body = await parseBody(req).catch(() => ({}));
-		const account = await platformStore.authenticatePassword(body.identity, body.password);
-		if (!account) redirect(res, '/login/?error=Invalid%20username%2C%20email%2C%20or%20password');
-		else {
+	if (req.method === 'GET' && urlPath === '/api/auth/oauth/github/callback') {
+		try {
+			const url = new URL(req.url, 'https://bapx.in');
+			if (!url.searchParams.get('state') || url.searchParams.get('state') !== getCookie(req, 'bapx_oauth_state')) throw new Error('GitHub login state is invalid or expired');
+			const { account } = await platformStore.loginWithGitHub(await githubIdentity(url.searchParams.get('code')));
 			setSessionCookie(res, platformStore.createSession(account.id).token);
 			redirect(res, 'https://platform.bapx.in/');
+		} catch (error) {
+			redirect(res, `/login/?error=${encodeURIComponent(error.message)}`);
 		}
+		return true;
+	}
+	if (req.method === 'POST' && urlPath === '/api/auth/logout') {
+		platformStore.deleteSession(getCookie(req, 'bapx_session'));
+		res.setHeader('Set-Cookie', 'bapx_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
+		redirect(res, 'https://bapx.in/login/');
 		return true;
 	}
 	if (req.method === 'GET' && urlPath === '/api/auth/session') {
-		const token = String(req.headers.cookie || '').split(';').map((part) => part.trim()).find((part) => part.startsWith('bapx_session='))?.slice(13);
+		const token = getCookie(req, 'bapx_session');
 		const account = platformStore.getSessionAccount(token);
+		if (account) setSessionCookie(res, token);
 		jsonResponse(res, account ? 200 : 401, { account });
 		return true;
 	}

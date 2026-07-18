@@ -6,7 +6,7 @@ This file tracks product orchestration in dependency order. A checked item means
 
 - [x] Define the public/internal documentation split and shipping contract.
 - [x] Restore the customer-facing Ecosystem directory and raw Markdown routes.
-- [x] Establish password signup, sessions, first user workspace, and first organization creation.
+- [x] Establish account sessions, first user workspace, and first organization creation.
 - [x] Adapt the canonical demo conversation into the Admin application.
 - [x] Define scheduled-research evidence rules.
 - [x] Define environment-aware tool discovery rules.
@@ -76,14 +76,13 @@ Tracking: [Discussion #34](https://github.com/getwinharris/agents/discussions/34
 
 ## Stage 2 — GitHub identity and organization onboarding
 
-- [ ] Complete password-flow security from [Issue #9](https://github.com/getwinharris/agents/issues/9): logout, CSRF protection, rate limiting, password reset, and email verification.
-- [ ] Add GitHub OAuth as an authentication/linking method with state, PKCE where applicable, verified callback handling, account-link collision protection, and revocation behavior.
+- [ ] Complete GitHub-only authentication from [Issue #9](https://github.com/getwinharris/agents/issues/9): configured OAuth application, state validation, verified callback handling, collision protection, persistent device sessions, logout, CSRF protection, and rate limiting.
 - [ ] Keep GitHub identity authorization separate from GitHub App repository authorization.
 - [ ] Create or select the bapX organization before repository selection.
 - [ ] List only repositories authorized through the GitHub App installation.
 - [ ] Preserve the required user-level OKF workspace even when every initial project comes from GitHub.
 - [ ] Browser-test new GitHub signup, existing-account linking, denied organization access, revoked installation, and logout.
-- [ ] Document shipped authentication behavior and keep unimplemented Google/OpenAI flows labelled planned.
+- [ ] Document GitHub as the only bapX identity provider; OpenAI and Google remain connectors, not login methods.
 
 ## Stage 3 — Repository profile at `bapx.in/<user>/<repo>`
 
