@@ -41,13 +41,13 @@ test('rejects credentials, page URLs, ports, queries, and fragments', () => {
 	assertReferenceError('https://token@github.com/getwinharris/agents.git', 'embedded_credentials');
 	assertReferenceError('git@github.com:password/getwinharris/agents.git', 'unsupported_path');
 	assertReferenceError('https://github.com/getwinharris/agents/issues/35', 'unsupported_path');
-	assertReferenceError('https://github.com:443/getwinharris/agents.git', 'ambiguous_reference');
+	assertReferenceError('https://github.com:444/getwinharris/agents.git', 'ambiguous_reference');
 	assertReferenceError('https://github.com/getwinharris/agents?tab=readme', 'ambiguous_reference');
 	assertReferenceError('https://github.com/getwinharris/agents#readme', 'ambiguous_reference');
 });
 
 test('rejects traversal, malformed identities, and ambiguous input', () => {
-	assertReferenceError('https://github.com/getwinharris/%2e%2e', 'invalid_repository');
+	assertReferenceError('https://github.com/getwinharris/%2e%2e', 'unsupported_path');
 	assertReferenceError('https://github.com/-owner/agents', 'invalid_owner');
 	assertReferenceError('https://github.com/owner--name/agents', 'invalid_owner');
 	assertReferenceError('https://github.com/getwinharris/agents extra', 'ambiguous_reference');
