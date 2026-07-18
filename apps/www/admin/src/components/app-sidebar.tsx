@@ -33,6 +33,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import { parseAgentUrl } from '@/lib/bapX-client'
+import { operatingSurface } from '@/lib/operating-surface.mjs'
 import { useConversations } from '@/state/conversations'
 import { useSettings } from '@/state/settings'
 import { SettingsDialog } from './settings-dialog'
@@ -55,7 +56,7 @@ export function AppSidebar() {
       <SidebarHeader className="gap-2 p-3">
         <div className="flex items-center gap-2 px-1">
           <img className="h-7 w-auto" src="/brand/bapx-logo-main.svg" alt="bapX" />
-          <span className="font-semibold">Admin</span>
+          <span className="font-semibold">{operatingSurface.label}</span>
         </div>
         <Button asChild variant="outline" className="w-full justify-start gap-2">
           <Link to="/">
@@ -74,7 +75,7 @@ export function AppSidebar() {
               <SidebarMenuItem><SidebarMenuButton asChild><a href="/editor/"><FolderKanban /><span>Projects</span></a></SidebarMenuButton></SidebarMenuItem>
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/team"><Users /><span>Team</span></Link></SidebarMenuButton></SidebarMenuItem>
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/agents"><Bot /><span>Agents</span></Link></SidebarMenuButton></SidebarMenuItem>
-              <SidebarMenuItem><SidebarMenuButton asChild><Link to="/pull-requests"><GitPullRequest /><span>Pull requests</span></Link></SidebarMenuButton></SidebarMenuItem>
+              {operatingSurface.showAdminPullRequests ? <SidebarMenuItem><SidebarMenuButton asChild><Link to="/pull-requests"><GitPullRequest /><span>Pull requests</span></Link></SidebarMenuButton></SidebarMenuItem> : null}
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/chat"><MessageCircle /><span>Chat</span></Link></SidebarMenuButton></SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>

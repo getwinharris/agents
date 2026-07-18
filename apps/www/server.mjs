@@ -137,6 +137,10 @@ function getCookie(req, name) {
 	return String(req.headers.cookie || '').split(';').map((part) => part.trim()).find((part) => part.startsWith(`${name}=`))?.slice(name.length + 1);
 }
 
+function getSessionAccount(req) {
+	return platformStore.getSessionAccount(getCookie(req, 'bapx_session'));
+}
+
 async function handleAuthAPI(req, res, urlPath) {
 	if (req.method === 'GET' && urlPath === '/api/auth/oauth/github') {
 		try {
@@ -378,6 +382,11 @@ http
 			const handled = await handleAuthAPI(req, res, urlPath);
 			if (handled) return;
 		}
+		if (prefix === '/agents' && !getSessionAccount(req)) {
+			const returnTo = encodeURIComponent(`https://agents.bapx.in${req.url || '/'}`);
+			redirect(res, `https://bapx.in/login/?returnTo=${returnTo}`);
+			return;
+		}
 
 		// Admin API routes
 		if (prefix === '/admin' && urlPath.startsWith('/api/')) {
@@ -400,9 +409,14 @@ http
 		let finalPath = candidates.find(
 			(candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isFile(),
 		);
-		if (!finalPath && prefix === '/admin' && req.method === 'GET' && !path.extname(urlPath)) {
-			const adminEntry = path.join(root, 'admin', 'index.html');
-			if (fs.existsSync(adminEntry)) finalPath = adminEntry;
+		if (
+			!finalPath &&
+			(prefix === '/admin' || prefix === '/agents') &&
+			req.method === 'GET' &&
+			!path.extname(urlPath)
+		) {
+			const operatingSurfaceEntry = path.join(root, 'admin', 'index.html');
+			if (fs.existsSync(operatingSurfaceEntry)) finalPath = operatingSurfaceEntry;
 		}
 
 		if (!finalPath) {
