@@ -9,7 +9,7 @@ description: Manage your bapX account, businesses, projects, storage, API keys, 
 users/<username>/<business-slug>/projects/<project-slug>/
 ```
 
-Creating an account creates the user workspace and its first business. The website is optional. Business social links are selected during onboarding and describe business pages rather than personal profiles.
+Creating an account uses a verified GitHub identity and creates the user workspace and its first organisation. bapX does not store a password. The device session continues until explicit logout, subject to browser cookie retention. Repository authorization remains a separate GitHub App permission flow.
 
 The base workspace costs **$5 per month** and includes **5 GB** of storage, hosted agents and workflows, TTS, and STT. Additional storage costs **$1 per GB per month**. Customers bring their own AI-provider and connector credentials.
 

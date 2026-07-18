@@ -3,7 +3,7 @@
 ## Ownership
 
 - `apps/www/server.mjs` owns the current HTTP authentication endpoints and subdomain routing.
-- `apps/www/src/server/platform-store.mjs` owns password authentication, sessions, filesystem collections, schemas, and initial user/business workspace creation.
+- `apps/www/src/server/platform-store.mjs` owns GitHub-linked accounts, persistent device sessions, filesystem collections, schemas, and initial user/business workspace creation.
 - `apps/www/src/pages/login/index.astro` and `apps/www/src/pages/signup/index.astro` own the separate authentication pages.
 - `apps/www/src/pages/platform/index.astro` owns the Platform dashboard shell.
 - `/root/bapx.in/users/<username>/<business-slug>/` is the generated business workspace. Projects belong below `projects/<project-slug>/`.
@@ -27,11 +27,12 @@ Admin authority is a wider workspace scope, not a different product or an admin-
 
 | Endpoint | Method | Current behavior |
 | --- | --- | --- |
-| `/api/auth/signup` | `POST` form | Validates account/business input, creates the account and first business workspace, creates a session, and redirects to `platform.bapx.in` |
-| `/api/auth/login` | `POST` form | Accepts username or email plus password, creates a session, and redirects to `platform.bapx.in` |
+| `/api/auth/oauth/github` | `GET` | Starts GitHub OAuth with a short-lived state cookie. |
+| `/api/auth/oauth/github/callback` | `GET` | Validates state, resolves a verified GitHub identity, creates or loads the account, and creates a device session. |
+| `/api/auth/logout` | `POST` | Revokes the current device session and clears its cookie. |
 | `/api/auth/session` | `GET` | Returns the safe account for a valid session or `401` |
 
-Passwords require at least 12 characters and are stored as scrypt hashes. Sessions use random tokens, expire after 30 days, and are delivered through an `HttpOnly`, `Secure`, `SameSite=Lax` cookie.
+No bapX password is collected or stored. Sessions use random server-side tokens and persist until logout. The browser cookie is `HttpOnly`, `Secure`, and `SameSite=Lax`; active session checks refresh its browser retention window.
 
 ## Filesystem persistence
 
