@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+	authorizeAdminRequest,
 	isAuthorizedAdminAccount,
 	parseAdminGithubUserIds,
 } from '../src/server/admin-authorization.mjs';
@@ -65,4 +66,37 @@ test('rejects near matches, mutable identity fields, and invalid authorization s
 		false,
 	);
 	assert.equal(isAuthorizedAdminAccount(null, parseAdminGithubUserIds('9007199254740993')), false);
+});
+
+test('returns canonical request authorization results without leaking identity details', () => {
+	const authorization = parseAdminGithubUserIds('123');
+	const account = { providers: [{ name: 'github', id: '123' }] };
+
+	assert.deepEqual(authorizeAdminRequest(null, authorization), {
+		ok: false,
+		status: 401,
+		error: 'authentication_required',
+	});
+	assert.deepEqual(authorizeAdminRequest(account, parseAdminGithubUserIds('456')), {
+		ok: false,
+		status: 403,
+		error: 'admin_forbidden',
+	});
+	assert.deepEqual(authorizeAdminRequest(account, authorization), {
+		ok: true,
+		status: 200,
+		error: null,
+	});
+});
+
+test('keeps canonical request authorization results immutable and reusable', () => {
+	const authorization = parseAdminGithubUserIds('123');
+	const first = authorizeAdminRequest(null, authorization);
+	const second = authorizeAdminRequest(null, authorization);
+	assert.equal(first, second);
+	assert.equal(Object.isFrozen(first), true);
+	assert.throws(() => {
+		first.error = 'admin_forbidden';
+	}, TypeError);
+	assert.equal(authorizeAdminRequest(null, authorization).error, 'authentication_required');
 });
