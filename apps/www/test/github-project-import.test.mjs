@@ -34,6 +34,27 @@ function confirmedInput(overrides = {}) {
 	};
 }
 
+test('keeps the Admin browser payload aligned with the existing server route', () => {
+	const projectsPage = fs.readFileSync(new URL('../admin/src/components/projects-page.tsx', import.meta.url), 'utf8');
+	const server = fs.readFileSync(new URL('../server.mjs', import.meta.url), 'utf8');
+
+	assert.match(
+		projectsPage,
+		/body:\s*JSON\.stringify\(\{\s*repositoryUrl:\s*\{\s*repositoryUrl,\s*projectSlug,\s*confirmed:\s*true\s*\}\s*\}\)/s,
+		'Admin must send the confirmed import input under repositoryUrl',
+	);
+	assert.match(
+		server,
+		/importPublicGitHubProject\(body\.repositoryUrl,\s*\{\s*workspaceRoot\s*\}\)/s,
+		'the existing Admin route must pass that exact confirmed input to the importer',
+	);
+
+	const browserPayload = { repositoryUrl: confirmedInput() };
+	const resolved = resolvePublicGitHubProjectImport(browserPayload.repositoryUrl, { workspaceRoot: workspace() });
+	assert.equal(resolved.path, 'projects/admin-import-fixture');
+	assert.equal(resolved.repository.fullName, 'openai/openai-node');
+});
+
 test('resolves canonical repository identity and explicit destination before mutation', () => {
 	const root = workspace();
 	const result = resolvePublicGitHubProjectImport(confirmedInput({
