@@ -8,6 +8,14 @@ The existing pi-based runtime is the agent harness. OpenAI, Codex, Claude, and o
 
 The framework, runtime, demo conversation, filesystem workspace, GitHub channel, maps, OpenTelemetry adapter, Admin, Agents, Platform, and documentation surfaces already exist. Product work must orchestrate these owners into one reliable system rather than build a parallel framework.
 
+## Current shipping deadline
+
+**Deadline: July 21, 2026 at 11:59 PM Asia/Kolkata.**
+
+The current objective is shipped only when an authorized bapX operator can use the existing `admin.bapx.in` Projects surface to submit a supported GitHub repository URL, import it into the correct organization-owned project path, open the resulting project, and verify the real end-to-end flow in a browser with structured success and failure evidence.
+
+Backend primitives, security helpers, workflows, tests, documentation, or review activity do not satisfy the deadline by themselves. Every Engineering and Review run must materially advance this Admin-first vertical slice, remove a demonstrated blocker, or produce concrete validation evidence. Reuse the existing Admin UI, server/API owner, workspace, GitHub capability, project model, runtime, and telemetry implementation; do not create parallel owners.
+
 ## Product hierarchy
 
 ```text
