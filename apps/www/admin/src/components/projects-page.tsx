@@ -19,11 +19,18 @@ type ImportResult = {
   message?: string
 }
 
-function suggestedSlug(repositoryUrl: string) {
+function repositoryIdentity(repositoryUrl: string) {
   const trimmed = repositoryUrl.trim().replace(/\.git$/, '')
   const match = trimmed.match(/github\.com[/:]([^/]+)\/([^/?#]+)$/i)
   if (!match) return ''
-  return `${match[1]}-${match[2]}`
+  return `${match[1]}/${match[2]}`
+}
+
+function suggestedSlug(repositoryUrl: string) {
+  const identity = repositoryIdentity(repositoryUrl)
+  if (!identity) return ''
+  return identity
+    .replace('/', '-')
     .toLowerCase()
     .replace(/[^a-z0-9._-]+/g, '-')
     .replace(/^-+|-+$/g, '')
@@ -79,6 +86,7 @@ export function ProjectsPage() {
     }
   }
 
+  const canonicalRepository = repositoryIdentity(repositoryUrl) || 'Enter a supported repository URL'
   const destinationPath = projectSlug ? `projects/${projectSlug}` : 'Enter a supported repository URL'
 
   return (
@@ -120,8 +128,16 @@ export function ProjectsPage() {
             />
 
             <div className="mt-4 rounded-lg border bg-muted/30 p-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Destination before mutation</p>
-              <p className="mt-2 break-all font-mono text-sm">{destinationPath}</p>
+              <dl className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Canonical repository before mutation</dt>
+                  <dd className="mt-2 break-all font-mono text-sm">{canonicalRepository}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Destination before mutation</dt>
+                  <dd className="mt-2 break-all font-mono text-sm">{destinationPath}</dd>
+                </div>
+              </dl>
               <label className="mt-4 flex items-start gap-2 text-sm">
                 <input
                   type="checkbox"
