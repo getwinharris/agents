@@ -2,14 +2,17 @@
 
 ## Scope
 
-This repository is the bapX agent harness for `agents.bapx.in`. It owns the primary agent
-harness and `@bapX/agent` package (forked from Bapx):
+This repository is the bapX fork and SaaS adaptation of the upstream `withastro/flue`
+agent harness for `agents.bapx.in`:
 
 - **Product surface**: `agents.bapx.in`
-- **Primary package**: `@bapX/agent`
+- **Runtime package**: `@bapX/runtime`
+- **CLI package**: `@bapX/cli`
 - **GitHub source**: `getwinharris/agents`
 - **Gateway**: `api.bapx.in/mcp`
 - **Pricing**: $5/month includes 5 GB workspace storage and agent/workflow hosting; additional storage is $1/GB/month. TTS and STT are included. Customers bring their own AI-provider and connector credentials.
+
+There is no `@bapX/agent` package. Do not invent, document, or create one unless repository implementation and an approved product decision establish it later.
 
 Agents are TypeScript modules (`agents/<name>.ts`). Build agents that can spawn sub-agents,
 use skills (search, deploy, browser), and collaborate via built-in team features.
@@ -28,8 +31,9 @@ use skills (search, deploy, browser), and collaborate via built-in team features
 
 ## Framework
 
-The underlying framework (forked from Bapx) compiles agent and workflow projects
-into deployable server artifacts.
+The repository adapts the upstream `withastro/flue` framework into bapX branding, packages,
+hosted surfaces, authorization, and SaaS operations. Preserve upstream-derived runtime and CLI
+ownership in `packages/runtime/` and `packages/cli/`; do not create a parallel agent framework.
 
 ## Terminology
 
@@ -69,7 +73,7 @@ A blueprint is a Markdown implementation guide returned by `bapX add`; its kind 
 - `demo/` — Canonical demo app source. Do not duplicate it as `users/demo`; adapt it only into real user projects when explicitly needed.
 - `examples/` — Canonical integration examples. Do not duplicate examples under `users/` or `apps/`.
 - `packages/runtime/` — Runtime library (`@bapX/runtime`): sessions, agent harnesses, tools, and sandbox plumbing.
-- `packages/cli/` — Internal bapX build, operations, map, development, and maintenance tooling. It is not an installable customer product and must not be presented on `docs.bapx.in` as an external workflow.
+- `packages/cli/` — Internal bapX build, operations, map, development, maintenance, approved external-CLI wrapping, version pinning, health checking, and runtime tool registration. It is not an installable customer product and must not be presented on `docs.bapx.in` as an external workflow.
 - `examples/hello-world/` — General runtime integration fixture.
 - `examples/cloudflare/` — Cloudflare integration fixture.
 - `examples/imported-skill/` — Packaged skill and release fixture.
@@ -204,6 +208,10 @@ Do not call UI work done when only the Astro build passed.
 ## Internal CLI and Tooling
 
 The CLI is an internal bapX operations surface. Customers use the hosted Platform, Agents, Admin-equivalent business workspace, API, MCP, and connectors; do not instruct customers to install `@bapX/cli` or run `npx bapX`.
+
+Approved provider CLIs may be wrapped by `packages/cli/` for installation, version pinning, health checks, invocation policy, and registration as runtime tools. User or organization authorization remains owned by the matching Platform connector through OAuth, API keys, or provider-hosted MCP authorization. A CLI wrapper, MCP server, API adapter, and webhook trigger are facets of the same integration, not separate frameworks.
+
+The Browser capability uses one Browser skill with one `SKILL.md` and its supported resource/instruction folder. Firecrawl and Browser Use may be exposed through approved CLI, API, or MCP adapters; do not create another browser or research agent.
 
 Do not create disconnected tools. New repo operations belong in one of:
 
