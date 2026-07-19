@@ -6,6 +6,8 @@ bapX is a hosted, organization-scoped operating system for people and agents. A 
 
 The existing pi-based runtime is the agent harness. OpenAI, Codex, Claude, and other model providers are user-authorized model accounts or API-token sources; they do not replace the bapX harness or create separate agent runtimes.
 
+This repository is the bapX fork and SaaS adaptation of the upstream `withastro/flue` agent harness. The existing bapX owners are `packages/runtime/` (`@bapX/runtime`) and `packages/cli/` (`@bapX/cli`); there is no separate `@bapX/agent` package.
+
 The framework, runtime, demo conversation, filesystem workspace, GitHub channel, maps, OpenTelemetry adapter, Admin, Agents, Platform, and documentation surfaces already exist. Product work must orchestrate these owners into one reliable system rather than build a parallel framework.
 
 ## Product hierarchy
@@ -78,26 +80,30 @@ Admin and Agents may have different authorization scopes and navigation, but the
 
 ## Browser objective
 
-The inbuilt browser is an approved bapX tool, not a third-party remote-control dependency.
+The inbuilt browser is an approved bapX tool surface, not a second browser agent or framework.
 
-- Use a pinned Playwright version with its matching Chromium build.
+- Use one Browser skill with one `SKILL.md` and its supported resource/instruction folder.
+- Firecrawl supplies search, scrape, crawl, extraction, and remote browser operations through its approved CLI, API, or MCP connection.
+- Browser Use supplies fast persistent Chromium interaction through its CDP-based CLI or MCP mode.
 - Use a separate persistent browser profile for each authorized user or isolated agent context.
 - Never attach to a personal browser profile implicitly.
 - Provide visible navigation, page state, screenshots, downloads, and approval boundaries through the bapX Admin/Agents experience.
 - Treat arbitrary page content as untrusted input and preserve tool-call audit evidence.
 - Desktop packaging is a later delivery stage after the hosted Admin browser workflow is proven.
 
-One Browser skill owns web research and interactive browser work. Firecrawl supplies search, scrape, crawl, structured retrieval, and an optional remote sandbox when configured; Browser Use supplies fast persistent CDP interaction; the pinned Playwright CLI supplies deterministic browser tests, traces, and repeatable UI validation. Main and role-specific agents may activate this shared skill under policy. Do not create a separate browser or research agent merely to expose these tools.
+The existing bapX runtime activates this shared Browser skill for main and role-specific agents under policy. `packages/cli/` may wrap installation, version pinning, health checks, and invocation of Firecrawl and Browser Use, but it must not create another runtime, browser service, or research agent.
 
-## CLI capability objective
+## Connector, MCP, CLI, and webhook ownership
 
-External CLIs are project-scoped tools invoked through the existing skill and typed-tool runtime, not replacements for the internal bapX CLI or new orchestration systems.
+The business integration owns the user or organization authorization. OAuth, API keys, provider-hosted MCP authorization, and connector credentials are stored and scoped by Platform; the resulting MCP tools, CLI commands, API operations, and webhook events are tool facets exposed to agents through the existing runtime.
 
-- GitHub CLI owns authorized GitHub issues, pull requests, workflows, releases, and API operations.
-- CodeRabbit CLI owns local or self-hosted-endpoint review output; its structured agent output is review evidence, never implementation authority.
-- Supabase, Stripe, Razorpay, Google Workspace, and Vercel CLIs expose their provider operations only after the user or organization authorizes the matching connector.
-- Each executable is version-pinned, health-checked, permission-scoped, secret-redacted, and reported through the shared capability manifest.
-- A service catalog entry and a CLI execution capability are different facets of one integration. Adding a CLI must extend an existing GitHub, Stripe, Supabase, Google, or Vercel integration instead of duplicating it.
+- GitHub authorization exposes approved repository, issue, pull-request, workflow, release, API, and webhook operations.
+- CodeRabbit exposes managed or organization-configured self-hosted review through its CLI; `--agent` JSON is review evidence, never implementation authority.
+- Supabase, Stripe, Razorpay, Google Workspace, and Vercel expose only operations authorized for the selected user, organization, and project.
+- Provider-hosted MCP servers should be used when available; bapX must not duplicate the provider's MCP implementation.
+- A webhook receiver adds an event trigger to the same integration and automation model; it does not create another connector framework.
+- Each executable or remote tool is versioned or capability-identified, health-checked where applicable, permission-scoped, secret-redacted, and reported through the shared capability inventory.
+- A service catalog entry, MCP server, CLI wrapper, API adapter, and webhook trigger are facets of one integration, not separate ownership entries.
 
 ## Telemetry and audit objective
 
