@@ -25,12 +25,20 @@ function successfulGit(args) {
 	return { status: 1, stdout: '', stderr: 'unexpected git command' };
 }
 
+function confirmedInput(overrides = {}) {
+	return {
+		repositoryUrl: 'https://github.com/openai/openai-node.git',
+		projectSlug: 'admin-import-fixture',
+		confirmed: true,
+		...overrides,
+	};
+}
+
 test('resolves canonical repository identity and explicit destination before mutation', () => {
 	const root = workspace();
-	const result = resolvePublicGitHubProjectImport({
+	const result = resolvePublicGitHubProjectImport(confirmedInput({
 		repositoryUrl: 'git@github.com:openai/openai-node.git',
-		projectSlug: 'admin-import-fixture',
-	}, { workspaceRoot: root });
+	}), { workspaceRoot: root });
 	assert.deepEqual(result, {
 		slug: 'admin-import-fixture',
 		path: 'projects/admin-import-fixture',
@@ -58,12 +66,29 @@ test('rejects URL-only input instead of silently deriving an unconfirmed destina
 	assert.equal(fs.existsSync(path.join(root, 'projects')), false);
 });
 
+test('rejects missing or false confirmation before creating directories or running git', () => {
+	const root = workspace();
+	let gitCalls = 0;
+	for (const confirmed of [undefined, false]) {
+		assert.throws(
+			() => importPublicGitHubProject({
+				repositoryUrl: 'https://github.com/openai/openai-node',
+				projectSlug: 'admin-import-fixture',
+				...(confirmed === undefined ? {} : { confirmed }),
+			}, {
+				workspaceRoot: root,
+				runGit: () => { gitCalls += 1; return successfulGit([]); },
+			}),
+			(error) => error instanceof GitHubProjectImportError && error.code === 'confirmation_required',
+		);
+	}
+	assert.equal(gitCalls, 0);
+	assert.equal(fs.existsSync(path.join(root, 'projects')), false);
+});
+
 test('imports a public repository atomically into the confirmed Admin project path', () => {
 	const root = workspace();
-	const result = importPublicGitHubProject({
-		repositoryUrl: 'https://github.com/openai/openai-node.git',
-		projectSlug: 'admin-import-fixture',
-	}, {
+	const result = importPublicGitHubProject(confirmedInput(), {
 		workspaceRoot: root,
 		runGit: successfulGit,
 	});
@@ -87,10 +112,7 @@ test('does not overwrite an existing project', () => {
 	fs.mkdirSync(destination, { recursive: true });
 	fs.writeFileSync(path.join(destination, 'keep.txt'), 'keep');
 	assert.throws(
-		() => importPublicGitHubProject({
-			repositoryUrl: 'https://github.com/openai/openai-node',
-			projectSlug: 'admin-import-fixture',
-		}, { workspaceRoot: root, runGit: successfulGit }),
+		() => importPublicGitHubProject(confirmedInput({ repositoryUrl: 'https://github.com/openai/openai-node' }), { workspaceRoot: root, runGit: successfulGit }),
 		(error) => error instanceof GitHubProjectImportError && error.code === 'project_exists' && error.status === 409,
 	);
 	assert.equal(fs.readFileSync(path.join(destination, 'keep.txt'), 'utf8'), 'keep');
@@ -99,10 +121,10 @@ test('does not overwrite an existing project', () => {
 test('rejects project slug traversal before creating directories', () => {
 	const root = workspace();
 	assert.throws(
-		() => resolvePublicGitHubProjectImport({
+		() => resolvePublicGitHubProjectImport(confirmedInput({
 			repositoryUrl: 'https://github.com/openai/openai-node',
 			projectSlug: '../outside',
-		}, { workspaceRoot: root }),
+		}), { workspaceRoot: root }),
 		(error) => error instanceof GitHubProjectImportError && error.code === 'invalid_project_slug',
 	);
 	assert.equal(fs.existsSync(path.join(root, 'projects')), false);
@@ -111,10 +133,7 @@ test('rejects project slug traversal before creating directories', () => {
 test('removes temporary directories when cloning fails', () => {
 	const root = workspace();
 	assert.throws(
-		() => importPublicGitHubProject({
-			repositoryUrl: 'https://github.com/openai/openai-node',
-			projectSlug: 'admin-import-fixture',
-		}, {
+		() => importPublicGitHubProject(confirmedInput({ repositoryUrl: 'https://github.com/openai/openai-node' }), {
 			workspaceRoot: root,
 			runGit: () => ({ status: 1, stdout: '', stderr: 'network failure' }),
 		}),
