@@ -50,10 +50,6 @@ const surfaces = {
     title: 'Pull requests',
     description: `Repository review and delivery work across ${operatingSurface.projectScope}.`,
   },
-  chat: {
-    title: 'Chat',
-    description: 'Business conversations and human-agent coordination. Main-agent tasks start from New task.',
-  },
 } as const
 
 function OperationalSurface({ surface }: { surface: keyof typeof surfaces }) {

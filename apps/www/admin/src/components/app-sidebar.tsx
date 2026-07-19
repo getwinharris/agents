@@ -76,7 +76,7 @@ export function AppSidebar() {
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/team"><Users /><span>Team</span></Link></SidebarMenuButton></SidebarMenuItem>
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/agents"><Bot /><span>Agents</span></Link></SidebarMenuButton></SidebarMenuItem>
               {operatingSurface.showAdminPullRequests ? <SidebarMenuItem><SidebarMenuButton asChild><Link to="/pull-requests"><GitPullRequest /><span>Pull requests</span></Link></SidebarMenuButton></SidebarMenuItem> : null}
-              <SidebarMenuItem><SidebarMenuButton asChild><Link to="/chat"><MessageCircle /><span>Chat</span></Link></SidebarMenuButton></SidebarMenuItem>
+              <SidebarMenuItem><SidebarMenuButton asChild><Link to="/"><MessageCircle /><span>Chat</span></Link></SidebarMenuButton></SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
