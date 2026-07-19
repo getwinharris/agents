@@ -72,7 +72,7 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/automations"><TimerReset /><span>Automations</span></Link></SidebarMenuButton></SidebarMenuItem>
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/mcps"><Network /><span>MCPs</span></Link></SidebarMenuButton></SidebarMenuItem>
-              <SidebarMenuItem><SidebarMenuButton asChild><a href="/editor/"><FolderKanban /><span>Projects</span></a></SidebarMenuButton></SidebarMenuItem>
+              <SidebarMenuItem><SidebarMenuButton asChild><Link to="/projects"><FolderKanban /><span>Projects</span></Link></SidebarMenuButton></SidebarMenuItem>
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/team"><Users /><span>Team</span></Link></SidebarMenuButton></SidebarMenuItem>
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/agents"><Bot /><span>Agents</span></Link></SidebarMenuButton></SidebarMenuItem>
               {operatingSurface.showAdminPullRequests ? <SidebarMenuItem><SidebarMenuButton asChild><Link to="/pull-requests"><GitPullRequest /><span>Pull requests</span></Link></SidebarMenuButton></SidebarMenuItem> : null}
