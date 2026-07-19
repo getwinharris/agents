@@ -164,7 +164,20 @@ export function ProjectsPage() {
                       <div className="min-w-0">
                         <h3 className="truncate font-medium">{project.name}</h3>
                         <p className="mt-1 truncate text-sm text-muted-foreground">{project.path}</p>
-                        {project.commitSha ? <p className="mt-1 font-mono text-xs text-muted-foreground">{project.commitSha.slice(0, 12)}</p> : null}
+                        <dl className="mt-3 grid gap-1 text-xs text-muted-foreground sm:grid-cols-3">
+                          <div>
+                            <dt className="font-medium text-foreground">Status</dt>
+                            <dd>{project.status || 'unknown'}</dd>
+                          </div>
+                          <div>
+                            <dt className="font-medium text-foreground">Operation</dt>
+                            <dd className="break-all font-mono">{project.operationId || 'not recorded'}</dd>
+                          </div>
+                          <div>
+                            <dt className="font-medium text-foreground">Commit</dt>
+                            <dd className="break-all font-mono">{project.commitSha || 'not recorded'}</dd>
+                          </div>
+                        </dl>
                       </div>
                       <Button asChild variant="outline" size="sm">
                         <a href={`/editor/?path=${encodeURIComponent(project.path)}`}>Open files</a>
