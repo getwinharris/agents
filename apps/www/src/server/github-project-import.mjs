@@ -1,7 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { resolveGitHubRepositoryReference } from './github-repository.mjs';
+
+const PROJECT_SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9._-]{0,98}[a-z0-9])?$/;
 
 export class GitHubProjectImportError extends Error {
 	constructor(code, message, status = 400) {
@@ -24,15 +27,39 @@ function defaultRunGit(args) {
 	});
 }
 
-function projectSlug(identity) {
+function derivedProjectSlug(identity) {
 	return `${identity.owner}-${identity.repository}`
 		.toLowerCase()
 		.replace(/[^a-z0-9._-]+/g, '-')
 		.replace(/^-+|-+$/g, '');
 }
 
+function normalizeProjectSlug(value, identity) {
+	const slug = String(value || derivedProjectSlug(identity)).trim().toLowerCase();
+	if (!PROJECT_SLUG_PATTERN.test(slug) || slug === '.' || slug === '..' || slug.includes('..')) {
+		fail('invalid_project_slug', 'Project slug must use 1-100 lowercase letters, numbers, dots, hyphens, or underscores');
+	}
+	return slug;
+}
+
 function projectsRoot(workspaceRoot) {
 	return path.join(path.resolve(workspaceRoot), 'projects');
+}
+
+function resolveDestination(workspaceRoot, slug) {
+	const directory = projectsRoot(workspaceRoot);
+	const destination = path.resolve(directory, slug);
+	const relative = path.relative(directory, destination);
+	if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) {
+		fail('project_path_escape', 'Project destination must remain inside the Admin projects directory');
+	}
+	return { directory, destination, relativePath: `projects/${slug}` };
+}
+
+function normalizeImportInput(input) {
+	if (typeof input === 'string') return { repositoryUrl: input, projectSlug: undefined };
+	if (!input || typeof input !== 'object') fail('invalid_input', 'Repository import input is required');
+	return { repositoryUrl: input.repositoryUrl, projectSlug: input.projectSlug };
 }
 
 function publicProject(projectsDirectory, directoryName) {
@@ -66,22 +93,31 @@ export function listGitHubProjects({ workspaceRoot }) {
 	}
 }
 
-export function importPublicGitHubProject(input, { workspaceRoot, runGit = defaultRunGit } = {}) {
+export function resolvePublicGitHubProjectImport(input, { workspaceRoot } = {}) {
 	if (!workspaceRoot) fail('workspace_unavailable', 'Admin workspace root is not configured', 500);
-	const identity = resolveGitHubRepositoryReference(input);
-	const slug = projectSlug(identity);
-	if (!slug) fail('invalid_project_slug', 'Repository identity cannot produce a project slug');
+	const { repositoryUrl, projectSlug } = normalizeImportInput(input);
+	const repository = resolveGitHubRepositoryReference(repositoryUrl);
+	const slug = normalizeProjectSlug(projectSlug, repository);
+	const { destination, relativePath } = resolveDestination(workspaceRoot, slug);
+	if (fs.existsSync(destination)) fail('project_exists', `Project ${slug} already exists`, 409);
+	return {
+		slug,
+		path: relativePath,
+		repository,
+		visibility: 'public',
+	};
+}
 
-	const directory = projectsRoot(workspaceRoot);
-	const destination = path.join(directory, slug);
+export function importPublicGitHubProject(input, { workspaceRoot, runGit = defaultRunGit } = {}) {
+	const resolved = resolvePublicGitHubProjectImport(input, { workspaceRoot });
+	const { slug, repository, path: relativePath } = resolved;
+	const { directory, destination } = resolveDestination(workspaceRoot, slug);
 	fs.mkdirSync(directory, { recursive: true });
-	if (fs.existsSync(destination)) {
-		fail('project_exists', `Project ${slug} already exists`, 409);
-	}
 
+	const operationId = randomUUID();
 	const temporary = fs.mkdtempSync(path.join(directory, `.import-${slug}-`));
 	try {
-		const clone = runGit(['clone', '--depth', '1', '--', identity.httpsUrl, temporary]);
+		const clone = runGit(['clone', '--depth', '1', '--', repository.httpsUrl, temporary]);
 		if (clone?.error?.code === 'ENOENT') fail('git_unavailable', 'Git is unavailable on the Admin server', 503);
 		if (clone?.status !== 0) fail('clone_failed', 'GitHub repository could not be cloned', 422);
 		if (!fs.existsSync(path.join(temporary, '.git'))) fail('clone_invalid', 'Cloned repository is missing Git metadata', 502);
@@ -94,14 +130,15 @@ export function importPublicGitHubProject(input, { workspaceRoot, runGit = defau
 		const metadata = {
 			schemaVersion: 1,
 			source: 'github',
-			visibility: 'public',
-			repository: identity,
+			visibility: resolved.visibility,
+			repository,
 			commitSha,
+			operationId,
 			importedAt: new Date().toISOString(),
 		};
 		fs.writeFileSync(path.join(temporary, '.bapx-project.json'), `${JSON.stringify(metadata, null, 2)}\n`, 'utf8');
 		fs.renameSync(temporary, destination);
-		return { slug, path: `projects/${slug}`, repository: identity, commitSha };
+		return { ...resolved, commitSha, operationId, status: 'completed' };
 	} catch (error) {
 		fs.rmSync(temporary, { recursive: true, force: true });
 		throw error;
