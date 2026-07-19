@@ -9,6 +9,8 @@ type Project = {
   path: string
   repository: { fullName: string } | null
   commitSha: string | null
+  operationId?: string
+  status?: string
 }
 
 type ImportResult = {
@@ -17,8 +19,20 @@ type ImportResult = {
   message?: string
 }
 
+function suggestedSlug(repositoryUrl: string) {
+  const trimmed = repositoryUrl.trim().replace(/\.git$/, '')
+  const match = trimmed.match(/github\.com[/:]([^/]+)\/([^/?#]+)$/i)
+  if (!match) return ''
+  return `${match[1]}-${match[2]}`
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 export function ProjectsPage() {
   const [repositoryUrl, setRepositoryUrl] = useState('')
+  const [projectSlug, setProjectSlug] = useState('')
+  const [confirmed, setConfirmed] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [status, setStatus] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -34,6 +48,12 @@ export function ProjectsPage() {
     void loadProjects().catch((error) => setStatus(error.message))
   }, [])
 
+  const updateRepositoryUrl = (value: string) => {
+    setRepositoryUrl(value)
+    setConfirmed(false)
+    if (!projectSlug || projectSlug === suggestedSlug(repositoryUrl)) setProjectSlug(suggestedSlug(value))
+  }
+
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     setLoading(true)
@@ -43,12 +63,14 @@ export function ProjectsPage() {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repositoryUrl }),
+        body: JSON.stringify({ repositoryUrl: { repositoryUrl, projectSlug } }),
       })
       const body = (await response.json()) as ImportResult
       if (!response.ok) throw new Error(body.message || body.error || 'Repository import failed')
       setRepositoryUrl('')
-      setStatus(`Imported ${body.project?.name || 'repository'} successfully.`)
+      setProjectSlug('')
+      setConfirmed(false)
+      setStatus(`Imported ${body.project?.name || 'repository'} successfully${body.project?.operationId ? ` (operation ${body.project.operationId})` : ''}.`)
       await loadProjects()
     } catch (error) {
       setStatus(error instanceof Error ? error.message : 'Repository import failed')
@@ -56,6 +78,8 @@ export function ProjectsPage() {
       setLoading(false)
     }
   }
+
+  const destinationPath = projectSlug ? `projects/${projectSlug}` : 'Enter a supported repository URL'
 
   return (
     <div className="flex h-svh flex-col overflow-hidden">
@@ -74,23 +98,50 @@ export function ProjectsPage() {
 
           <form onSubmit={submit} className="mt-8 rounded-xl border bg-card p-5 shadow-sm">
             <label htmlFor="repository-url" className="text-sm font-medium">GitHub repository URL</label>
-            <div className="mt-2 flex flex-col gap-3 sm:flex-row">
-              <input
-                id="repository-url"
-                value={repositoryUrl}
-                onChange={(event) => setRepositoryUrl(event.target.value)}
-                required
-                placeholder="https://github.com/owner/repository"
-                className="h-10 min-w-0 flex-1 rounded-md border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
-              />
-              <Button type="submit" disabled={loading || !repositoryUrl.trim()}>
+            <input
+              id="repository-url"
+              value={repositoryUrl}
+              onChange={(event) => updateRepositoryUrl(event.target.value)}
+              required
+              placeholder="https://github.com/owner/repository"
+              className="mt-2 h-10 w-full rounded-md border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+            />
+
+            <label htmlFor="project-slug" className="mt-4 block text-sm font-medium">Project slug</label>
+            <input
+              id="project-slug"
+              value={projectSlug}
+              onChange={(event) => { setProjectSlug(event.target.value.toLowerCase()); setConfirmed(false) }}
+              required
+              pattern="[a-z0-9][a-z0-9._-]{0,98}[a-z0-9]|[a-z0-9]"
+              maxLength={100}
+              placeholder="owner-repository"
+              className="mt-2 h-10 w-full rounded-md border bg-background px-3 font-mono text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+            />
+
+            <div className="mt-4 rounded-lg border bg-muted/30 p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Destination before mutation</p>
+              <p className="mt-2 break-all font-mono text-sm">{destinationPath}</p>
+              <label className="mt-4 flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={confirmed}
+                  onChange={(event) => setConfirmed(event.target.checked)}
+                  className="mt-0.5 size-4"
+                />
+                <span>I confirm this public repository may be cloned into the displayed Admin project path.</span>
+              </label>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-muted-foreground">
+                Supported now: public GitHub HTTPS and SSH repository references. Existing project directories are never overwritten.
+              </p>
+              <Button type="submit" disabled={loading || !repositoryUrl.trim() || !projectSlug.trim() || !confirmed}>
                 {loading ? <Loader2 className="size-4 animate-spin" /> : <FolderGit2 className="size-4" />}
-                Import repository
+                Confirm import
               </Button>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Supported now: public GitHub HTTPS and SSH repository references. Existing project directories are never overwritten.
-            </p>
             {status ? <p className="mt-3 text-sm" role="status">{status}</p> : null}
           </form>
 
