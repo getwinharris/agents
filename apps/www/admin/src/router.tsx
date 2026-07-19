@@ -8,6 +8,7 @@ import {
 import { AppSidebar } from '@/components/app-sidebar'
 import { ChatView } from '@/components/chat/chat-view'
 import { NewChat } from '@/components/new-chat'
+import { ProjectsPage } from '@/components/projects-page'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { operatingSurface } from '@/lib/operating-surface.mjs'
@@ -25,7 +26,6 @@ function RootLayout() {
 
 function ChatRoute() {
   const { chatId } = useParams({ from: '/c/$chatId' })
-  // Remount when the conversation changes so per-conversation state resets.
   return <ChatView key={chatId} conversationId={chatId} />
 }
 
@@ -83,6 +83,12 @@ const chatRoute = createRoute({
   component: ChatRoute,
 })
 
+const projectsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/projects',
+  component: ProjectsPage,
+})
+
 const operationalRoutes = (Object.keys(surfaces) as Array<keyof typeof surfaces>).map((surface) =>
   createRoute({
     getParentRoute: () => rootRoute,
@@ -91,7 +97,7 @@ const operationalRoutes = (Object.keys(surfaces) as Array<keyof typeof surfaces>
   }),
 )
 
-const routeTree = rootRoute.addChildren([indexRoute, chatRoute, ...operationalRoutes])
+const routeTree = rootRoute.addChildren([indexRoute, chatRoute, projectsRoute, ...operationalRoutes])
 
 export const router = createRouter({ routeTree })
 
