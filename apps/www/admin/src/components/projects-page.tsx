@@ -46,18 +46,30 @@ export function ProjectsPage() {
   const [projectSlug, setProjectSlug] = useState('')
   const [confirmed, setConfirmed] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
+  const [projectsLoading, setProjectsLoading] = useState(true)
+  const [projectsLoadError, setProjectsLoadError] = useState<string | null>(null)
   const [status, setStatus] = useState<StatusState | null>(null)
   const [loading, setLoading] = useState(false)
 
   const loadProjects = async () => {
-    const response = await fetch('/api/projects', { credentials: 'same-origin' })
-    const body = await response.json()
-    if (!response.ok) throw new Error(body.message || body.error || 'Projects could not be loaded')
-    setProjects(body.projects || [])
+    setProjectsLoading(true)
+    setProjectsLoadError(null)
+    try {
+      const response = await fetch('/api/projects', { credentials: 'same-origin' })
+      const body = await response.json()
+      if (!response.ok) throw new Error(body.message || body.error || 'Projects could not be loaded')
+      setProjects(body.projects || [])
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Projects could not be loaded'
+      setProjectsLoadError(message)
+      throw error
+    } finally {
+      setProjectsLoading(false)
+    }
   }
 
   useEffect(() => {
-    void loadProjects().catch((error) => setStatus({ kind: 'error', message: error.message }))
+    void loadProjects().catch(() => undefined)
   }, [])
 
   const updateRepositoryUrl = (value: string) => {
@@ -188,19 +200,28 @@ export function ProjectsPage() {
             ) : null}
           </form>
 
-          <section className="mt-10">
+          <section className="mt-10" aria-busy={projectsLoading}>
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-xl font-semibold">Imported projects</h2>
               <Button asChild variant="outline" size="sm">
                 <a href="/editor/">Open workspace editor <ExternalLink className="size-4" /></a>
               </Button>
             </div>
-            {projects.length === 0 ? (
-              <div className="mt-4 rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
+            {projectsLoading ? (
+              <div className="mt-4 rounded-lg border p-6 text-sm text-muted-foreground" role="status" aria-live="polite" data-state="loading">
+                <Loader2 className="mr-2 inline size-4 animate-spin" aria-hidden="true" />
+                Loading imported projects…
+              </div>
+            ) : projectsLoadError ? (
+              <div className="mt-4 rounded-lg border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive" role="alert" data-state="error">
+                Imported projects could not be loaded: {projectsLoadError}
+              </div>
+            ) : projects.length === 0 ? (
+              <div className="mt-4 rounded-lg border border-dashed p-6 text-sm text-muted-foreground" data-state="empty">
                 No imported projects yet. Submit a public repository above.
               </div>
             ) : (
-              <div className="mt-4 grid gap-3">
+              <div className="mt-4 grid gap-3" data-state="ready">
                 {projects.map((project) => (
                   <article key={project.slug} className="rounded-lg border p-4">
                     <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
