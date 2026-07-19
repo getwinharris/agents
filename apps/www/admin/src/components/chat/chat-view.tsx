@@ -3,6 +3,7 @@ import { AlertCircle } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { DEFAULT_TITLE, useConversations } from '@/state/conversations'
 import { useSettings } from '@/state/settings'
+import { WorkspacePanel } from '../workspace-panel'
 import { ChatHeader } from '../chat-header'
 import { Composer } from './composer'
 import { MessageList } from './message-list'
@@ -71,14 +72,15 @@ export function ChatView({ conversationId }: { conversationId: string }) {
   }, [conversationId])
 
   return (
-    <div className="flex h-svh min-h-0 flex-1 flex-col overflow-hidden">
-      <ChatHeader title={conversation?.title ?? 'Chat'} agentName={agentName} />
-      <MessageList
-        messages={agent.messages}
-        status={agent.status}
-        failedSends={agent.failedSends}
-      />
-      <div className="mx-auto w-full max-w-3xl shrink-0 px-4 pb-4">
+    <div className="flex h-svh min-h-0 flex-1 overflow-hidden">
+      <section className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <ChatHeader title={conversation?.title ?? 'Chat'} agentName={agentName} />
+        <MessageList
+          messages={agent.messages}
+          status={agent.status}
+          failedSends={agent.failedSends}
+        />
+        <div className="mx-auto w-full max-w-3xl shrink-0 px-4 pb-4">
         {agent.error || cancelError ? (
           <div className="mb-2 flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             <AlertCircle className="mt-0.5 size-4 shrink-0" />
@@ -97,7 +99,9 @@ export function ChatView({ conversationId }: { conversationId: string }) {
           Connected to <span className="font-medium">{agentName}</span>. Press Enter to send,
           Shift+Enter for a new line.
         </p>
-      </div>
+        </div>
+      </section>
+      <WorkspacePanel />
     </div>
   )
 }

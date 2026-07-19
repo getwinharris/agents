@@ -12,9 +12,6 @@ import { SettingsProvider, useSettings } from './state/settings'
 // scoped under `.style-luma`. Apply it once at the document root.
 document.documentElement.classList.add('style-luma')
 
-// Admin follows the canonical bapX dark operating theme on every workstation.
-document.documentElement.classList.add('dark')
-
 function BapxClientBridge({ children }: { children: ReactNode }) {
   const { client } = useSettings()
   return <BapxProvider client={client}>{children}</BapxProvider>

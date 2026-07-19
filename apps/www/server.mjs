@@ -1,4 +1,5 @@
 import http from 'node:http';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -196,6 +197,54 @@ async function handleAuthAPI(req, res, urlPath) {
 		return true;
 	}
 	return false;
+}
+
+function readRawBody(req, limit = 2 * 1024 * 1024) {
+	return new Promise((resolve, reject) => {
+		const chunks = [];
+		let size = 0;
+		req.on('data', (chunk) => {
+			size += chunk.length;
+			if (size > limit) {
+				reject(new Error('Webhook payload is too large'));
+				req.destroy();
+				return;
+			}
+			chunks.push(chunk);
+		});
+		req.on('end', () => resolve(Buffer.concat(chunks)));
+		req.on('error', reject);
+	});
+}
+
+function validGitHubSignature(body, signature, secret) {
+	if (!secret || !signature?.startsWith('sha256=')) return false;
+	const expected = `sha256=${crypto.createHmac('sha256', secret).update(body).digest('hex')}`;
+	const supplied = Buffer.from(signature);
+	const trusted = Buffer.from(expected);
+	return supplied.length === trusted.length && crypto.timingSafeEqual(supplied, trusted);
+}
+
+async function handleGitHubWebhook(req, res, urlPath) {
+	if (urlPath !== '/api/channels/github/webhook' || req.method !== 'POST') return false;
+	const secret = process.env.GITHUB_WEBHOOK_SECRET;
+	if (!secret) {
+		jsonResponse(res, 503, { error: 'GitHub webhook is not configured.' });
+		return true;
+	}
+	try {
+		const body = await readRawBody(req);
+		if (!validGitHubSignature(body, req.headers['x-hub-signature-256'], secret)) {
+			jsonResponse(res, 401, { error: 'Invalid GitHub webhook signature.' });
+			return true;
+		}
+		const event = String(req.headers['x-github-event'] || 'unknown');
+		const delivery = String(req.headers['x-github-delivery'] || '');
+		jsonResponse(res, event === 'ping' ? 200 : 202, { accepted: true, delivery, event });
+	} catch (error) {
+		jsonResponse(res, 400, { error: error instanceof Error ? error.message : 'Invalid webhook payload.' });
+	}
+	return true;
 }
 
 // --- Workspace API router ---
@@ -430,6 +479,10 @@ http
 		}
 		if (urlPath.startsWith('/api/auth/')) {
 			const handled = await handleAuthAPI(req, res, urlPath);
+			if (handled) return;
+		}
+		if (urlPath === '/api/channels/github/webhook') {
+			const handled = await handleGitHubWebhook(req, res, urlPath);
 			if (handled) return;
 		}
 		const sessionAccount = getSessionAccount(req);

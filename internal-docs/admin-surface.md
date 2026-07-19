@@ -36,6 +36,8 @@ The left navigation follows the canonical demo/sidebar interaction and includes:
 7. **Pull requests** — repository review and delivery work.
 8. **Chat** — conversations and coordination views.
 
+The shared Admin/Agents work area uses a three-region operating layout: existing business navigation on the left, model selection and conversation in the center, and a resizable Browser/Terminal/Review workspace on the right. The Browser tab currently owns the visible navigation surface; remote isolated-browser execution remains experimental until its service and audit transport are connected. GitHub App events enter through the signed public `POST /api/channels/github/webhook` route using `GITHUB_WEBHOOK_SECRET`.
+
 The project list remains visible below the main navigation, matching the supplied reference structure.
 
 ## First implementation boundary

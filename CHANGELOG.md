@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added the shared Admin/Agents Browser, Terminal, and Review workspace with model selection, a project-local browser skill contract, and a signed GitHub App webhook receiver at `/api/channels/github/webhook`.
+
 ### Authentication
 
 - bapX signup and login now use GitHub identity only. Password and Google identity controls are removed, verified GitHub identities create the user workspace and first organisation, and device sessions persist until logout.

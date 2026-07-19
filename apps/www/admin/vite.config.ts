@@ -5,6 +5,7 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  publicDir: '../public',
   build: {
     outDir: '../dist/admin',
     emptyOutDir: true,

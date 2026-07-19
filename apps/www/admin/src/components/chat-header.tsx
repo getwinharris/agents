@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { ModelSelector } from './model-selector'
 
 export function ChatHeader({ title, agentName }: { title: string; agentName: string }) {
   return (
@@ -9,10 +10,11 @@ export function ChatHeader({ title, agentName }: { title: string; agentName: str
       <Separator orientation="vertical" className="mr-1 h-5" />
       <h1 className="truncate text-sm font-medium">{title}</h1>
       {agentName ? (
-        <Badge variant="secondary" className="ml-auto font-mono text-xs">
+        <Badge variant="secondary" className="ml-auto hidden font-mono text-xs sm:inline-flex">
           {agentName}
         </Badge>
       ) : null}
+      <ModelSelector />
     </header>
   )
 }
