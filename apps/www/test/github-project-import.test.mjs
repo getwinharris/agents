@@ -40,8 +40,18 @@ test('keeps the Admin browser payload aligned with the existing server route', (
 
 	assert.match(
 		projectsPage,
-		/body:\s*JSON\.stringify\(\{\s*repositoryUrl:\s*\{\s*repositoryUrl,\s*projectSlug,\s*confirmed:\s*true\s*\}\s*\}\)/s,
-		'Admin must send the confirmed import input under repositoryUrl',
+		/if\s*\(loading\s*\|\|\s*!repositoryUrl\.trim\(\)\s*\|\|\s*!projectSlug\.trim\(\)\s*\|\|\s*!confirmed\)\s*\{[\s\S]*return/s,
+		'Admin must reject every form-submission path until the displayed repository and destination are confirmed',
+	);
+	assert.match(
+		projectsPage,
+		/body:\s*JSON\.stringify\(\{\s*repositoryUrl:\s*\{\s*repositoryUrl,\s*projectSlug,\s*confirmed\s*\}\s*\}\)/s,
+		'Admin must forward the actual confirmation state instead of hard-coding confirmation',
+	);
+	assert.doesNotMatch(
+		projectsPage,
+		/confirmed:\s*true/,
+		'Admin must not manufacture confirmation in the request payload',
 	);
 	assert.match(
 		projectsPage,
