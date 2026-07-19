@@ -8,15 +8,30 @@ import {
 test('parses opaque GitHub provider IDs without numeric coercion', () => {
 	const authorization = parseAdminGithubUserIds('123, 9007199254740993,123');
 	assert.equal(authorization.valid, true);
-	assert.deepEqual([...authorization.ids], ['123', '9007199254740993']);
+	assert.equal(authorization.size, 2);
+	assert.equal(authorization.hasGithubUserId('123'), true);
+	assert.equal(authorization.hasGithubUserId('9007199254740993'), true);
+	assert.equal(authorization.hasGithubUserId('9007199254740992'), false);
 });
 
 test('fails closed for missing or malformed configuration', () => {
 	for (const value of [undefined, '', ' ', '0', '-1', '1.2', '12x', '123,', ',123']) {
 		const authorization = parseAdminGithubUserIds(value);
 		assert.equal(authorization.valid, false, String(value));
-		assert.equal(authorization.ids.size, 0);
+		assert.equal(authorization.size, 0);
+		assert.equal(authorization.hasGithubUserId('123'), false);
 	}
+});
+
+test('keeps parsed authorization membership encapsulated and immutable', () => {
+	const authorization = parseAdminGithubUserIds('123');
+	assert.equal(Object.isFrozen(authorization), true);
+	assert.equal('ids' in authorization, false);
+	assert.throws(() => {
+		authorization.hasGithubUserId = () => true;
+	}, TypeError);
+	assert.equal(authorization.hasGithubUserId('123'), true);
+	assert.equal(authorization.hasGithubUserId('456'), false);
 });
 
 test('authorizes only an exact linked GitHub provider ID', () => {
@@ -45,6 +60,9 @@ test('rejects near matches, mutable identity fields, and invalid authorization s
 		providers: [{ name: 'github', id: '90071992547409930', login: '9007199254740993' }],
 	};
 	assert.equal(isAuthorizedAdminAccount(account, parseAdminGithubUserIds('9007199254740993')), false);
-	assert.equal(isAuthorizedAdminAccount(account, { valid: false, ids: new Set(['90071992547409930']) }), false);
+	assert.equal(
+		isAuthorizedAdminAccount(account, { valid: false, hasGithubUserId: () => true }),
+		false,
+	);
 	assert.equal(isAuthorizedAdminAccount(null, parseAdminGithubUserIds('9007199254740993')), false);
 });
