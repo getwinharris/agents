@@ -45,6 +45,19 @@ test('resolves canonical repository identity and explicit destination before mut
 	assert.equal(fs.existsSync(path.join(root, 'projects')), false);
 });
 
+test('rejects URL-only input instead of silently deriving an unconfirmed destination', () => {
+	const root = workspace();
+	assert.throws(
+		() => resolvePublicGitHubProjectImport('https://github.com/openai/openai-node', { workspaceRoot: root }),
+		(error) => error instanceof GitHubProjectImportError && error.code === 'invalid_input',
+	);
+	assert.throws(
+		() => resolvePublicGitHubProjectImport({ repositoryUrl: 'https://github.com/openai/openai-node' }, { workspaceRoot: root }),
+		(error) => error instanceof GitHubProjectImportError && error.code === 'invalid_input',
+	);
+	assert.equal(fs.existsSync(path.join(root, 'projects')), false);
+});
+
 test('imports a public repository atomically into the confirmed Admin project path', () => {
 	const root = workspace();
 	const result = importPublicGitHubProject({
