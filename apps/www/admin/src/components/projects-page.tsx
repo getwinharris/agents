@@ -19,6 +19,11 @@ type ImportResult = {
   message?: string
 }
 
+type StatusState = {
+  kind: 'progress' | 'success' | 'error'
+  message: string
+}
+
 function repositoryIdentity(repositoryUrl: string) {
   const trimmed = repositoryUrl.trim().replace(/\.git$/, '')
   const match = trimmed.match(/github\.com[/:]([^/]+)\/([^/?#]+)$/i)
@@ -41,7 +46,7 @@ export function ProjectsPage() {
   const [projectSlug, setProjectSlug] = useState('')
   const [confirmed, setConfirmed] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
-  const [status, setStatus] = useState<string | null>(null)
+  const [status, setStatus] = useState<StatusState | null>(null)
   const [loading, setLoading] = useState(false)
 
   const loadProjects = async () => {
@@ -52,7 +57,7 @@ export function ProjectsPage() {
   }
 
   useEffect(() => {
-    void loadProjects().catch((error) => setStatus(error.message))
+    void loadProjects().catch((error) => setStatus({ kind: 'error', message: error.message }))
   }, [])
 
   const updateRepositoryUrl = (value: string) => {
@@ -64,11 +69,11 @@ export function ProjectsPage() {
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     if (loading || !repositoryUrl.trim() || !projectSlug.trim() || !confirmed) {
-      setStatus('Confirm the displayed repository and destination before importing.')
+      setStatus({ kind: 'error', message: 'Confirm the displayed repository and destination before importing.' })
       return
     }
     setLoading(true)
-    setStatus('Resolving and importing repository…')
+    setStatus({ kind: 'progress', message: 'Resolving and importing repository…' })
     try {
       const response = await fetch('/api/projects/import', {
         method: 'POST',
@@ -81,10 +86,13 @@ export function ProjectsPage() {
       setRepositoryUrl('')
       setProjectSlug('')
       setConfirmed(false)
-      setStatus(`Imported ${body.project?.name || 'repository'} successfully${body.project?.operationId ? ` (operation ${body.project.operationId})` : ''}.`)
+      setStatus({
+        kind: 'success',
+        message: `Imported ${body.project?.name || 'repository'} successfully${body.project?.operationId ? ` (operation ${body.project.operationId})` : ''}.`,
+      })
       await loadProjects()
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Repository import failed')
+      setStatus({ kind: 'error', message: error instanceof Error ? error.message : 'Repository import failed' })
     } finally {
       setLoading(false)
     }
@@ -92,6 +100,11 @@ export function ProjectsPage() {
 
   const canonicalRepository = repositoryIdentity(repositoryUrl) || 'Enter a supported repository URL'
   const destinationPath = projectSlug ? `projects/${projectSlug}` : 'Enter a supported repository URL'
+  const statusClassName = status?.kind === 'error'
+    ? 'border-destructive/40 bg-destructive/10 text-destructive'
+    : status?.kind === 'success'
+      ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+      : 'border-border bg-muted/40 text-foreground'
 
   return (
     <div className="flex h-svh flex-col overflow-hidden">
@@ -162,7 +175,17 @@ export function ProjectsPage() {
                 Confirm import
               </Button>
             </div>
-            {status ? <p className="mt-3 text-sm" role="status">{status}</p> : null}
+            {status ? (
+              <div
+                className={`mt-4 rounded-md border px-3 py-2 text-sm ${statusClassName}`}
+                role={status.kind === 'error' ? 'alert' : 'status'}
+                aria-live={status.kind === 'error' ? 'assertive' : 'polite'}
+                data-state={status.kind}
+              >
+                {status.kind === 'progress' ? <Loader2 className="mr-2 inline size-4 animate-spin" aria-hidden="true" /> : null}
+                {status.message}
+              </div>
+            ) : null}
           </form>
 
           <section className="mt-10">
