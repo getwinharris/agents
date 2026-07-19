@@ -63,6 +63,10 @@ export function ProjectsPage() {
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
+    if (loading || !repositoryUrl.trim() || !projectSlug.trim() || !confirmed) {
+      setStatus('Confirm the displayed repository and destination before importing.')
+      return
+    }
     setLoading(true)
     setStatus('Resolving and importing repository…')
     try {
@@ -70,7 +74,7 @@ export function ProjectsPage() {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repositoryUrl: { repositoryUrl, projectSlug, confirmed: true } }),
+        body: JSON.stringify({ repositoryUrl: { repositoryUrl, projectSlug, confirmed } }),
       })
       const body = (await response.json()) as ImportResult
       if (!response.ok) throw new Error(body.message || body.error || 'Repository import failed')
