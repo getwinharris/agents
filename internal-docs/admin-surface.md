@@ -34,13 +34,13 @@ The left navigation follows the canonical demo/sidebar interaction and includes:
 5. **Team** — bapX people, roles, permissions, assignments, and human coordination.
 6. **Agents** — main and role-specific agents, including their tools, responsibilities, availability, and work.
 7. **Pull requests** — repository review and delivery work.
-8. **Chat** — conversations and coordination views.
+8. **Chat** — opens the existing working main-agent conversation entry point; it must not render a separate zero-state or duplicate chat implementation.
 
 The project list remains visible below the main navigation, matching the supplied reference structure.
 
 ## First implementation boundary
 
-The first implementation may expose Projects, Team, Agents, Automations, MCPs, Pull requests, and Chat as navigable zero states only when their backing operations do not yet exist. Every such surface must label the actual state and must not present dead controls as working. Main-agent chat and the existing workspace file API/editor are the first real capabilities to preserve and connect.
+The first implementation may expose Projects, Team, Agents, Automations, MCPs, and Pull requests as navigable zero states only when their backing operations do not yet exist. Every such surface must label the actual state and must not present dead controls as working. Main-agent chat and the existing workspace file API/editor are the first real capabilities to preserve and connect.
 
 ## Platform dependency
 
