@@ -3,7 +3,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { importPublicGitHubProject, listGitHubProjects } from '../src/server/github-project-import.mjs';
+
+const testDirectory = path.dirname(fileURLToPath(import.meta.url));
 
 function successfulGit(args) {
 	if (args[0] === 'clone') {
@@ -27,4 +30,11 @@ test('project listings preserve completed import evidence after reload', () => {
 	assert.equal(listed.operationId, imported.operationId);
 	assert.equal(listed.status, 'completed');
 	assert.equal(listed.commitSha, imported.commitSha);
+});
+
+test('Admin project cards render durable status, operation, and commit evidence', () => {
+	const source = fs.readFileSync(path.resolve(testDirectory, '../admin/src/components/projects-page.tsx'), 'utf8');
+	assert.match(source, /<dt[^>]*>Status<\/dt>[\s\S]*project\.status/);
+	assert.match(source, /<dt[^>]*>Operation<\/dt>[\s\S]*project\.operationId/);
+	assert.match(source, /<dt[^>]*>Commit<\/dt>[\s\S]*project\.commitSha/);
 });
