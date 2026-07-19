@@ -4,6 +4,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPlatformStore } from './src/server/platform-store.mjs';
 import { githubAuthorization, githubIdentity } from './src/server/github-oauth.mjs';
+import { authorizeAdminRequest, parseAdminGithubUserIds } from './src/server/admin-authorization.mjs';
+import { GitHubProjectImportError, importPublicGitHubProject, listGitHubProjects } from './src/server/github-project-import.mjs';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(dirname, 'dist');
@@ -12,9 +14,9 @@ const dataDir = path.resolve(dirname, 'data');
 const postsFile = path.join(dataDir, 'posts.json');
 const workspaceRoot = process.env.WORKSPACE_ROOT || path.resolve(dirname, '../../..');
 const platformStore = createPlatformStore({ workspaceRoot });
+const adminAuthorization = parseAdminGithubUserIds(process.env.BAPX_ADMIN_GITHUB_USER_IDS);
 const agentsRuntimeOrigin = new URL(process.env.AGENTS_RUNTIME_ORIGIN || 'http://127.0.0.1:3003');
 
-// Hostname -> path prefix mapping for subdomain-based serving.
 const HOST_PREFIX = {
 	'bapx.in': '',
 	'www.bapx.in': '',
@@ -39,21 +41,7 @@ const MIME = {
 	'.md': 'text/markdown; charset=utf-8',
 };
 
-const ALLOWED_EXTENSIONS = [
-	'.md',
-	'.mdx',
-	'.mmd',
-	'.json',
-	'.ts',
-	'.astro',
-	'.css',
-	'.mjs',
-	'.yaml',
-	'.yml',
-	'.toml',
-];
-
-// --- Workspace file API ---
+const ALLOWED_EXTENSIONS = ['.md', '.mdx', '.mmd', '.json', '.ts', '.astro', '.css', '.mjs', '.yaml', '.yml', '.toml'];
 
 function resolveSafePath(filePath, scopeRoot = workspaceRoot) {
 	const rootPath = path.resolve(scopeRoot);
@@ -73,13 +61,10 @@ function buildFileTree(dir, basePath = '') {
 		for (const entry of entries) {
 			if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
 			const relPath = basePath ? `${basePath}/${entry.name}` : entry.name;
-			if (entry.isDirectory()) {
-				items.push({ type: 'directory', name: entry.name, path: relPath });
-			} else {
+			if (entry.isDirectory()) items.push({ type: 'directory', name: entry.name, path: relPath });
+			else {
 				const ext = path.extname(entry.name);
-				if (ALLOWED_EXTENSIONS.includes(ext)) {
-					items.push({ type: 'file', name: entry.name, path: relPath, ext });
-				}
+				if (ALLOWED_EXTENSIONS.includes(ext)) items.push({ type: 'file', name: entry.name, path: relPath, ext });
 			}
 		}
 	} catch {}
@@ -102,22 +87,19 @@ function writePosts(posts) {
 }
 
 function jsonResponse(res, status, data) {
-	res.writeHead(status, { 'Content-Type': 'application/json' });
+	res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
 	res.end(JSON.stringify(data));
 }
 
 function parseBody(req) {
 	return new Promise((resolve, reject) => {
 		let body = '';
-		req.on('data', (chunk) => {
-			body += chunk;
-		});
+		req.on('data', (chunk) => { body += chunk; });
 		req.on('end', () => {
 			try {
 				const type = req.headers['content-type'] || '';
-				if (type.includes('application/x-www-form-urlencoded')) {
-					resolve(Object.fromEntries(new URLSearchParams(body)));
-				} else resolve(JSON.parse(body));
+				if (type.includes('application/x-www-form-urlencoded')) resolve(Object.fromEntries(new URLSearchParams(body)));
+				else resolve(JSON.parse(body));
 			} catch {
 				reject(new Error('Invalid JSON'));
 			}
@@ -141,6 +123,30 @@ function getCookie(req, name) {
 
 function getSessionAccount(req) {
 	return platformStore.getSessionAccount(getCookie(req, 'bapx_session'));
+}
+
+function sameOriginRequest(req, host) {
+	const origin = req.headers.origin;
+	if (!origin) return true;
+	try {
+		const parsed = new URL(origin);
+		return parsed.protocol === 'https:' && parsed.host === host;
+	} catch {
+		return false;
+	}
+}
+
+function authorizeAdminApi(req, res, account, host, mutation = false) {
+	const decision = authorizeAdminRequest(account, adminAuthorization);
+	if (!decision.ok) {
+		jsonResponse(res, decision.status, { error: decision.error });
+		return false;
+	}
+	if (mutation && !sameOriginRequest(req, host)) {
+		jsonResponse(res, 403, { error: 'cross_origin_forbidden' });
+		return false;
+	}
+	return true;
 }
 
 function safeReturnTo(value) {
@@ -198,75 +204,49 @@ async function handleAuthAPI(req, res, urlPath) {
 	return false;
 }
 
-// --- Workspace API router ---
-
 async function handleWorkspaceAPI(req, res, urlPath, scopeRoot = workspaceRoot) {
 	res.setHeader('Access-Control-Allow-Origin', '*');
 	res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
 	res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
 	if (req.method === 'OPTIONS') {
 		res.writeHead(204);
 		res.end();
 		return true;
 	}
-
-	const segments = urlPath
-		.replace(/^\/api\/ws\//, '')
-		.split('/')
-		.filter(Boolean);
-
-	// GET /admin/api/ws/tree - list directory
+	const segments = urlPath.replace(/^\/api\/ws\//, '').split('/').filter(Boolean);
 	if (req.method === 'GET' && segments[0] === 'tree') {
 		const subPath = segments.slice(1).join('/') || '';
 		const targetPath = resolveSafePath(subPath, scopeRoot);
-		if (!targetPath) {
-			jsonResponse(res, 403, { error: 'Forbidden' });
-			return true;
-		}
-		const tree = buildFileTree(targetPath, subPath);
-		jsonResponse(res, 200, { items: tree, path: subPath });
+		if (!targetPath) { jsonResponse(res, 403, { error: 'Forbidden' }); return true; }
+		jsonResponse(res, 200, { items: buildFileTree(targetPath, subPath), path: subPath });
 		return true;
 	}
-
-	// GET /admin/api/ws/file?path=... - read file
 	if (req.method === 'GET' && segments[0] === 'file') {
 		const parsed = new URL(req.url, `http://${req.headers.host}`);
 		const filePath = parsed.searchParams.get('path') || '';
 		const targetPath = resolveSafePath(filePath, scopeRoot);
-		if (!targetPath) {
-			jsonResponse(res, 403, { error: 'Forbidden' });
-			return true;
-		}
+		if (!targetPath) { jsonResponse(res, 403, { error: 'Forbidden' }); return true; }
 		try {
-			const content = fs.readFileSync(targetPath, 'utf-8');
-			const ext = path.extname(targetPath);
-			jsonResponse(res, 200, { content, path: filePath, ext });
-		} catch (e) {
+			jsonResponse(res, 200, { content: fs.readFileSync(targetPath, 'utf-8'), path: filePath, ext: path.extname(targetPath) });
+		} catch {
 			jsonResponse(res, 404, { error: 'File not found' });
 		}
 		return true;
 	}
-
-	// PUT /admin/api/ws/file - write file
 	if (req.method === 'PUT' && segments[0] === 'file') {
 		try {
 			const body = await parseBody(req);
 			const filePath = body.path || '';
 			const targetPath = resolveSafePath(filePath, scopeRoot);
-			if (!targetPath) {
-				jsonResponse(res, 403, { error: 'Forbidden' });
-				return true;
-			}
+			if (!targetPath) { jsonResponse(res, 403, { error: 'Forbidden' }); return true; }
 			fs.mkdirSync(path.dirname(targetPath), { recursive: true });
 			fs.writeFileSync(targetPath, body.content, 'utf-8');
 			jsonResponse(res, 200, { ok: true, path: filePath });
-		} catch (e) {
-			jsonResponse(res, 500, { error: e.message });
+		} catch (error) {
+			jsonResponse(res, 500, { error: error.message });
 		}
 		return true;
 	}
-
 	return false;
 }
 
@@ -282,12 +262,7 @@ function proxyAgentAPI(req, res, account) {
 			port: agentsRuntimeOrigin.port,
 			method: req.method,
 			path: req.url,
-			headers: {
-				...req.headers,
-				host: agentsRuntimeOrigin.host,
-				'x-bapx-account': account.username,
-				'x-bapx-runtime-token': process.env.BAPX_RUNTIME_TOKEN || '',
-			},
+			headers: { ...req.headers, host: agentsRuntimeOrigin.host, 'x-bapx-account': account.username, 'x-bapx-runtime-token': process.env.BAPX_RUNTIME_TOKEN || '' },
 		}, (upstreamResponse) => {
 			res.writeHead(upstreamResponse.statusCode || 502, upstreamResponse.headers);
 			upstreamResponse.pipe(res);
@@ -302,216 +277,114 @@ function proxyAgentAPI(req, res, account) {
 	});
 }
 
-// --- Admin API router ---
+async function handleProjectsAPI(req, res, urlPath) {
+	if (req.method === 'GET' && urlPath === '/api/projects') {
+		jsonResponse(res, 200, { projects: listGitHubProjects({ workspaceRoot }) });
+		return true;
+	}
+	if (req.method === 'POST' && urlPath === '/api/projects/import') {
+		try {
+			const body = await parseBody(req);
+			const imported = importPublicGitHubProject(body.repositoryUrl, { workspaceRoot });
+			jsonResponse(res, 201, { project: { ...imported, name: imported.repository.fullName } });
+		} catch (error) {
+			if (error instanceof GitHubProjectImportError || error?.code) {
+				jsonResponse(res, error.status || 400, { error: error.code || 'import_failed', message: error.message });
+			} else jsonResponse(res, 500, { error: 'import_failed', message: 'Repository import failed' });
+		}
+		return true;
+	}
+	return false;
+}
 
 async function handleAdminAPI(req, res, urlPath) {
-	// CORS headers for admin UI
 	res.setHeader('Access-Control-Allow-Origin', '*');
 	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
 	res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-	if (req.method === 'OPTIONS') {
-		res.writeHead(204);
-		res.end();
-		return true;
-	}
-
-	const segments = urlPath
-		.replace(/^\/admin\/api\//, '')
-		.split('/')
-		.filter(Boolean);
-
-	// GET /admin/api/posts - list all
-	if (req.method === 'GET' && segments.length === 1 && segments[0] === 'posts') {
-		const posts = readPosts();
-		jsonResponse(res, 200, { posts });
-		return true;
-	}
-
-	// GET /admin/api/posts/:slug - get single
+	if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return true; }
+	const segments = urlPath.replace(/^\/admin\/api\//, '').split('/').filter(Boolean);
+	if (req.method === 'GET' && segments.length === 1 && segments[0] === 'posts') { jsonResponse(res, 200, { posts: readPosts() }); return true; }
 	if (req.method === 'GET' && segments.length === 2 && segments[0] === 'posts') {
-		const slug = segments[1];
-		const posts = readPosts();
-		const post = posts.find((p) => p.slug === slug);
-		if (!post) {
-			jsonResponse(res, 404, { error: 'Not found' });
-			return true;
-		}
-		jsonResponse(res, 200, { post });
-		return true;
+		const post = readPosts().find((item) => item.slug === segments[1]);
+		if (!post) { jsonResponse(res, 404, { error: 'Not found' }); return true; }
+		jsonResponse(res, 200, { post }); return true;
 	}
-
-	// POST /admin/api/posts - create
 	if (req.method === 'POST' && segments.length === 1 && segments[0] === 'posts') {
 		try {
 			const body = await parseBody(req);
 			const posts = readPosts();
-			if (posts.some((p) => p.slug === body.slug)) {
-				jsonResponse(res, 409, { error: 'Slug already exists' });
-				return true;
-			}
-			const post = {
-				slug: body.slug,
-				title: body.title || '',
-				date: body.date || new Date().toISOString().slice(0, 10),
-				author: body.author || '',
-				authorUrl: body.authorUrl || '',
-				description: body.description || '',
-				category: body.category || '',
-				content: body.content || '',
-				published: body.published !== false,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-			};
-			posts.push(post);
-			writePosts(posts);
-			jsonResponse(res, 201, { post });
-		} catch (e) {
-			jsonResponse(res, 400, { error: e.message });
-		}
+			if (posts.some((item) => item.slug === body.slug)) { jsonResponse(res, 409, { error: 'Slug already exists' }); return true; }
+			const post = { slug: body.slug, title: body.title || '', date: body.date || new Date().toISOString().slice(0, 10), author: body.author || '', authorUrl: body.authorUrl || '', description: body.description || '', category: body.category || '', content: body.content || '', published: body.published !== false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+			posts.push(post); writePosts(posts); jsonResponse(res, 201, { post });
+		} catch (error) { jsonResponse(res, 400, { error: error.message }); }
 		return true;
 	}
-
-	// PUT /admin/api/posts/:slug - update
-	if (
-		(req.method === 'PUT' || req.method === 'PATCH') &&
-		segments.length === 2 &&
-		segments[0] === 'posts'
-	) {
+	if ((req.method === 'PUT' || req.method === 'PATCH') && segments.length === 2 && segments[0] === 'posts') {
 		try {
-			const slug = segments[1];
 			const body = await parseBody(req);
 			const posts = readPosts();
-			const idx = posts.findIndex((p) => p.slug === slug);
-			if (idx === -1) {
-				jsonResponse(res, 404, { error: 'Not found' });
-				return true;
-			}
-			posts[idx] = { ...posts[idx], ...body, slug, updatedAt: new Date().toISOString() };
-			writePosts(posts);
-			jsonResponse(res, 200, { post: posts[idx] });
-		} catch (e) {
-			jsonResponse(res, 400, { error: e.message });
-		}
+			const index = posts.findIndex((item) => item.slug === segments[1]);
+			if (index === -1) { jsonResponse(res, 404, { error: 'Not found' }); return true; }
+			posts[index] = { ...posts[index], ...body, slug: segments[1], updatedAt: new Date().toISOString() };
+			writePosts(posts); jsonResponse(res, 200, { post: posts[index] });
+		} catch (error) { jsonResponse(res, 400, { error: error.message }); }
 		return true;
 	}
-
-	// DELETE /admin/api/posts/:slug - delete
 	if (req.method === 'DELETE' && segments.length === 2 && segments[0] === 'posts') {
-		const slug = segments[1];
-		let posts = readPosts();
-		const idx = posts.findIndex((p) => p.slug === slug);
-		if (idx === -1) {
-			jsonResponse(res, 404, { error: 'Not found' });
-			return true;
-		}
-		posts.splice(idx, 1);
-		writePosts(posts);
-		jsonResponse(res, 200, { ok: true });
-		return true;
+		const posts = readPosts();
+		const index = posts.findIndex((item) => item.slug === segments[1]);
+		if (index === -1) { jsonResponse(res, 404, { error: 'Not found' }); return true; }
+		posts.splice(index, 1); writePosts(posts); jsonResponse(res, 200, { ok: true }); return true;
 	}
-
 	return false;
 }
 
-// --- Main server ---
-
-http
-	.createServer(async (req, res) => {
-		const host = req.headers.host?.toLowerCase().replace(/:\d+$/, '') ?? 'bapx.in';
-		const prefix = HOST_PREFIX[host] ?? '';
-		const urlPath = req.url?.split('?')[0] ?? '';
-		if (host === 'docs.bapx.in' && urlPath === '/') {
-			res.writeHead(302, {
-				Location: 'https://docs.bapx.in/getting-started/quickstart/',
-			});
-			res.end();
-			return;
-		}
-		if (urlPath.startsWith('/api/auth/')) {
-			const handled = await handleAuthAPI(req, res, urlPath);
+http.createServer(async (req, res) => {
+	const host = req.headers.host?.toLowerCase().replace(/:\d+$/, '') ?? 'bapx.in';
+	const prefix = HOST_PREFIX[host] ?? '';
+	const urlPath = req.url?.split('?')[0] ?? '';
+	if (host === 'docs.bapx.in' && urlPath === '/') { res.writeHead(302, { Location: 'https://docs.bapx.in/getting-started/quickstart/' }); res.end(); return; }
+	if (urlPath.startsWith('/api/auth/')) {
+		const handled = await handleAuthAPI(req, res, urlPath);
+		if (handled) return;
+	}
+	const sessionAccount = getSessionAccount(req);
+	if (prefix === '/agents' && req.method === 'HEAD' && urlPath === '/') { res.writeHead(200, { 'Cache-Control': 'no-store' }); res.end(); return; }
+	if (prefix === '/agents' && !sessionAccount) { redirect(res, `https://bapx.in/login/?returnTo=${encodeURIComponent(`https://agents.bapx.in${req.url || '/'}`)}`); return; }
+	if ((prefix === '/agents' || prefix === '/admin') && urlPath.startsWith('/api/agents/')) {
+		if (!sessionAccount) { jsonResponse(res, 401, { error: 'Sign in to use the main agent.' }); return; }
+		await proxyAgentAPI(req, res, sessionAccount); return;
+	}
+	if (prefix === '/agents' && urlPath.startsWith('/api/ws/')) {
+		const handled = await handleWorkspaceAPI(req, res, urlPath, customerWorkspaceRoot(sessionAccount));
+		if (handled) return;
+	}
+	if (prefix === '/admin' && urlPath.startsWith('/api/projects')) {
+		if (!authorizeAdminApi(req, res, sessionAccount, host, req.method !== 'GET')) return;
+		const handled = await handleProjectsAPI(req, res, urlPath);
+		if (handled) return;
+	}
+	if (prefix === '/admin' && urlPath.startsWith('/api/')) {
+		if (urlPath.startsWith('/api/ws/')) {
+			const handled = await handleWorkspaceAPI(req, res, urlPath);
 			if (handled) return;
 		}
-		const sessionAccount = getSessionAccount(req);
-		if (prefix === '/agents' && req.method === 'HEAD' && urlPath === '/') {
-			res.writeHead(200, { 'Cache-Control': 'no-store' });
-			res.end();
-			return;
-		}
-		if (prefix === '/agents' && !sessionAccount) {
-			const returnTo = encodeURIComponent(`https://agents.bapx.in${req.url || '/'}`);
-			redirect(res, `https://bapx.in/login/?returnTo=${returnTo}`);
-			return;
-		}
-		if ((prefix === '/agents' || prefix === '/admin') && urlPath.startsWith('/api/agents/')) {
-			if (!sessionAccount) {
-				jsonResponse(res, 401, { error: 'Sign in to use the main agent.' });
-				return;
-			}
-			await proxyAgentAPI(req, res, sessionAccount);
-			return;
-		}
-		if (prefix === '/agents' && urlPath.startsWith('/api/ws/')) {
-			const handled = await handleWorkspaceAPI(
-				req,
-				res,
-				urlPath,
-				customerWorkspaceRoot(sessionAccount),
-			);
-			if (handled) return;
-		}
-
-		// Admin API routes
-		if (prefix === '/admin' && urlPath.startsWith('/api/')) {
-			if (urlPath.startsWith('/api/ws/')) {
-				const handled = await handleWorkspaceAPI(req, res, urlPath);
-				if (handled) return;
-			}
-			const handled = await handleAdminAPI(req, res, `/admin${urlPath}`);
-			if (handled) return;
-		}
-
-		const suffix = urlPath.endsWith('/') || urlPath === '' ? 'index.html' : '';
-		const sharedAsset =
-			urlPath.startsWith('/_astro/') ||
-			urlPath.startsWith('/brand/') ||
-			/^\/(favicon|apple-touch-icon|site\.webmanifest|web-app-manifest|og\d)/.test(urlPath);
-		const operatingSurface = prefix === '/admin' || prefix === '/agents';
-		const candidates = sharedAsset
-			? [path.join(root, urlPath, suffix), path.join(root, prefix, urlPath, suffix)]
-			: operatingSurface
-				? [path.join(root, prefix, urlPath, suffix)]
-				: [path.join(root, prefix, urlPath, suffix), path.join(root, urlPath, suffix)];
-		let finalPath = candidates.find(
-			(candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isFile(),
-		);
-		if (
-			!finalPath &&
-			operatingSurface &&
-			req.method === 'GET' &&
-			!path.extname(urlPath)
-		) {
-			const operatingSurfaceEntry = path.join(root, 'admin', 'index.html');
-			if (fs.existsSync(operatingSurfaceEntry)) finalPath = operatingSurfaceEntry;
-		}
-
-		if (!finalPath) {
-			res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-			res.end('Not found');
-			return;
-		}
-
-		const ext = path.extname(finalPath);
-		const contentType = MIME[ext] || 'application/octet-stream';
-		try {
-			const content = fs.readFileSync(finalPath);
-			res.writeHead(200, { 'Content-Type': contentType });
-			res.end(content);
-		} catch {
-			res.writeHead(404);
-			res.end('Not found');
-		}
-	})
-	.listen(port, () => {
-		console.log(`bapX-www serving dist/ on :${port}`);
-	});
+		const handled = await handleAdminAPI(req, res, `/admin${urlPath}`);
+		if (handled) return;
+	}
+	const suffix = urlPath.endsWith('/') || urlPath === '' ? 'index.html' : '';
+	const sharedAsset = urlPath.startsWith('/_astro/') || urlPath.startsWith('/brand/') || /^\/(favicon|apple-touch-icon|site\.webmanifest|web-app-manifest|og\d)/.test(urlPath);
+	const operatingSurface = prefix === '/admin' || prefix === '/agents';
+	const candidates = sharedAsset ? [path.join(root, urlPath, suffix), path.join(root, prefix, urlPath, suffix)] : operatingSurface ? [path.join(root, prefix, urlPath, suffix)] : [path.join(root, prefix, urlPath, suffix), path.join(root, urlPath, suffix)];
+	let finalPath = candidates.find((candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isFile());
+	if (!finalPath && operatingSurface && req.method === 'GET' && !path.extname(urlPath)) {
+		const operatingSurfaceEntry = path.join(root, 'admin', 'index.html');
+		if (fs.existsSync(operatingSurfaceEntry)) finalPath = operatingSurfaceEntry;
+	}
+	if (!finalPath) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); res.end('Not found'); return; }
+	const ext = path.extname(finalPath);
+	try { res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' }); res.end(fs.readFileSync(finalPath)); }
+	catch { res.writeHead(404); res.end('Not found'); }
+}).listen(port, () => {
+	console.log(`bapX-www serving dist/ on :${port}`);
+});
