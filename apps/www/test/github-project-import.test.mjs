@@ -44,6 +44,11 @@ test('keeps the Admin browser payload aligned with the existing server route', (
 		'Admin must send the confirmed import input under repositoryUrl',
 	);
 	assert.match(
+		projectsPage,
+		/Canonical repository before mutation[\s\S]*\{canonicalRepository\}[\s\S]*Destination before mutation[\s\S]*\{destinationPath\}/,
+		'Admin must render the canonical repository identity and destination before confirmation',
+	);
+	assert.match(
 		server,
 		/importPublicGitHubProject\(body\.repositoryUrl,\s*\{\s*workspaceRoot\s*\}\)/s,
 		'the existing Admin route must pass that exact confirmed input to the importer',
