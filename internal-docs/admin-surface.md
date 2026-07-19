@@ -23,12 +23,12 @@ The canonical `demo/` is the functional source for the agent conversation experi
 
 The first working Projects slice reuses the existing Admin React application, existing workspace editor, canonical GitHub repository resolver, existing platform session, and existing Admin provider-ID authorization owner.
 
-- `/projects` owns repository URL submission, progress, structured errors, imported-project listing, and links into `/editor/`.
+- `/projects` owns repository URL submission, explicit project-slug selection, destination preview, confirmation, progress, structured errors, imported-project listing, and links into `/editor/`.
 - `GET /api/projects` lists directories below `/root/bapx.in/projects/` and reads only the private `.bapx-project.json` metadata written by the import owner.
 - `POST /api/projects/import` requires an authenticated account authorized by `BAPX_ADMIN_GITHUB_USER_IDS` and rejects a browser request whose `Origin` is not the exact Admin host.
 - The current slice imports public GitHub repositories only. Private GitHub App installation authorization remains required before private imports are exposed.
-- Import resolves the canonical GitHub identity, clones into a temporary sibling directory, verifies the Git commit, writes digest-free source metadata, and atomically renames the verified directory into `projects/<owner>-<repository>`.
-- Existing project directories are never overwritten. Failed clones remove their temporary directory.
+- Import resolves the canonical GitHub identity, validates the confirmed slug and containment below `/root/bapx.in/projects/`, clones into a temporary sibling directory, verifies the Git commit, records an operation identifier with digest-free source metadata, and atomically renames the verified directory into the confirmed destination.
+- Existing project directories are never overwritten. Invalid or traversal-like slugs fail before directory creation, and failed clones remove their temporary directory.
 - `git` must be installed in the `apps-www` runtime image. A missing executable returns `git_unavailable`; clone and revision failures return structured errors without exposing credentials or command output.
 - A server restart is required after changing `apps/www/server.mjs`. Roll back by reverting the merge commit; imported project directories are user data and must not be deleted during code rollback.
 
