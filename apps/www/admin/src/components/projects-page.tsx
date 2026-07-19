@@ -102,7 +102,7 @@ export function ProjectsPage() {
         kind: 'success',
         message: `Imported ${body.project?.name || 'repository'} successfully${body.project?.operationId ? ` (operation ${body.project.operationId})` : ''}.`,
       })
-      await loadProjects()
+      void loadProjects().catch(() => undefined)
     } catch (error) {
       setStatus({ kind: 'error', message: error instanceof Error ? error.message : 'Repository import failed' })
     } finally {
