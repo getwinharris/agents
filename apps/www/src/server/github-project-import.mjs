@@ -57,8 +57,12 @@ function resolveDestination(workspaceRoot, slug) {
 }
 
 function normalizeImportInput(input) {
-	if (typeof input === 'string') return { repositoryUrl: input, projectSlug: undefined };
-	if (!input || typeof input !== 'object') fail('invalid_input', 'Repository import input is required');
+	if (!input || typeof input !== 'object' || Array.isArray(input)) {
+		fail('invalid_input', 'Repository import requires a repository URL and confirmed project slug');
+	}
+	if (!input.repositoryUrl || !input.projectSlug) {
+		fail('invalid_input', 'Repository import requires a repository URL and confirmed project slug');
+	}
 	return { repositoryUrl: input.repositoryUrl, projectSlug: input.projectSlug };
 }
 
