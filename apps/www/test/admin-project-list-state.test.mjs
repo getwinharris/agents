@@ -21,3 +21,11 @@ test('does not report an empty workspace before the listing request settles', ()
 		/projectsLoading\s*\?\s*\([\s\S]*\)\s*:\s*projectsLoadError\s*\?\s*\([\s\S]*\)\s*:\s*projects\.length === 0\s*\?/,
 	);
 });
+
+test('keeps a completed import successful when the follow-up listing refresh fails', () => {
+	assert.match(
+		projectsPage,
+		/setStatus\(\{[\s\S]*kind: 'success'[\s\S]*\}\)[\s\S]*void loadProjects\(\)\.catch\(\(\) => undefined\)/,
+	);
+	assert.doesNotMatch(projectsPage, /setStatus\(\{[\s\S]*kind: 'success'[\s\S]*\}\)[\s\S]*await loadProjects\(\)/);
+});
