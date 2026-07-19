@@ -37,8 +37,11 @@ test('enforces GitHub repository name length after removing the clone suffix', (
 	const overLengthName = 'a'.repeat(101);
 
 	for (const reference of [
+		`https://github.com/getwinharris/${maximumLengthName}`,
 		`https://github.com/getwinharris/${maximumLengthName}.git`,
+		`git@github.com:getwinharris/${maximumLengthName}`,
 		`git@github.com:getwinharris/${maximumLengthName}.git`,
+		`ssh://git@github.com/getwinharris/${maximumLengthName}`,
 		`ssh://git@github.com/getwinharris/${maximumLengthName}.git`,
 	]) {
 		const result = resolveGitHubRepositoryReference(reference);
@@ -47,8 +50,11 @@ test('enforces GitHub repository name length after removing the clone suffix', (
 	}
 
 	for (const reference of [
+		`https://github.com/getwinharris/${overLengthName}`,
 		`https://github.com/getwinharris/${overLengthName}.git`,
+		`git@github.com:getwinharris/${overLengthName}`,
 		`git@github.com:getwinharris/${overLengthName}.git`,
+		`ssh://git@github.com/getwinharris/${overLengthName}`,
 		`ssh://git@github.com/getwinharris/${overLengthName}.git`,
 	]) {
 		assertReferenceError(reference, 'invalid_repository');
