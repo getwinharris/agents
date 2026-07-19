@@ -63,7 +63,7 @@ export function ProjectsPage() {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repositoryUrl: { repositoryUrl, projectSlug } }),
+        body: JSON.stringify({ repositoryUrl: { repositoryUrl, projectSlug, confirmed: true } }),
       })
       const body = (await response.json()) as ImportResult
       if (!response.ok) throw new Error(body.message || body.error || 'Repository import failed')
