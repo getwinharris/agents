@@ -38,4 +38,18 @@ jobs:
         run: npm run test:server --workspace apps-www
 
       - name: Build apps-www and Admin
-        run: npm run build --workspace apps-www
+        run: |
+          set +e
+          npm run build --workspace apps-www > admin-build.log 2>&1
+          status=$?
+          tail -n 80 admin-build.log
+          exit $status
+
+      - name: Upload Admin build log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-build-log
+          path: admin-build.log
+          if-no-files-found: error
+          retention-days: 1
