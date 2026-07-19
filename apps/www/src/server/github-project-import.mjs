@@ -79,10 +79,20 @@ function publicProject(projectsDirectory, directoryName) {
 			name: metadata.repository?.fullName || directoryName,
 			repository: metadata.repository || null,
 			commitSha: metadata.commitSha || null,
+			operationId: metadata.operationId || null,
+			status: metadata.status || null,
 			path: `projects/${directoryName}`,
 		};
 	} catch {
-		return { slug: directoryName, name: directoryName, repository: null, commitSha: null, path: `projects/${directoryName}` };
+		return {
+			slug: directoryName,
+			name: directoryName,
+			repository: null,
+			commitSha: null,
+			operationId: null,
+			status: null,
+			path: `projects/${directoryName}`,
+		};
 	}
 }
 
@@ -141,6 +151,7 @@ export function importPublicGitHubProject(input, { workspaceRoot, runGit = defau
 			repository,
 			commitSha,
 			operationId,
+			status: 'completed',
 			importedAt: new Date().toISOString(),
 		};
 		fs.writeFileSync(path.join(temporary, '.bapx-project.json'), `${JSON.stringify(metadata, null, 2)}\n`, 'utf8');
