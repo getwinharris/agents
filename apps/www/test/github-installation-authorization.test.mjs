@@ -13,6 +13,10 @@ function response(payload, ok = true) {
 	return { ok, async json() { return payload; } };
 }
 
+function isUnavailable(error) {
+	return error instanceof GitHubInstallationAuthorizationError && error.code === 'github_installation_unavailable';
+}
+
 test('installation authorization requests least-privilege metadata and contents access', async () => {
 	const requests = [];
 	const provider = createGitHubInstallationAuthorizationProvider({
@@ -69,10 +73,25 @@ test('installation authorization reuses an unexpired token and refreshes near ex
 	assert.equal(calls, 2);
 });
 
+test('installation authorization rejects malformed identifiers exactly', () => {
+	for (const invalid of ['', ' ', '0', '-1', '+1', '1.5', '123abc', '01', '9007199254740992']) {
+		assert.throws(
+			() => createGitHubInstallationAuthorizationProvider({ appId: invalid, installationId: '456', privateKey: pem }),
+			isUnavailable,
+			`expected appId ${JSON.stringify(invalid)} to fail closed`,
+		);
+		assert.throws(
+			() => createGitHubInstallationAuthorizationProvider({ appId: '123', installationId: invalid, privateKey: pem }),
+			isUnavailable,
+			`expected installationId ${JSON.stringify(invalid)} to fail closed`,
+		);
+	}
+});
+
 test('configuration and upstream failures are stable and secret-free', async () => {
 	assert.throws(
 		() => createGitHubInstallationAuthorizationProvider({ appId: '', installationId: '456', privateKey: pem }),
-		(error) => error instanceof GitHubInstallationAuthorizationError && error.code === 'github_installation_unavailable',
+		isUnavailable,
 	);
 
 	const provider = createGitHubInstallationAuthorizationProvider({
@@ -83,8 +102,6 @@ test('configuration and upstream failures are stable and secret-free', async () 
 	});
 	await assert.rejects(
 		provider(),
-		(error) => error instanceof GitHubInstallationAuthorizationError &&
-			error.code === 'github_installation_unavailable' &&
-			!error.message.includes('sentinel-secret-token'),
+		(error) => isUnavailable(error) && !error.message.includes('sentinel-secret-token'),
 	);
 });
