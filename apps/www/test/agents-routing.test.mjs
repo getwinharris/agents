@@ -244,13 +244,6 @@ describe('Agents host routing', () => {
 			headers: { cookie, origin: 'https://evil.example', 'content-type': 'application/json' },
 			body: writeBody,
 		});
-		const write = await request(port, {
-			method: 'PUT',
-			host: 'admin.bapx.in',
-			pathname: '/api/ws/file',
-			headers: { cookie, origin: 'https://admin.bapx.in', 'content-type': 'application/json' },
-			body: writeBody,
-		});
 
 		assert.equal(unauthenticated.status, 401);
 		assert.deepEqual(JSON.parse(unauthenticated.body), { error: 'authentication_required' });
@@ -265,6 +258,15 @@ describe('Agents host routing', () => {
 		assert.equal(crossOrigin.status, 403);
 		assert.deepEqual(JSON.parse(crossOrigin.body), { error: 'cross_origin_forbidden' });
 		assert.equal(fs.existsSync(path.join(workspaceRoot, 'admin-written.md')), false);
+
+		const write = await request(port, {
+			method: 'PUT',
+			host: 'admin.bapx.in',
+			pathname: '/api/ws/file',
+			headers: { cookie, origin: 'https://admin.bapx.in', 'content-type': 'application/json' },
+			body: writeBody,
+		});
+
 		assert.equal(write.status, 200);
 		assert.deepEqual(JSON.parse(write.body), { ok: true, path: 'admin-written.md' });
 		assert.equal(fs.readFileSync(path.join(workspaceRoot, 'admin-written.md'), 'utf8'), '# Admin write\n');
