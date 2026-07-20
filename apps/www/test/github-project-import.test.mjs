@@ -40,8 +40,8 @@ test('keeps the Admin browser payload aligned with the existing server route', (
 
 	assert.match(
 		projectsPage,
-		/if\s*\(loading\s*\|\|\s*!repositoryUrl\.trim\(\)\s*\|\|\s*!projectSlug\.trim\(\)\s*\|\|\s*!confirmed\)\s*\{[\s\S]*return/s,
-		'Admin must reject every form-submission path until the displayed repository and destination are confirmed',
+		/if\s*\(loading\s*\|\|\s*!resolved\s*\|\|\s*!projectSlug\.trim\(\)\s*\|\|\s*!confirmed\)\s*\{[\s\S]*return/s,
+		'Admin must reject every form-submission path until a server-resolved repository and destination are confirmed',
 	);
 	assert.match(
 		projectsPage,
