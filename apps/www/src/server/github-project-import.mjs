@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { resolveGitHubRepositoryReference } from './github-repository.mjs';
 
 const PROJECT_SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9._-]{0,98}[a-z0-9])?$/;
@@ -20,10 +20,29 @@ function fail(code, message, status) {
 }
 
 function defaultRunGit(args) {
-	return spawnSync('git', args, {
-		encoding: 'utf8',
-		timeout: 120_000,
-		maxBuffer: 1024 * 1024,
+	return new Promise((resolve) => {
+		const child = spawn('git', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+		let stdout = '';
+		let stderr = '';
+		let settled = false;
+		const finish = (result) => {
+			if (settled) return;
+			settled = true;
+			clearTimeout(timeout);
+			resolve(result);
+		};
+		const append = (current, chunk) => `${current}${chunk}`.slice(-(1024 * 1024));
+		child.stdout.setEncoding('utf8');
+		child.stderr.setEncoding('utf8');
+		child.stdout.on('data', (chunk) => { stdout = append(stdout, chunk); });
+		child.stderr.on('data', (chunk) => { stderr = append(stderr, chunk); });
+		child.on('error', (error) => finish({ status: null, stdout, stderr, error }));
+		child.on('close', (status, signal) => finish({ status, signal, stdout, stderr }));
+		const timeout = setTimeout(() => {
+			child.kill('SIGTERM');
+			finish({ status: null, signal: 'SIGTERM', stdout, stderr, error: Object.assign(new Error('Git command timed out'), { code: 'ETIMEDOUT' }) });
+		}, 120_000);
+		timeout.unref?.();
 	});
 }
 
@@ -125,7 +144,7 @@ export function resolvePublicGitHubProjectImport(input, { workspaceRoot } = {}) 
 	};
 }
 
-export function importPublicGitHubProject(input, { workspaceRoot, runGit = defaultRunGit } = {}) {
+export async function importPublicGitHubProject(input, { workspaceRoot, runGit = defaultRunGit } = {}) {
 	const resolved = resolvePublicGitHubProjectImport(input, { workspaceRoot });
 	const { slug, repository, path: relativePath } = resolved;
 	const { directory, destination } = resolveDestination(workspaceRoot, slug);
@@ -134,12 +153,12 @@ export function importPublicGitHubProject(input, { workspaceRoot, runGit = defau
 	const operationId = randomUUID();
 	const temporary = fs.mkdtempSync(path.join(directory, `.import-${slug}-`));
 	try {
-		const clone = runGit(['clone', '--depth', '1', '--', repository.httpsUrl, temporary]);
+		const clone = await runGit(['clone', '--depth', '1', '--', repository.httpsUrl, temporary]);
 		if (clone?.error?.code === 'ENOENT') fail('git_unavailable', 'Git is unavailable on the Admin server', 503);
 		if (clone?.status !== 0) fail('clone_failed', 'GitHub repository could not be cloned', 422);
 		if (!fs.existsSync(path.join(temporary, '.git'))) fail('clone_invalid', 'Cloned repository is missing Git metadata', 502);
 
-		const revision = runGit(['-C', temporary, 'rev-parse', 'HEAD']);
+		const revision = await runGit(['-C', temporary, 'rev-parse', 'HEAD']);
 		if (revision?.status !== 0 || !String(revision.stdout || '').trim()) {
 			fail('revision_unavailable', 'Imported repository commit could not be verified', 502);
 		}
