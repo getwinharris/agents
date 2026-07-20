@@ -18,9 +18,9 @@ function successfulGit(args) {
 	return { status: 1, stdout: '', stderr: 'unexpected git command' };
 }
 
-test('project listings preserve completed import evidence after reload', () => {
+test('project listings preserve completed import evidence after reload', async () => {
 	const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-project-import-evidence-'));
-	const imported = importPublicGitHubProject({
+	const imported = await importPublicGitHubProject({
 		repositoryUrl: 'https://github.com/openai/openai-node.git',
 		projectSlug: 'admin-import-evidence',
 		confirmed: true,
