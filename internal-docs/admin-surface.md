@@ -63,6 +63,18 @@ The first working Projects slice reuses the existing Admin React application, ex
 - Installation tokens are opaque variable-length secrets. They must not be persisted, logged, returned, embedded in credential-bearing URLs, or copied into errors, telemetry, snapshots, or fixtures.
 - This helper is not yet wired to `/api/projects` or the Admin browser. It does not make private import shipped; HTTP integration must reuse the existing protected Projects route family and preserve pre-dispatch authorization and exact-origin mutation checks.
 
+### GitHub App installation authorization
+
+`apps/www/src/server/github-installation-authorization.mjs` owns server-side GitHub App JWT signing and installation-token acquisition for the metadata resolver and later private-import route integration.
+
+- Deployment supplies `BAPX_GITHUB_APP_ID`, `BAPX_GITHUB_INSTALLATION_ID`, and `BAPX_GITHUB_APP_PRIVATE_KEY` only to the `apps-www` server process. IDs must be canonical positive decimal safe integers; partial numbers, decimals, signs, leading zeroes, zero, negative values, blanks, and unsafe integers fail closed as `github_installation_unavailable`.
+- The private key may use real newlines or escaped `\n` separators. It remains a server secret and must never enter browser bundles, logs, errors, telemetry, fixtures, project metadata, or Git credential URLs.
+- The provider signs a short-lived RS256 GitHub App JWT and requests an installation token with only Metadata read and Contents read permissions. It does not request repository administration, write Contents, issues, pull requests, actions, members, or organization permissions.
+- Installation tokens are cached only inside the provider closure and are reused while more than one minute remains before GitHub expiry. At the one-minute boundary the provider mints a new token; callers and the metadata resolver do not cache or refresh tokens independently.
+- The outbound token request is bounded by a ten-second abort signal. Configuration, signing, transport, non-success responses, malformed JSON, and malformed token payloads all map to the same secret-free `github_installation_unavailable` error.
+- The provider performs one token request per refresh attempt and does not retry ambiguous GitHub failures. Later route integration must preserve Admin authentication and provider-ID authorization before token acquisition, and exact-origin enforcement before any mutation.
+- Changing these environment values or this module requires rebuilding and restarting the existing `apps-www` service. Validate least-privilege request scope, cache reuse, near-expiry refresh, malformed configuration rejection, request cancellation, and secret-free failures before deployment.
+
 ## Admin session handoff persistence
 
 The platform store owns a narrow, internal handoff primitive for exchanging an authenticated central-platform account for a future Admin-audience session without broadening the existing session cookie to the parent domain.
