@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
 	GitHubRepositoryMetadataError,
-	resolveAuthorizedGitHubRepositoryMetadata,
+	resolveAuthorizedGitHubRepository,
 } from '../src/server/github-repository-metadata.mjs';
 
 function response(payload) {
@@ -26,14 +26,15 @@ function payload(overrides = {}) {
 	};
 }
 
-test('canonicalizes the caller repository after GitHub resolves a renamed repository', async () => {
+test('returns canonical repository identity without mutating the submitted reference', async () => {
 	const reference = {
 		owner: 'submitted-owner',
 		repository: 'old-name',
 		fullName: 'submitted-owner/old-name',
 		httpsUrl: 'https://github.com/submitted-owner/old-name.git',
 	};
-	const metadata = await resolveAuthorizedGitHubRepositoryMetadata(reference, {
+	const original = structuredClone(reference);
+	const resolved = await resolveAuthorizedGitHubRepository(reference, {
 		getInstallationToken: async () => ({ token: 'opaque-token', permissions: { metadata: 'read' } }),
 		fetchImpl: async (url) => {
 			assert.equal(url, 'https://api.github.com/repos/submitted-owner/old-name');
@@ -41,13 +42,14 @@ test('canonicalizes the caller repository after GitHub resolves a renamed reposi
 		},
 	});
 
-	assert.deepEqual(reference, {
+	assert.deepEqual(reference, original);
+	assert.deepEqual(resolved.repository, {
 		owner: 'CanonicalOwner',
 		repository: 'RenamedRepository',
 		fullName: 'CanonicalOwner/RenamedRepository',
 		httpsUrl: 'https://github.com/CanonicalOwner/RenamedRepository.git',
 	});
-	assert.equal(metadata.fullName, 'CanonicalOwner/RenamedRepository');
+	assert.equal(resolved.metadata.fullName, 'CanonicalOwner/RenamedRepository');
 });
 
 test('rejects an invalid canonical identity from GitHub without mutating the submitted reference', async () => {
@@ -60,7 +62,7 @@ test('rejects an invalid canonical identity from GitHub without mutating the sub
 	const original = structuredClone(reference);
 
 	await assert.rejects(
-		resolveAuthorizedGitHubRepositoryMetadata(reference, {
+		resolveAuthorizedGitHubRepository(reference, {
 			getInstallationToken: async () => ({ token: 'opaque-token', permissions: { metadata: 'read' } }),
 			fetchImpl: async () => response(payload({ full_name: '../invalid' })),
 		}),
