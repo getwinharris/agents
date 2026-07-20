@@ -48,7 +48,7 @@ export function authorizeAdminRequest(account, authorization) {
 }
 
 export function isSameOriginAdminRequest(origin, host) {
-	if (!origin) return true;
+	if (!origin) return false;
 	try {
 		const parsed = new URL(origin);
 		return parsed.protocol === 'https:' && parsed.host === host;
