@@ -43,7 +43,7 @@ test('installation authorization requests metadata-only access for metadata oper
 	const authorization = await provider({ permissions: { metadata: 'read' } });
 	assert.deepEqual(authorization, {
 		token: 'metadata-token',
-		permissions: { metadata: 'read', contents: undefined },
+		permissions: { metadata: 'read' },
 	});
 	assert.equal(requests.length, 1);
 	assert.equal(requests[0].url, 'https://api.github.com/app/installations/456/access_tokens');
@@ -145,6 +145,24 @@ test('installation authorization rejects token payloads that omit the requested 
 		provider({ permissions: { metadata: 'read', contents: 'read' } }),
 		isUnavailable,
 	);
+});
+
+test('installation authorization rejects over-scoped token payloads without caching them', async () => {
+	let calls = 0;
+	const provider = createProvider({
+		fetchImpl: async () => {
+			calls += 1;
+			return response({
+				token: `over-scoped-token-${calls}`,
+				expires_at: '2026-07-20T19:00:00Z',
+				permissions: { metadata: 'read', contents: 'write' },
+			});
+		},
+	});
+	const request = { permissions: { metadata: 'read', contents: 'read' } };
+	await assert.rejects(provider(request), isUnavailable);
+	await assert.rejects(provider(request), isUnavailable);
+	assert.equal(calls, 2);
 });
 
 test('installation authorization rejects malformed identifiers exactly', () => {
