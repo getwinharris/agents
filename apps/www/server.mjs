@@ -6,6 +6,9 @@ import { createPlatformStore } from './src/server/platform-store.mjs';
 import { githubAuthorization, githubIdentity } from './src/server/github-oauth.mjs';
 import { authorizeAdminApiRequest, parseAdminGithubUserIds } from './src/server/admin-authorization.mjs';
 import { GitHubProjectImportError, importPublicGitHubProject, listGitHubProjects } from './src/server/github-project-import.mjs';
+import { resolveGitHubRepositoryReference } from './src/server/github-repository.mjs';
+import { resolveAuthorizedGitHubRepositoryMetadata } from './src/server/github-repository-metadata.mjs';
+import { createGitHubInstallationAuthorizationProvider } from './src/server/github-installation-authorization.mjs';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(dirname, 'dist');
@@ -16,6 +19,7 @@ const workspaceRoot = process.env.WORKSPACE_ROOT || path.resolve(dirname, '../..
 const platformStore = createPlatformStore({ workspaceRoot });
 const adminAuthorization = parseAdminGithubUserIds(process.env.BAPX_ADMIN_GITHUB_USER_IDS);
 const agentsRuntimeOrigin = new URL(process.env.AGENTS_RUNTIME_ORIGIN || 'http://127.0.0.1:3003');
+let githubInstallationTokenProvider;
 
 const HOST_PREFIX = {
 	'bapx.in': '',
@@ -136,6 +140,20 @@ function authorizeAdminApi(req, res, account, host, mutation = false) {
 		return false;
 	}
 	return true;
+}
+
+function getGitHubInstallationToken(options) {
+	if (!githubInstallationTokenProvider) {
+		githubInstallationTokenProvider = createGitHubInstallationAuthorizationProvider();
+	}
+	return githubInstallationTokenProvider(options);
+}
+
+function suggestedProjectSlug(reference) {
+	return `${reference.owner}-${reference.repository}`
+		.toLowerCase()
+		.replace(/[^a-z0-9._-]+/g, '-')
+		.replace(/^-+|-+$/g, '');
 }
 
 function safeReturnTo(value) {
@@ -261,6 +279,25 @@ function proxyAgentAPI(req, res, account) {
 async function handleProjectsAPI(req, res, urlPath) {
 	if (req.method === 'GET' && urlPath === '/api/projects') {
 		jsonResponse(res, 200, { projects: listGitHubProjects({ workspaceRoot }) });
+		return true;
+	}
+	if (req.method === 'POST' && urlPath === '/api/projects/resolve') {
+		try {
+			const body = await parseBody(req);
+			const repository = resolveGitHubRepositoryReference(body.repositoryUrl);
+			const metadata = await resolveAuthorizedGitHubRepositoryMetadata(repository, {
+				getInstallationToken: getGitHubInstallationToken,
+			});
+			const slug = suggestedProjectSlug(repository);
+			jsonResponse(res, 200, {
+				repository: { ...repository, fullName: metadata.fullName },
+				metadata,
+				project: { slug, path: `projects/${slug}` },
+			});
+		} catch (error) {
+			if (error?.code) jsonResponse(res, error.status || 400, { error: error.code, message: error.message });
+			else jsonResponse(res, 500, { error: 'resolve_failed', message: 'Repository resolution failed' });
+		}
 		return true;
 	}
 	if (req.method === 'POST' && urlPath === '/api/projects/import') {
