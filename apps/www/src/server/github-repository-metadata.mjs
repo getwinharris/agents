@@ -108,7 +108,7 @@ function normalizePayload(payload, cloneAuthorized) {
 	};
 }
 
-export async function resolveAuthorizedGitHubRepositoryMetadata(
+export async function resolveAuthorizedGitHubRepository(
 	reference,
 	{ getInstallationToken, fetchImpl = globalThis.fetch } = {},
 ) {
@@ -160,4 +160,9 @@ export async function resolveAuthorizedGitHubRepositoryMetadata(
 		fail('github_bad_response', 'GitHub returned invalid repository metadata');
 	}
 	return normalizePayload(payload, tokenContext.contents);
+}
+
+export async function resolveAuthorizedGitHubRepositoryMetadata(reference, options) {
+	const { metadata } = await resolveAuthorizedGitHubRepository(reference, options);
+	return metadata;
 }
