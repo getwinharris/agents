@@ -75,6 +75,21 @@ function resolveDestination(workspaceRoot, slug) {
 	return { directory, destination, relativePath: `projects/${slug}` };
 }
 
+function reserveDestination(directory, destination, slug) {
+	const reservation = path.join(directory, `.import-${slug}.lock`);
+	try {
+		fs.mkdirSync(reservation);
+	} catch (error) {
+		if (error?.code === 'EEXIST') fail('project_exists', `Project ${slug} already exists or is being imported`, 409);
+		throw error;
+	}
+	if (fs.existsSync(destination)) {
+		fs.rmSync(reservation, { recursive: true, force: true });
+		fail('project_exists', `Project ${slug} already exists`, 409);
+	}
+	return reservation;
+}
+
 function normalizeImportInput(input) {
 	if (!input || typeof input !== 'object' || Array.isArray(input)) {
 		fail('invalid_input', 'Repository import requires a repository URL, confirmed project slug, and explicit confirmation');
@@ -149,10 +164,12 @@ export async function importPublicGitHubProject(input, { workspaceRoot, runGit =
 	const { slug, repository, path: relativePath } = resolved;
 	const { directory, destination } = resolveDestination(workspaceRoot, slug);
 	fs.mkdirSync(directory, { recursive: true });
+	const reservation = reserveDestination(directory, destination, slug);
 
 	const operationId = randomUUID();
-	const temporary = fs.mkdtempSync(path.join(directory, `.import-${slug}-`));
+	let temporary;
 	try {
+		temporary = fs.mkdtempSync(path.join(directory, `.import-${slug}-`));
 		const clone = await runGit(['clone', '--depth', '1', '--', repository.httpsUrl, temporary]);
 		if (clone?.error?.code === 'ENOENT') fail('git_unavailable', 'Git is unavailable on the Admin server', 503);
 		if (clone?.status !== 0) fail('clone_failed', 'GitHub repository could not be cloned', 422);
@@ -175,9 +192,12 @@ export async function importPublicGitHubProject(input, { workspaceRoot, runGit =
 		};
 		fs.writeFileSync(path.join(temporary, '.bapx-project.json'), `${JSON.stringify(metadata, null, 2)}\n`, 'utf8');
 		fs.renameSync(temporary, destination);
+		temporary = undefined;
 		return { ...resolved, commitSha, operationId, status: 'completed' };
 	} catch (error) {
-		fs.rmSync(temporary, { recursive: true, force: true });
+		if (temporary) fs.rmSync(temporary, { recursive: true, force: true });
 		throw error;
+	} finally {
+		fs.rmSync(reservation, { recursive: true, force: true });
 	}
 }
