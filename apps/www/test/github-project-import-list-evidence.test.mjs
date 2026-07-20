@@ -39,13 +39,15 @@ test('Admin project cards render durable status, operation, and commit evidence'
 	assert.match(source, /<dt[^>]*>Commit<\/dt>[\s\S]*project\.commitSha/);
 });
 
-test('Admin import exposes distinct accessible progress, success, and failure states', () => {
+test('Admin resolve and import expose distinct accessible progress, success, and failure states', () => {
 	const source = fs.readFileSync(path.resolve(testDirectory, '../admin/src/components/projects-page.tsx'), 'utf8');
 	assert.match(source, /kind: 'progress' \| 'success' \| 'error'/);
 	assert.match(source, /data-state=\{status\.kind\}/);
 	assert.match(source, /role=\{status\.kind === 'error' \? 'alert' : 'status'\}/);
 	assert.match(source, /aria-live=\{status\.kind === 'error' \? 'assertive' : 'polite'\}/);
-	assert.match(source, /kind: 'progress',[\s\S]*Resolving and importing repository/);
+	assert.match(source, /kind: 'progress',[\s\S]*Resolving repository through the configured GitHub App/);
+	assert.match(source, /kind: 'success',[\s\S]*Resolved \$\{next\.repository\.fullName\}/);
+	assert.match(source, /kind: 'progress',[\s\S]*Importing the resolved repository/);
 	assert.match(source, /kind: 'success',[\s\S]*Imported \$\{body\.project/);
 	assert.match(source, /kind: 'error',[\s\S]*Repository import failed/);
 });
