@@ -44,12 +44,24 @@ The first working Projects slice reuses the existing Admin React application, ex
 - `GET /api/projects` lists directories below `/root/bapx.in/projects/` and reads only the private `.bapx-project.json` metadata written by the import owner. Completed imports preserve their operation ID, completion status, and verified commit in this listing. Each imported-project card renders all three values after reload, rather than relying only on transient submission text.
 - `POST /api/projects/import` requires an authenticated account authorized by `BAPX_ADMIN_GITHUB_USER_IDS` and rejects a browser request whose `Origin` is not the exact Admin host.
 - The browser request contract is `{ "repositoryUrl": { "repositoryUrl": "<supported GitHub URL>", "projectSlug": "<confirmed slug>", "confirmed": true } }`. All three values are required. Every form-submission path, including keyboard submission, checks the live confirmation state before sending and forwards that state instead of manufacturing `true`. The server rejects URL-only, missing-slug, missing-confirmation, and false-confirmation requests before directory creation or Git execution.
-- The current slice imports public GitHub repositories only. Private GitHub App installation authorization remains required before private imports are exposed.
+- The current routed slice imports public GitHub repositories only. Private GitHub App installation authorization remains required before private imports are exposed.
 - Import resolves the canonical GitHub identity, validates the confirmed slug and containment below `/root/bapx.in/projects/`, clones into a temporary sibling directory, verifies the Git commit, records an operation identifier with digest-free source metadata, and atomically renames the verified directory into the confirmed destination.
 - Git clone and revision verification run through asynchronous child processes and are awaited by the existing POST handler. The 120-second command timeout, bounded output capture, cleanup, verification, and atomic rename contracts remain in the import owner, while the shared `apps-www` event loop stays available for concurrent Admin, Docs, Agents gateway, and public-page requests.
 - Existing project directories are never overwritten. The import owner acquires an atomic hidden same-slug reservation before Git work, so concurrent requests for one confirmed destination cannot both clone and promote; exactly one may complete and the competing request receives structured `project_exists` evidence. The reservation records its process owner. A dead same-host owner is reclaimed immediately, while malformed or cross-host reservations become reclaimable only after ten minutes, safely beyond the two-minute Git timeout. Reservations and temporary clones are removed on completion or failure, so an interrupted process cannot permanently wedge later imports. Invalid or traversal-like slugs fail before directory creation.
 - `git` must be installed in the `apps-www` runtime image. A missing executable returns `git_unavailable`; clone and revision failures return structured errors without exposing credentials or command output.
 - A server restart is required after changing `apps/www/server.mjs`. Roll back by reverting the merge commit; imported project directories are user data and must not be deleted during code rollback.
+
+### Authorized GitHub repository metadata
+
+`apps/www/src/server/github-repository-metadata.mjs` owns the reusable, non-routed metadata-resolution boundary for the later private-import flow.
+
+- It accepts only the canonical identity produced by `resolveGitHubRepositoryReference()` and obtains installation authorization once per operation from an injected server-side provider.
+- The provider owns token minting, caching, expiry, and refresh. The metadata resolver does not cache credentials and does not retry GitHub `401` or `403` responses because those statuses may represent repository scope or permission denial rather than token expiry.
+- Provider exceptions and invalid provider results are converted to `github_installation_unavailable` without preserving provider messages, tokens, authorization headers, or raw context.
+- Metadata calls request read Metadata capability. Read Contents capability is represented separately as `cloneAuthorized`; metadata success alone never implies clone permission.
+- Returned data is restricted to repository ID, GitHub canonical casing, owner type, default branch, visibility/private state, archived state, clone capability, and a stable status. Archived repositories fail before later filesystem mutation.
+- Installation tokens are opaque variable-length secrets. They must not be persisted, logged, returned, embedded in credential-bearing URLs, or copied into errors, telemetry, snapshots, or fixtures.
+- This helper is not yet wired to `/api/projects` or the Admin browser. It does not make private import shipped; HTTP integration must reuse the existing protected Projects route family and preserve pre-dispatch authorization and exact-origin mutation checks.
 
 ## Admin session handoff persistence
 
