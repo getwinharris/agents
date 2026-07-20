@@ -159,7 +159,5 @@ export async function resolveAuthorizedGitHubRepositoryMetadata(
 	} catch {
 		fail('github_bad_response', 'GitHub returned invalid repository metadata');
 	}
-	const resolved = normalizePayload(payload, tokenContext.contents);
-	Object.assign(reference, resolved.repository);
-	return resolved.metadata;
+	return normalizePayload(payload, tokenContext.contents);
 }
