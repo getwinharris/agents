@@ -106,23 +106,28 @@ export async function resolveAuthorizedGitHubRepositoryMetadata(
 		fail('github_network_error', 'GitHub repository metadata transport is unavailable', 503);
 	}
 
-	const tokenContext = normalizeTokenContext(await getInstallationToken({
-		repository: identity,
-		permissions: { metadata: 'read' },
-	}));
+	let tokenContext;
+	try {
+		tokenContext = normalizeTokenContext(await getInstallationToken({
+			repository: identity,
+			permissions: { metadata: 'read' },
+		}));
+	} catch {
+		fail('github_installation_unavailable', 'GitHub App installation authorization is unavailable', 503);
+	}
 
 	let response;
 	try {
 		response = await fetchImpl(
-		`${GITHUB_API_ORIGIN}/repos/${encodeURIComponent(identity.owner)}/${encodeURIComponent(identity.repository)}`,
-		{
-			method: 'GET',
-			headers: {
-				Accept: 'application/vnd.github+json',
-				Authorization: `Bearer ${tokenContext.token}`,
-				'X-GitHub-Api-Version': '2022-11-28',
+			`${GITHUB_API_ORIGIN}/repos/${encodeURIComponent(identity.owner)}/${encodeURIComponent(identity.repository)}`,
+			{
+				method: 'GET',
+				headers: {
+					Accept: 'application/vnd.github+json',
+					Authorization: `Bearer ${tokenContext.token}`,
+					'X-GitHub-Api-Version': '2022-11-28',
+				},
 			},
-		},
 		);
 	} catch {
 		fail('github_network_error', 'GitHub repository metadata request failed', 503);
