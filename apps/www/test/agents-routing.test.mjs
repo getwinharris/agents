@@ -11,6 +11,7 @@ import { createPlatformStore } from '../src/server/platform-store.mjs';
 
 const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const agentsEntry = path.join(appRoot, 'dist', 'admin', 'index.html');
+const postsFile = path.join(appRoot, 'data', 'posts.json');
 const marker = '<!doctype html><title>bapX operating surface</title>';
 
 async function availablePort() {
@@ -63,7 +64,9 @@ describe('Agents host routing', () => {
 	let server;
 	let port;
 	let previousEntry;
+	let previousPosts;
 	let workspaceRoot;
+	let siblingRoot;
 	let cookie;
 	let nonAdminCookie;
 	let runtime;
@@ -71,8 +74,11 @@ describe('Agents host routing', () => {
 
 	before(async () => {
 		workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-agents-routing-'));
+		siblingRoot = `${workspaceRoot}-sibling`;
+		fs.mkdirSync(siblingRoot);
 		fs.writeFileSync(path.join(workspaceRoot, 'OKF.md'), '# Test OKF\n');
 		fs.writeFileSync(path.join(workspaceRoot, 'root-secret.md'), 'not customer visible\n');
+		fs.writeFileSync(path.join(siblingRoot, 'sibling-secret.md'), 'outside authorized root\n');
 		const store = createPlatformStore({ workspaceRoot });
 		const { account } = await store.loginWithGitHub({
 			id: '1001',
@@ -97,6 +103,7 @@ describe('Agents host routing', () => {
 		});
 		await new Promise((resolve) => runtime.listen(runtimePort, '127.0.0.1', resolve));
 		previousEntry = fs.existsSync(agentsEntry) ? fs.readFileSync(agentsEntry) : undefined;
+		previousPosts = fs.existsSync(postsFile) ? fs.readFileSync(postsFile) : undefined;
 		fs.mkdirSync(path.dirname(agentsEntry), { recursive: true });
 		fs.writeFileSync(agentsEntry, marker);
 		port = await availablePort();
@@ -119,8 +126,11 @@ describe('Agents host routing', () => {
 		server?.kill();
 		runtime?.close();
 		fs.rmSync(workspaceRoot, { recursive: true });
+		fs.rmSync(siblingRoot, { recursive: true });
 		if (previousEntry === undefined) fs.rmSync(path.join(appRoot, 'dist'), { recursive: true });
 		else fs.writeFileSync(agentsEntry, previousEntry);
+		if (previousPosts === undefined) fs.rmSync(postsFile, { force: true });
+		else fs.writeFileSync(postsFile, previousPosts);
 	});
 
 	it('redirects to sign in when the Agents hostname has no customer session', async () => {
@@ -199,6 +209,120 @@ describe('Agents host routing', () => {
 		assert.deepEqual(JSON.parse(forbidden.body), { error: 'admin_forbidden' });
 		assert.equal(authorized.status, 200);
 		assert.match(authorized.body, /"type":"ready"/);
+	});
+
+	it('protects Admin workspace reads and writes through the existing authorization boundary', async () => {
+		const unauthenticated = await request(port, {
+			host: 'admin.bapx.in',
+			pathname: '/api/ws/tree',
+		});
+		const forbidden = await request(port, {
+			host: 'admin.bapx.in',
+			pathname: '/api/ws/tree',
+			headers: { cookie: nonAdminCookie },
+		});
+		const tree = await request(port, {
+			host: 'admin.bapx.in',
+			pathname: '/api/ws/tree',
+			headers: { cookie },
+		});
+		const read = await request(port, {
+			host: 'admin.bapx.in',
+			pathname: '/api/ws/file?path=OKF.md',
+			headers: { cookie },
+		});
+		const traversal = await request(port, {
+			host: 'admin.bapx.in',
+			pathname: `/api/ws/file?path=${encodeURIComponent(`../${path.basename(siblingRoot)}/sibling-secret.md`)}`,
+			headers: { cookie },
+		});
+		const writeBody = JSON.stringify({ path: 'admin-written.md', content: '# Admin write\n' });
+		const crossOrigin = await request(port, {
+			method: 'PUT',
+			host: 'admin.bapx.in',
+			pathname: '/api/ws/file',
+			headers: { cookie, origin: 'https://evil.example', 'content-type': 'application/json' },
+			body: writeBody,
+		});
+		const write = await request(port, {
+			method: 'PUT',
+			host: 'admin.bapx.in',
+			pathname: '/api/ws/file',
+			headers: { cookie, origin: 'https://admin.bapx.in', 'content-type': 'application/json' },
+			body: writeBody,
+		});
+
+		assert.equal(unauthenticated.status, 401);
+		assert.deepEqual(JSON.parse(unauthenticated.body), { error: 'authentication_required' });
+		assert.equal(forbidden.status, 403);
+		assert.deepEqual(JSON.parse(forbidden.body), { error: 'admin_forbidden' });
+		assert.equal(tree.status, 200);
+		assert.match(tree.body, /root-secret\.md/);
+		assert.equal(read.status, 200);
+		assert.equal(JSON.parse(read.body).content, '# Test OKF\n');
+		assert.equal(traversal.status, 403);
+		assert.deepEqual(JSON.parse(traversal.body), { error: 'Forbidden' });
+		assert.equal(crossOrigin.status, 403);
+		assert.deepEqual(JSON.parse(crossOrigin.body), { error: 'cross_origin_forbidden' });
+		assert.equal(fs.existsSync(path.join(workspaceRoot, 'admin-written.md')), false);
+		assert.equal(write.status, 200);
+		assert.deepEqual(JSON.parse(write.body), { ok: true, path: 'admin-written.md' });
+		assert.equal(fs.readFileSync(path.join(workspaceRoot, 'admin-written.md'), 'utf8'), '# Admin write\n');
+		assert.equal(write.headers['access-control-allow-origin'], undefined);
+	});
+
+	it('protects Admin content mutations and accepts only the exact Admin origin', async () => {
+		const body = JSON.stringify({
+			slug: 'authorization-route-test',
+			title: 'Authorization route test',
+			content: 'temporary test post',
+		});
+		const unauthenticated = await request(port, {
+			method: 'POST',
+			host: 'admin.bapx.in',
+			pathname: '/api/posts',
+			headers: { 'content-type': 'application/json' },
+			body,
+		});
+		const forbidden = await request(port, {
+			method: 'POST',
+			host: 'admin.bapx.in',
+			pathname: '/api/posts',
+			headers: { cookie: nonAdminCookie, origin: 'https://admin.bapx.in', 'content-type': 'application/json' },
+			body,
+		});
+		const crossOrigin = await request(port, {
+			method: 'POST',
+			host: 'admin.bapx.in',
+			pathname: '/api/posts',
+			headers: { cookie, origin: 'https://admin.bapx.in.evil.example', 'content-type': 'application/json' },
+			body,
+		});
+		const created = await request(port, {
+			method: 'POST',
+			host: 'admin.bapx.in',
+			pathname: '/api/posts',
+			headers: { cookie, origin: 'https://admin.bapx.in', 'content-type': 'application/json' },
+			body,
+		});
+		const removed = await request(port, {
+			method: 'DELETE',
+			host: 'admin.bapx.in',
+			pathname: '/api/posts/authorization-route-test',
+			headers: { cookie, origin: 'https://admin.bapx.in' },
+		});
+
+		assert.equal(unauthenticated.status, 401);
+		assert.deepEqual(JSON.parse(unauthenticated.body), { error: 'authentication_required' });
+		assert.equal(forbidden.status, 403);
+		assert.deepEqual(JSON.parse(forbidden.body), { error: 'admin_forbidden' });
+		assert.equal(crossOrigin.status, 403);
+		assert.deepEqual(JSON.parse(crossOrigin.body), { error: 'cross_origin_forbidden' });
+		assert.equal(created.status, 201);
+		assert.equal(JSON.parse(created.body).post.slug, 'authorization-route-test');
+		assert.equal(created.headers['access-control-allow-origin'], undefined);
+		assert.equal(removed.status, 200);
+		assert.deepEqual(JSON.parse(removed.body), { ok: true });
 	});
 
 	it('limits the customer workspace API to the signed-in user business', async () => {
