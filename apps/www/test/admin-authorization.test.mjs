@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+	authorizeAdminApiRequest,
 	authorizeAdminRequest,
 	isAuthorizedAdminAccount,
+	isSameOriginAdminRequest,
 	parseAdminGithubUserIds,
 } from '../src/server/admin-authorization.mjs';
 
@@ -99,4 +101,66 @@ test('keeps canonical request authorization results immutable and reusable', () 
 		first.error = 'admin_forbidden';
 	}, TypeError);
 	assert.equal(authorizeAdminRequest(null, authorization).error, 'authentication_required');
+});
+
+test('accepts only the exact HTTPS Admin origin', () => {
+	assert.equal(isSameOriginAdminRequest(undefined, 'admin.bapx.in'), false);
+	assert.equal(isSameOriginAdminRequest('https://admin.bapx.in', 'admin.bapx.in'), true);
+	assert.equal(isSameOriginAdminRequest('http://admin.bapx.in', 'admin.bapx.in'), false);
+	assert.equal(isSameOriginAdminRequest('https://admin.bapx.in.evil.example', 'admin.bapx.in'), false);
+	assert.equal(isSameOriginAdminRequest('not a url', 'admin.bapx.in'), false);
+});
+
+test('applies authentication, Admin entitlement, and same-origin checks in order', () => {
+	const authorization = parseAdminGithubUserIds('123');
+	const admin = { providers: [{ name: 'github', id: '123' }] };
+	const nonAdmin = { providers: [{ name: 'github', id: '456' }] };
+
+	assert.equal(
+		authorizeAdminApiRequest(null, authorization, {
+			mutation: true,
+			origin: 'https://evil.example',
+			host: 'admin.bapx.in',
+		}).error,
+		'authentication_required',
+	);
+	assert.equal(
+		authorizeAdminApiRequest(nonAdmin, authorization, {
+			mutation: true,
+			origin: 'https://evil.example',
+			host: 'admin.bapx.in',
+		}).error,
+		'admin_forbidden',
+	);
+	assert.deepEqual(
+		authorizeAdminApiRequest(admin, authorization, {
+			mutation: true,
+			host: 'admin.bapx.in',
+		}),
+		{ ok: false, status: 403, error: 'cross_origin_forbidden' },
+	);
+	assert.deepEqual(
+		authorizeAdminApiRequest(admin, authorization, {
+			mutation: true,
+			origin: 'https://evil.example',
+			host: 'admin.bapx.in',
+		}),
+		{ ok: false, status: 403, error: 'cross_origin_forbidden' },
+	);
+	assert.deepEqual(
+		authorizeAdminApiRequest(admin, authorization, {
+			mutation: true,
+			origin: 'https://admin.bapx.in',
+			host: 'admin.bapx.in',
+		}),
+		{ ok: true, status: 200, error: null },
+	);
+	assert.deepEqual(
+		authorizeAdminApiRequest(admin, authorization, {
+			mutation: false,
+			origin: 'https://evil.example',
+			host: 'admin.bapx.in',
+		}),
+		{ ok: true, status: 200, error: null },
+	);
 });

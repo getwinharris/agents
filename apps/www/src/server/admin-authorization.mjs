@@ -7,6 +7,7 @@ const AUTHENTICATION_REQUIRED = Object.freeze({
 	error: 'authentication_required',
 });
 const ADMIN_FORBIDDEN = Object.freeze({ ok: false, status: 403, error: 'admin_forbidden' });
+const CROSS_ORIGIN_FORBIDDEN = Object.freeze({ ok: false, status: 403, error: 'cross_origin_forbidden' });
 
 function createAuthorization(valid, entries = []) {
 	const ids = new Set(entries);
@@ -43,5 +44,22 @@ export function isAuthorizedAdminAccount(account, authorization) {
 export function authorizeAdminRequest(account, authorization) {
 	if (!account) return AUTHENTICATION_REQUIRED;
 	if (!isAuthorizedAdminAccount(account, authorization)) return ADMIN_FORBIDDEN;
+	return AUTHENTICATED;
+}
+
+export function isSameOriginAdminRequest(origin, host) {
+	if (!origin) return false;
+	try {
+		const parsed = new URL(origin);
+		return parsed.protocol === 'https:' && parsed.host === host;
+	} catch {
+		return false;
+	}
+}
+
+export function authorizeAdminApiRequest(account, authorization, { mutation = false, origin, host } = {}) {
+	const decision = authorizeAdminRequest(account, authorization);
+	if (!decision.ok) return decision;
+	if (mutation && !isSameOriginAdminRequest(origin, host)) return CROSS_ORIGIN_FORBIDDEN;
 	return AUTHENTICATED;
 }

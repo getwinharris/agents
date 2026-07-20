@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPlatformStore } from './src/server/platform-store.mjs';
 import { githubAuthorization, githubIdentity } from './src/server/github-oauth.mjs';
-import { authorizeAdminRequest, parseAdminGithubUserIds } from './src/server/admin-authorization.mjs';
+import { authorizeAdminApiRequest, parseAdminGithubUserIds } from './src/server/admin-authorization.mjs';
 import { GitHubProjectImportError, importPublicGitHubProject, listGitHubProjects } from './src/server/github-project-import.mjs';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -125,25 +125,14 @@ function getSessionAccount(req) {
 	return platformStore.getSessionAccount(getCookie(req, 'bapx_session'));
 }
 
-function sameOriginRequest(req, host) {
-	const origin = req.headers.origin;
-	if (!origin) return true;
-	try {
-		const parsed = new URL(origin);
-		return parsed.protocol === 'https:' && parsed.host === host;
-	} catch {
-		return false;
-	}
-}
-
 function authorizeAdminApi(req, res, account, host, mutation = false) {
-	const decision = authorizeAdminRequest(account, adminAuthorization);
+	const decision = authorizeAdminApiRequest(account, adminAuthorization, {
+		mutation,
+		origin: req.headers.origin,
+		host,
+	});
 	if (!decision.ok) {
 		jsonResponse(res, decision.status, { error: decision.error });
-		return false;
-	}
-	if (mutation && !sameOriginRequest(req, host)) {
-		jsonResponse(res, 403, { error: 'cross_origin_forbidden' });
 		return false;
 	}
 	return true;
@@ -205,14 +194,6 @@ async function handleAuthAPI(req, res, urlPath) {
 }
 
 async function handleWorkspaceAPI(req, res, urlPath, scopeRoot = workspaceRoot) {
-	res.setHeader('Access-Control-Allow-Origin', '*');
-	res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
-	res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-	if (req.method === 'OPTIONS') {
-		res.writeHead(204);
-		res.end();
-		return true;
-	}
 	const segments = urlPath.replace(/^\/api\/ws\//, '').split('/').filter(Boolean);
 	if (req.method === 'GET' && segments[0] === 'tree') {
 		const subPath = segments.slice(1).join('/') || '';
@@ -298,10 +279,6 @@ async function handleProjectsAPI(req, res, urlPath) {
 }
 
 async function handleAdminAPI(req, res, urlPath) {
-	res.setHeader('Access-Control-Allow-Origin', '*');
-	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-	res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-	if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return true; }
 	const segments = urlPath.replace(/^\/admin\/api\//, '').split('/').filter(Boolean);
 	if (req.method === 'GET' && segments.length === 1 && segments[0] === 'posts') { jsonResponse(res, 200, { posts: readPosts() }); return true; }
 	if (req.method === 'GET' && segments.length === 2 && segments[0] === 'posts') {
@@ -352,7 +329,11 @@ http.createServer(async (req, res) => {
 	if (prefix === '/agents' && req.method === 'HEAD' && urlPath === '/') { res.writeHead(200, { 'Cache-Control': 'no-store' }); res.end(); return; }
 	if (prefix === '/agents' && !sessionAccount) { redirect(res, `https://bapx.in/login/?returnTo=${encodeURIComponent(`https://agents.bapx.in${req.url || '/'}`)}`); return; }
 	if ((prefix === '/agents' || prefix === '/admin') && urlPath.startsWith('/api/agents/')) {
-		if (!sessionAccount) { jsonResponse(res, 401, { error: 'Sign in to use the main agent.' }); return; }
+		if (prefix === '/admin') {
+			if (!authorizeAdminApi(req, res, sessionAccount, host, req.method !== 'GET' && req.method !== 'HEAD')) return;
+		} else if (!sessionAccount) {
+			jsonResponse(res, 401, { error: 'Sign in to use the main agent.' }); return;
+		}
 		await proxyAgentAPI(req, res, sessionAccount); return;
 	}
 	if (prefix === '/agents' && urlPath.startsWith('/api/ws/')) {
@@ -360,13 +341,14 @@ http.createServer(async (req, res) => {
 		if (handled) return;
 	}
 	if (prefix === '/admin' && urlPath.startsWith('/api/projects')) {
-		if (!authorizeAdminApi(req, res, sessionAccount, host, req.method !== 'GET')) return;
+		if (!authorizeAdminApi(req, res, sessionAccount, host, req.method !== 'GET' && req.method !== 'HEAD')) return;
 		const handled = await handleProjectsAPI(req, res, urlPath);
 		if (handled) return;
 	}
 	if (prefix === '/admin' && urlPath.startsWith('/api/')) {
+		if (!authorizeAdminApi(req, res, sessionAccount, host, req.method !== 'GET' && req.method !== 'HEAD')) return;
 		if (urlPath.startsWith('/api/ws/')) {
-			const handled = await handleWorkspaceAPI(req, res, urlPath);
+			const handled = await handleWorkspaceAPI(req, res, urlPath, workspaceRoot);
 			if (handled) return;
 		}
 		const handled = await handleAdminAPI(req, res, `/admin${urlPath}`);

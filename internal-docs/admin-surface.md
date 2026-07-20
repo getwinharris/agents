@@ -19,6 +19,19 @@ The canonical `demo/` is the functional source for the agent conversation experi
 - The customer hostname serves this same React shell but hides Admin-only pull-request navigation and roots `/api/ws/*` at `users/<username>/workspace`. Path traversal is rejected after resolving against that customer root.
 - The checked-in main agent is a deterministic bootstrap model that exercises streamed reasoning, a safe workspace-status tool, tool results, and final text without a provider secret. Platform-owned provider selection can replace that model; do not put customer provider credentials in the web bundle or proxy configuration.
 
+## Admin API authorization boundary
+
+The existing provider-ID authorization owner in `apps/www/src/server/admin-authorization.mjs` is the single authorization policy for protected Admin HTTP APIs. `apps/www/server.mjs` applies that policy before dispatching any Admin request to the shared agent gateway, workspace tree/editor API, project import API, or Admin content API.
+
+- A missing bapX session returns `401` with `authentication_required` before any protected handler or runtime proxy is reached.
+- An authenticated account without an exact GitHub provider ID listed in `BAPX_ADMIN_GITHUB_USER_IDS` returns `403` with `admin_forbidden`.
+- Cookie-authenticated Admin mutations require the exact `https://admin.bapx.in` origin. Missing, foreign, malformed, HTTP, and lookalike origins return `403` with `cross_origin_forbidden`.
+- Protected handlers do not emit wildcard CORS headers. Browser access is same-origin by default.
+- Admin workspace reads and writes resolve against the explicit server-owned `/root/bapx.in` root. Customer workspace routing remains separately scoped to `users/<username>/workspace` and continues to require the existing customer session.
+- The Admin agent gateway reuses the same authorization decision before forwarding the account identity and private runtime token. Customer `agents.bapx.in` behavior remains session-authenticated and is not promoted to bapX-wide authority.
+- This boundary does not create another session, cookie, CSRF token store, runtime, or frontend. The existing session, provider-ID authorization, workspace, content, project-import, and runtime owners remain authoritative.
+- Changing `apps/www/server.mjs` requires rebuilding and restarting the existing `apps-www` service. After synchronization, verify anonymous and non-Admin denials, authorized tree/read/write, authorized agent streaming, same-origin content mutation, missing- and foreign-origin rejection, public-route regression checks, and absence of credentials or private paths in responses and logs.
+
 ## Admin Projects import
 
 The first working Projects slice reuses the existing Admin React application, existing workspace editor, canonical GitHub repository resolver, existing platform session, and existing Admin provider-ID authorization owner.
