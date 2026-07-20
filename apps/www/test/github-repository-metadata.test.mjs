@@ -46,6 +46,7 @@ test('normalizes safe public metadata and preserves GitHub canonical casing', as
 		fetchImpl: async (url, options) => {
 			assert.equal(url, 'https://api.github.com/repos/getwinharris/agents');
 			assert.equal(options.headers.Authorization, 'Bearer opaque-variable-length-token');
+			assert.equal(options.signal instanceof AbortSignal, true);
 			return response(200, metadata({ full_name: 'GetWinHarris/Agents' }));
 		},
 	});
@@ -60,6 +61,13 @@ test('normalizes safe public metadata and preserves GitHub canonical casing', as
 		cloneAuthorized: true,
 		status: 'resolved',
 	});
+});
+
+test('treats read and write Contents permissions as clone-authorized', async () => {
+	for (const contents of ['read', 'write']) {
+		const result = await resolve({ permissions: { metadata: 'read', contents } });
+		assert.equal(result.cloneAuthorized, true);
+	}
 });
 
 test('keeps private visibility and metadata authorization separate from clone authorization', async () => {
@@ -78,11 +86,20 @@ test('rejects archived repositories before import mutation', async () => {
 	);
 });
 
-test('maps installation, authorization, unavailable, rate-limit, upstream, and network failures', async () => {
+test('maps installation, authorization, unavailable, rate-limit, upstream, and network failures without retries', async () => {
+	let authorizationCalls = 0;
 	await assertMetadataError(
-		() => resolveAuthorizedGitHubRepositoryMetadata(reference, { fetchImpl: async () => response(200, metadata()) }),
-		'github_installation_unavailable',
+		() => resolveAuthorizedGitHubRepositoryMetadata(reference, {
+			getInstallationToken: async () => {
+				authorizationCalls += 1;
+				return { token: 'opaque-token', permissions: { metadata: 'read' } };
+			},
+			fetchImpl: async () => response(401, {}),
+		}),
+		'github_repository_unauthorized',
 	);
+	assert.equal(authorizationCalls, 1);
+
 	for (const [status, code] of [
 		[401, 'github_repository_unauthorized'],
 		[403, 'github_repository_unauthorized'],
@@ -90,7 +107,14 @@ test('maps installation, authorization, unavailable, rate-limit, upstream, and n
 		[429, 'github_rate_limited'],
 		[500, 'github_bad_response'],
 	]) {
-		await assertMetadataError(() => resolve({ fetchImpl: async () => response(status, {}) }), code);
+		let fetchCalls = 0;
+		await assertMetadataError(() => resolve({
+			fetchImpl: async () => {
+				fetchCalls += 1;
+				return response(status, {});
+			},
+		}), code);
+		assert.equal(fetchCalls, 1, `expected no retry for status ${status}`);
 	}
 	await assertMetadataError(() => resolve({ fetchImpl: async () => { throw new Error('secret transport detail'); } }), 'github_network_error');
 });
@@ -112,7 +136,8 @@ test('maps installation provider exceptions to a stable secret-free failure', as
 	}
 });
 
-test('rejects malformed or mismatched GitHub payloads without exposing raw data', async () => {
+test('rejects malformed transport responses and repository payloads without exposing raw data', async () => {
+	await assertMetadataError(() => resolve({ fetchImpl: async () => ({}) }), 'github_bad_response');
 	for (const payload of [
 		null,
 		{},
