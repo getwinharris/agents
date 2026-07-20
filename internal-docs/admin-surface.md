@@ -63,6 +63,19 @@ The first working Projects slice reuses the existing Admin React application, ex
 - Installation tokens are opaque variable-length secrets. They must not be persisted, logged, returned, embedded in credential-bearing URLs, or copied into errors, telemetry, snapshots, or fixtures.
 - This helper is not yet wired to `/api/projects` or the Admin browser. It does not make private import shipped; HTTP integration must reuse the existing protected Projects route family and preserve pre-dispatch authorization and exact-origin mutation checks.
 
+### GitHub App installation authorization
+
+`apps/www/src/server/github-installation-authorization.mjs` owns server-side GitHub App JWT signing and installation-token acquisition for the metadata resolver and later private-import route integration.
+
+- Deployment supplies `BAPX_GITHUB_APP_ID`, `BAPX_GITHUB_INSTALLATION_ID`, and `BAPX_GITHUB_APP_PRIVATE_KEY` only to the `apps-www` server process. IDs must be canonical positive decimal safe integers; partial numbers, decimals, signs, leading zeroes, zero, negative values, blanks, and unsafe integers fail closed as `github_installation_unavailable`.
+- The private key may use real newlines or escaped `\n` separators. It remains a server secret and must never enter browser bundles, logs, errors, telemetry, fixtures, project metadata, or Git credential URLs.
+- Every operation must request an explicit bounded permission set. Metadata resolution requests only `{ metadata: 'read' }`; a later clone-capable operation may request `{ metadata: 'read', contents: 'read' }`. Missing scopes, unsupported keys, write scopes, and any request without Metadata read fail closed before a GitHub call.
+- Installation tokens are cached only inside the provider closure and are keyed by the normalized permission set. A metadata-only token can never satisfy a later Contents request, and a Contents-capable token is not reused for metadata-only work. Each scoped token is reused only while more than one minute remains before GitHub expiry.
+- The provider requires GitHub's returned permission set to match the normalized request exactly before caching or returning a token. Missing requested scopes and stronger or additional scopes—including Contents write for a Contents-read request—fail closed and are never cached.
+- The outbound token request is bounded by a ten-second abort signal. Configuration, signing, invalid permission requests, transport, non-success responses, malformed JSON, under-scoped responses, over-scoped responses, and malformed token payloads all map to the same secret-free `github_installation_unavailable` error.
+- The provider performs one token request per permission-scope refresh attempt and does not retry ambiguous GitHub failures. Later route integration must preserve Admin authentication and provider-ID authorization before token acquisition, and exact-origin enforcement before any mutation.
+- Changing these environment values or this module requires rebuilding and restarting the existing `apps-www` service. Validate metadata-only and Contents-read request bodies, cross-scope cache isolation, per-scope cache reuse and near-expiry refresh, malformed configuration and unsupported-scope rejection, request cancellation, under- and over-scoped response rejection without caching, and secret-free failures before deployment.
+
 ## Admin session handoff persistence
 
 The platform store owns a narrow, internal handoff primitive for exchanging an authenticated central-platform account for a future Admin-audience session without broadening the existing session cookie to the parent domain.
