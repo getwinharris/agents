@@ -25,6 +25,21 @@ function requiredPositiveInteger(value) {
 	return parsed;
 }
 
+function normalizeRequestedPermissions(value) {
+	if (!value || typeof value !== 'object' || Array.isArray(value)) unavailable();
+	const keys = Object.keys(value).sort();
+	if (!keys.length || keys.some((key) => !['contents', 'metadata'].includes(key))) unavailable();
+	if (value.metadata !== 'read') unavailable();
+	if ('contents' in value && value.contents !== 'read') unavailable();
+	const permissions = { metadata: 'read' };
+	if (value.contents === 'read') permissions.contents = 'read';
+	return permissions;
+}
+
+function permissionCacheKey(permissions) {
+	return permissions.contents === 'read' ? 'metadata:read|contents:read' : 'metadata:read';
+}
+
 function base64url(value) {
 	return Buffer.from(value).toString('base64url');
 }
@@ -44,19 +59,18 @@ function createAppJwt(appId, privateKey, nowMs) {
 	}
 }
 
-function normalizeTokenPayload(payload) {
+function normalizeTokenPayload(payload, requestedPermissions) {
 	if (!payload || typeof payload !== 'object' || Array.isArray(payload)) unavailable();
 	const token = typeof payload.token === 'string' ? payload.token : '';
 	const expiresAt = Date.parse(payload.expires_at);
 	if (!token || !Number.isFinite(expiresAt)) unavailable();
-	return {
-		token,
-		expiresAt,
-		permissions: {
-			metadata: payload.permissions?.metadata === 'read' ? 'read' : undefined,
-			contents: ['read', 'write'].includes(payload.permissions?.contents) ? payload.permissions.contents : undefined,
-		},
+	const permissions = {
+		metadata: payload.permissions?.metadata === 'read' ? 'read' : undefined,
+		contents: ['read', 'write'].includes(payload.permissions?.contents) ? payload.permissions.contents : undefined,
 	};
+	if (permissions.metadata !== 'read') unavailable();
+	if (requestedPermissions.contents === 'read' && !['read', 'write'].includes(permissions.contents)) unavailable();
+	return { token, expiresAt, permissions };
 }
 
 export function createGitHubInstallationAuthorizationProvider({
@@ -70,10 +84,13 @@ export function createGitHubInstallationAuthorizationProvider({
 	const normalizedInstallationId = requiredPositiveInteger(installationId);
 	const normalizedPrivateKey = String(privateKey || '').replace(/\\n/g, '\n').trim();
 	if (!normalizedPrivateKey || typeof fetchImpl !== 'function') unavailable();
-	let cached;
+	const cachedByPermissions = new Map();
 
-	return async function getInstallationToken() {
+	return async function getInstallationToken({ permissions } = {}) {
+		const requestedPermissions = normalizeRequestedPermissions(permissions);
+		const cacheKey = permissionCacheKey(requestedPermissions);
 		const nowMs = now();
+		const cached = cachedByPermissions.get(cacheKey);
 		if (cached && cached.expiresAt - TOKEN_REFRESH_SKEW_MS > nowMs) {
 			return { token: cached.token, permissions: cached.permissions };
 		}
@@ -88,7 +105,7 @@ export function createGitHubInstallationAuthorizationProvider({
 					Authorization: `Bearer ${jwt}`,
 					'X-GitHub-Api-Version': '2022-11-28',
 				},
-				body: JSON.stringify({ permissions: { metadata: 'read', contents: 'read' } }),
+				body: JSON.stringify({ permissions: requestedPermissions }),
 				signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
 			});
 		} catch {
@@ -101,7 +118,8 @@ export function createGitHubInstallationAuthorizationProvider({
 		} catch {
 			unavailable();
 		}
-		cached = normalizeTokenPayload(payload);
-		return { token: cached.token, permissions: cached.permissions };
+		const normalized = normalizeTokenPayload(payload, requestedPermissions);
+		cachedByPermissions.set(cacheKey, normalized);
+		return { token: normalized.token, permissions: normalized.permissions };
 	};
 }
