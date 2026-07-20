@@ -135,14 +135,12 @@ describe('Agents host routing', () => {
 
 	it('redirects to sign in when the Agents hostname has no customer session', async () => {
 		const response = await waitForServer(port);
-
 		assert.equal(response.status, 303);
 		assert.equal(response.headers.location, 'https://bapx.in/login/?returnTo=https%3A%2F%2Fagents.bapx.in%2F');
 	});
 
 	it('answers an unauthenticated Agents HEAD health check without serving the shell', async () => {
 		const response = await request(port, { method: 'HEAD' });
-
 		assert.equal(response.status, 200);
 		assert.equal(response.body, '');
 	});
@@ -153,7 +151,6 @@ describe('Agents host routing', () => {
 			host: 'bapx.in',
 			pathname: `/api/auth/oauth/github?returnTo=${encodeURIComponent(returnTo)}`,
 		});
-
 		assert.equal(response.status, 303);
 		assert.match(response.headers.location, /^https:\/\/github\.com\/login\/oauth\/authorize/);
 		assert.match(response.headers['set-cookie']?.join(';') ?? '', /bapx_oauth_return_to=/);
@@ -164,14 +161,12 @@ describe('Agents host routing', () => {
 			host: 'bapx.in',
 			pathname: '/api/auth/oauth/github?returnTo=https%3A%2F%2Fevil.example%2F',
 		});
-
 		assert.equal(response.status, 303);
 		assert.doesNotMatch(response.headers['set-cookie']?.join(';') ?? '', /bapx_oauth_return_to=/);
 	});
 
 	it('serves the shared operating shell when the Agents hostname has a customer session', async () => {
 		const response = await request(port, { headers: { cookie } });
-
 		assert.equal(response.status, 200);
 		assert.equal(response.body, marker);
 	});
@@ -181,17 +176,13 @@ describe('Agents host routing', () => {
 			pathname: '/api/agents/main/conversation-1?view=updates',
 			headers: { cookie },
 		});
-
 		assert.equal(response.status, 200);
 		assert.equal(response.headers['content-type'], 'text/event-stream');
 		assert.match(response.body, /"type":"ready"/);
 	});
 
 	it('uses the same entitled main-agent gateway from the Admin hostname', async () => {
-		const unauthorized = await request(port, {
-			host: 'admin.bapx.in',
-			pathname: '/api/agents/main/conversation-1?view=updates',
-		});
+		const unauthorized = await request(port, { host: 'admin.bapx.in', pathname: '/api/agents/main/conversation-1?view=updates' });
 		const forbidden = await request(port, {
 			host: 'admin.bapx.in',
 			pathname: '/api/agents/main/conversation-1?view=updates',
@@ -202,7 +193,6 @@ describe('Agents host routing', () => {
 			pathname: '/api/agents/main/conversation-1?view=updates',
 			headers: { cookie },
 		});
-
 		assert.equal(unauthorized.status, 401);
 		assert.deepEqual(JSON.parse(unauthorized.body), { error: 'authentication_required' });
 		assert.equal(forbidden.status, 403);
@@ -212,31 +202,27 @@ describe('Agents host routing', () => {
 	});
 
 	it('protects Admin workspace reads and writes through the existing authorization boundary', async () => {
-		const unauthenticated = await request(port, {
-			host: 'admin.bapx.in',
-			pathname: '/api/ws/tree',
-		});
+		const unauthenticated = await request(port, { host: 'admin.bapx.in', pathname: '/api/ws/tree' });
 		const forbidden = await request(port, {
 			host: 'admin.bapx.in',
 			pathname: '/api/ws/tree',
 			headers: { cookie: nonAdminCookie },
 		});
-		const tree = await request(port, {
-			host: 'admin.bapx.in',
-			pathname: '/api/ws/tree',
-			headers: { cookie },
-		});
-		const read = await request(port, {
-			host: 'admin.bapx.in',
-			pathname: '/api/ws/file?path=OKF.md',
-			headers: { cookie },
-		});
+		const tree = await request(port, { host: 'admin.bapx.in', pathname: '/api/ws/tree', headers: { cookie } });
+		const read = await request(port, { host: 'admin.bapx.in', pathname: '/api/ws/file?path=OKF.md', headers: { cookie } });
 		const traversal = await request(port, {
 			host: 'admin.bapx.in',
 			pathname: `/api/ws/file?path=${encodeURIComponent(`../${path.basename(siblingRoot)}/sibling-secret.md`)}`,
 			headers: { cookie },
 		});
 		const writeBody = JSON.stringify({ path: 'admin-written.md', content: '# Admin write\n' });
+		const missingOrigin = await request(port, {
+			method: 'PUT',
+			host: 'admin.bapx.in',
+			pathname: '/api/ws/file',
+			headers: { cookie, 'content-type': 'application/json' },
+			body: writeBody,
+		});
 		const crossOrigin = await request(port, {
 			method: 'PUT',
 			host: 'admin.bapx.in',
@@ -255,6 +241,8 @@ describe('Agents host routing', () => {
 		assert.equal(JSON.parse(read.body).content, '# Test OKF\n');
 		assert.equal(traversal.status, 403);
 		assert.deepEqual(JSON.parse(traversal.body), { error: 'Forbidden' });
+		assert.equal(missingOrigin.status, 403);
+		assert.deepEqual(JSON.parse(missingOrigin.body), { error: 'cross_origin_forbidden' });
 		assert.equal(crossOrigin.status, 403);
 		assert.deepEqual(JSON.parse(crossOrigin.body), { error: 'cross_origin_forbidden' });
 		assert.equal(fs.existsSync(path.join(workspaceRoot, 'admin-written.md')), false);
@@ -266,7 +254,6 @@ describe('Agents host routing', () => {
 			headers: { cookie, origin: 'https://admin.bapx.in', 'content-type': 'application/json' },
 			body: writeBody,
 		});
-
 		assert.equal(write.status, 200);
 		assert.deepEqual(JSON.parse(write.body), { ok: true, path: 'admin-written.md' });
 		assert.equal(fs.readFileSync(path.join(workspaceRoot, 'admin-written.md'), 'utf8'), '# Admin write\n');
@@ -280,37 +267,26 @@ describe('Agents host routing', () => {
 			content: 'temporary test post',
 		});
 		const unauthenticated = await request(port, {
-			method: 'POST',
-			host: 'admin.bapx.in',
-			pathname: '/api/posts',
-			headers: { 'content-type': 'application/json' },
-			body,
+			method: 'POST', host: 'admin.bapx.in', pathname: '/api/posts', headers: { 'content-type': 'application/json' }, body,
 		});
 		const forbidden = await request(port, {
-			method: 'POST',
-			host: 'admin.bapx.in',
-			pathname: '/api/posts',
-			headers: { cookie: nonAdminCookie, origin: 'https://admin.bapx.in', 'content-type': 'application/json' },
-			body,
+			method: 'POST', host: 'admin.bapx.in', pathname: '/api/posts',
+			headers: { cookie: nonAdminCookie, origin: 'https://admin.bapx.in', 'content-type': 'application/json' }, body,
+		});
+		const missingOrigin = await request(port, {
+			method: 'POST', host: 'admin.bapx.in', pathname: '/api/posts',
+			headers: { cookie, 'content-type': 'application/json' }, body,
 		});
 		const crossOrigin = await request(port, {
-			method: 'POST',
-			host: 'admin.bapx.in',
-			pathname: '/api/posts',
-			headers: { cookie, origin: 'https://admin.bapx.in.evil.example', 'content-type': 'application/json' },
-			body,
+			method: 'POST', host: 'admin.bapx.in', pathname: '/api/posts',
+			headers: { cookie, origin: 'https://admin.bapx.in.evil.example', 'content-type': 'application/json' }, body,
 		});
 		const created = await request(port, {
-			method: 'POST',
-			host: 'admin.bapx.in',
-			pathname: '/api/posts',
-			headers: { cookie, origin: 'https://admin.bapx.in', 'content-type': 'application/json' },
-			body,
+			method: 'POST', host: 'admin.bapx.in', pathname: '/api/posts',
+			headers: { cookie, origin: 'https://admin.bapx.in', 'content-type': 'application/json' }, body,
 		});
 		const removed = await request(port, {
-			method: 'DELETE',
-			host: 'admin.bapx.in',
-			pathname: '/api/posts/authorization-route-test',
+			method: 'DELETE', host: 'admin.bapx.in', pathname: '/api/posts/authorization-route-test',
 			headers: { cookie, origin: 'https://admin.bapx.in' },
 		});
 
@@ -318,6 +294,8 @@ describe('Agents host routing', () => {
 		assert.deepEqual(JSON.parse(unauthenticated.body), { error: 'authentication_required' });
 		assert.equal(forbidden.status, 403);
 		assert.deepEqual(JSON.parse(forbidden.body), { error: 'admin_forbidden' });
+		assert.equal(missingOrigin.status, 403);
+		assert.deepEqual(JSON.parse(missingOrigin.body), { error: 'cross_origin_forbidden' });
 		assert.equal(crossOrigin.status, 403);
 		assert.deepEqual(JSON.parse(crossOrigin.body), { error: 'cross_origin_forbidden' });
 		assert.equal(created.status, 201);
@@ -328,11 +306,7 @@ describe('Agents host routing', () => {
 	});
 
 	it('limits the customer workspace API to the signed-in user business', async () => {
-		const response = await request(port, {
-			pathname: '/api/ws/tree',
-			headers: { cookie },
-		});
-
+		const response = await request(port, { pathname: '/api/ws/tree', headers: { cookie } });
 		assert.equal(response.status, 200);
 		assert.doesNotMatch(response.body, /root-secret/);
 		assert.match(response.body, /DESIGN\.md/);
