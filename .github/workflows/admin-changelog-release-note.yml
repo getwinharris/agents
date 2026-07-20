@@ -1,0 +1,50 @@
+name: Admin changelog release note
+
+on:
+  push:
+    branches:
+      - chatgpt/engineering/issue-35-admin-project-import
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: chatgpt/engineering/issue-35-admin-project-import
+          persist-credentials: true
+
+      - name: Add the minimal Admin release note and remove this one-time workflow
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs')
+          const path = 'CHANGELOG.md'
+          const note = '- **Admin public repository import.** The existing Admin Projects surface now imports confirmed public GitHub repositories into non-overwriting workspace destinations, exposes durable operation evidence and imported-project states, and links imported projects to the existing editor. Private GitHub App authorization, complete OKF initialization, OpenTelemetry, customer promotion, and deployed desktop/mobile validation remain outside this proving slice.'
+          const anchor = '- **Admin operating-surface contract.** `admin.bapx.in` is now specified as bapX\'s own `/root/bapx.in`-scoped use of the customer operating model. The existing `apps/www` surface must reuse the canonical demo\'s real React agent chat, retain workspace editing under Projects, and expose Projects, Team, Agents, trigger-based Automations, MCPs, Pull requests, and Chat without creating a duplicate frontend or claiming unfinished Platform operations work.'
+          const original = fs.readFileSync(path, 'utf8')
+          if (original.includes(note)) throw new Error('Release note already exists; refusing a duplicate insertion')
+          if (!original.includes(anchor)) throw new Error('Expected Unreleased/Admin anchor not found; refusing to rewrite changelog')
+          const updated = original.replace(anchor, `${anchor}\n${note}`)
+          if (updated.length <= original.length || updated.split('\n').length !== original.split('\n').length + 1) {
+            throw new Error('Unexpected changelog transformation; refusing to commit')
+          }
+          fs.writeFileSync(path, updated)
+          fs.rmSync('.github/workflows/admin-changelog-release-note.yml')
+          NODE
+
+      - name: Commit only the release note and workflow removal
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add CHANGELOG.md .github/workflows/admin-changelog-release-note.yml
+          git diff --cached --check
+          test "$(git diff --cached --numstat -- CHANGELOG.md | awk '{print $1 ":" $2}')" = "1:0"
+          git commit -m "docs(changelog): record Admin public repository import"
+          git push origin HEAD:chatgpt/engineering/issue-35-admin-project-import
