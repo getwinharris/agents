@@ -1,10 +1,12 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { resolveGitHubRepositoryReference } from './github-repository.mjs';
 
 const PROJECT_SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9._-]{0,98}[a-z0-9])?$/;
+const RESERVATION_STALE_AFTER_MS = 10 * 60 * 1000;
 
 export class GitHubProjectImportError extends Error {
 	constructor(code, message, status = 400) {
@@ -75,19 +77,69 @@ function resolveDestination(workspaceRoot, slug) {
 	return { directory, destination, relativePath: `projects/${slug}` };
 }
 
-function reserveDestination(directory, destination, slug) {
-	const reservation = path.join(directory, `.import-${slug}.lock`);
+function processIsAlive(pid) {
+	if (!Number.isInteger(pid) || pid <= 0) return false;
 	try {
-		fs.mkdirSync(reservation);
+		process.kill(pid, 0);
+		return true;
 	} catch (error) {
-		if (error?.code === 'EEXIST') fail('project_exists', `Project ${slug} already exists or is being imported`, 409);
+		return error?.code !== 'ESRCH';
+	}
+}
+
+function reservationCanBeReclaimed(reservation) {
+	let stat;
+	try {
+		stat = fs.statSync(reservation);
+	} catch (error) {
+		if (error?.code === 'ENOENT') return true;
 		throw error;
 	}
-	if (fs.existsSync(destination)) {
-		fs.rmSync(reservation, { recursive: true, force: true });
-		fail('project_exists', `Project ${slug} already exists`, 409);
+	const age = Date.now() - stat.mtimeMs;
+	try {
+		const owner = JSON.parse(fs.readFileSync(path.join(reservation, 'owner.json'), 'utf8'));
+		if (owner.hostname === os.hostname() && !processIsAlive(owner.pid)) return true;
+	} catch {
+		// A process can terminate between creating the reservation directory and writing owner metadata.
 	}
-	return reservation;
+	return age >= RESERVATION_STALE_AFTER_MS;
+}
+
+function reclaimReservation(reservation) {
+	const stale = `${reservation}.stale-${randomUUID()}`;
+	try {
+		fs.renameSync(reservation, stale);
+	} catch (error) {
+		if (error?.code === 'ENOENT') return true;
+		return false;
+	}
+	fs.rmSync(stale, { recursive: true, force: true });
+	return true;
+}
+
+function reserveDestination(directory, destination, slug) {
+	const reservation = path.join(directory, `.import-${slug}.lock`);
+	for (let attempt = 0; attempt < 3; attempt += 1) {
+		try {
+			fs.mkdirSync(reservation);
+			fs.writeFileSync(path.join(reservation, 'owner.json'), `${JSON.stringify({
+				pid: process.pid,
+				hostname: os.hostname(),
+				createdAt: new Date().toISOString(),
+			})}\n`, 'utf8');
+		} catch (error) {
+			if (error?.code !== 'EEXIST') throw error;
+			if (fs.existsSync(destination)) fail('project_exists', `Project ${slug} already exists`, 409);
+			if (reservationCanBeReclaimed(reservation) && reclaimReservation(reservation)) continue;
+			fail('project_exists', `Project ${slug} already exists or is being imported`, 409);
+		}
+		if (fs.existsSync(destination)) {
+			fs.rmSync(reservation, { recursive: true, force: true });
+			fail('project_exists', `Project ${slug} already exists`, 409);
+		}
+		return reservation;
+	}
+	fail('project_exists', `Project ${slug} already exists or is being imported`, 409);
 }
 
 function normalizeImportInput(input) {
