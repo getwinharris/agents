@@ -1,3 +1,5 @@
+import { resolveGitHubRepositoryReference } from './github-repository.mjs';
+
 const GITHUB_API_ORIGIN = 'https://api.github.com';
 const GITHUB_METADATA_TIMEOUT_MS = 10_000;
 
@@ -53,7 +55,15 @@ function mapUpstreamFailure(status) {
 	fail('github_bad_response', 'GitHub repository metadata request failed', 502);
 }
 
-function normalizePayload(payload, expectedFullName, cloneAuthorized) {
+function canonicalRepositoryReference(fullName) {
+	try {
+		return resolveGitHubRepositoryReference(`https://github.com/${fullName}`);
+	} catch {
+		fail('github_bad_response', 'GitHub returned invalid repository metadata');
+	}
+}
+
+function normalizePayload(payload, cloneAuthorized) {
 	if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
 		fail('github_bad_response', 'GitHub returned invalid repository metadata');
 	}
@@ -66,11 +76,11 @@ function normalizePayload(payload, expectedFullName, cloneAuthorized) {
 	const visibility = typeof payload.visibility === 'string'
 		? payload.visibility.trim().toLowerCase()
 		: isPrivate === true ? 'private' : isPrivate === false ? 'public' : '';
+	const repository = fullName ? canonicalRepositoryReference(fullName) : null;
 
 	if (
 		!Number.isSafeInteger(id) || id <= 0 ||
-		!fullName || fullName.toLowerCase() !== expectedFullName.toLowerCase() ||
-		!ownerType || !defaultBranch ||
+		!repository || !ownerType || !defaultBranch ||
 		typeof isPrivate !== 'boolean' ||
 		typeof archived !== 'boolean' ||
 		!['public', 'private', 'internal'].includes(visibility)
@@ -83,15 +93,18 @@ function normalizePayload(payload, expectedFullName, cloneAuthorized) {
 	}
 
 	return {
-		repositoryId: id,
-		fullName,
-		ownerType,
-		defaultBranch,
-		visibility,
-		private: isPrivate,
-		archived,
-		cloneAuthorized,
-		status: 'resolved',
+		repository,
+		metadata: {
+			repositoryId: id,
+			fullName: repository.fullName,
+			ownerType,
+			defaultBranch,
+			visibility,
+			private: isPrivate,
+			archived,
+			cloneAuthorized,
+			status: 'resolved',
+		},
 	};
 }
 
@@ -146,5 +159,7 @@ export async function resolveAuthorizedGitHubRepositoryMetadata(
 	} catch {
 		fail('github_bad_response', 'GitHub returned invalid repository metadata');
 	}
-	return normalizePayload(payload, identity.fullName, tokenContext.contents);
+	const resolved = normalizePayload(payload, tokenContext.contents);
+	Object.assign(reference, resolved.repository);
+	return resolved.metadata;
 }
