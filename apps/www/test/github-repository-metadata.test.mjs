@@ -34,7 +34,7 @@ function metadata(overrides = {}) {
 }
 
 async function resolve({ token = 'opaque-variable-length-token', permissions = { metadata: 'read' }, fetchImpl } = {}) {
-	return resolveAuthorizedGitHubRepositoryMetadata(reference, {
+	return resolveAuthorizedGitHubRepositoryMetadata({ ...reference }, {
 		getInstallationToken: async () => ({ token, permissions }),
 		fetchImpl: fetchImpl || (async () => response(200, metadata())),
 	});
@@ -89,7 +89,7 @@ test('rejects archived repositories before import mutation', async () => {
 test('maps installation, authorization, unavailable, rate-limit, upstream, and network failures without retries', async () => {
 	let authorizationCalls = 0;
 	await assertMetadataError(
-		() => resolveAuthorizedGitHubRepositoryMetadata(reference, {
+		() => resolveAuthorizedGitHubRepositoryMetadata({ ...reference }, {
 			getInstallationToken: async () => {
 				authorizationCalls += 1;
 				return { token: 'opaque-token', permissions: { metadata: 'read' } };
@@ -122,7 +122,7 @@ test('maps installation, authorization, unavailable, rate-limit, upstream, and n
 test('maps installation provider exceptions to a stable secret-free failure', async () => {
 	const secret = 'installation-provider-secret';
 	try {
-		await resolveAuthorizedGitHubRepositoryMetadata(reference, {
+		await resolveAuthorizedGitHubRepositoryMetadata({ ...reference }, {
 			getInstallationToken: async () => { throw new Error(secret); },
 			fetchImpl: async () => response(200, metadata()),
 		});
@@ -142,7 +142,7 @@ test('rejects malformed transport responses and repository payloads without expo
 		null,
 		{},
 		metadata({ id: '1294736347' }),
-		metadata({ full_name: 'other/repository' }),
+		metadata({ full_name: '../invalid' }),
 		metadata({ default_branch: '' }),
 		metadata({ private: 'false' }),
 	]) {
