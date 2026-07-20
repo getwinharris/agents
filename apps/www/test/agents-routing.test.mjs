@@ -65,6 +65,7 @@ describe('Agents host routing', () => {
 	let previousEntry;
 	let workspaceRoot;
 	let cookie;
+	let nonAdminCookie;
 	let runtime;
 	let runtimePort;
 
@@ -79,7 +80,14 @@ describe('Agents host routing', () => {
 			name: 'Routing User',
 			email: 'routing@example.test',
 		});
+		const { account: nonAdminAccount } = await store.loginWithGitHub({
+			id: 'non-admin-routing-user-id',
+			login: 'non-admin-routing-user',
+			name: 'Non-Admin Routing User',
+			email: 'non-admin-routing@example.test',
+		});
 		cookie = `bapx_session=${store.createSession(account.id).token}`;
+		nonAdminCookie = `bapx_session=${store.createSession(nonAdminAccount.id).token}`;
 		runtimePort = await availablePort();
 		runtime = http.createServer((request, response) => {
 			assert.equal(request.headers['x-bapx-account'], 'routing-user');
@@ -100,6 +108,7 @@ describe('Agents host routing', () => {
 				WORKSPACE_ROOT: workspaceRoot,
 				AGENTS_RUNTIME_ORIGIN: `http://127.0.0.1:${runtimePort}`,
 				BAPX_RUNTIME_TOKEN: 'runtime-test-token',
+				BAPX_ADMIN_GITHUB_USER_IDS: 'routing-user-id',
 				GITHUB_CLIENT_ID: 'test-client-id',
 			},
 			stdio: 'ignore',
@@ -168,10 +177,15 @@ describe('Agents host routing', () => {
 		assert.match(response.body, /"type":"ready"/);
 	});
 
-	it('uses the same authenticated main-agent gateway from the Admin hostname', async () => {
+	it('uses the same entitled main-agent gateway from the Admin hostname', async () => {
 		const unauthorized = await request(port, {
 			host: 'admin.bapx.in',
 			pathname: '/api/agents/main/conversation-1?view=updates',
+		});
+		const forbidden = await request(port, {
+			host: 'admin.bapx.in',
+			pathname: '/api/agents/main/conversation-1?view=updates',
+			headers: { cookie: nonAdminCookie },
 		});
 		const authorized = await request(port, {
 			host: 'admin.bapx.in',
@@ -180,6 +194,9 @@ describe('Agents host routing', () => {
 		});
 
 		assert.equal(unauthorized.status, 401);
+		assert.deepEqual(JSON.parse(unauthorized.body), { error: 'authentication_required' });
+		assert.equal(forbidden.status, 403);
+		assert.deepEqual(JSON.parse(forbidden.body), { error: 'admin_forbidden' });
 		assert.equal(authorized.status, 200);
 		assert.match(authorized.body, /"type":"ready"/);
 	});
