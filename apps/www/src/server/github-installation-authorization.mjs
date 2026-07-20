@@ -18,8 +18,10 @@ function unavailable() {
 }
 
 function requiredPositiveInteger(value) {
-	const parsed = Number.parseInt(String(value || ''), 10);
-	if (!Number.isSafeInteger(parsed) || parsed <= 0) unavailable();
+	const normalized = String(value ?? '').trim();
+	if (!/^[1-9]\d*$/.test(normalized)) unavailable();
+	const parsed = Number(normalized);
+	if (!Number.isSafeInteger(parsed)) unavailable();
 	return parsed;
 }
 
