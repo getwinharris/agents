@@ -103,8 +103,8 @@ test('keeps canonical request authorization results immutable and reusable', () 
 	assert.equal(authorizeAdminRequest(null, authorization).error, 'authentication_required');
 });
 
-test('accepts only exact HTTPS Admin origins when an Origin header is present', () => {
-	assert.equal(isSameOriginAdminRequest(undefined, 'admin.bapx.in'), true);
+test('accepts only the exact HTTPS Admin origin', () => {
+	assert.equal(isSameOriginAdminRequest(undefined, 'admin.bapx.in'), false);
 	assert.equal(isSameOriginAdminRequest('https://admin.bapx.in', 'admin.bapx.in'), true);
 	assert.equal(isSameOriginAdminRequest('http://admin.bapx.in', 'admin.bapx.in'), false);
 	assert.equal(isSameOriginAdminRequest('https://admin.bapx.in.evil.example', 'admin.bapx.in'), false);
@@ -131,6 +131,13 @@ test('applies authentication, Admin entitlement, and same-origin checks in order
 			host: 'admin.bapx.in',
 		}).error,
 		'admin_forbidden',
+	);
+	assert.deepEqual(
+		authorizeAdminApiRequest(admin, authorization, {
+			mutation: true,
+			host: 'admin.bapx.in',
+		}),
+		{ ok: false, status: 403, error: 'cross_origin_forbidden' },
 	);
 	assert.deepEqual(
 		authorizeAdminApiRequest(admin, authorization, {
