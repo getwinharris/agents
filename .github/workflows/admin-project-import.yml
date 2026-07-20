@@ -8,6 +8,7 @@ on:
       - 'packages/sdk/**'
       - 'packages/react/**'
       - 'internal-docs/admin-surface.md'
+      - 'CHANGELOG.md'
       - '.github/workflows/admin-project-import.yml'
 
 permissions:
