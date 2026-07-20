@@ -165,6 +165,38 @@ test('yields the event loop while a repository clone is pending', async () => {
 	await importPromise;
 });
 
+test('allows exactly one concurrent import for the same confirmed slug', async () => {
+	const root = workspace();
+	let releaseClone;
+	let cloneStarted;
+	const clonePending = new Promise((resolve) => { releaseClone = resolve; });
+	const cloneEntered = new Promise((resolve) => { cloneStarted = resolve; });
+	const pendingGit = async (args) => {
+		if (args[0] === 'clone') {
+			cloneStarted();
+			await clonePending;
+			const target = args.at(-1);
+			fs.mkdirSync(path.join(target, '.git'), { recursive: true });
+			fs.writeFileSync(path.join(target, 'winner.txt'), 'winner');
+			return { status: 0, stdout: '', stderr: '' };
+		}
+		return { status: 0, stdout: '0123456789abcdef\n', stderr: '' };
+	};
+
+	const winner = importPublicGitHubProject(confirmedInput(), { workspaceRoot: root, runGit: pendingGit });
+	await cloneEntered;
+	await assert.rejects(
+		importPublicGitHubProject(confirmedInput(), { workspaceRoot: root, runGit: successfulGit }),
+		(error) => error instanceof GitHubProjectImportError && error.code === 'project_exists' && error.status === 409,
+	);
+	releaseClone();
+	await winner;
+
+	const destination = path.join(root, 'projects/admin-import-fixture');
+	assert.equal(fs.readFileSync(path.join(destination, 'winner.txt'), 'utf8'), 'winner');
+	assert.deepEqual(fs.readdirSync(path.join(root, 'projects')).filter((entry) => entry.startsWith('.import-')), []);
+});
+
 test('does not overwrite an existing project', async () => {
 	const root = workspace();
 	const destination = path.join(root, 'projects/admin-import-fixture');
