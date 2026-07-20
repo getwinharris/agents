@@ -25,12 +25,12 @@ The existing provider-ID authorization owner in `apps/www/src/server/admin-autho
 
 - A missing bapX session returns `401` with `authentication_required` before any protected handler or runtime proxy is reached.
 - An authenticated account without an exact GitHub provider ID listed in `BAPX_ADMIN_GITHUB_USER_IDS` returns `403` with `admin_forbidden`.
-- Admin mutations require either no `Origin` header for non-browser/server callers or the exact `https://admin.bapx.in` origin. Foreign, malformed, HTTP, and lookalike origins return `403` with `cross_origin_forbidden`.
+- Cookie-authenticated Admin mutations require the exact `https://admin.bapx.in` origin. Missing, foreign, malformed, HTTP, and lookalike origins return `403` with `cross_origin_forbidden`.
 - Protected handlers do not emit wildcard CORS headers. Browser access is same-origin by default.
 - Admin workspace reads and writes resolve against the explicit server-owned `/root/bapx.in` root. Customer workspace routing remains separately scoped to `users/<username>/workspace` and continues to require the existing customer session.
 - The Admin agent gateway reuses the same authorization decision before forwarding the account identity and private runtime token. Customer `agents.bapx.in` behavior remains session-authenticated and is not promoted to bapX-wide authority.
 - This boundary does not create another session, cookie, CSRF token store, runtime, or frontend. The existing session, provider-ID authorization, workspace, content, project-import, and runtime owners remain authoritative.
-- Changing `apps/www/server.mjs` requires rebuilding and restarting the existing `apps-www` service. After synchronization, verify anonymous and non-Admin denials, authorized tree/read/write, authorized agent streaming, same-origin content mutation, foreign-origin rejection, public-route regression checks, and absence of credentials or private paths in responses and logs.
+- Changing `apps/www/server.mjs` requires rebuilding and restarting the existing `apps-www` service. After synchronization, verify anonymous and non-Admin denials, authorized tree/read/write, authorized agent streaming, same-origin content mutation, missing- and foreign-origin rejection, public-route regression checks, and absence of credentials or private paths in responses and logs.
 
 ## Admin Projects import
 
