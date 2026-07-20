@@ -64,13 +64,14 @@ function normalizeTokenPayload(payload, requestedPermissions) {
 	const token = typeof payload.token === 'string' ? payload.token : '';
 	const expiresAt = Date.parse(payload.expires_at);
 	if (!token || !Number.isFinite(expiresAt)) unavailable();
-	const permissions = {
-		metadata: payload.permissions?.metadata === 'read' ? 'read' : undefined,
-		contents: ['read', 'write'].includes(payload.permissions?.contents) ? payload.permissions.contents : undefined,
-	};
-	if (permissions.metadata !== 'read') unavailable();
-	if (requestedPermissions.contents === 'read' && !['read', 'write'].includes(permissions.contents)) unavailable();
-	return { token, expiresAt, permissions };
+	if (payload.permissions?.metadata !== requestedPermissions.metadata) unavailable();
+	const returnedContents = payload.permissions?.contents;
+	if (requestedPermissions.contents === 'read') {
+		if (returnedContents !== 'read') unavailable();
+	} else if (returnedContents !== undefined) {
+		unavailable();
+	}
+	return { token, expiresAt, permissions: requestedPermissions };
 }
 
 export function createGitHubInstallationAuthorizationProvider({
