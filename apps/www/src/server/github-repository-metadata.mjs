@@ -1,4 +1,5 @@
 const GITHUB_API_ORIGIN = 'https://api.github.com';
+const GITHUB_METADATA_TIMEOUT_MS = 10_000;
 
 export class GitHubRepositoryMetadataError extends Error {
 	constructor(code, message, status = 502) {
@@ -32,7 +33,7 @@ function normalizeTokenContext(value) {
 	}
 	return {
 		token: value.token,
-		contents: value.permissions?.contents === 'read',
+		contents: ['read', 'write'].includes(value.permissions?.contents),
 	};
 }
 
@@ -127,6 +128,7 @@ export async function resolveAuthorizedGitHubRepositoryMetadata(
 					Authorization: `Bearer ${tokenContext.token}`,
 					'X-GitHub-Api-Version': '2022-11-28',
 				},
+				signal: AbortSignal.timeout(GITHUB_METADATA_TIMEOUT_MS),
 			},
 		);
 	} catch {
