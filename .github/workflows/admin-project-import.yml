@@ -1,0 +1,62 @@
+name: Admin Project Import
+
+on:
+  pull_request:
+    paths:
+      - 'apps/www/**'
+      - 'packages/runtime/**'
+      - 'packages/sdk/**'
+      - 'packages/react/**'
+      - 'internal-docs/admin-surface.md'
+      - 'CHANGELOG.md'
+      - '.github/workflows/admin-project-import.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Server tests and Admin build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout pull request head
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+
+      - name: Setup Node 24
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Use supported npm
+        run: npm install --global npm@11.6.2
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build shared runtime packages
+        run: npm run build --workspace @bapX/runtime --workspace @bapX/sdk --workspace @bapX/react
+
+      - name: Run apps-www server contracts
+        run: npm run test:server --workspace apps-www
+
+      - name: Build apps-www and Admin
+        run: |
+          set +e
+          npm run build --workspace apps-www > admin-build.log 2>&1
+          status=$?
+          tail -n 80 admin-build.log
+          exit $status
+
+      - name: Upload Admin build log
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: admin-build-log
+          path: admin-build.log
+          if-no-files-found: error
+          retention-days: 1

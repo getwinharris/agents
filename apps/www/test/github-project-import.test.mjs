@@ -1,0 +1,253 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import test from 'node:test';
+import {
+	GitHubProjectImportError,
+	importPublicGitHubProject,
+	listGitHubProjects,
+	resolvePublicGitHubProjectImport,
+} from '../src/server/github-project-import.mjs';
+
+function workspace() {
+	return fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-project-import-'));
+}
+
+async function successfulGit(args) {
+	if (args[0] === 'clone') {
+		const target = args.at(-1);
+		fs.mkdirSync(path.join(target, '.git'), { recursive: true });
+		fs.writeFileSync(path.join(target, 'README.md'), '# Fixture\n');
+		return { status: 0, stdout: '', stderr: '' };
+	}
+	if (args.includes('rev-parse')) return { status: 0, stdout: '0123456789abcdef\n', stderr: '' };
+	return { status: 1, stdout: '', stderr: 'unexpected git command' };
+}
+
+function confirmedInput(overrides = {}) {
+	return {
+		repositoryUrl: 'https://github.com/openai/openai-node.git',
+		projectSlug: 'admin-import-fixture',
+		confirmed: true,
+		...overrides,
+	};
+}
+
+test('keeps the Admin browser payload aligned with the existing server route', () => {
+	const projectsPage = fs.readFileSync(new URL('../admin/src/components/projects-page.tsx', import.meta.url), 'utf8');
+	const server = fs.readFileSync(new URL('../server.mjs', import.meta.url), 'utf8');
+
+	assert.match(
+		projectsPage,
+		/if\s*\(loading\s*\|\|\s*!repositoryUrl\.trim\(\)\s*\|\|\s*!projectSlug\.trim\(\)\s*\|\|\s*!confirmed\)\s*\{[\s\S]*return/s,
+		'Admin must reject every form-submission path until the displayed repository and destination are confirmed',
+	);
+	assert.match(
+		projectsPage,
+		/body:\s*JSON\.stringify\(\{\s*repositoryUrl:\s*\{\s*repositoryUrl,\s*projectSlug,\s*confirmed\s*\}\s*\}\)/s,
+		'Admin must forward the actual confirmation state instead of hard-coding confirmation',
+	);
+	assert.doesNotMatch(
+		projectsPage,
+		/confirmed:\s*true/,
+		'Admin must not manufacture confirmation in the request payload',
+	);
+	assert.match(
+		projectsPage,
+		/Canonical repository before mutation[\s\S]*\{canonicalRepository\}[\s\S]*Destination before mutation[\s\S]*\{destinationPath\}/,
+		'Admin must render the canonical repository identity and destination before confirmation',
+	);
+	assert.match(
+		server,
+		/await\s+importPublicGitHubProject\(body\.repositoryUrl,\s*\{\s*workspaceRoot\s*\}\)/s,
+		'the existing Admin route must await the asynchronous importer with the exact confirmed input',
+	);
+
+	const browserPayload = { repositoryUrl: confirmedInput() };
+	const resolved = resolvePublicGitHubProjectImport(browserPayload.repositoryUrl, { workspaceRoot: workspace() });
+	assert.equal(resolved.path, 'projects/admin-import-fixture');
+	assert.equal(resolved.repository.fullName, 'openai/openai-node');
+});
+
+test('resolves canonical repository identity and explicit destination before mutation', () => {
+	const root = workspace();
+	const result = resolvePublicGitHubProjectImport(confirmedInput({
+		repositoryUrl: 'git@github.com:openai/openai-node.git',
+	}), { workspaceRoot: root });
+	assert.deepEqual(result, {
+		slug: 'admin-import-fixture',
+		path: 'projects/admin-import-fixture',
+		repository: {
+			owner: 'openai',
+			repository: 'openai-node',
+			fullName: 'openai/openai-node',
+			httpsUrl: 'https://github.com/openai/openai-node.git',
+		},
+		visibility: 'public',
+	});
+	assert.equal(fs.existsSync(path.join(root, 'projects')), false);
+});
+
+test('rejects URL-only input instead of silently deriving an unconfirmed destination', () => {
+	const root = workspace();
+	assert.throws(
+		() => resolvePublicGitHubProjectImport('https://github.com/openai/openai-node', { workspaceRoot: root }),
+		(error) => error instanceof GitHubProjectImportError && error.code === 'invalid_input',
+	);
+	assert.throws(
+		() => resolvePublicGitHubProjectImport({ repositoryUrl: 'https://github.com/openai/openai-node' }, { workspaceRoot: root }),
+		(error) => error instanceof GitHubProjectImportError && error.code === 'invalid_input',
+	);
+	assert.equal(fs.existsSync(path.join(root, 'projects')), false);
+});
+
+test('rejects missing or false confirmation before creating directories or running git', async () => {
+	const root = workspace();
+	let gitCalls = 0;
+	for (const confirmed of [undefined, false]) {
+		await assert.rejects(
+			importPublicGitHubProject({
+				repositoryUrl: 'https://github.com/openai/openai-node',
+				projectSlug: 'admin-import-fixture',
+				...(confirmed === undefined ? {} : { confirmed }),
+			}, {
+				workspaceRoot: root,
+				runGit: async () => { gitCalls += 1; return successfulGit([]); },
+			}),
+			(error) => error instanceof GitHubProjectImportError && error.code === 'confirmation_required',
+		);
+	}
+	assert.equal(gitCalls, 0);
+	assert.equal(fs.existsSync(path.join(root, 'projects')), false);
+});
+
+test('imports a public repository atomically into the confirmed Admin project path', async () => {
+	const root = workspace();
+	const result = await importPublicGitHubProject(confirmedInput(), {
+		workspaceRoot: root,
+		runGit: successfulGit,
+	});
+	assert.equal(result.slug, 'admin-import-fixture');
+	assert.equal(result.path, 'projects/admin-import-fixture');
+	assert.equal(result.repository.fullName, 'openai/openai-node');
+	assert.equal(result.commitSha, '0123456789abcdef');
+	assert.equal(result.status, 'completed');
+	assert.match(result.operationId, /^[0-9a-f-]{36}$/);
+	assert.equal(fs.readFileSync(path.join(root, result.path, 'README.md'), 'utf8'), '# Fixture\n');
+	const metadata = JSON.parse(fs.readFileSync(path.join(root, result.path, '.bapx-project.json'), 'utf8'));
+	assert.equal(metadata.visibility, 'public');
+	assert.equal(metadata.repository.fullName, 'openai/openai-node');
+	assert.equal(metadata.operationId, result.operationId);
+	assert.deepEqual(listGitHubProjects({ workspaceRoot: root }).map((item) => item.slug), ['admin-import-fixture']);
+});
+
+test('yields the event loop while a repository clone is pending', async () => {
+	const root = workspace();
+	let releaseClone;
+	const clonePending = new Promise((resolve) => { releaseClone = resolve; });
+	let timerRan = false;
+	const importPromise = importPublicGitHubProject(confirmedInput(), {
+		workspaceRoot: root,
+		runGit: async (args) => {
+			if (args[0] === 'clone') {
+				await clonePending;
+				const target = args.at(-1);
+				fs.mkdirSync(path.join(target, '.git'), { recursive: true });
+				return { status: 0, stdout: '', stderr: '' };
+			}
+			return { status: 0, stdout: '0123456789abcdef\n', stderr: '' };
+		},
+	});
+	await new Promise((resolve) => setTimeout(() => { timerRan = true; resolve(); }, 0));
+	assert.equal(timerRan, true, 'another request turn must be able to run while clone is pending');
+	releaseClone();
+	await importPromise;
+});
+
+test('allows exactly one concurrent import for the same confirmed slug', async () => {
+	const root = workspace();
+	let releaseClone;
+	let cloneStarted;
+	const clonePending = new Promise((resolve) => { releaseClone = resolve; });
+	const cloneEntered = new Promise((resolve) => { cloneStarted = resolve; });
+	const pendingGit = async (args) => {
+		if (args[0] === 'clone') {
+			cloneStarted();
+			await clonePending;
+			const target = args.at(-1);
+			fs.mkdirSync(path.join(target, '.git'), { recursive: true });
+			fs.writeFileSync(path.join(target, 'winner.txt'), 'winner');
+			return { status: 0, stdout: '', stderr: '' };
+		}
+		return { status: 0, stdout: '0123456789abcdef\n', stderr: '' };
+	};
+
+	const winner = importPublicGitHubProject(confirmedInput(), { workspaceRoot: root, runGit: pendingGit });
+	await cloneEntered;
+	await assert.rejects(
+		importPublicGitHubProject(confirmedInput(), { workspaceRoot: root, runGit: successfulGit }),
+		(error) => error instanceof GitHubProjectImportError && error.code === 'project_exists' && error.status === 409,
+	);
+	releaseClone();
+	await winner;
+
+	const destination = path.join(root, 'projects/admin-import-fixture');
+	assert.equal(fs.readFileSync(path.join(destination, 'winner.txt'), 'utf8'), 'winner');
+	assert.deepEqual(fs.readdirSync(path.join(root, 'projects')).filter((entry) => entry.startsWith('.import-')), []);
+});
+
+test('reclaims an interrupted same-host reservation without weakening active-import exclusion', async () => {
+	const root = workspace();
+	const projects = path.join(root, 'projects');
+	const reservation = path.join(projects, '.import-admin-import-fixture.lock');
+	fs.mkdirSync(reservation, { recursive: true });
+	fs.writeFileSync(path.join(reservation, 'owner.json'), `${JSON.stringify({
+		pid: 2_147_483_647,
+		hostname: os.hostname(),
+		createdAt: new Date(0).toISOString(),
+	})}\n`, 'utf8');
+
+	const result = await importPublicGitHubProject(confirmedInput(), { workspaceRoot: root, runGit: successfulGit });
+	assert.equal(result.status, 'completed');
+	assert.equal(fs.existsSync(reservation), false);
+	assert.equal(fs.existsSync(path.join(projects, 'admin-import-fixture', 'README.md')), true);
+	assert.deepEqual(fs.readdirSync(projects).filter((entry) => entry.startsWith('.import-')), []);
+});
+
+test('does not overwrite an existing project', async () => {
+	const root = workspace();
+	const destination = path.join(root, 'projects/admin-import-fixture');
+	fs.mkdirSync(destination, { recursive: true });
+	fs.writeFileSync(path.join(destination, 'keep.txt'), 'keep');
+	await assert.rejects(
+		importPublicGitHubProject(confirmedInput({ repositoryUrl: 'https://github.com/openai/openai-node' }), { workspaceRoot: root, runGit: successfulGit }),
+		(error) => error instanceof GitHubProjectImportError && error.code === 'project_exists' && error.status === 409,
+	);
+	assert.equal(fs.readFileSync(path.join(destination, 'keep.txt'), 'utf8'), 'keep');
+});
+
+test('rejects project slug traversal before creating directories', () => {
+	const root = workspace();
+	assert.throws(
+		() => resolvePublicGitHubProjectImport(confirmedInput({
+			repositoryUrl: 'https://github.com/openai/openai-node',
+			projectSlug: '../outside',
+		}), { workspaceRoot: root }),
+		(error) => error instanceof GitHubProjectImportError && error.code === 'invalid_project_slug',
+	);
+	assert.equal(fs.existsSync(path.join(root, 'projects')), false);
+});
+
+test('removes temporary directories when cloning fails', async () => {
+	const root = workspace();
+	await assert.rejects(
+		importPublicGitHubProject(confirmedInput({ repositoryUrl: 'https://github.com/openai/openai-node' }), {
+			workspaceRoot: root,
+			runGit: async () => ({ status: 1, stdout: '', stderr: 'network failure' }),
+		}),
+		(error) => error instanceof GitHubProjectImportError && error.code === 'clone_failed',
+	);
+	const entries = fs.readdirSync(path.join(root, 'projects'));
+	assert.deepEqual(entries, []);
+});
