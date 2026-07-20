@@ -75,13 +75,13 @@ describe('Agents host routing', () => {
 		fs.writeFileSync(path.join(workspaceRoot, 'root-secret.md'), 'not customer visible\n');
 		const store = createPlatformStore({ workspaceRoot });
 		const { account } = await store.loginWithGitHub({
-			id: 'routing-user-id',
+			id: '1001',
 			login: 'routing-user',
 			name: 'Routing User',
 			email: 'routing@example.test',
 		});
 		const { account: nonAdminAccount } = await store.loginWithGitHub({
-			id: 'non-admin-routing-user-id',
+			id: '1002',
 			login: 'non-admin-routing-user',
 			name: 'Non-Admin Routing User',
 			email: 'non-admin-routing@example.test',
@@ -108,7 +108,7 @@ describe('Agents host routing', () => {
 				WORKSPACE_ROOT: workspaceRoot,
 				AGENTS_RUNTIME_ORIGIN: `http://127.0.0.1:${runtimePort}`,
 				BAPX_RUNTIME_TOKEN: 'runtime-test-token',
-				BAPX_ADMIN_GITHUB_USER_IDS: 'routing-user-id',
+				BAPX_ADMIN_GITHUB_USER_IDS: '1001',
 				GITHUB_CLIENT_ID: 'test-client-id',
 			},
 			stdio: 'ignore',
