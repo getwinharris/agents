@@ -38,6 +38,20 @@ The first working Projects slice reuses the existing Admin React application, ex
 - `git` must be installed in the `apps-www` runtime image. A missing executable returns `git_unavailable`; clone and revision failures return structured errors without exposing credentials or command output.
 - A server restart is required after changing `apps/www/server.mjs`. Roll back by reverting the merge commit; imported project directories are user data and must not be deleted during code rollback.
 
+## Admin session handoff persistence
+
+The platform store owns a narrow, internal handoff primitive for exchanging an authenticated central-platform account for a future Admin-audience session without broadening the existing session cookie to the parent domain.
+
+- Handoff bearer values are opaque 256-bit tokens. Persistence stores only their SHA-256 digests with the account id, `admin` audience, creation time, and absolute expiry.
+- The lifetime is fixed by the store at 60 seconds. Callers cannot supply or extend the TTL, and redemption fails at the exact expiry boundary.
+- Redemption is single-use in the documented single-process writer model: the matching digest is removed before the account is returned, so replay fails after a successful consume.
+- Missing persistence initializes an empty version-1 collection. Malformed JSON, unsupported schema versions, invalid collection envelopes, and malformed persisted records fail closed and must not be overwritten as empty state.
+- Every persisted record must contain a 64-character lowercase SHA-256 digest, a non-empty account id, the exact `admin` audience, parseable creation and expiry timestamps, and an expiry exactly 60 seconds after creation. Invalid record content or timing relationships are corruption, not expired data to prune.
+- Expired records are removed during issuance and redemption. A failed redemption that consumes nothing and removes no expired records leaves persistence byte-for-byte unchanged.
+- This primitive is not an HTTP authentication route and does not create or set an Admin cookie. It must not be treated as deployed authorization until issuance, redemption, entitlement revalidation, CSRF/origin enforcement, and the Admin-audience session owner are wired through the production request handler.
+- The JSON consume sequence is acceptable only after deployment proves that one process can serve redemption. A multi-process deployment requires transactional storage or cross-process exclusive locking before an exposed redemption route is enabled.
+- A restart discards only in-memory process state; persisted unexpired handoffs remain until consumed or pruned. Rollback of an exposed handoff flow must revoke persisted handoffs and Admin sessions while preserving default-deny Admin access.
+
 ## Production routing
 
 The live `traefik-vmm1` deployment sends `agents.bapx.in` to `flue-www`, not directly to the agent runtime. `flue-www` and `agents-runtime` share `BAPX_RUNTIME_TOKEN`; the gateway talks to `http://127.0.0.1:3003`. The runtime container mounts its generated `dist/` and the repository `node_modules/` read-only. Validate both the unauthenticated login redirect and an authenticated streamed submission after recreating either service.

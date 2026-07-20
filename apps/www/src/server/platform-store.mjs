@@ -3,6 +3,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 
+const ADMIN_HANDOFF_TTL_MS = 60_000;
+const MAX_DATE_MS = 8_640_000_000_000_000;
+
 function readJson(file, fallback) {
 	try {
 		return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -63,10 +66,54 @@ function ensureUserWorkspace(workspaceRoot, account, business) {
 	execFileSync('git', ['init', '--quiet'], { cwd: userRoot });
 }
 
+function hashOpaqueToken(token) {
+	return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function validAdminHandoffTime(now, { needsExpiry = false } = {}) {
+	const maximum = needsExpiry ? MAX_DATE_MS - ADMIN_HANDOFF_TTL_MS : MAX_DATE_MS;
+	return Number.isSafeInteger(now) && now >= 0 && now <= maximum;
+}
+
+function validAdminHandoffRecord(record) {
+	if (!record || typeof record !== 'object' || Array.isArray(record)) return false;
+	if (!/^[a-f0-9]{64}$/.test(record.tokenHash)) return false;
+	if (typeof record.accountId !== 'string' || !record.accountId) return false;
+	if (record.audience !== 'admin') return false;
+	if (typeof record.createdAt !== 'string' || typeof record.expiresAt !== 'string') return false;
+	const createdAt = Date.parse(record.createdAt);
+	const expiresAt = Date.parse(record.expiresAt);
+	return Number.isSafeInteger(createdAt)
+		&& Number.isSafeInteger(expiresAt)
+		&& createdAt >= 0
+		&& expiresAt === createdAt + ADMIN_HANDOFF_TTL_MS;
+}
+
+function readAdminHandoffs(file) {
+	try {
+		const stored = JSON.parse(fs.readFileSync(file, 'utf8'));
+		if (
+			!stored
+			|| typeof stored !== 'object'
+			|| Array.isArray(stored)
+			|| stored.schemaVersion !== 1
+			|| !Array.isArray(stored.handoffs)
+			|| !stored.handoffs.every(validAdminHandoffRecord)
+		) {
+			throw new Error('Corrupted or unsupported Admin handoffs schema');
+		}
+		return stored;
+	} catch (error) {
+		if (error?.code === 'ENOENT') return { schemaVersion: 1, handoffs: [] };
+		throw error;
+	}
+}
+
 export function createPlatformStore({ workspaceRoot }) {
 	const platformRoot = path.join(workspaceRoot, 'data', 'platform');
 	const accountsFile = path.join(platformRoot, 'collections', 'accounts.json');
 	const sessionsFile = path.join(platformRoot, 'collections', 'sessions.json');
+	const adminHandoffsFile = path.join(platformRoot, 'collections', 'admin-handoffs.json');
 	writeJson(path.join(platformRoot, 'schemas', 'accounts.schema.json'), {
 		$schema: 'https://json-schema.org/draft/2020-12/schema',
 		title: 'bapX accounts collection',
@@ -85,6 +132,16 @@ export function createPlatformStore({ workspaceRoot }) {
 		properties: {
 			schemaVersion: { const: 2 },
 			sessions: { type: 'array', items: { type: 'object', required: ['token', 'accountId', 'createdAt'] } },
+		},
+	});
+	writeJson(path.join(platformRoot, 'schemas', 'admin-handoffs.schema.json'), {
+		$schema: 'https://json-schema.org/draft/2020-12/schema',
+		title: 'bapX Admin handoffs collection',
+		type: 'object',
+		required: ['schemaVersion', 'handoffs'],
+		properties: {
+			schemaVersion: { const: 1 },
+			handoffs: { type: 'array', items: { type: 'object', required: ['tokenHash', 'accountId', 'audience', 'createdAt', 'expiresAt'] } },
 		},
 	});
 
@@ -142,6 +199,36 @@ export function createPlatformStore({ workspaceRoot }) {
 			if (before === sessions.sessions.length) return false;
 			writeJson(sessionsFile, sessions);
 			return true;
+		},
+
+		createAdminHandoff(accountId, { audience = 'admin', now = Date.now() } = {}) {
+			if (!accountId || audience !== 'admin' || !validAdminHandoffTime(now, { needsExpiry: true })) {
+				throw new Error('Invalid Admin handoff');
+			}
+			const token = crypto.randomBytes(32).toString('base64url');
+			const createdAt = new Date(now).toISOString();
+			const expiresAt = new Date(now + ADMIN_HANDOFF_TTL_MS).toISOString();
+			const stored = readAdminHandoffs(adminHandoffsFile);
+			stored.handoffs = stored.handoffs.filter((item) => Date.parse(item.expiresAt) > now);
+			stored.handoffs.push({ tokenHash: hashOpaqueToken(token), accountId, audience, createdAt, expiresAt });
+			writeJson(adminHandoffsFile, stored);
+			return { token, audience, createdAt, expiresAt };
+		},
+
+		redeemAdminHandoff(token, { audience = 'admin', now = Date.now() } = {}) {
+			if (typeof token !== 'string' || !token || audience !== 'admin' || !validAdminHandoffTime(now)) return null;
+			const tokenHash = hashOpaqueToken(token);
+			const stored = readAdminHandoffs(adminHandoffsFile);
+			const handoff = stored.handoffs.find(
+				(item) => item.tokenHash === tokenHash && item.audience === audience && Date.parse(item.expiresAt) > now,
+			);
+			const beforeCount = stored.handoffs.length;
+			stored.handoffs = stored.handoffs.filter(
+				(item) => item.tokenHash !== tokenHash && Date.parse(item.expiresAt) > now,
+			);
+			if (handoff || beforeCount !== stored.handoffs.length) writeJson(adminHandoffsFile, stored);
+			if (!handoff) return null;
+			return readJson(accountsFile, { accounts: [] }).accounts.find((item) => item.id === handoff.accountId) || null;
 		},
 	};
 }
