@@ -197,6 +197,24 @@ test('allows exactly one concurrent import for the same confirmed slug', async (
 	assert.deepEqual(fs.readdirSync(path.join(root, 'projects')).filter((entry) => entry.startsWith('.import-')), []);
 });
 
+test('reclaims an interrupted same-host reservation without weakening active-import exclusion', async () => {
+	const root = workspace();
+	const projects = path.join(root, 'projects');
+	const reservation = path.join(projects, '.import-admin-import-fixture.lock');
+	fs.mkdirSync(reservation, { recursive: true });
+	fs.writeFileSync(path.join(reservation, 'owner.json'), `${JSON.stringify({
+		pid: 2_147_483_647,
+		hostname: os.hostname(),
+		createdAt: new Date(0).toISOString(),
+	})}\n`, 'utf8');
+
+	const result = await importPublicGitHubProject(confirmedInput(), { workspaceRoot: root, runGit: successfulGit });
+	assert.equal(result.status, 'completed');
+	assert.equal(fs.existsSync(reservation), false);
+	assert.equal(fs.existsSync(path.join(projects, 'admin-import-fixture', 'README.md')), true);
+	assert.deepEqual(fs.readdirSync(projects).filter((entry) => entry.startsWith('.import-')), []);
+});
+
 test('does not overwrite an existing project', async () => {
 	const root = workspace();
 	const destination = path.join(root, 'projects/admin-import-fixture');
