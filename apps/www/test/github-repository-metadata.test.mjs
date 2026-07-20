@@ -95,6 +95,23 @@ test('maps installation, authorization, unavailable, rate-limit, upstream, and n
 	await assertMetadataError(() => resolve({ fetchImpl: async () => { throw new Error('secret transport detail'); } }), 'github_network_error');
 });
 
+test('maps installation provider exceptions to a stable secret-free failure', async () => {
+	const secret = 'installation-provider-secret';
+	try {
+		await resolveAuthorizedGitHubRepositoryMetadata(reference, {
+			getInstallationToken: async () => { throw new Error(secret); },
+			fetchImpl: async () => response(200, metadata()),
+		});
+		assert.fail('expected installation failure');
+	} catch (error) {
+		assert.equal(error instanceof GitHubRepositoryMetadataError, true);
+		assert.equal(error.code, 'github_installation_unavailable');
+		assert.equal(error.status, 503);
+		assert.equal(error.message.includes(secret), false);
+		assert.equal(JSON.stringify(error).includes(secret), false);
+	}
+});
+
 test('rejects malformed or mismatched GitHub payloads without exposing raw data', async () => {
 	for (const payload of [
 		null,
