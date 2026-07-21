@@ -7,7 +7,7 @@ import { githubAuthorization, githubIdentity } from './src/server/github-oauth.m
 import { authorizeAdminApiRequest, parseAdminGithubUserIds } from './src/server/admin-authorization.mjs';
 import { GitHubProjectImportError, importPublicGitHubProject, listGitHubProjects } from './src/server/github-project-import.mjs';
 import { resolveGitHubRepositoryReference } from './src/server/github-repository.mjs';
-import { resolveAuthorizedGitHubRepositoryMetadata } from './src/server/github-repository-metadata.mjs';
+import { resolveAuthorizedGitHubRepository } from './src/server/github-repository-metadata.mjs';
 import { createGitHubInstallationAuthorizationProvider } from './src/server/github-installation-authorization.mjs';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -284,13 +284,13 @@ async function handleProjectsAPI(req, res, urlPath) {
 	if (req.method === 'POST' && urlPath === '/api/projects/resolve') {
 		try {
 			const body = await parseBody(req);
-			const repository = resolveGitHubRepositoryReference(body.repositoryUrl);
-			const metadata = await resolveAuthorizedGitHubRepositoryMetadata(repository, {
+			const submittedRepository = resolveGitHubRepositoryReference(body.repositoryUrl);
+			const { repository, metadata } = await resolveAuthorizedGitHubRepository(submittedRepository, {
 				getInstallationToken: getGitHubInstallationToken,
 			});
 			const slug = suggestedProjectSlug(repository);
 			jsonResponse(res, 200, {
-				repository: { ...repository, fullName: metadata.fullName },
+				repository,
 				metadata,
 				project: { slug, path: `projects/${slug}` },
 			});
