@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ExternalLink, FolderGit2, Loader2, Search } from 'lucide-react'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
@@ -64,6 +64,8 @@ export function ProjectsPage() {
   const [status, setStatus] = useState<StatusState | null>(null)
   const [resolving, setResolving] = useState(false)
   const [loading, setLoading] = useState(false)
+  const resolveRequestId = useRef(0)
+  const resolveAbortController = useRef<AbortController | null>(null)
 
   const loadProjects = async () => {
     setProjectsLoading(true)
@@ -84,9 +86,14 @@ export function ProjectsPage() {
 
   useEffect(() => {
     void loadProjects().catch(() => undefined)
+    return () => resolveAbortController.current?.abort()
   }, [])
 
   const updateRepositoryUrl = (value: string) => {
+    resolveRequestId.current += 1
+    resolveAbortController.current?.abort()
+    resolveAbortController.current = null
+    setResolving(false)
     setRepositoryUrl(value)
     setResolved(null)
     setProjectSlug('')
@@ -95,7 +102,15 @@ export function ProjectsPage() {
   }
 
   const resolveRepository = async () => {
-    if (resolving || loading || !repositoryUrl.trim()) return
+    const submittedRepositoryUrl = repositoryUrl.trim()
+    if (resolving || loading || !submittedRepositoryUrl) return
+
+    const requestId = resolveRequestId.current + 1
+    resolveRequestId.current = requestId
+    const controller = new AbortController()
+    resolveAbortController.current?.abort()
+    resolveAbortController.current = controller
+
     setResolving(true)
     setResolved(null)
     setConfirmed(false)
@@ -105,9 +120,11 @@ export function ProjectsPage() {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repositoryUrl }),
+        body: JSON.stringify({ repositoryUrl: submittedRepositoryUrl }),
+        signal: controller.signal,
       })
       const body = (await response.json()) as ResolveResult
+      if (requestId !== resolveRequestId.current) return
       if (!response.ok || !body.repository || !body.metadata || !body.project) {
         throw new Error(body.message || body.error || 'Repository could not be resolved')
       }
@@ -119,9 +136,13 @@ export function ProjectsPage() {
         message: `Resolved ${next.repository.fullName} as a ${next.metadata.visibility} repository on ${next.metadata.defaultBranch}.`,
       })
     } catch (error) {
+      if (requestId !== resolveRequestId.current || (error instanceof DOMException && error.name === 'AbortError')) return
       setStatus({ kind: 'error', message: error instanceof Error ? error.message : 'Repository could not be resolved' })
     } finally {
-      setResolving(false)
+      if (requestId === resolveRequestId.current) {
+        resolveAbortController.current = null
+        setResolving(false)
+      }
     }
   }
 
