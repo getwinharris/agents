@@ -65,8 +65,13 @@ test('keeps the Admin browser payload aligned with the existing server route', (
 	);
 	assert.match(
 		server,
-		/await\s+importPublicGitHubProject\(body\.repositoryUrl,\s*\{\s*workspaceRoot\s*\}\)/s,
-		'the existing Admin route must await the asynchronous importer with the exact confirmed input',
+		/await\s+importPublicGitHubProject\(body,\s*\{\s*workspaceRoot\s*\}\)/s,
+		'the existing Admin route must pass the complete confirmed browser payload to the importer',
+	);
+	assert.doesNotMatch(
+		server,
+		/importPublicGitHubProject\(body\.repositoryUrl,\s*\{\s*workspaceRoot\s*\}\)/s,
+		'the Admin route must not discard the edited slug and explicit confirmation',
 	);
 
 	const browserPayload = confirmedInput();
