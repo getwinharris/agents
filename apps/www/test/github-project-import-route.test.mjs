@@ -144,18 +144,18 @@ test('imports the browser-shaped canonical payload through the real Admin HTTP r
 	assert.equal(fs.existsSync(path.join(workspaceRoot, 'projects')), false);
 
 	const imported = await request(port, payload, { cookie: sessionToken, origin: 'https://admin.bapx.in' });
-	assert.equal(imported.status, 200, stderr);
-	assert.equal(imported.body.slug, 'edited-admin-destination');
-	assert.equal(imported.body.path, 'projects/edited-admin-destination');
-	assert.equal(imported.body.repository.fullName, 'Canonical-Owner/Canonical-Repository');
-	assert.equal(imported.body.repository.httpsUrl, payload.repositoryUrl);
-	assert.equal(imported.body.commitSha, '0123456789abcdef');
-	assert.equal(imported.body.status, 'completed');
+	assert.equal(imported.status, 201, stderr);
+	assert.equal(imported.body.project.slug, 'edited-admin-destination');
+	assert.equal(imported.body.project.path, 'projects/edited-admin-destination');
+	assert.equal(imported.body.project.repository.fullName, 'Canonical-Owner/Canonical-Repository');
+	assert.equal(imported.body.project.repository.httpsUrl, payload.repositoryUrl);
+	assert.equal(imported.body.project.commitSha, '0123456789abcdef');
+	assert.equal(imported.body.project.status, 'completed');
 
-	const destination = path.join(workspaceRoot, imported.body.path);
+	const destination = path.join(workspaceRoot, imported.body.project.path);
 	assert.equal(fs.readFileSync(path.join(destination, 'README.md'), 'utf8'), '# HTTP route fixture\n');
 	const metadata = JSON.parse(fs.readFileSync(path.join(destination, '.bapx-project.json'), 'utf8'));
 	assert.equal(metadata.repository.fullName, 'Canonical-Owner/Canonical-Repository');
 	assert.equal(metadata.repository.httpsUrl, payload.repositoryUrl);
-	assert.equal(metadata.commitSha, imported.body.commitSha);
+	assert.equal(metadata.commitSha, imported.body.project.commitSha);
 });
