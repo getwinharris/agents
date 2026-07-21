@@ -25,6 +25,12 @@ The base workspace costs **$5 per month** and includes **5 GB** of storage, host
 
 Platform manages ownership and configuration. `agents.bapx.in` operates the selected business and project; `admin.bapx.in` uses the same operating model with bapX-wide authority.
 
+### Repository import
+
+The Admin Projects surface resolves a GitHub repository through the configured GitHub App before enabling destination editing or import confirmation. It displays GitHub's canonical repository identity, visibility, and default branch, and suggests the non-overwriting Admin destination before mutation. Public repositories can then continue through the existing confirmed import operation. Private repository metadata may be displayed when authorized, but private cloning is not yet enabled and remains disabled in the Admin UI.
+
+Changing the repository input invalidates the previous resolution and confirmation. A repository must be resolved again before it can be imported, preventing an earlier response from enabling import for a newer input.
+
 ### Agents workspace
 
 Opening `agents.bapx.in` requires the same GitHub-backed bapX session. After sign-in, the customer operating surface uses the business main-agent conversation and limits workspace file operations to that account's `users/<username>/workspace` directory. The initial hosted main agent streams a connection check, reasoning, and a scoped workspace-status tool result; selecting and storing customer AI-provider credentials remains a Platform-owned configuration step.
