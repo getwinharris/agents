@@ -2,9 +2,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
+import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
+import ts from 'typescript';
 
 const testDirectory = path.dirname(fileURLToPath(import.meta.url));
+const componentPath = path.resolve(testDirectory, '../admin/src/components/projects-page.tsx');
 
 function deferred() {
 	let resolve;
@@ -16,135 +19,185 @@ function deferred() {
 	return { promise, resolve, reject };
 }
 
-function createResolutionHarness() {
-	let requestId = 0;
-	let activeController = null;
-	const state = {
-		repositoryUrl: '',
-		resolved: null,
-		projectSlug: '',
-		confirmed: false,
-		status: null,
-		resolving: false,
+function compileProjectsPageLogic() {
+	const source = fs.readFileSync(componentPath, 'utf8');
+	const withoutImports = source.replace(/^import .*$/gm, '');
+	const componentStart = withoutImports.indexOf('export function ProjectsPage()');
+	const renderStart = withoutImports.indexOf('\n  return (', componentStart);
+	assert.notEqual(componentStart, -1, 'ProjectsPage export must exist');
+	assert.notEqual(renderStart, -1, 'ProjectsPage render boundary must exist');
+
+	const logic = `${withoutImports
+		.slice(componentStart, renderStart)
+		.replace('export function ProjectsPage()', 'function ProjectsPage()')}\n
+  globalThis.__projectsPageHarness = {
+    updateRepositoryUrl,
+    resolveRepository,
+    snapshot: () => ({ repositoryUrl, projectSlug, resolved, confirmed, status, resolving, loading }),
+  }
+  return null
+}
+ProjectsPage()
+`;
+
+	return ts.transpileModule(logic, {
+		compilerOptions: {
+			target: ts.ScriptTarget.ES2022,
+			module: ts.ModuleKind.None,
+		},
+	}).outputText;
+}
+
+function createProjectsPageHarness() {
+	const compiled = compileProjectsPageLogic();
+	const states = [];
+	const refs = [];
+	let stateCursor = 0;
+	let refCursor = 0;
+	let fetchImplementation = async () => ({ ok: true, json: async () => ({ projects: [] }) });
+
+	const context = vm.createContext({
+		AbortController,
+		DOMException,
+		Error,
+		Promise,
+		console,
+		fetch: (...args) => fetchImplementation(...args),
+		setTimeout,
+		clearTimeout,
+		useEffect: () => undefined,
+		useState(initialValue) {
+			const index = stateCursor++;
+			if (!(index in states)) states[index] = initialValue;
+			return [states[index], (value) => {
+				states[index] = typeof value === 'function' ? value(states[index]) : value;
+			}];
+		},
+		useRef(initialValue) {
+			const index = refCursor++;
+			if (!(index in refs)) refs[index] = { current: initialValue };
+			return refs[index];
+		},
+	});
+	const script = new vm.Script(compiled, { filename: componentPath });
+
+	function render() {
+		stateCursor = 0;
+		refCursor = 0;
+		script.runInContext(context);
+		return context.__projectsPageHarness;
+	}
+
+	return {
+		render,
+		setFetch(implementation) {
+			fetchImplementation = implementation;
+		},
 	};
-
-	function updateRepositoryUrl(value) {
-		requestId += 1;
-		activeController?.abort();
-		activeController = null;
-		state.resolving = false;
-		state.repositoryUrl = value;
-		state.resolved = null;
-		state.projectSlug = '';
-		state.confirmed = false;
-		state.status = null;
-	}
-
-	async function resolveRepository(fetchRepository) {
-		const submittedRepositoryUrl = state.repositoryUrl.trim();
-		if (state.resolving || !submittedRepositoryUrl) return;
-
-		const currentRequestId = requestId + 1;
-		requestId = currentRequestId;
-		const controller = new AbortController();
-		activeController?.abort();
-		activeController = controller;
-		state.resolving = true;
-		state.resolved = null;
-		state.confirmed = false;
-		state.status = { kind: 'progress', message: 'resolving' };
-
-		try {
-			const next = await fetchRepository({ repositoryUrl: submittedRepositoryUrl, signal: controller.signal });
-			if (currentRequestId !== requestId) return;
-			state.resolved = next;
-			state.projectSlug = next.project.slug;
-			state.status = { kind: 'success', message: next.repository.fullName };
-		} catch (error) {
-			if (currentRequestId !== requestId || (error instanceof DOMException && error.name === 'AbortError')) return;
-			state.status = { kind: 'error', message: error instanceof Error ? error.message : 'failed' };
-		} finally {
-			if (currentRequestId === requestId) {
-				activeController = null;
-				state.resolving = false;
-			}
-		}
-	}
-
-	return { state, updateRepositoryUrl, resolveRepository };
 }
 
 function resolvedRepository(fullName, slug) {
+	const [owner, repository] = fullName.split('/');
 	return {
-		repository: { fullName },
-		project: { slug },
+		repository: {
+			owner,
+			repository,
+			fullName,
+			httpsUrl: `https://github.com/${fullName}.git`,
+			sshUrl: `git@github.com:${fullName}.git`,
+		},
+		metadata: {
+			repositoryId: 1,
+			fullName,
+			ownerType: 'User',
+			defaultBranch: 'main',
+			visibility: 'public',
+			private: false,
+			archived: false,
+			status: 'available',
+		},
+		project: { slug, path: `projects/${slug}` },
 	};
 }
 
-test('late success cannot restore a repository after the input changes', async () => {
-	const pending = deferred();
-	const harness = createResolutionHarness();
-	harness.updateRepositoryUrl('https://github.com/example/repository-a');
-	const resolution = harness.resolveRepository(() => pending.promise);
+function jsonResponse(body, ok = true) {
+	return { ok, json: async () => body };
+}
 
-	harness.updateRepositoryUrl('https://github.com/example/repository-b');
+test('actual ProjectsPage logic rejects a late success after the input changes', async () => {
+	const pending = deferred();
+	const page = createProjectsPageHarness();
+	let view = page.render();
+	view.updateRepositoryUrl('https://github.com/example/repository-a');
+	view = page.render();
+	page.setFetch(() => pending.promise.then((body) => jsonResponse(body)));
+	const resolution = view.resolveRepository();
+
+	view = page.render();
+	view.updateRepositoryUrl('https://github.com/example/repository-b');
 	pending.resolve(resolvedRepository('example/repository-a', 'repository-a'));
 	await resolution;
 
-	assert.equal(harness.state.repositoryUrl, 'https://github.com/example/repository-b');
-	assert.equal(harness.state.resolved, null);
-	assert.equal(harness.state.projectSlug, '');
-	assert.equal(harness.state.confirmed, false);
-	assert.equal(harness.state.status, null);
-	assert.equal(harness.state.resolving, false);
+	const state = page.render().snapshot();
+	assert.equal(state.repositoryUrl, 'https://github.com/example/repository-b');
+	assert.equal(state.resolved, null);
+	assert.equal(state.projectSlug, '');
+	assert.equal(state.confirmed, false);
+	assert.equal(state.status, null);
+	assert.equal(state.resolving, false);
 });
 
-test('late failure cannot replace the cleared state after the input changes', async () => {
+test('actual ProjectsPage logic rejects a late failure after the input changes', async () => {
 	const pending = deferred();
-	const harness = createResolutionHarness();
-	harness.updateRepositoryUrl('https://github.com/example/repository-a');
-	const resolution = harness.resolveRepository(() => pending.promise);
+	const page = createProjectsPageHarness();
+	let view = page.render();
+	view.updateRepositoryUrl('https://github.com/example/repository-a');
+	view = page.render();
+	page.setFetch(() => pending.promise);
+	const resolution = view.resolveRepository();
 
-	harness.updateRepositoryUrl('https://github.com/example/repository-b');
+	view = page.render();
+	view.updateRepositoryUrl('https://github.com/example/repository-b');
 	pending.reject(new Error('repository A failed'));
 	await resolution;
 
-	assert.equal(harness.state.repositoryUrl, 'https://github.com/example/repository-b');
-	assert.equal(harness.state.resolved, null);
-	assert.equal(harness.state.projectSlug, '');
-	assert.equal(harness.state.status, null);
-	assert.equal(harness.state.resolving, false);
+	const state = page.render().snapshot();
+	assert.equal(state.repositoryUrl, 'https://github.com/example/repository-b');
+	assert.equal(state.resolved, null);
+	assert.equal(state.projectSlug, '');
+	assert.equal(state.status, null);
+	assert.equal(state.resolving, false);
 });
 
-test('only the current request may publish success and clear loading', async () => {
+test('actual ProjectsPage logic allows only the current request to publish and clear loading', async () => {
 	const first = deferred();
 	const second = deferred();
-	const harness = createResolutionHarness();
-	harness.updateRepositoryUrl('https://github.com/example/repository-a');
-	const firstResolution = harness.resolveRepository(() => first.promise);
+	const requests = [first, second];
+	const page = createProjectsPageHarness();
+	let view = page.render();
+	view.updateRepositoryUrl('https://github.com/example/repository-a');
+	view = page.render();
+	page.setFetch(() => requests.shift().promise.then((body) => jsonResponse(body)));
+	const firstResolution = view.resolveRepository();
 
-	harness.updateRepositoryUrl('https://github.com/example/repository-b');
-	const secondResolution = harness.resolveRepository(() => second.promise);
+	view = page.render();
+	view.updateRepositoryUrl('https://github.com/example/repository-b');
+	view = page.render();
+	const secondResolution = view.resolveRepository();
 	first.resolve(resolvedRepository('example/repository-a', 'repository-a'));
 	await firstResolution;
 
-	assert.equal(harness.state.resolving, true);
-	assert.equal(harness.state.resolved, null);
+	let state = page.render().snapshot();
+	assert.equal(state.resolving, true);
+	assert.equal(state.resolved, null);
 
 	second.resolve(resolvedRepository('example/repository-b', 'repository-b'));
 	await secondResolution;
-
-	assert.equal(harness.state.resolving, false);
-	assert.equal(harness.state.resolved.repository.fullName, 'example/repository-b');
-	assert.equal(harness.state.projectSlug, 'repository-b');
-	assert.deepEqual(harness.state.status, { kind: 'success', message: 'example/repository-b' });
-});
-
-test('the Admin component wires the same request identity and abort boundaries exercised above', () => {
-	const source = fs.readFileSync(path.resolve(testDirectory, '../admin/src/components/projects-page.tsx'), 'utf8');
-	assert.match(source, /const resolveRequestId = useRef\(0\)/);
-	assert.match(source, /updateRepositoryUrl[\s\S]*resolveRequestId\.current \+= 1[\s\S]*resolveAbortController\.current\?\.abort\(\)/);
-	assert.match(source, /const requestId = resolveRequestId\.current \+ 1/);
-	assert.match(source, /if \(requestId !== resolveRequestId\.current\) return/);
-	assert.match(source, /requestId === resolveRequestId\.current[\s\S]*setResolving\(false\)/);
+	state = page.render().snapshot();
+	assert.equal(state.resolving, false);
+	assert.equal(state.resolved.repository.fullName, 'example/repository-b');
+	assert.equal(state.projectSlug, 'repository-b');
+	assert.equal(state.confirmed, false);
+	assert.equal(state.status.kind, 'success');
+	assert.match(state.status.message, /example\/repository-b/);
 });
