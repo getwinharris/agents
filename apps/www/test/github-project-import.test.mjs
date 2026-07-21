@@ -45,8 +45,13 @@ test('keeps the Admin browser payload aligned with the existing server route', (
 	);
 	assert.match(
 		projectsPage,
-		/body:\s*JSON\.stringify\(\{\s*repositoryUrl:\s*\{\s*repositoryUrl,\s*projectSlug,\s*confirmed\s*\}\s*\}\)/s,
-		'Admin must forward the actual confirmation state instead of hard-coding confirmation',
+		/body:\s*JSON\.stringify\(\{\s*repositoryUrl:\s*resolved\.repository\.httpsUrl,\s*projectSlug:\s*projectSlug\.trim\(\),\s*confirmed,\s*\}\)/s,
+		'Admin must submit the canonical repository identity, edited slug, and actual confirmation at the request root',
+	);
+	assert.doesNotMatch(
+		projectsPage,
+		/repositoryUrl:\s*\{\s*repositoryUrl,\s*projectSlug,\s*confirmed\s*\}/s,
+		'Admin must not restore the removed nested import payload',
 	);
 	assert.doesNotMatch(
 		projectsPage,
@@ -64,8 +69,8 @@ test('keeps the Admin browser payload aligned with the existing server route', (
 		'the existing Admin route must await the asynchronous importer with the exact confirmed input',
 	);
 
-	const browserPayload = { repositoryUrl: confirmedInput() };
-	const resolved = resolvePublicGitHubProjectImport(browserPayload.repositoryUrl, { workspaceRoot: workspace() });
+	const browserPayload = confirmedInput();
+	const resolved = resolvePublicGitHubProjectImport(browserPayload, { workspaceRoot: workspace() });
 	assert.equal(resolved.path, 'projects/admin-import-fixture');
 	assert.equal(resolved.repository.fullName, 'openai/openai-node');
 });
