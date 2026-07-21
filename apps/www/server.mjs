@@ -303,7 +303,7 @@ async function handleProjectsAPI(req, res, urlPath) {
 	if (req.method === 'POST' && urlPath === '/api/projects/import') {
 		try {
 			const body = await parseBody(req);
-			const imported = await importPublicGitHubProject(body.repositoryUrl, { workspaceRoot });
+			const imported = await importPublicGitHubProject(body, { workspaceRoot });
 			jsonResponse(res, 201, { project: { ...imported, name: imported.repository.fullName } });
 		} catch (error) {
 			if (error instanceof GitHubProjectImportError || error?.code) {
