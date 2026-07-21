@@ -39,6 +39,13 @@ test('Admin project cards render durable status, operation, and commit evidence'
 	assert.match(source, /<dt[^>]*>Commit<\/dt>[\s\S]*project\.commitSha/);
 });
 
+test('Admin submits the confirmed canonical repository through the existing import owner', () => {
+	const source = fs.readFileSync(path.resolve(testDirectory, '../admin/src/components/projects-page.tsx'), 'utf8');
+	assert.match(source, /fetch\('\/api\/projects\/import'/);
+	assert.match(source, /body: JSON\.stringify\(\{[\s\S]*repositoryUrl: resolved\.repository\.httpsUrl,[\s\S]*projectSlug: projectSlug\.trim\(\),[\s\S]*confirmed,[\s\S]*\}\)/);
+	assert.doesNotMatch(source, /repositoryUrl:\s*\{\s*repositoryUrl,\s*projectSlug,\s*confirmed\s*\}/);
+});
+
 test('Admin resolve and import expose distinct accessible progress, success, and failure states', () => {
 	const source = fs.readFileSync(path.resolve(testDirectory, '../admin/src/components/projects-page.tsx'), 'utf8');
 	assert.match(source, /kind: 'progress' \| 'success' \| 'error'/);
