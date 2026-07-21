@@ -51,3 +51,13 @@ test('Admin resolve and import expose distinct accessible progress, success, and
 	assert.match(source, /kind: 'success',[\s\S]*Imported \$\{body\.project/);
 	assert.match(source, /kind: 'error',[\s\S]*Repository import failed/);
 });
+
+test('Admin invalidates and aborts stale repository resolution when the input changes', () => {
+	const source = fs.readFileSync(path.resolve(testDirectory, '../admin/src/components/projects-page.tsx'), 'utf8');
+	assert.match(source, /const resolveRequestId = useRef\(0\)/);
+	assert.match(source, /const resolveAbortController = useRef<AbortController \| null>\(null\)/);
+	assert.match(source, /updateRepositoryUrl[\s\S]*resolveRequestId\.current \+= 1[\s\S]*resolveAbortController\.current\?\.abort\(\)/);
+	assert.match(source, /signal: controller\.signal/);
+	assert.match(source, /if \(requestId !== resolveRequestId\.current\) return/);
+	assert.match(source, /requestId === resolveRequestId\.current[\s\S]*setResolving\(false\)/);
+});
