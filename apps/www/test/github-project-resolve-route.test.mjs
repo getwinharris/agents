@@ -160,7 +160,6 @@ test('protects and executes repository resolution through the real Admin HTTP ro
 		repository: 'Canonical-Repository',
 		fullName: 'Canonical-Owner/Canonical-Repository',
 		httpsUrl: 'https://github.com/Canonical-Owner/Canonical-Repository.git',
-		sshUrl: 'git@github.com:Canonical-Owner/Canonical-Repository.git',
 	});
 	assert.equal(resolved.body.metadata.fullName, 'Canonical-Owner/Canonical-Repository');
 	assert.equal(resolved.body.metadata.visibility, 'private');
