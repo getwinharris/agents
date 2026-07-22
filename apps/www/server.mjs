@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPlatformStore } from './src/server/platform-store.mjs';
-import { githubAppManifestRegistrationUrl, githubAuthorization, githubIdentity } from './src/server/github-oauth.mjs';
+import { exchangeGitHubAppManifestCode, githubAppCredentials, githubAppManifestRegistration, githubAuthorization, githubIdentity } from './src/server/github-oauth.mjs';
 import { authorizeAdminApiRequest, authorizeAdminRequest, parseAdminGithubUserIds } from './src/server/admin-authorization.mjs';
 import { GitHubProjectImportError, importPublicGitHubProject, listGitHubProjects } from './src/server/github-project-import.mjs';
 import { resolveGitHubRepositoryReference } from './src/server/github-repository.mjs';
@@ -140,6 +140,31 @@ function adminHandoffResponse(res, handoff, returnTo) {
 	res.end(body);
 }
 
+function githubAppManifestResponse(res, registration) {
+	const nonce = crypto.randomBytes(18).toString('base64url');
+	const body = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Create bapX GitHub App</title></head><body><main><p>Opening GitHub App setup…</p><form id="github-app-manifest" method="post" action="${htmlEscape(registration.action)}"><input type="hidden" name="manifest" value="${htmlEscape(JSON.stringify(registration.manifest))}"><button type="submit">Continue to GitHub</button></form></main><script nonce="${nonce}">document.getElementById('github-app-manifest').requestSubmit()</script></body></html>`;
+	res.writeHead(200, {
+		'Content-Type': 'text/html; charset=utf-8',
+		'Cache-Control': 'no-store',
+		'Referrer-Policy': 'no-referrer',
+		'Content-Security-Policy': `default-src 'none'; form-action https://github.com; script-src 'nonce-${nonce}'`,
+		'X-Content-Type-Options': 'nosniff',
+	});
+	res.end(body);
+}
+
+function githubAppManifestConfiguredResponse(res, app) {
+	const body = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>GitHub configured | bapX</title><meta http-equiv="refresh" content="2;url=https://bapx.in/login/"></head><body><main><p>bapX GitHub App configured.</p><p>App ID ${htmlEscape(app.appId)} is ready for OAuth login.</p><p><a href="https://bapx.in/login/">Continue to login</a></p></main></body></html>`;
+	res.writeHead(200, {
+		'Content-Type': 'text/html; charset=utf-8',
+		'Cache-Control': 'no-store',
+		'Referrer-Policy': 'no-referrer',
+		'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'",
+		'X-Content-Type-Options': 'nosniff',
+	});
+	res.end(body);
+}
+
 function setSessionCookie(res, token) {
 	res.setHeader('Set-Cookie', `bapx_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=34560000`);
 }
@@ -167,7 +192,12 @@ function authorizeAdminApi(req, res, account, host, mutation = false) {
 
 function getGitHubInstallationToken(options) {
 	if (!githubInstallationTokenProvider) {
-		githubInstallationTokenProvider = createGitHubInstallationAuthorizationProvider();
+		const credentials = githubAppCredentials();
+		githubInstallationTokenProvider = createGitHubInstallationAuthorizationProvider({
+			appId: credentials.appId,
+			installationId: credentials.installationId,
+			privateKey: credentials.privateKey,
+		});
 	}
 	return githubInstallationTokenProvider(options);
 }
@@ -247,7 +277,18 @@ async function handleAuthAPI(req, res, urlPath, host) {
 	}
 	if (req.method === 'GET' && urlPath === '/api/auth/oauth/github/manifest') {
 		try {
-			redirect(res, githubAppManifestRegistrationUrl(new URL(req.url, 'https://bapx.in').searchParams.get('owner')));
+			githubAppManifestResponse(res, githubAppManifestRegistration(new URL(req.url, 'https://bapx.in').searchParams.get('owner')));
+		} catch (error) {
+			redirect(res, `/login/?error=${encodeURIComponent(error.message)}`);
+		}
+		return true;
+	}
+	if (req.method === 'GET' && urlPath === '/api/auth/oauth/github/manifest/callback') {
+		try {
+			const url = new URL(req.url, 'https://bapx.in');
+			const app = await exchangeGitHubAppManifestCode(url.searchParams.get('code'));
+			githubInstallationTokenProvider = null;
+			githubAppManifestConfiguredResponse(res, app);
 		} catch (error) {
 			redirect(res, `/login/?error=${encodeURIComponent(error.message)}`);
 		}

@@ -9,6 +9,7 @@ const server = fs.readFileSync(new URL('../server.mjs', import.meta.url), 'utf8'
 test('login and signup expose GitHub as the only identity method', () => {
 	for (const page of [login, signup]) {
 		assert.match(page, /href="\/api\/auth\/oauth\/github"/);
+		assert.doesNotMatch(page, /Configure bapX GitHub App|github-setup|\/api\/auth\/oauth\/github\/manifest/);
 		assert.doesNotMatch(page, /type="password"|\/api\/auth\/login|\/api\/auth\/signup|oauth\/google/i);
 	}
 });

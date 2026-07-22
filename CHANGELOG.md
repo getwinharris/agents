@@ -4,6 +4,7 @@
 
 ### Authentication
 
+- GitHub App setup now uses the correct Manifest POST flow, owns `/api/auth/oauth/github/manifest/callback`, exchanges GitHub's one-time manifest code server-side, and stores the returned App OAuth credentials in the platform secret store so signup/login can become configured from the org-owner browser approval path.
 - bapX signup and login now use GitHub identity only. Password and Google identity controls are removed, verified GitHub identities create the user workspace and first organisation, and device sessions persist until logout.
 - Agents sign-in now preserves an allowlisted `agents.bapx.in` return destination through GitHub OAuth while rejecting external return URLs.
 - Admin now exchanges the existing central GitHub-backed session for a single-use, 60-second Admin handoff, revalidates the configured GitHub provider-ID entitlement, and sets a host-only session without broadening the cookie to the parent domain. Anonymous, non-Admin, wrong-origin, and replayed access fail closed before the Admin shell or workspace APIs are exposed.

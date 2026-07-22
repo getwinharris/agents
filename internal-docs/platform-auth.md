@@ -28,7 +28,8 @@ Admin authority is a wider workspace scope, not a different product or an admin-
 | Endpoint | Method | Current behavior |
 | --- | --- | --- |
 | `/api/auth/oauth/github` | `GET` | Starts GitHub OAuth with a short-lived state cookie. |
-| `/api/auth/oauth/github/manifest` | `GET` | Redirects an operator to GitHub's App Manifest registration page for the configured owner. |
+| `/api/auth/oauth/github/manifest` | `GET` | Opens GitHub's App Manifest registration page by POSTing the manifest for the configured owner. |
+| `/api/auth/oauth/github/manifest/callback` | `GET` | Exchanges GitHub's one-time manifest `code`, stores the returned App OAuth credentials in the platform secret store, and sends the operator back to login. |
 | `/api/auth/oauth/github/callback` | `GET` | Validates state, resolves a verified GitHub identity, creates or loads the account, and creates a device session. |
 | `/api/auth/logout` | `POST` | Revokes the current device session and clears its cookie. |
 | `/api/auth/session` | `GET` | Returns the safe account for a valid session or `401` |
@@ -76,24 +77,23 @@ through GitHub's App Manifest flow. Repository installation authorization is sep
 identity authorization. Do not persist GitHub access tokens in account collections or
 workspace files.
 
-Production compose reads these variables from `/docker/traefik-vmm1/.env`. A missing or
-empty `GITHUB_CLIENT_ID` or `GITHUB_CLIENT_SECRET` makes `/api/auth/oauth/github` redirect
-back to `/login/?error=GitHub%20login%20is%20not%20configured`.
+Production compose may read these variables from `/docker/traefik-vmm1/.env`. The web
+service can also store credentials returned by the GitHub App Manifest callback in
+`data/platform/secrets/github-app.json` with `0600` permissions. Environment variables win
+over stored values. A missing or empty `GITHUB_CLIENT_ID`/stored `clientId` makes
+`/api/auth/oauth/github` redirect back to
+`/login/?error=GitHub%20login%20is%20not%20configured`.
 
 To create the GitHub App without clicking through the whole settings UI:
 
 1. Open `https://bapx.in/api/auth/oauth/github/manifest?owner=bapXai` in a browser
    authenticated as an owner of the target GitHub organization.
 2. Review the prefilled GitHub App manifest and click **Create GitHub App**.
-3. GitHub redirects back to `https://bapx.in/login/?code=...`; copy the one-time `code`
-   query parameter from the address bar.
-4. Exchange that code from the VPS:
-
-   ```bash
-   gh api -X POST /app-manifests/<code>/conversions
-   ```
-
-5. Update `/docker/traefik-vmm1/.env` with the returned values:
+3. GitHub redirects back to
+   `https://bapx.in/api/auth/oauth/github/manifest/callback?code=...`; the server exchanges
+   the one-time code and stores the returned App OAuth credentials.
+4. If an operator needs to override the stored values manually, update
+   `/docker/traefik-vmm1/.env` with the returned values:
 
    ```dotenv
    GITHUB_CLIENT_ID=<client_id>
@@ -104,7 +104,8 @@ To create the GitHub App without clicking through the whole settings UI:
 
    Add `BAPX_GITHUB_INSTALLATION_ID` only after the app has been installed on the
    repositories/org account and the installation id is known.
-6. Recreate the service so compose interpolates the new values:
+5. Recreate the service after manual environment changes so compose interpolates the new
+   values:
 
    ```bash
    docker compose --project-directory /docker/traefik-vmm1 -f /docker/traefik-vmm1/docker-compose.yml up -d --force-recreate flue-www

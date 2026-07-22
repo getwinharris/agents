@@ -161,13 +161,23 @@ describe('Agents host routing', () => {
 			host: 'bapx.in',
 			pathname: '/api/auth/oauth/github/manifest',
 		});
-		assert.equal(response.status, 303);
-		const location = new URL(response.headers.location);
-		assert.equal(location.origin, 'https://github.com');
-		assert.equal(location.pathname, '/organizations/bapXai/settings/apps/new');
-		const manifest = JSON.parse(location.searchParams.get('manifest'));
+		assert.equal(response.status, 200);
+		assert.match(response.headers['content-type'], /^text\/html/);
+		assert.equal(response.headers['cache-control'], 'no-store');
+		assert.match(response.headers['content-security-policy'], /form-action https:\/\/github\.com/);
+		assert.match(response.body, /method="post" action="https:\/\/github\.com\/organizations\/bapXai\/settings\/apps\/new"/);
+		const manifestInput = response.body.match(/name="manifest" value="([^"]+)"/);
+		assert.ok(manifestInput);
+		const manifest = JSON.parse(manifestInput[1]
+			.replaceAll('&quot;', '"')
+			.replaceAll('&#39;', "'")
+			.replaceAll('&lt;', '<')
+			.replaceAll('&gt;', '>')
+			.replaceAll('&amp;', '&'));
 		assert.equal(manifest.name, 'bapX');
-		assert.equal(manifest.redirect_url, 'https://bapx.in/login/');
+		assert.equal(manifest.redirect_url, 'https://bapx.in/api/auth/oauth/github/manifest/callback');
+		assert.deepEqual(manifest.callback_urls, ['https://bapx.in/api/auth/oauth/github/callback']);
+		assert.equal(manifest.request_oauth_on_install, true);
 		assert.equal(manifest.hook_attributes.url, 'https://bapx.in/api/channels/github/webhook');
 		assert.deepEqual(manifest.default_permissions, {
 			metadata: 'read',
@@ -180,6 +190,15 @@ describe('Agents host routing', () => {
 			repository_projects: 'write',
 			workflows: 'write',
 		});
+	});
+
+	it('owns the GitHub App manifest conversion callback route', async () => {
+		const response = await request(port, {
+			host: 'bapx.in',
+			pathname: '/api/auth/oauth/github/manifest/callback',
+		});
+		assert.equal(response.status, 303);
+		assert.match(response.headers.location, /^\/login\/\?error=GitHub%20App%20manifest%20code%20is%20missing/);
 	});
 
 	it('does not persist an external OAuth return destination', async () => {

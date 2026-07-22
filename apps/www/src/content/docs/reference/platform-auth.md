@@ -18,19 +18,15 @@ If GitHub OAuth is not configured, sign-in must fail with a clear setup error ra
 
 bapX uses a GitHub App for the current identity flow and for later repository authorization. GitHub does not let a server create that App silently: an owner of the target GitHub account or organization must approve the App Manifest once in the browser.
 
-When production shows `GitHub login is not configured`, the deployment is missing `GITHUB_CLIENT_ID` or `GITHUB_CLIENT_SECRET`. Open:
+When production shows `GitHub login is not configured`, the deployment has not yet captured the GitHub App OAuth credentials. Open:
 
 ```text
 https://bapx.in/api/auth/oauth/github/manifest?owner=bapXai
 ```
 
-Review the prefilled GitHub App, create it, copy the one-time `code` from the redirect URL, then exchange it from an authenticated GitHub CLI session:
+Review the prefilled GitHub App and create it. GitHub redirects back to bapX with a one-time manifest code; bapX exchanges that code and stores the returned `client_id`, `client_secret`, App `id`, and private key in its platform secret store so the next login attempt can start the OAuth flow.
 
-```bash
-gh api -X POST /app-manifests/<code>/conversions
-```
-
-Put the returned `client_id` and `client_secret` into the production deployment environment as `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`, then recreate the web service. The returned App `id` and `pem` also power repository installation authorization through `BAPX_GITHUB_APP_ID` and `BAPX_GITHUB_APP_PRIVATE_KEY`; the installation id is added after installing the App on the organization or repositories.
+Repository installation authorization still requires installing the App on the organization or repositories. The installation id is added after that install step.
 
 ## Workspace routing
 
