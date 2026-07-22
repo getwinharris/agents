@@ -29,7 +29,7 @@ not make acknowledged writes durable across server loss.
 ## Inspect the project
 
 Read local instructions (`AGENTS.md` and similar), detect the package manager,
-and select the first existing source root: `<root>/.bapX/`, then `<root>/src/`,
+and select the first existing source root: `<root>/.agents/`, then `<root>/src/`,
 then `<root>/`. Check for an existing `db.ts`; if one is present, confirm with
 the user before replacing it. Inspect the project's secret conventions.
 

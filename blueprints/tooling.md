@@ -31,7 +31,7 @@ Before editing:
 
 1. Read `AGENTS.md` and relevant local instructions.
 2. Detect the package manager and configured Bapx target.
-3. Select the first existing source root: `<root>/.bapX/`, then `<root>/src/`,
+3. Select the first existing source root: `<root>/.agents/`, then `<root>/src/`,
    then `<root>/`.
 4. Inspect `app.ts`, `agents/`, `workflows/`, target configuration, environment
    types, deployment configuration, and secret conventions.

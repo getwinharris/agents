@@ -1,0 +1,93 @@
+---
+import "../styles/global.css";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pricing | bapX</title>
+    <meta name="description" content="bapX India-first pricing: ₹500/month includes 5 GB, hosted agents, workflows, search, browser sessions, Node.js project subdomains, TTS, and STT. Add storage at ₹100/GB/month up to 100 GB." />
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="canonical" href="https://bapx.in/pricing/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=bapx-20260711" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
+      <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+        <div class="flex h-full items-center gap-8">
+          <a href="/" class="flex items-center gap-2">
+            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
+          </a>
+          <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
+            <a href="/">Home</a>
+            <a href="/products/">Products</a>
+            <a href="/pricing/" class="active">Pricing</a>
+            <a href="https://docs.bapx.in/getting-started/quickstart/">Docs</a>
+            <a href="https://platform.bapx.in/">Platform</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="https://agents.bapx.in/" class="bapx-pill">Agents</a>
+          <a href="/signup/" class="bapx-pill bapx-pill-primary">Start</a>
+        </div>
+      </div>
+    </nav>
+
+    <main>
+      <section class="page-section page-header">
+        <div class="section-inner">
+          <span class="mono-label">Pricing</span>
+          <h1 class="display-xl" style="margin-top: 1.75rem; max-width: 13ch;">Start at ₹500/month.</h1>
+          <p class="body-lg" style="margin-top: 1.5rem; max-width: 760px;">
+            India-first pricing for hosted bapX workspaces. Every paid account includes storage, hosted agents and workflows, hosted search, browser sessions, TTS, STT, and Node.js project subdomains like <code>&lt;projectname&gt;.app.bapx.in</code>.
+          </p>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-inner">
+          <div class="card-grid-auto">
+            <article class="card" style="background: var(--canvas-mid);">
+              <span class="mono-label">Starter</span>
+              <h2 class="display-md" style="margin-top: .75rem;">₹500/month</h2>
+              <p class="body-sm" style="margin-top: .75rem;">Includes 5 GB workspace storage and the hosted product surface.</p>
+              <ul class="body-sm" style="margin-top: 1.25rem; display: grid; gap: .65rem; color: var(--body);">
+                <li>Hosted bapX agent and specialist sub-agent coordination</li>
+                <li>Hosted workflows, automations, browser sessions, and search</li>
+                <li>Node.js project hosting with editable project subdomains</li>
+                <li>TTS and STT included</li>
+                <li>Bring your own AI-provider tokens and connector credentials</li>
+              </ul>
+              <a href="/signup/" class="bapx-pill bapx-pill-primary" style="margin-top: 1.5rem;">Create account</a>
+            </article>
+
+            <article class="card">
+              <span class="mono-label">Storage scale</span>
+              <h2 class="display-md" style="margin-top: .75rem;">₹100/GB/month</h2>
+              <p class="body-sm" style="margin-top: .75rem;">Add storage beyond the included 5 GB, up to 100 GB per account.</p>
+              <ul class="body-sm" style="margin-top: 1.25rem; display: grid; gap: .65rem; color: var(--body);">
+                <li>Workspace files, OKF documents, project assets, logs, and artifacts</li>
+                <li>Usage visible in Platform billing and observability</li>
+                <li>Per-business and per-project limits remain auditable</li>
+                <li>Razorpay is the planned India billing connector for subscriptions</li>
+              </ul>
+              <a href="https://docs.bapx.in/platform/billing/" class="bapx-pill" style="margin-top: 1.5rem;">Billing docs</a>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <div class="section-inner">
+        <span>bapX — Marketing operations, built into agents.</span>
+        <span>&copy; {new Date().getFullYear()}</span>
+      </div>
+    </footer>
+  </body>
+</html>

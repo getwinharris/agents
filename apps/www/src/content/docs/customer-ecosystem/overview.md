@@ -4,7 +4,7 @@ description: Connect your bapX business workspace through MCPs, business connect
 lastReviewedAt: 2026-07-11
 ---
 
-The bapX ecosystem connects hosted agents and automations to the services your business already uses. Customers configure these connections in Platform and operate them through their business workspace; no bapX CLI installation is required.
+The bapX ecosystem connects hosted agents and automations to the services your business already uses. Customers configure these connections in Platform and operate them through their business workspace; no bapX CLI installation is required for a hosted account. Developers and coding agents can still use the public CLI, build, API, SDK, and runtime docs when they are implementing or self-hosting supported bapX contracts.
 
 ## MCPs
 
@@ -23,7 +23,7 @@ Connectors represent business-owned credentials and event sources such as:
 - commerce, advertising, analytics, CRM, and project-management services
 - webhooks and supported external APIs
 
-GitHub, Stripe, Razorpay, Supabase, Google Workspace, Vercel, and approved coding CLIs may also expose operations to agents through the hosted bapX runtime. These are not customer-installed bapX commands: each operation uses the existing integration, the selected business/project scope, and the user's provider authorization. Payment mutations and other irreversible operations require explicit approval. CLI-backed operations remain planned until their capability status is visible and browser-validated in Admin.
+GitHub, Stripe, Razorpay, Supabase, Google Workspace, Vercel, and approved coding CLIs may also expose operations to agents through the hosted bapX runtime. Hosted operations use the existing integration, the selected business/project scope, and the user's provider authorization. Payment mutations and other irreversible operations require explicit approval. CLI-backed hosted operations remain planned until their capability status is visible and browser-validated in Admin.
 
 Your credentials remain scoped to your account, business, and projects. Connector setup must not be confused with personal social-profile links collected during onboarding.
 

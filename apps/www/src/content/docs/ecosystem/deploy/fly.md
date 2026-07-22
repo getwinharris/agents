@@ -74,7 +74,7 @@ Install the adapter and read `DATABASE_URL` in `db.ts`:
 npm install @bapX/postgres
 ```
 
-```typescript title=".bapX/db.ts"
+```typescript title=".agents/db.ts"
 import { postgres } from '@bapX/postgres';
 
 export default postgres(process.env.DATABASE_URL!);

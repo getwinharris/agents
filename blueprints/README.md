@@ -89,7 +89,7 @@ The body is an implementation guide consumed by an AI coding agent. Follow the c
 A sandbox blueprint should:
 
 1. Explain that it installs a sandbox adapter and that the application owns the provider resource lifecycle.
-2. Select the first existing source root from `<root>/.bapX/`, `<root>/src/`, and `<root>/`.
+2. Select the first existing source root from `<root>/.agents/`, `<root>/src/`, and `<root>/`.
 3. Write the implementation to `<source-root>/sandboxes/<name>.ts`.
 4. Include complete TypeScript ready to write, required dependencies, authentication, agent wiring, and verification steps.
 5. Use runtime API names such as `SandboxFactory` exactly as exported.

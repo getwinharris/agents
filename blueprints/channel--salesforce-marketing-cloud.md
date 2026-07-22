@@ -15,7 +15,7 @@ to a Bapx project. This is not a generic Salesforce integration.
 ## Inspect the project
 
 Read local instructions, detect the package manager and deployment target, and
-select the first existing source root: `<root>/.bapX/`, then `<root>/src/`,
+select the first existing source root: `<root>/.agents/`, then `<root>/src/`,
 then `<root>/`. Inspect existing agents, environment types, secret
 conventions, Marketing Cloud tenant configuration, and the ENS event families
 the application subscribes to.

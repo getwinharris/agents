@@ -95,7 +95,7 @@ new sst.aws.Service('Bapx', {
 
 Install `@bapX/postgres` and add a `db.ts` that reads `DATABASE_URL`:
 
-```typescript title=".bapX/db.ts"
+```typescript title=".agents/db.ts"
 import { postgres } from '@bapX/postgres';
 
 export default postgres(process.env.DATABASE_URL!);

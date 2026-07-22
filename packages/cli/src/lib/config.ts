@@ -35,8 +35,9 @@ export interface UserBapxConfig {
 	 * Defaults to the config directory, or to the search directory when no
 	 * configuration file is loaded.
 	 *
-	 * Bapx uses `<root>/.bapX` when it exists as a directory, otherwise
-	 * `<root>/src` when it exists as a directory, otherwise `<root>`.
+	 * Bapx uses the first existing agent-compatible source directory:
+	 * `<root>/.agents`, `<root>/.claude`, `<root>/.github`, then
+	 * `<root>/src`, otherwise `<root>`.
 	 */
 	root?: string;
 	/**

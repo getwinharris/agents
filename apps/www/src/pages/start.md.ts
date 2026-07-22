@@ -37,11 +37,11 @@ Determine the following. Ask the user only for information you do not already kn
 2. Where should the project live on disk?
    - Use filesystem tools to inspect the current working directory first, then confirm the target directory with the user.
    - Bapx supports three authored source layouts:
-     - \`.bapX\` layout: \`./.bapX/agents/\` and \`./.bapX/workflows/\`.
+     - \`.agents\` layout: \`./.agents/agents/\` and \`./.agents/workflows/\`.
      - \`src\` layout: \`./src/agents/\` and \`./src/workflows/\`.
      - Root layout: \`./agents/\` and \`./workflows/\`.
-   - Bapx selects the first existing source directory in this order: \`.bapX/\`, \`src/\`, then the project root.
-   - Prefer the \`src\` layout for new projects. Use \`.bapX\` when adding a self-contained Bapx source area to a larger application. Preserve the root layout for an existing compact project.
+   - Bapx selects the first existing source directory in this order: \`.agents/\`, \`src/\`, then the project root.
+   - Prefer the \`src\` layout for new projects. Use \`.agents\` when adding a self-contained Bapx source area to a larger application. Preserve the root layout for an existing compact project.
    - Never mix layouts. Bapx discovers entrypoints from only the selected source directory.
 3. Where should it deploy? For example: Cloudflare Workers, Node.js, GitHub Actions, GitLab CI/CD, Vercel, Fly.io.
    - Available deploy guides:
@@ -62,8 +62,8 @@ Before implementing, restate the chosen requirements to yourself as an implement
 - Agent purpose: \`<purpose>\`
 - Starter shape: \`agent only\` or \`agent + workflow\`
 - Project directory: \`<absolute or relative path>\`
-- Source layout: \`.bapX\`, \`src\`, or \`root\`
-- Agent module path: \`./.bapX/agents/<name>.ts\`, \`./src/agents/<name>.ts\`, or \`./agents/<name>.ts\`
+- Source layout: \`.agents\`, \`src\`, or \`root\`
+- Agent module path: \`./.agents/agents/<name>.ts\`, \`./src/agents/<name>.ts\`, or \`./agents/<name>.ts\`
 - Workflow module path, if needed: \`none\` or the selected layout's \`workflows/<name>.ts\`
 - Deploy target: \`<target>\`
 - Model specifier: \`<exact model specifier>\`
@@ -92,12 +92,12 @@ Before implementing, restate the chosen requirements to yourself as an implement
          "strict": true,
          "skipLibCheck": true
        },
-       "include": ["src/**/*.ts", "agents/**/*.ts", "workflows/**/*.ts", ".bapX/**/*.ts"],
+       "include": ["src/**/*.ts", "agents/**/*.ts", "workflows/**/*.ts", ".agents/**/*.ts"],
        "exclude": ["dist"]
      }
      \`\`\`
    - If \`tsconfig.json\` already exists, do not replace it. Make the smallest safe change needed to include the generated authored-source files.
-   - TypeScript may ignore hidden directories by default, so projects using the \`.bapX\` layout usually need \`.bapX/**/*.ts\` included explicitly.
+   - TypeScript may ignore hidden directories by default, so projects using the \`.agents\` layout usually need \`.agents/**/*.ts\` included explicitly.
 6. Add only the dependencies and config required by the selected deploy guide and chosen starter shape.
 7. Run the most relevant validation command you can, such as build, typecheck, or \`bapX run\` when a finite agent prompt or workflow was created. If you cannot run it, explain why.
 8. Finish with the exact next commands the user should run, including how to set any required secrets and how to interact with the agent definition or invoke the workflow.
@@ -107,7 +107,7 @@ Before implementing, restate the chosen requirements to yourself as an implement
 Before finishing, verify that the implementation matches the user's explicit choices:
 
 - **Project location**: Files were created in the requested directory.
-- **Source layout**: Files use only the selected \`.bapX\`, \`src\`, or root layout; entrypoints were placed only in the selected source directory.
+- **Source layout**: Files use only the selected \`.agents\`, \`src\`, or root layout; entrypoints were placed only in the selected source directory.
 - **Agent module**: One agent module exists in the selected layout's \`agents/<name>.ts\` and default-exports \`defineAgent(...)\`.
 - **Workflow choice**: No workflow was added for an agent-only starter; for an agent + workflow starter, one workflow module default-exports \`defineWorkflow(...)\` with the agent definition bound through its \`agent\` field.
 - **Deploy target**: Config and commands match the user's selected deploy target.

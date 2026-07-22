@@ -20,7 +20,7 @@ bapX eliminates all of this. Your agents run in our cloud, connected to your too
 ## Platform features
 
 - **bapX agent cockpit** — Start work from one central agent that coordinates specialist agents, repository/project context, browser/search tools, automations, and human handoffs.
-- **Managed agents** — Create, deploy, and run agents from your browser. No customer-installed bapX CLI or DevOps setup.
+- **Managed agents** — Create, deploy, and run agents from your browser. Hosted customers do not need a CLI or DevOps setup; developers and coding agents can use the public CLI/build/API docs for supported implementation work.
 - **Team collaboration** — Invite team members, assign roles, share agents across your organisation.
 - **Channels** — Connect agents to Slack, GitHub, Linear, email, Discord, and more with one click.
 - **MCP Gateway** — Give your agents access to external tools and services through the Model Context Protocol at `api.bapx.in/mcp`.

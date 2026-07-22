@@ -8,9 +8,8 @@ Read the active `AGENTS.md`, `map.mmd`, and affected source before editing. Afte
 
 | Change class | Required owner |
 | --- | --- |
-| Stable external Platform, MCP, API, connector, agent-operation, or workspace behavior | `apps/www/src/content/docs/` |
-| Internal CLI, build, map, development, or maintenance behavior | `internal-docs/` |
-| Internal ownership, implementation topology, filesystem persistence, deployment mechanics, operational checks, or incomplete wiring | `internal-docs/` |
+| Stable external Platform, MCP, API, connector, agent-operation, workspace, CLI, build, SDK, runtime, or developer behavior | `apps/www/src/content/docs/` |
+| Private host mechanics, internal deployment wiring, implementation topology, filesystem persistence, incident procedures, incomplete surfaces, or restricted operator checks | `internal-docs/` |
 | Demo behavior | `demo/README.md`, `demo/docs/index.md`, and `demo/map.mmd` |
 | Workspace/user/project OKF structure | Workspace `OKF.md`, `AGENTS.md`, maps, and public OKF docs |
 | Public or release-facing behavior | `CHANGELOG.md` and, when applicable, blog/release content |

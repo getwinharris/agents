@@ -87,13 +87,13 @@ For more information, see [Channels](/docs/guide/channels/).
 
 ## Source directory
 
-`src/` is the canonical source directory for new Bapx projects. When integrating Bapx into another application or maintaining an existing layout, authored modules may instead live in `.bapX/` or at the project root. Bapx selects one source directory in this order:
+`src/` is the canonical source directory for new Bapx projects. When integrating Bapx into another application or maintaining an existing layout, authored modules may instead live in `.agents/` or at the project root. Bapx selects one source directory in this order:
 
-1. `.bapX/` — A self-contained Bapx source area inside a larger application.
+1. `.agents/` — A self-contained Bapx source area inside a larger application.
 2. `src/` **(Recommended)** — The recommended layout for new projects.
 3. The project root — A compact layout for small dedicated projects.
 
-The first matching directory wins. Bapx does not merge layouts: when `.bapX/` exists, it does not discover agents, workflows, channels, `app.ts`, `db.ts`, or `cloudflare.ts` from `src/` or the project root. Authored modules may still import ordinary supporting code from elsewhere in the project.
+The first matching directory wins. Bapx does not merge layouts: when `.agents/` exists, it does not discover agents, workflows, channels, `app.ts`, `db.ts`, or `cloudflare.ts` from `src/` or the project root. Authored modules may still import ordinary supporting code from elsewhere in the project.
 
 The source directory is always discovered relative to your project root. To configure the project root, see [Configuration](/docs/reference/configuration/).
 

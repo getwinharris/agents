@@ -16,7 +16,7 @@ before enabling them in a sensitive environment.
 ## Inspect the project
 
 Read local instructions, detect the package manager, and select the first
-existing source root: `<root>/.bapX/`, then `<root>/src/`, then `<root>/`. Inspect
+existing source root: `<root>/.agents/`, then `<root>/.claude/`, then `<root>/.github/`, then `<root>/src/`, then `<root>/`. Inspect
 `app.ts`, `bapX.config.ts`, agents, workflows, environment types, deployment
 configuration, and secret conventions.
 

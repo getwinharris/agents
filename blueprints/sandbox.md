@@ -55,7 +55,7 @@ Read these before writing code.
 These are the things that aren't obvious from the spec or the example.
 
 - **File location.** Select the first existing source directory in this order:
-  `<root>/.bapX/`, `<root>/src/`, then `<root>/`. Write the adapter to
+  `<root>/.agents/`, `<root>/.claude/`, `<root>/.github/`, `<root>/src/`, then `<root>/`. Write the adapter to
   `<source-dir>/sandboxes/<name>.ts`. Its first generated line must be
   `// bapX-blueprint: sandbox/<provider>@1`, replacing `<provider>` with the
   selected provider slug. Ask the user if their layout is unusual.

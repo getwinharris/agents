@@ -14,7 +14,7 @@ application-owned Intercom API behavior to a Bapx project.
 ## Inspect the project
 
 Read local instructions, detect the package manager and deployment target, and
-select the first existing source root: `<root>/.bapX/`, then `<root>/src/`,
+select the first existing source root: `<root>/.agents/`, then `<root>/src/`,
 then `<root>/`. Inspect existing agents, environment types, secret conventions,
 Intercom installation storage, region selection, and the webhook topics the
 application needs.

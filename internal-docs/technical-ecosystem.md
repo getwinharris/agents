@@ -1,6 +1,6 @@
 # Internal technical ecosystem
 
-This is the internal entry point for bapX agents and team members building and operating the product. These sources are retained in the repository but excluded from `docs.bapx.in` because customers do not install or operate the bapX framework packages.
+This is the internal entry point for bapX agents and team members building and operating the product. Public, supported CLI/build/API/SDK/runtime/developer contracts are published on `docs.bapx.in`; this file explains source ownership, capability status, and private operational boundaries that must not be confused with customer-ready behavior.
 
 ## Source documentation
 
@@ -14,7 +14,7 @@ This is the internal entry point for bapX agents and team members building and o
 | Configuration and contributor implementation reference | `apps/www/src/content/docs/reference/` |
 | Canonical functional chat harness | `demo/` |
 
-The source Markdown remains valuable technical documentation even when it is not part of the public content collection. Update it with the owning code until it is migrated into dedicated internal paths. Never restore it to public navigation merely because an internal source exists.
+The source Markdown is public developer documentation when it describes supported contracts. Keep private host mechanics, temporary wiring, and incomplete operations in `internal-docs/`; never hide stable developer contracts merely because they mention the CLI, build system, SDK, or runtime.
 
 Customer-facing Ecosystem pages are generated from `apps/ecosystem-catalog.ts` by `apps/www/src/pages/docs/ecosystem/`. They intentionally describe business purpose, Platform/MCP ownership, credentials, and availability without copying internal installation or adapter instructions. A catalog item is incomplete if its rendered page or raw `index.md` route is missing.
 
@@ -48,7 +48,7 @@ Use the supplied Capy/GitHub Copilot screenshots and the verified Multica produc
 - issue/task assignment to agents the same way a teammate is assigned, including status, blockers, review requests, and completion evidence;
 - activity timelines where human actions, agent reasoning/status, tool calls, PRs, and automation runs are visible together;
 - automation templates for Slack, GitHub, Linear, Sentry, webhooks, schedules, and manual runs;
-- reusable skills exposed as automations or agent capabilities without making customers install the internal bapX CLI;
+- reusable skills exposed as automations or agent capabilities while preserving public CLI/build/API documentation for developers and coding agents;
 - hosted coding/browser tools running inside scoped sandboxes with per-business/project permissions.
 
 These references guide product behavior, not source ownership. Implement through the existing `demo/`, `apps/www/admin/`, `apps/agents-runtime/`, `packages/runtime/`, and `packages/cli/` owners.
@@ -74,6 +74,4 @@ The implementation must first prove these contracts in Admin, including structur
 
 ## Customer boundary
 
-Customers use hosted bapX surfaces: Platform, Agents, MCPs, connectors, supported hosted APIs, and their business/project workspace. They are not instructed to install `@bapX/cli`, build the runtime, operate deployment targets, or install internal SDK packages.
-
-If bapX later publishes a supported external SDK or package, that requires an explicit product decision and a separate public documentation contract.
+Customers use hosted bapX surfaces: Platform, Agents, MCPs, connectors, supported hosted APIs, and their business/project workspace. They are not required to install `@bapX/cli` merely to use a hosted account. Developers, coding agents, and self-hosting users may rely on the public CLI/build/API/SDK/runtime documentation that matches supported repository behavior.

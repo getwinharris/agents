@@ -181,7 +181,7 @@ See the deployed [Daytona blueprint](https://bapx.in/cli/blueprints/daytona.md) 
 
 The user's project root does not change. The selected source directory inside it may vary. Bapx selects the first existing directory in this order:
 
-1. `<root>/.bapX/`
+1. `<root>/.agents/`
 2. `<root>/src/`
 3. `<root>/`
 

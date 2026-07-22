@@ -14,11 +14,11 @@ function project(files: string[]): string {
 	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapX-resource-'));
 	roots.push(root);
 	for (const file of files) {
-		const filePath = path.join(root, '.bapX', file);
+		const filePath = path.join(root, '.agents', file);
 		fs.mkdirSync(path.dirname(filePath), { recursive: true });
 		fs.writeFileSync(filePath, 'export default {};');
 	}
-	return path.join(root, '.bapX');
+	return path.join(root, '.agents');
 }
 
 describe('resolveRunResource()', () => {

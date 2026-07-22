@@ -3,7 +3,9 @@ title: Workspace Maps
 description: How bapX stores generated map.mmd files for user, business, and project workspaces.
 ---
 
-`map.mmd` is the structural map file used by bapX admin and agent surfaces to understand a workspace without guessing. It is Mermaid source, kept next to the files it describes.
+`map.mmd` is the structural map file used by bapX admin, agents, and MCP-facing tooling to understand a workspace without guessing. It is Mermaid source, kept next to the files it describes, and generated from the actual filesystem/source layout.
+
+Maps are semantic indexes, not decorative diagrams. They help agents answer practical questions before editing: which app owns this route, where is the API implemented, which docs are public, which files are generated, and where should a new capability be wired so it is not duplicated.
 
 ## Required locations
 
@@ -24,7 +26,7 @@ node packages/cli/dist/bapX.js map --root .
 node packages/cli/dist/bapX.js map --root . --check
 ```
 
-When the CLI is installed, use `bapX map --root <project>` and `bapX map --root <project> --check`.
+When the CLI is installed, use `bapX map --root <project>` and `bapX map --root <project> --check`. This is a supported developer contract, not an internal-only secret.
 
 Run this after adding, moving, or removing top-level project structure such as `apps/`, `packages/`, `examples/`, `demo/`, `projects/`, `docs/`, `src/`, `agents/`, `workflows/`, `assets/`, `blueprints/`, `skills/`, or scripts. Do not hand-edit the generated file.
 
@@ -106,7 +108,11 @@ Validate required user-project files with:
 bapX map --root /root/bapx.in/users/<user>/<business-slug>/projects/<project-name-slug> --check --profile user-project
 ```
 
-Agent project maps should extract the structure that matters for operations: folders, functions, classes, tool calls, workflows, connections, and known gaps. Agent projects should also include the source layout they use, such as `.bapX/agents/`, `.bapX/workflows/`, or the bare `agents/` and `workflows/` folders when `.bapX/` is not present.
+Agent project maps should extract the structure that matters for operations: folders, functions, classes, tool calls, workflows, connections, and known gaps. Agent projects should also include the source layout they use, such as `.agents/agents/`, `.agents/workflows/`, or the bare `agents/` and `workflows/` folders when `.agents/` is not present.
+
+## Skill and automation layout
+
+Repository-native agent skills belong under `.agents/skills/<skill-name>/SKILL.md`. Imported or legacy skill folders from `.opencode/skills`, `.claude/skills`, or similar agent-specific locations should be normalized into `.agents/skills` when the repository intends bapX agents and automation to discover them. Keep provider-specific config outside the skill body unless the skill is genuinely tied to that provider.
 
 ## Markdown frontmatter
 

@@ -23,7 +23,7 @@ project targets Cloudflare, stop and tell the user — there is nothing to add.
 ## Inspect the project
 
 Read local instructions (`AGENTS.md` and similar), detect the package manager,
-and select the first existing source root: `<root>/.bapX/`, then `<root>/src/`,
+and select the first existing source root: `<root>/.agents/`, then `<root>/src/`,
 then `<root>/`. Check for an existing `db.ts` — if one is present, the project
 already has an adapter; confirm with the user before replacing it. Inspect how
 the project reads secrets.

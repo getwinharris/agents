@@ -14,7 +14,7 @@ application-owned Admin GraphQL behavior to a Bapx project.
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
+first existing source root: `<root>/.agents/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions,
 Shopify installation storage, and which webhook topics the application needs.
 

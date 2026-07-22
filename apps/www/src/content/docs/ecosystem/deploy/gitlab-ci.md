@@ -22,7 +22,7 @@ npm install -D @bapX/cli
 
 ### 2. Create your first agent
 
-`.bapX/workflows/hello.ts`:
+`.agents/workflows/hello.ts`:
 
 ```typescript
 import { defineAgent, defineWorkflow } from '@bapX/runtime';
@@ -160,7 +160,7 @@ Your agent often needs to interact with external tools. With `local()`, the agen
 
 In GitLab CI, this means you set the secrets you want the agent's CLIs to see in the job's `variables:` block (or as masked CI/CD variables), then forward them explicitly into the sandbox. The runner is your isolation boundary; bapX makes the inner boundary (host → spawned shell) explicit.
 
-`.bapX/workflows/triage.ts`:
+`.agents/workflows/triage.ts`:
 
 ```typescript
 import { defineAgent, defineWorkflow } from '@bapX/runtime';

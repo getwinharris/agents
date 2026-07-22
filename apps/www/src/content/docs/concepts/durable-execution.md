@@ -22,7 +22,7 @@ later input → rebuilds context → continues the conversation
 
 The canonical stream records model-visible messages, assistant output, tool calls and results, compaction, topology, and recovery facts. Attachment bytes live in a separate immutable attachment store and are referenced from canonical records. Mutable submission claims and leases remain operational state rather than a second transcript.
 
-To persist this state in an application-controlled database, create a `src/db.ts` or `.bapX/db.ts` file that default-exports a `PersistenceAdapter`. See [Database](/docs/guide/database/) for setup and [Data Persistence API](/docs/api/data-persistence-api/) for the storage contracts.
+To persist this state in an application-controlled database, create a `src/db.ts` or `.agents/db.ts` file that default-exports a `PersistenceAdapter`. See [Database](/docs/guide/database/) for setup and [Data Persistence API](/docs/api/data-persistence-api/) for the storage contracts.
 
 ### Durable Agents on Cloudflare
 

@@ -11,7 +11,7 @@ This directory is the canonical implementation and operations reference for agen
 
 Never put credentials or secret values in either surface. Public docs must not claim incomplete UI or endpoints are supported. Internal docs must identify incomplete wiring explicitly so another agent does not infer behavior from static markup.
 
-The bapX CLI is internal operations tooling. Its command, build, map, development, and maintenance documentation belongs here, not in the public `docs.bapx.in` navigation or customer onboarding.
+Supported CLI, build, map, API, SDK, runtime, configuration, and developer contracts belong in public docs when they are stable enough for implementers and coding agents. Internal docs keep private host mechanics, deployment wiring, incident procedures, incomplete surfaces, and operational checks that should not be published.
 
 ## Current references
 

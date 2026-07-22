@@ -25,7 +25,7 @@ which makes it a good fit for per-session agents that want a real OS.
 
 ## Where to write the file
 
-Select the first existing source directory: `<root>/.bapX/`, then `<root>/src/`,
+Select the first existing source directory: `<root>/.agents/`, then `<root>/src/`,
 then `<root>/`. Write the adapter to `<source-dir>/sandboxes/boxd.ts`.
 
 If neither feels right (uncommon layout, multiple workspaces, etc.), ask the

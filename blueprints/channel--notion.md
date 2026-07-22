@@ -14,7 +14,7 @@ application-owned Notion API behavior to a Bapx project.
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
+first existing source root: `<root>/.agents/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 which Notion page or comment events the application needs.
 

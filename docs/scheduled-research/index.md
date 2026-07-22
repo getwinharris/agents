@@ -8,7 +8,7 @@ Research records use ordinary Markdown without YAML frontmatter. Add a category 
 
 ## Categories
 
-No research categories have been added yet.
+- [Product documentation standards comparison](product-docs-standards.md) — ReadMe, Multica, MCP, OKF/map, and live bapX docs/product gaps.
 
 ## Workflow
 

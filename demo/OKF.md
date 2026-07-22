@@ -539,8 +539,8 @@ include:
 Agent projects SHOULD also include one of the supported bapX source
 layouts:
 
-- `.bapX/agents/` and `.bapX/workflows/`, when the project uses the
-  `.bapX/` source root.
+- `.agents/agents/` and `.agents/workflows/`, when the project uses the
+  `.agents/` source root.
 - `agents/` and `workflows/`, when the project uses the bare source
   layout.
 

@@ -16,7 +16,7 @@ arguments, traces, or AI metrics by default.
 ## Inspect the project
 
 Read local instructions, detect the package manager, and select the first
-existing source root: `<root>/.bapX/`, then `<root>/src/`, then `<root>/`. Inspect
+existing source root: `<root>/.agents/`, then `<root>/.claude/`, then `<root>/.github/`, then `<root>/src/`, then `<root>/`. Inspect
 `bapX.config.ts`, deployment commands, `app.ts`, every module under `agents/` and
 `workflows/`, environment types, and secret conventions.
 

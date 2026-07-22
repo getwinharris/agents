@@ -22,7 +22,7 @@ binding. The user owns workspace construction and hydration.
 
 ## Where to write the file
 
-Select the first existing source directory: `<root>/.bapX/`, then `<root>/src/`,
+Select the first existing source directory: `<root>/.agents/`, then `<root>/src/`,
 then `<root>/`. Write the adapter to `<source-dir>/sandboxes/cloudflare-shell.ts`.
 
 If neither feels right, ask the user before writing. Create any missing parent

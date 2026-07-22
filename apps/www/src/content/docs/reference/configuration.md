@@ -36,7 +36,7 @@ Project root. Must not be empty. Relative values loaded from a configuration fil
 
 Bapx uses the first matching source location:
 
-1. `<root>/.bapX` when it exists as a directory
+1. `<root>/.agents` when it exists as a directory
 2. `<root>/src` when it exists as a directory
 3. `<root>`
 

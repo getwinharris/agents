@@ -14,7 +14,7 @@ with project-owned outbound Twilio access to a Bapx project.
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
+first existing source root: `<root>/.agents/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 whether the project uses one Twilio address or a Messaging Service.
 

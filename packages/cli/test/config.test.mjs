@@ -27,14 +27,14 @@ process.on('exit', () => {
 
 describe('resolveConfig()', () => {
 	describe('source-layout selection', () => {
-		it('resolves sourceRoot to the project root when neither .bapX/ nor src/ exists', async () => {
+		it('resolves sourceRoot to the project root when no agent-compatible source root or src/ exists', async () => {
 			const root = createFixtureRoot();
 			const { bapXConfig } = await resolveConfig({ cwd: root, inline: { target: 'node' } });
 			assert.equal(bapXConfig.root, root);
 			assert.equal(bapXConfig.sourceRoot, root);
 		});
 
-		it('resolves sourceRoot to src/ when src/ exists and .bapX/ does not', async () => {
+		it('resolves sourceRoot to src/ when src/ exists and no agent-compatible source root exists', async () => {
 			const root = createFixtureRoot();
 			fs.mkdirSync(path.join(root, 'src'));
 			fs.mkdirSync(path.join(root, 'workflows'));
@@ -42,14 +42,33 @@ describe('resolveConfig()', () => {
 			assert.equal(bapXConfig.sourceRoot, path.join(root, 'src'));
 		});
 
-		it('resolves sourceRoot to .bapX/ when .bapX/ exists alongside src/ and bare dirs', async () => {
+		it('resolves sourceRoot to .agents/ when .agents/ exists alongside provider dirs, src/, and bare dirs', async () => {
 			const root = createFixtureRoot();
-			fs.mkdirSync(path.join(root, '.bapX'));
+			fs.mkdirSync(path.join(root, '.agents'));
+			fs.mkdirSync(path.join(root, '.claude'));
+			fs.mkdirSync(path.join(root, '.github'));
 			fs.mkdirSync(path.join(root, 'src'));
 			fs.mkdirSync(path.join(root, 'agents'));
 			fs.mkdirSync(path.join(root, 'workflows'));
 			const { bapXConfig } = await resolveConfig({ cwd: root, inline: { target: 'node' } });
-			assert.equal(bapXConfig.sourceRoot, path.join(root, '.bapX'));
+			assert.equal(bapXConfig.sourceRoot, path.join(root, '.agents'));
+		});
+
+		it('resolves sourceRoot to .claude/ when .agents/ is absent', async () => {
+			const root = createFixtureRoot();
+			fs.mkdirSync(path.join(root, '.claude'));
+			fs.mkdirSync(path.join(root, '.github'));
+			fs.mkdirSync(path.join(root, 'src'));
+			const { bapXConfig } = await resolveConfig({ cwd: root, inline: { target: 'node' } });
+			assert.equal(bapXConfig.sourceRoot, path.join(root, '.claude'));
+		});
+
+		it('resolves sourceRoot to .github/ when .agents/ and .claude/ are absent', async () => {
+			const root = createFixtureRoot();
+			fs.mkdirSync(path.join(root, '.github'));
+			fs.mkdirSync(path.join(root, 'src'));
+			const { bapXConfig } = await resolveConfig({ cwd: root, inline: { target: 'node' } });
+			assert.equal(bapXConfig.sourceRoot, path.join(root, '.github'));
 		});
 	});
 
@@ -298,27 +317,41 @@ describe('bapX build', () => {
 		assert.equal(fs.existsSync(path.join(root, 'dist', 'server.mjs')), false);
 	});
 
-	it('discovers agents and workflows from .bapX/ and ignores the bare layout when .bapX/ exists', async () => {
+	it('discovers agents and workflows from .agents/ and ignores provider, src, and bare layouts when .agents/ exists', async () => {
 		const root = createFixtureRoot();
 		linkRuntime(root);
 		fs.writeFileSync(path.join(root, 'bapX.config.mjs'), `export default { target: 'node' };\n`);
 
-		fs.mkdirSync(path.join(root, '.bapX', 'agents'), { recursive: true });
-		fs.mkdirSync(path.join(root, '.bapX', 'workflows'), { recursive: true });
+		fs.mkdirSync(path.join(root, '.agents', 'agents'), { recursive: true });
+		fs.mkdirSync(path.join(root, '.agents', 'workflows'), { recursive: true });
 		fs.writeFileSync(
-			path.join(root, '.bapX', 'agents', 'helper.mjs'),
+			path.join(root, '.agents', 'agents', 'helper.mjs'),
 			`import { defineAgent, defineAgentProfile } from '@bapX/runtime';\n` +
 				`const profile = defineAgentProfile({ instructions: 'helper' });\n` +
 				`export default defineAgent(() => ({ profile }));\n`,
 		);
 		fs.writeFileSync(
-			path.join(root, '.bapX', 'workflows', 'inner.mjs'),
+			path.join(root, '.agents', 'workflows', 'inner.mjs'),
 			`import { defineAgent, defineWorkflow } from '@bapX/runtime';\n` +
 				`const agent = defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n` +
 				`export default defineWorkflow({ agent, async run() { return { ok: true }; } });\n`,
 		);
 
-		// Bare layout that must be ignored because .bapX/ exists.
+		// Other layouts that must be ignored because .agents/ exists.
+		fs.mkdirSync(path.join(root, '.claude', 'agents'), { recursive: true });
+		fs.writeFileSync(
+			path.join(root, '.claude', 'agents', 'claude-stray.mjs'),
+			`import { defineAgent, defineAgentProfile } from '@bapX/runtime';\n` +
+				`const profile = defineAgentProfile({ instructions: 'claude stray' });\n` +
+				`export default defineAgent(() => ({ profile }));\n`,
+		);
+		fs.mkdirSync(path.join(root, 'src', 'workflows'), { recursive: true });
+		fs.writeFileSync(
+			path.join(root, 'src', 'workflows', 'src-stray.mjs'),
+			`import { defineAgent, defineWorkflow } from '@bapX/runtime';\n` +
+				`const agent = defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5' }));\n` +
+				`export default defineWorkflow({ agent, async run() { return { ok: true }; } });\n`,
+		);
 		fs.mkdirSync(path.join(root, 'agents'));
 		fs.mkdirSync(path.join(root, 'workflows'));
 		fs.writeFileSync(
@@ -349,9 +382,11 @@ describe('bapX build', () => {
 		const [exitCode] = await once(child, 'exit');
 
 		assert.equal(exitCode, 0, `bapX build failed:\n\n${output}`);
-		assert.match(output, /source\s+\.bapX/);
+		assert.match(output, /source\s+\.agents/);
 		assert.match(output, /agents\s+helper/s);
 		assert.match(output, /workflows\s+inner/s);
+		assert.doesNotMatch(output, /claude-stray/);
+		assert.doesNotMatch(output, /src-stray/);
 		assert.doesNotMatch(output, /stray/);
 		assert.doesNotMatch(output, /outer/);
 		assert.equal(fs.existsSync(path.join(root, 'dist', 'server.mjs')), true);

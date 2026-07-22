@@ -80,8 +80,8 @@ The short version, for your reference:
    (Use the user's package manager — `npm install`, `yarn add`, etc.)
 
 2. Export the Sandbox class from the user's Cloudflare deployment module.
-   Put `cloudflare.ts` in the selected Bapx source root: `.bapX/cloudflare.ts`
-   when `.bapX/` exists, otherwise `src/cloudflare.ts` when `src/` exists,
+   Put `cloudflare.ts` in the selected Bapx source root: `.agents/cloudflare.ts`
+   when `.agents/` exists, otherwise `src/cloudflare.ts` when `src/` exists,
    otherwise `<root>/cloudflare.ts`:
 
    ```ts

@@ -74,7 +74,7 @@ A blueprint is a Markdown implementation guide returned by `bapX add`; its kind 
 - `examples/cloudflare/` — Cloudflare integration fixture.
 - `examples/imported-skill/` — Packaged skill and release fixture.
 
-Agent and workflow sources use either `<root>/.bapX/` or `<root>/`; when `.bapX/` exists, the bare `agents/` and `workflows/` layout is ignored.
+Agent and workflow sources use either `<root>/.agents/` or `<root>/`; when `.agents/` exists, the bare `agents/` and `workflows/` layout is ignored.
 
 ## Source-Grounded Work Order
 
@@ -201,9 +201,9 @@ For UI changes:
 
 Do not call UI work done when only the Astro build passed.
 
-## Internal CLI and Tooling
+## CLI and Tooling
 
-The CLI is an internal bapX operations surface. Customers use the hosted Platform, Agents, Admin-equivalent business workspace, API, MCP, and connectors; do not instruct customers to install `@bapX/cli` or run `npx bapX`.
+The supported CLI, build, API, SDK, runtime, configuration, and developer contracts are public developer documentation and belong on `docs.bapx.in` when they are stable enough to guide implementation. Product customers can use hosted Platform, Agents/Admin-equivalent workspaces, API, MCP, and connectors without installing the CLI, but developers and agents must be able to read the supported CLI/build/API contracts publicly. Keep only private host mechanics, secrets, incident procedures, unreleased operator playbooks, and exploitable operations in `internal-docs/`.
 
 Do not create disconnected tools. New repo operations belong in one of:
 

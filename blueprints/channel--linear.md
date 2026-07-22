@@ -14,7 +14,7 @@ webhooks with project-owned outbound Linear API access to a Bapx project.
 ## Inspect the project
 
 Read local instructions, detect the package manager and target, and select the
-first existing source root: `<root>/.bapX/`, then `<root>/src/`, then
+first existing source root: `<root>/.agents/`, then `<root>/src/`, then
 `<root>/`. Inspect existing agents, environment types, secret conventions, and
 whether the application needs ordinary issue comments, Linear agent sessions,
 or both.

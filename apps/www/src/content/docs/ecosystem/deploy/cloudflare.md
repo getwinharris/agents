@@ -10,9 +10,9 @@ By the end, you will have a Bapx agent running on Cloudflare Workers, and you wi
 
 ## Project layout
 
-The project root is your project directory. Bapx selects authored source from `.bapX/`, then `src/`, then the project root. The first matching directory wins, and layouts never mix. See [Project Layout](/docs/guide/project-layout/) for the full convention.
+The project root is your project directory. Bapx selects authored source from `.agents/`, then `src/`, then the project root. The first matching directory wins, and layouts never mix. See [Project Layout](/docs/guide/project-layout/) for the full convention.
 
-By default `bapX build` writes to `./dist/` at the project root; pass `--output <path>` to redirect the build elsewhere. `wrangler.jsonc` and any `Dockerfile` you ship live at the project root, regardless of where the build lands. Examples in this guide use the `./.bapX/` layout.
+By default `bapX build` writes to `./dist/` at the project root; pass `--output <path>` to redirect the build elsewhere. `wrangler.jsonc` and any `Dockerfile` you ship live at the project root, regardless of where the build lands. Examples in this guide use the `./.agents/` layout.
 
 ## Hello World
 
@@ -31,7 +31,7 @@ npm install -D @bapX/cli wrangler
 
 ### 2. Create your first agent
 
-`.bapX/workflows/translate.ts`:
+`.agents/workflows/translate.ts`:
 
 ```typescript
 import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
@@ -81,7 +81,7 @@ Cloudflare requires an explicit migration whenever a Worker adds a Durable Objec
 }
 ```
 
-Every Cloudflare target includes `BapxRegistry`. Bapx-owned bindings use upper snake case and generated classes use PascalCase: `.bapX/workflows/translate.ts` binds `FLUE_TRANSLATE_WORKFLOW` to `BapxTranslateWorkflow`, while `.bapX/agents/support-chat.ts` binds `FLUE_SUPPORT_CHAT_AGENT` to `BapxSupportChatAgent`.
+Every Cloudflare target includes `BapxRegistry`. Bapx-owned bindings use upper snake case and generated classes use PascalCase: `.agents/workflows/translate.ts` binds `FLUE_TRANSLATE_WORKFLOW` to `BapxTranslateWorkflow`, while `.agents/agents/support-chat.ts` binds `FLUE_SUPPORT_CHAT_AGENT` to `BapxSupportChatAgent`.
 
 Keep deployed migration entries in order. When you add an agent or workflow later, append a uniquely tagged migration for its new class. Generated Bapx agent classes require Durable Object SQLite: introduce them through `new_sqlite_classes`, not legacy `new_classes`. An already deployed KV-backed Durable Object class cannot be converted to SQLite in place. For this pre-1.0 agent durability upgrade, use a fresh generated agent class identity and treat deployment as a hard execution-state boundary: in-flight direct prompts and dispatched inputs from earlier generated-agent identities are not adopted. Use Cloudflare's explicit rename or delete migrations when changing a deployed class lifecycle. When upgrading a workflow deployment created before this naming scheme, append `renamed_classes` entries such as `{ "from": "TranslateWorkflow", "to": "BapxTranslateWorkflow" }`; do not rewrite deployed migration history.
 
@@ -185,7 +185,7 @@ export const cloudflare = extend({
 });
 ```
 
-This is an advanced Cloudflare-only extension point. Bapx applies `base` first, then defines its own Durable Object subclass with the generated Bapx binding and class identity. For `.bapX/agents/support-chat.ts`, authored Worker code can access the namespace as `env.FLUE_SUPPORT_CHAT_AGENT`, and Wrangler binds that name to `BapxSupportChatAgent`. For `.bapX/workflows/translate.ts`, the corresponding names are `env.FLUE_TRANSLATE_WORKFLOW` and `BapxTranslateWorkflow`. Use `base` for native SDK lifecycle hooks and additional named methods. Do not override `fetch()`, `onRequest()`, `onFiberRecovered()`, or `alarm()`: Bapx and the Agents SDK use those methods for routing, interruption recovery, and alarm multiplexing.
+This is an advanced Cloudflare-only extension point. Bapx applies `base` first, then defines its own Durable Object subclass with the generated Bapx binding and class identity. For `.agents/agents/support-chat.ts`, authored Worker code can access the namespace as `env.FLUE_SUPPORT_CHAT_AGENT`, and Wrangler binds that name to `BapxSupportChatAgent`. For `.agents/workflows/translate.ts`, the corresponding names are `env.FLUE_TRANSLATE_WORKFLOW` and `BapxTranslateWorkflow`. Use `base` for native SDK lifecycle hooks and additional named methods. Do not override `fetch()`, `onRequest()`, `onFiberRecovered()`, or `alarm()`: Bapx and the Agents SDK use those methods for routing, interruption recovery, and alarm multiplexing.
 
 Use `wrap` when an integration needs to wrap the final Bapx-generated Durable Object class:
 
@@ -198,11 +198,11 @@ export const cloudflare = extend({
 });
 ```
 
-Both `base` and `wrap` are optional. Do not override Bapx-owned `fetch()`, `onRequest()`, `onFiberRecovered()`, or `alarm()` methods. This module-local export is distinct from the optional source-root `.bapX/cloudflare.ts` deployment module below. Native SDK callbacks run as Durable Object activity: they do not receive a Bapx workflow context, create workflow runs, or automatically initialize a Bapx harness or session.
+Both `base` and `wrap` are optional. Do not override Bapx-owned `fetch()`, `onRequest()`, `onFiberRecovered()`, or `alarm()` methods. This module-local export is distinct from the optional source-root `.agents/cloudflare.ts` deployment module below. Native SDK callbacks run as Durable Object activity: they do not receive a Bapx workflow context, create workflow runs, or automatically initialize a Bapx harness or session.
 
 ### Extending the Worker
 
-Add an optional `.bapX/cloudflare.ts` module when your deployment needs native Cloudflare capabilities outside Bapx's generated classes. Named exports become top-level Worker exports, which lets the same Worker define application-owned Durable Objects:
+Add an optional `.agents/cloudflare.ts` module when your deployment needs native Cloudflare capabilities outside Bapx's generated classes. Named exports become top-level Worker exports, which lets the same Worker define application-owned Durable Objects:
 
 ```ts
 import { DurableObject } from 'cloudflare:workers';
@@ -237,7 +237,7 @@ export default {
 };
 ```
 
-Use `.bapX/app.ts` for custom HTTP routes and middleware. `cloudflare.ts` must not export a default `fetch` handler because Bapx keeps HTTP composition in `app.ts`.
+Use `.agents/app.ts` for custom HTTP routes and middleware. `cloudflare.ts` must not export a default `fetch` handler because Bapx keeps HTTP composition in `app.ts`.
 
 ## Subagents
 
@@ -306,7 +306,7 @@ The agent can use its built-in tools — grep, glob, read — to search and read
 
 For support agents, you can seed Bapx's default virtual sandbox with the knowledge required for a request. The agent can search and read these files using its built-in `grep`, `glob`, and `read` tools without provisioning a container or installing a sandbox adapter.
 
-`.bapX/workflows/support.ts`:
+`.agents/workflows/support.ts`:
 
 ```typescript
 import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
@@ -351,7 +351,7 @@ If you'd rather connect to an external provider — e.g. Daytona — instead of 
 You own the container config. That means four things:
 
 1. Install `@cloudflare/sandbox`: `npm install @cloudflare/sandbox`.
-2. Export the Sandbox class from `.bapX/cloudflare.ts`.
+2. Export the Sandbox class from `.agents/cloudflare.ts`.
 3. Declare the Durable Object binding, migration, and container image in your `wrangler.jsonc` at the project root.
 4. Commit a `Dockerfile` at the path your `containers[].image` points to.
 
@@ -359,7 +359,7 @@ Append the Sandbox migration to the same top-level history you use for generated
 
 ### Example
 
-`.bapX/cloudflare.ts`:
+`.agents/cloudflare.ts`:
 
 ```ts
 export { Sandbox } from '@cloudflare/sandbox';
@@ -392,7 +392,7 @@ FROM docker.io/cloudflare/sandbox:0.9.2
 
 The base image is published by Cloudflare and bundles the control-plane HTTP server that `@cloudflare/sandbox` needs to communicate with the container, along with `node`, `git`, `curl`, and a working directory at `/workspace`. Pin the tag to match the `@cloudflare/sandbox` version in your `package.json` — they're versioned together. Add your own `RUN` lines to install extra tools as needed.
 
-`.bapX/agents/assistant.ts`:
+`.agents/agents/assistant.ts`:
 
 ```typescript
 import { defineAgent, type AgentRouteHandler } from '@bapX/runtime';
@@ -412,7 +412,7 @@ export default defineAgent(({ id, env }) => ({
 Different agents can use different container images. Export a separate alias for each Sandbox class, then declare each binding and container entry:
 
 ```ts
-// .bapX/cloudflare.ts
+// .agents/cloudflare.ts
 export { Sandbox as PyBoxSandbox } from '@cloudflare/sandbox';
 export { Sandbox as NodeSandbox } from '@cloudflare/sandbox';
 ```
@@ -561,7 +561,7 @@ npx wrangler secret put ANTHROPIC_API_KEY
 npx wrangler deploy --config dist/my-agent/wrangler.json
 ```
 
-Every workflow that exports `route` gets an HTTP endpoint automatically. The middleware may authenticate the request and call `next()` to admit it. The route follows the pattern `/workflows/<name>` — for example, `.bapX/workflows/translate.ts` becomes `/workflows/translate`.
+Every workflow that exports `route` gets an HTTP endpoint automatically. The middleware may authenticate the request and call `next()` to admit it. The route follows the pattern `/workflows/<name>` — for example, `.agents/workflows/translate.ts` becomes `/workflows/translate`.
 
 ```bash
 # Hit your deployed workflow

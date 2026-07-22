@@ -63,7 +63,7 @@ These are the things that aren't obvious from the spec or the example.
   build time — do not build a database adapter for a Cloudflare project.
 - **File location.** The adapter is a single source-root `db.ts`, not a file
   under `sandboxes/`. Select the first existing source directory in this
-  order: `<root>/.bapX/`, `<root>/src/`, then `<root>/`, and write `db.ts`
+  order: `<root>/.agents/`, `<root>/.claude/`, `<root>/.github/`, `<root>/src/`, then `<root>/`, and write `db.ts`
   there. Its first generated line must be
   `// bapX-blueprint: database/<provider>@1`, replacing `<provider>` with the
   selected provider slug. Bapx discovers it at build time and wires the default

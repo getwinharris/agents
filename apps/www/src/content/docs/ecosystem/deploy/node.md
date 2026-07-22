@@ -12,9 +12,9 @@ This guide focuses on deploying the generated Node server. First review the [CLI
 
 ## Project layout
 
-The project root is your project directory. Bapx selects authored source from `.bapX/`, then `src/`, then the project root. The first matching directory wins, and layouts never mix. See [Project Layout](/docs/guide/project-layout/) for the full convention.
+The project root is your project directory. Bapx selects authored source from `.agents/`, then `src/`, then the project root. The first matching directory wins, and layouts never mix. See [Project Layout](/docs/guide/project-layout/) for the full convention.
 
-By default `bapX build` writes to `./dist/` at the project root; pass `--output <path>` to redirect the build elsewhere. Examples in this guide use the `./.bapX/` layout.
+By default `bapX build` writes to `./dist/` at the project root; pass `--output <path>` to redirect the build elsewhere. Examples in this guide use the `./.agents/` layout.
 
 ## Hello World
 
@@ -31,7 +31,7 @@ npm install -D @bapX/cli
 
 ### 2. Create your first agent
 
-`.bapX/workflows/translate.ts`:
+`.agents/workflows/translate.ts`:
 
 ```typescript
 import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';
@@ -97,7 +97,7 @@ curl 'http://localhost:3583/workflows/translate?wait=result' \
 
 The `?wait=result` mode keeps this request attached until the workflow completes and returns its result. Without it, an admitted HTTP workflow responds immediately with `202` and a `runId` for later inspection.
 
-Every workflow that exports `route` gets an HTTP endpoint automatically. The middleware may authenticate the request and call `next()` to admit it. The route follows the pattern `/workflows/<name>` — for example, `.bapX/workflows/translate.ts` becomes `/workflows/translate`.
+Every workflow that exports `route` gets an HTTP endpoint automatically. The middleware may authenticate the request and call `next()` to admit it. The route follows the pattern `/workflows/<name>` — for example, `.agents/workflows/translate.ts` becomes `/workflows/translate`.
 
 For a production-style server, build and then start the generated artifact. `bapX build` loads `.env` for configuration and build-time evaluation, while the built server reads only the environment supplied when you start it:
 
@@ -180,7 +180,7 @@ Run bapX itself inside an isolation boundary you trust — a CI runner, a contai
 
 Env exposure is opt-in. By default only shell essentials (`PATH`, `HOME`, locale, etc.) are inherited from `process.env`; anything else — API keys, tokens, deploy credentials — has to be passed explicitly via `local({ env: { ... } })`. That keeps the model's `bash` tool from seeing host secrets by accident.
 
-`.bapX/workflows/reviewer.ts`:
+`.agents/workflows/reviewer.ts`:
 
 ```typescript
 import { defineAgent, defineWorkflow, type WorkflowRouteHandler } from '@bapX/runtime';

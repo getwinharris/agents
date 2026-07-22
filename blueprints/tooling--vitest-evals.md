@@ -8,7 +8,7 @@ You are an AI coding agent adding `vitest-evals` to a Bapx project. Create a sep
 
 ## Inspect the project
 
-Read local instructions and detect the package manager. Inspect `package.json`, TypeScript configuration, existing Vitest configuration, agents, workflows, route authentication, CI configuration, and ignore files. Keep eval support files under `src/evals/`, independent of whether Bapx application sources use `.bapX/`, `src/`, or the project root.
+Read local instructions and detect the package manager. Inspect `package.json`, TypeScript configuration, existing Vitest configuration, agents, workflows, route authentication, CI configuration, and ignore files. Keep eval support files under `src/evals/`, independent of whether Bapx application sources use `.agents/`, `src/`, or the project root.
 
 Ask which agent or workflow and which observable behavior should form the starter eval when that is not clear from the project. Do not invent a product requirement merely to produce a passing case.
 

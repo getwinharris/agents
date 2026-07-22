@@ -97,7 +97,7 @@ Without a `db.ts` adapter, Bapx keeps canonical conversations, attachments, acce
 
 Add the adapter and a `db.ts` that reads `DATABASE_URL`:
 
-```typescript title=".bapX/db.ts"
+```typescript title=".agents/db.ts"
 import { postgres } from '@bapX/postgres';
 
 export default postgres(process.env.DATABASE_URL!);

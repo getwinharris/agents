@@ -38,7 +38,7 @@ Things to know before installing:
 
 ## Where to write the file
 
-Select the first existing source directory: `<root>/.bapX/`, then `<root>/src/`,
+Select the first existing source directory: `<root>/.agents/`, then `<root>/src/`,
 then `<root>/`. Write the adapter to `<source-dir>/sandboxes/mirage.ts`.
 
 If neither feels right (uncommon layout, multiple workspaces, etc.), ask the
@@ -232,7 +232,7 @@ class MirageSandboxApi implements SandboxApi {
 
 		try {
 			const result = await this.workspace.execute(command, {
-				sessionId: this.bapXContextId,
+				sessionId: this.agentsContextId,
 				cwd: options?.cwd,
 				env: options?.env,
 				signal,
