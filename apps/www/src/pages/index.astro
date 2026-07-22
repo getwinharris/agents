@@ -17,7 +17,7 @@ const cockpitAgents = [
   { name: "Build", state: "queued", detail: "turns approved work into code, PRs, and deploys" },
   { name: "Browser", state: "ready", detail: "tests sign-up, checkout, docs, and product flows" },
   { name: "Research", state: "running", detail: "checks current standards before plans become scope" },
-  { name: "Ops", state: "watching", detail: "monitors Sentry, telemetry, evals, and usage signals" },
+  { name: "Ops", state: "watching", detail: "checks Sentry, OpenTelemetry, Braintrust, evals, and usage" },
 ];
 
 const workQueue = [
@@ -42,12 +42,6 @@ const capabilities = [
   ["Channels & connectors", "GitHub, Slack, Linear, Sentry, Razorpay, webhooks, browser, search, and external MCPs are handled as connectors."],
   ["OKF workspace", "Private work stays in the account/business/project workspace; public-facing docs use root-sandbox//<username>/<business-slug>/projects/<project-slug>/."],
   ["Razorpay billing", "India-first subscription path: ₹500/month base, 5 GB included, ₹100/GB/month up to 100 GB."],
-] as const;
-
-const comparisonRows = [
-  ["Capy.ai", "Parallel cloud coding tasks, isolated VMs, review, PR creation.", "bapX needs the same visible task fleet: queue, sandbox, PR, and review status."],
-  ["Linear", "Humans and agents share issues, projects, documents, status, and activity.", "bapX needs business/project work to feel like one shared operating layer."],
-  ["GitHub Copilot", "IDE, CLI, GitHub issues/PRs, MCP, policies, and approval visibility.", "bapX needs hosted CLIs and MCP/A2A controls to be surfaced as governed tools."],
 ] as const;
 
 ---
@@ -166,26 +160,6 @@ const comparisonRows = [
         </div>
       </section>
 
-      <section class="page-section comparison-section">
-        <div class="section-inner">
-          <div class="section-heading compact">
-            <h2 class="display-md">What the benchmark products make obvious.</h2>
-            <p class="body-lg">
-              Capy shows parallel execution. Linear shows people and agents sharing one product system. Copilot shows IDE, CLI, GitHub, MCP, and approvals in the same developer loop. bapX has to make those ideas visible for business operations.
-            </p>
-          </div>
-          <div class="comparison-table">
-            {comparisonRows.map(([product, signal, bapxNeed]) => (
-              <article>
-                <span class="mono-label">{product}</span>
-                <p>{signal}</p>
-                <strong>{bapxNeed}</strong>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section class="page-section">
         <div class="section-inner">
           <div class="section-heading compact">
@@ -210,9 +184,9 @@ const comparisonRows = [
         <div class="section-inner evidence-grid">
           <div>
             <span class="mono-label">Work in motion</span>
-            <h2 class="display-md" style="margin-top: 1rem;">The UI should show the operating proof.</h2>
+            <h2 class="display-md" style="margin-top: 1rem;">Live work should be visible.</h2>
             <p class="body-lg" style="margin-top: 1.25rem;">
-              bapX follows the best pattern from Claude, Cursor, Linear, Expo, and Copilot: show the real work surface. The product should expose timelines, queues, code windows, browser checks, PR evidence, connector state, and observability, not only marketing tiles.
+              The product surface should show the actual bapX operating room: central chat, specialist agents, task queues, code and browser checks, PR evidence, connector state, billing state, and observability/eval evidence when work is running.
             </p>
           </div>
           <div class="timeline-card">
@@ -275,8 +249,8 @@ const comparisonRows = [
       <section class="page-section">
         <div class="section-inner">
           <div class="section-heading compact">
-            <h2 class="display-md">Capabilities that need to be surfaced as product, not promises.</h2>
-            <p class="body-lg">The UI now leads with the concrete operating model: agents as a team, governed hosted tools, channels, MCP/A2A, OKF workspace structure, and India billing.</p>
+            <h2 class="display-md">What bapX exposes as the operating surface.</h2>
+            <p class="body-lg">The UI leads with the concrete product model: the central bapX agent, specialist agents, governed hosted tools, channels, MCP/A2A, OKF workspace structure, and India billing.</p>
           </div>
           <div class="capability-grid">
             {capabilities.map(([title, body]) => (

@@ -61,7 +61,7 @@ export function AppSidebar() {
       <SidebarHeader className="gap-2 p-3">
         <div className="flex items-center gap-2 px-1">
           <img className="h-7 w-auto" src="/brand/bapx-logo-main.svg" alt="bapX" />
-          <span className="font-semibold">{operatingSurface.label}</span>
+          <span className="font-serif text-lg italic tracking-tight text-foreground/90">{operatingSurface.label}</span>
         </div>
         <Button asChild variant="outline" className="w-full justify-start gap-2">
           <Link to="/">

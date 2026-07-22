@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { parseAgentUrl } from '@/lib/bapX-client'
+import { operatingSurface } from '@/lib/operating-surface.mjs'
 import { useConversations } from '@/state/conversations'
 import { useSettings } from '@/state/settings'
 
@@ -41,7 +42,10 @@ export function NewChat() {
       </header>
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-4">
         <div className="w-full max-w-3xl">
-          <img className="mx-auto mb-5 h-9 w-auto" src="/brand/bapx-logo-main.svg" alt="bapX" />
+          <div className="mx-auto mb-5 flex items-baseline justify-center gap-2">
+            <img className="h-9 w-auto" src="/brand/bapx-logo-main.svg" alt="bapX" />
+            <span className="font-serif text-2xl italic tracking-tight text-foreground/90">{operatingSurface.label}</span>
+          </div>
           <div className="text-center">
             <Badge variant="outline" className="mb-3 gap-1">
               <Sparkles className="size-3" />

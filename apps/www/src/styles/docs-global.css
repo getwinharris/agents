@@ -124,6 +124,25 @@
 	border-left-color: #6b7280;
 }
 
+.brand-lockup {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 0.48rem;
+}
+
+.brand-lockup img {
+	flex: 0 0 auto;
+}
+
+.brand-lockup span {
+	color: var(--ink);
+	font-size: 1.08rem;
+	font-style: italic;
+	font-weight: 400;
+	letter-spacing: -0.04em;
+	opacity: 0.9;
+}
+
 [data-docs-sidebar-link] {
 	transition: color 150ms ease;
 }

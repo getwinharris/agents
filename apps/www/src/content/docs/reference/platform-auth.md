@@ -14,12 +14,30 @@ bapX uses Platform for account identity and configuration. Agents/Admin use the 
 
 If GitHub OAuth is not configured, sign-in must fail with a clear setup error rather than a broken page. Production OAuth setup is tracked separately from documentation.
 
+## GitHub App setup
+
+bapX uses a GitHub App for the current identity flow and for later repository authorization. GitHub does not let a server create that App silently: an owner of the target GitHub account or organization must approve the App Manifest once in the browser.
+
+When production shows `GitHub login is not configured`, the deployment is missing `GITHUB_CLIENT_ID` or `GITHUB_CLIENT_SECRET`. Open:
+
+```text
+https://bapx.in/api/auth/oauth/github/manifest?owner=bapXai
+```
+
+Review the prefilled GitHub App, create it, copy the one-time `code` from the redirect URL, then exchange it from an authenticated GitHub CLI session:
+
+```bash
+gh api -X POST /app-manifests/<code>/conversions
+```
+
+Put the returned `client_id` and `client_secret` into the production deployment environment as `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`, then recreate the web service. The returned App `id` and `pem` also power repository installation authorization through `BAPX_GITHUB_APP_ID` and `BAPX_GITHUB_APP_PRIVATE_KEY`; the installation id is added after installing the App on the organization or repositories.
+
 ## Workspace routing
 
 Customer projects live under:
 
 ```text
-root-sandbox/<username>/<business-slug>/projects/<project-slug>/
+root-sandbox//<username>/<business-slug>/projects/<project-slug>/
 ```
 
 Platform owns account, billing, storage quota, API keys, connectors, MCP configuration, and observability. Agents/Admin own the operating workspace: central bapX agent chat, specialist agents, automations, projects, team work, and connector-driven actions.

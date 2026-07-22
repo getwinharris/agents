@@ -156,6 +156,32 @@ describe('Agents host routing', () => {
 		assert.match(response.headers['set-cookie']?.join(';') ?? '', /bapx_oauth_return_to=/);
 	});
 
+	it('opens the GitHub App manifest setup flow from the auth surface', async () => {
+		const response = await request(port, {
+			host: 'bapx.in',
+			pathname: '/api/auth/oauth/github/manifest',
+		});
+		assert.equal(response.status, 303);
+		const location = new URL(response.headers.location);
+		assert.equal(location.origin, 'https://github.com');
+		assert.equal(location.pathname, '/organizations/bapXai/settings/apps/new');
+		const manifest = JSON.parse(location.searchParams.get('manifest'));
+		assert.equal(manifest.name, 'bapX');
+		assert.equal(manifest.redirect_url, 'https://bapx.in/login/');
+		assert.equal(manifest.hook_attributes.url, 'https://bapx.in/api/channels/github/webhook');
+		assert.deepEqual(manifest.default_permissions, {
+			metadata: 'read',
+			administration: 'write',
+			contents: 'write',
+			issues: 'write',
+			members: 'write',
+			organization_projects: 'write',
+			pull_requests: 'write',
+			repository_projects: 'write',
+			workflows: 'write',
+		});
+	});
+
 	it('does not persist an external OAuth return destination', async () => {
 		const response = await request(port, {
 			host: 'bapx.in',

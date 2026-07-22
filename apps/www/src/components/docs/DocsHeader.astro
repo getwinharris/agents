@@ -13,14 +13,16 @@ interface Props {
 const { currentSlug, sections = docsSections, activeSection, baseUrl } = Astro.props;
 const githubUrl = 'https://github.com/getwinharris/agents';
 const selectedSection = activeSection ?? getDocsSection(currentSlug);
+const brandSuffix = baseUrl.includes('blogs.bapx.in') ? 'blogs' : 'docs';
 ---
 
 <header class="sticky top-0 z-20 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
 	<div class="mx-auto flex h-14 w-[min(100%,var(--docs-frame-width))] items-center justify-between px-5">
 		<div class="flex h-full shrink-0 items-center gap-8">
 			<div class="shrink-0">
-				<a href="https://bapx.in" class="flex items-center gap-2" aria-label="bapX homepage">
+				<a href="https://bapx.in" class="brand-lockup" aria-label={`bapX ${brandSuffix}`}>
 					<img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
+					<span>{brandSuffix}</span>
 				</a>
 			</div>
 			<nav class="hidden h-full items-center gap-7 text-sm font-medium docs-desktop:flex" aria-label="Documentation sections">

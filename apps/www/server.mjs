@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPlatformStore } from './src/server/platform-store.mjs';
-import { githubAuthorization, githubIdentity } from './src/server/github-oauth.mjs';
+import { githubAppManifestRegistrationUrl, githubAuthorization, githubIdentity } from './src/server/github-oauth.mjs';
 import { authorizeAdminApiRequest, authorizeAdminRequest, parseAdminGithubUserIds } from './src/server/admin-authorization.mjs';
 import { GitHubProjectImportError, importPublicGitHubProject, listGitHubProjects } from './src/server/github-project-import.mjs';
 import { resolveGitHubRepositoryReference } from './src/server/github-repository.mjs';
@@ -240,6 +240,14 @@ async function handleAuthAPI(req, res, urlPath, host) {
 			if (returnTo) cookies.push(`bapx_oauth_return_to=${encodeURIComponent(returnTo)}; Path=/api/auth/oauth/github; HttpOnly; Secure; SameSite=Lax; Max-Age=600`);
 			res.setHeader('Set-Cookie', cookies);
 			redirect(res, authorization.url);
+		} catch (error) {
+			redirect(res, `/login/?error=${encodeURIComponent(error.message)}`);
+		}
+		return true;
+	}
+	if (req.method === 'GET' && urlPath === '/api/auth/oauth/github/manifest') {
+		try {
+			redirect(res, githubAppManifestRegistrationUrl(new URL(req.url, 'https://bapx.in').searchParams.get('owner')));
 		} catch (error) {
 			redirect(res, `/login/?error=${encodeURIComponent(error.message)}`);
 		}

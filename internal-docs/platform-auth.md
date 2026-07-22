@@ -28,6 +28,7 @@ Admin authority is a wider workspace scope, not a different product or an admin-
 | Endpoint | Method | Current behavior |
 | --- | --- | --- |
 | `/api/auth/oauth/github` | `GET` | Starts GitHub OAuth with a short-lived state cookie. |
+| `/api/auth/oauth/github/manifest` | `GET` | Redirects an operator to GitHub's App Manifest registration page for the configured owner. |
 | `/api/auth/oauth/github/callback` | `GET` | Validates state, resolves a verified GitHub identity, creates or loads the account, and creates a device session. |
 | `/api/auth/logout` | `POST` | Revokes the current device session and clears its cookie. |
 | `/api/auth/session` | `GET` | Returns the safe account for a valid session or `401` |
@@ -71,8 +72,43 @@ The `flue-www` service receives these values from the VPS deployment environment
 | `GITHUB_OAUTH_CALLBACK_URL` | Exact callback URL; production uses `https://bapx.in/api/auth/oauth/github/callback`. |
 
 The GitHub App is owned by the approved GitHub account or organization and is configured
-through GitHub settings. Repository installation authorization is separate from identity
-authorization. Do not persist GitHub access tokens in account collections or workspace files.
+through GitHub's App Manifest flow. Repository installation authorization is separate from
+identity authorization. Do not persist GitHub access tokens in account collections or
+workspace files.
+
+Production compose reads these variables from `/docker/traefik-vmm1/.env`. A missing or
+empty `GITHUB_CLIENT_ID` or `GITHUB_CLIENT_SECRET` makes `/api/auth/oauth/github` redirect
+back to `/login/?error=GitHub%20login%20is%20not%20configured`.
+
+To create the GitHub App without clicking through the whole settings UI:
+
+1. Open `https://bapx.in/api/auth/oauth/github/manifest?owner=bapXai` in a browser
+   authenticated as an owner of the target GitHub organization.
+2. Review the prefilled GitHub App manifest and click **Create GitHub App**.
+3. GitHub redirects back to `https://bapx.in/login/?code=...`; copy the one-time `code`
+   query parameter from the address bar.
+4. Exchange that code from the VPS:
+
+   ```bash
+   gh api -X POST /app-manifests/<code>/conversions
+   ```
+
+5. Update `/docker/traefik-vmm1/.env` with the returned values:
+
+   ```dotenv
+   GITHUB_CLIENT_ID=<client_id>
+   GITHUB_CLIENT_SECRET=<client_secret>
+   BAPX_GITHUB_APP_ID=<id>
+   BAPX_GITHUB_APP_PRIVATE_KEY=<pem with newlines escaped as \n>
+   ```
+
+   Add `BAPX_GITHUB_INSTALLATION_ID` only after the app has been installed on the
+   repositories/org account and the installation id is known.
+6. Recreate the service so compose interpolates the new values:
+
+   ```bash
+   docker compose --project-directory /docker/traefik-vmm1 -f /docker/traefik-vmm1/docker-compose.yml up -d --force-recreate flue-www
+   ```
 
 After changing credentials, recreate the `flue-www` container and verify that the start
 endpoint redirects to `github.com/login/oauth/authorize`, the callback returns to the exact
@@ -83,7 +119,6 @@ logs, account data, or the repository.
 
 Do not describe these as working externally until implemented and validated:
 
-- GitHub App registration and production credentials;
 - explicit logout UI, CSRF protection beyond the OAuth state check, and rate limiting;
 - provider-account and connector linking for OpenAI, Google, Anthropic, and other services;
 - the intended conversational 10–15-step onboarding flow;

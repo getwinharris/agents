@@ -2,6 +2,51 @@ import crypto from 'node:crypto';
 
 const callbackUrl = process.env.GITHUB_OAUTH_CALLBACK_URL || 'https://bapx.in/api/auth/oauth/github/callback';
 const headers = { Accept: 'application/vnd.github+json', 'User-Agent': 'bapX', 'X-GitHub-Api-Version': '2022-11-28' };
+const defaultAppOwner = process.env.GITHUB_APP_MANIFEST_OWNER || 'bapXai';
+
+function githubAppManifest() {
+	return {
+		name: process.env.GITHUB_APP_MANIFEST_NAME || 'bapX',
+		url: 'https://bapx.in',
+		hook_attributes: {
+			url: 'https://bapx.in/api/channels/github/webhook',
+			active: true,
+		},
+		redirect_url: 'https://bapx.in/login/',
+		public: false,
+		default_permissions: {
+			metadata: 'read',
+			administration: 'write',
+			contents: 'write',
+			issues: 'write',
+			members: 'write',
+			organization_projects: 'write',
+			pull_requests: 'write',
+			repository_projects: 'write',
+			workflows: 'write',
+		},
+		default_events: [
+			'membership',
+			'organization',
+			'project',
+			'project_card',
+			'project_column',
+			'push',
+			'pull_request',
+			'repository',
+			'team',
+			'issues',
+		],
+	};
+}
+
+export function githubAppManifestRegistrationUrl(owner = defaultAppOwner) {
+	const cleanOwner = String(owner || defaultAppOwner).trim();
+	if (!/^[a-zA-Z0-9][a-zA-Z0-9-]{0,38}$/.test(cleanOwner)) throw new Error('GitHub App owner is invalid');
+	const url = new URL(`https://github.com/organizations/${cleanOwner}/settings/apps/new`);
+	url.searchParams.set('manifest', JSON.stringify(githubAppManifest()));
+	return url.href;
+}
 
 export function githubAuthorization() {
 	if (!process.env.GITHUB_CLIENT_ID) throw new Error('GitHub login is not configured');
