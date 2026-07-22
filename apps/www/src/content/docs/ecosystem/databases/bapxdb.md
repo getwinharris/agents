@@ -11,7 +11,7 @@ It is not a replacement for Postgres, Redis, or other runtime persistence adapte
 Production bapXdb work must keep the existing OKF hierarchy:
 
 ```text
-users/<username>/<organisation-slug>/projects/<project-slug>/
+root-sandbox/<username>/<organisation-slug>/projects/<project-slug>/
 ```
 
 Schema changes must update public docs, internal docs, map validation, migration/reset behavior, and browser-visible state in the same change.

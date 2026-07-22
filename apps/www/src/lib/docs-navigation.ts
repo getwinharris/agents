@@ -34,6 +34,9 @@ const allDocsSections: DocsSection[] = [
 				items: [
 					{ title: 'Getting Started', slug: 'getting-started/quickstart' },
 					{ title: 'Development', slug: 'reference/development' },
+					{ title: 'Source Ownership', slug: 'reference/source-ownership' },
+					{ title: 'Platform Auth', slug: 'reference/platform-auth' },
+					{ title: 'Shipping Workflow', slug: 'reference/shipping' },
 					{ title: 'Why bapX?', slug: 'introduction/why-bapx' },
 					{ title: 'What is an agent?', slug: 'concepts/agents' },
 					{ title: 'Durable Agents', slug: 'concepts/durable-execution' },

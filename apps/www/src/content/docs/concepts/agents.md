@@ -13,7 +13,7 @@ Every bapX agent is built from four components:
 1. **A model** — The LLM that powers your agent (Claude, GPT, Gemini, etc.). Choose from any supported provider.
 2. **Instructions** — What your agent does. Written in plain language: "Handle customer support for Acme Corp. Process refunds, answer product questions, escalate when stuck."
 3. **Tools** — What your agent can access. MCP servers, APIs, databases, file systems, or custom integrations.
-4. **Channels** — How your team interacts with the agent. Slack, GitHub, email, Discord, or direct API.
+4. **Channels** — How your team and other agents interact with the agent. Slack, GitHub, email, Discord, MCP tools, or A2A handoffs.
 
 Configure all four from your workspace — no code required.
 
@@ -50,4 +50,4 @@ bapX agents work best for ongoing, operational tasks:
 
 - [Create your first agent](/docs/getting-started/quickstart/) in minutes
 - [Connect channels](/docs/guide/channels/) to your agents
-- [Explore the platform](/docs/platform/overview/) for billing, teams, and API keys
+- [Explore the platform](/docs/platform/overview/) for billing, teams, provider keys, MCP, and A2A access

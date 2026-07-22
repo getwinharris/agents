@@ -16,7 +16,7 @@ lastReviewedAt: 2026-07-11
 
 ### 1. Create your workspace
 
-Go to [platform.bapx.in](https://platform.bapx.in) and sign up. Platform creates your account, user-level OKF workspace, and first business. New projects and imported GitHub repositories live under `users/<username>/<business-slug>/projects/<project-slug>/`; importing a repository does not bypass the OKF structure.
+Go to [platform.bapx.in](https://platform.bapx.in) and sign up. Platform creates your account, user-level OKF workspace, and first business. Public docs describe the workspace boundary as `root-sandbox/<username>/<business-slug>/projects/<project-slug>/`. Importing a repository does not bypass the OKF structure.
 
 ### 2. Open the bapX agent workspace
 
@@ -42,7 +42,7 @@ Plug your agent into the tools your team already uses:
 - **Slack** — Let your team tag the agent in channels
 - **GitHub** — Auto-triage issues and PRs
 - **Email** — Handle customer tickets via Resend
-- **API** — Direct HTTP access to your agent
+- **MCP / A2A** — Agent-to-agent and tool access through the Model Context Protocol gateway
 
 Configure channels from Platform settings, then use them from Agents/Admin inside the selected business/project scope.
 

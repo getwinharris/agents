@@ -25,8 +25,16 @@ function validSlug(value) {
 	return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
 }
 
-function markdown(title, description) {
-	return `---\ntitle: ${JSON.stringify(title)}\ndescription: ${JSON.stringify(description)}\n---\n\n# ${title}\n\n${description}\n`;
+function folderIndex({ title, description, type = 'folder-index', children = [] }) {
+	const quote = (value) => JSON.stringify(value);
+	const childLines = children.length === 0
+		? ''
+		: `children:\n${children.map((child) => [
+			`  - path: ${quote(child.path)}`,
+			`    title: ${quote(child.title)}`,
+			child.description ? `    description: ${quote(child.description)}` : '',
+		].filter(Boolean).join('\n')).join('\n')}\n`;
+	return `title: ${quote(title)}\ndescription: ${quote(description)}\ntype: ${quote(type)}\n${childLines}`;
 }
 
 function ensureUserWorkspace(workspaceRoot, account, business) {
@@ -41,15 +49,33 @@ function ensureUserWorkspace(workspaceRoot, account, business) {
 	fs.mkdirSync(path.join(businessRoot, 'collections'), { recursive: true });
 	fs.mkdirSync(path.join(businessRoot, 'schemas'), { recursive: true });
 	fs.copyFileSync(path.join(workspaceRoot, 'OKF.md'), path.join(userRoot, 'OKF.md'));
-	fs.writeFileSync(path.join(userRoot, 'index.md'), markdown(account.name, `Workspace owned by ${account.username}.`));
+	fs.writeFileSync(path.join(userRoot, 'index.yaml'), folderIndex({
+		title: account.name,
+		description: `Workspace owned by ${account.username}.`,
+		children: [
+			{ path: 'OKF.md', title: 'OKF contract' },
+			{ path: 'map.mmd', title: 'Workspace map' },
+			{ path: `${business.slug}/`, title: business.name },
+		],
+	}));
 	fs.writeFileSync(path.join(userRoot, 'map.mmd'), `flowchart TD\n  user[${JSON.stringify(account.username)}] --> business[${JSON.stringify(business.slug)}]\n`);
-	fs.writeFileSync(path.join(businessRoot, 'index.md'), markdown(business.name, 'Business workspace.'));
-	fs.writeFileSync(path.join(businessRoot, 'DESIGN.md'), markdown(`${business.name} Design`, 'Brand and interface constraints collected during onboarding.'));
+	fs.writeFileSync(path.join(businessRoot, 'index.yaml'), folderIndex({
+		title: business.name,
+		description: 'Business workspace.',
+		children: [
+			{ path: 'DESIGN.md', title: `${business.name} Design` },
+			{ path: 'brand.css', title: 'Brand CSS' },
+			{ path: 'logos/', title: 'Logos' },
+			{ path: 'projects/', title: 'Projects' },
+			{ path: 'map.mmd', title: 'Business map' },
+		],
+	}));
+	fs.writeFileSync(path.join(businessRoot, 'DESIGN.md'), `---\ntitle: ${JSON.stringify(`${business.name} Design`)}\ndescription: "Brand and interface constraints collected during onboarding."\n---\n\n# ${business.name} Design\n\nBrand and interface constraints collected during onboarding.\n`);
 	fs.writeFileSync(path.join(businessRoot, 'brand.css'), ':root {\n  --brand-name: "' + business.name.replaceAll('"', '\\"') + '";\n}\n');
 	fs.writeFileSync(path.join(businessRoot, 'map.mmd'), `flowchart TD\n  business[${JSON.stringify(business.slug)}] --> projects\n  business --> logos\n  business --> collections\n`);
-	fs.writeFileSync(path.join(businessRoot, 'logos/index.md'), markdown('Logos', 'Business logo assets.'));
+	fs.writeFileSync(path.join(businessRoot, 'logos/index.yaml'), folderIndex({ title: 'Logos', description: 'Business logo assets.' }));
 	fs.writeFileSync(path.join(businessRoot, 'logos/map.mmd'), 'flowchart TD\n  logos\n');
-	fs.writeFileSync(path.join(businessRoot, 'projects/index.md'), markdown('Projects', 'Projects owned by this business.'));
+	fs.writeFileSync(path.join(businessRoot, 'projects/index.yaml'), folderIndex({ title: 'Projects', description: 'Projects owned by this business.' }));
 	fs.writeFileSync(path.join(businessRoot, 'projects/map.mmd'), 'flowchart TD\n  projects\n');
 	writeJson(path.join(businessRoot, 'collections/business.json'), business);
 	writeJson(path.join(businessRoot, 'schemas/business.schema.json'), {

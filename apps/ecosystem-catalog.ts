@@ -257,7 +257,7 @@ export const deploy: EcosystemItem[] = [
 ].sort(sortEcosystemItems);
 
 export const sandboxes: EcosystemItem[] = [
-	{ name: 'boxd', href: '/docs/ecosystem/sandboxes/boxd/', background: '#2563eb' },
+	{ name: 'boxd', href: '/docs/ecosystem/sandboxes/boxd/', background: '#8851d9' },
 	{
 		name: 'Cloudflare Sandbox',
 		href: '/docs/ecosystem/sandboxes/cloudflare/',
@@ -285,9 +285,9 @@ export const sandboxes: EcosystemItem[] = [
 		background: '#ffffff',
 		homepageRank: 17,
 	},
-	{ name: 'exe.dev', href: '/docs/ecosystem/sandboxes/exedev/', background: '#2563eb' },
-	{ name: 'islo', href: '/docs/ecosystem/sandboxes/islo/', background: '#2563eb' },
-	{ name: 'Mirage', href: '/docs/ecosystem/sandboxes/mirage/', background: '#2563eb' },
+	{ name: 'exe.dev', href: '/docs/ecosystem/sandboxes/exedev/', background: '#8851d9' },
+	{ name: 'islo', href: '/docs/ecosystem/sandboxes/islo/', background: '#8851d9' },
+	{ name: 'Mirage', href: '/docs/ecosystem/sandboxes/mirage/', background: '#8851d9' },
 	{
 		name: 'Modal',
 		href: '/docs/ecosystem/sandboxes/modal/',

@@ -6,8 +6,10 @@ description: Manage your bapX account settings, billing, API keys, connectors, M
 `platform.bapx.in` is the account, billing, connector, API, MCP, and observability control plane for bapX. It is not a second operating workspace. Every account owns a user-level OKF workspace. Businesses live under that user, and newly created or imported repositories always live as projects inside a business:
 
 ```text
-users/<username>/<business-slug>/projects/<project-slug>/
+root-sandbox/<username>/<business-slug>/projects/<project-slug>/
 ```
+
+The public `root-sandbox/` name is the customer-facing workspace boundary. The server-owned storage path remains internal and is not part of the public product contract.
 
 Creating an account uses a verified GitHub identity and creates the user workspace and its first organisation. bapX does not store a password. The device session continues until explicit logout, subject to browser cookie retention. Repository authorization remains a separate GitHub App permission flow.
 
@@ -34,4 +36,4 @@ Changing the repository input invalidates the previous resolution and confirmati
 
 ### Agents workspace
 
-Opening `agents.bapx.in` requires the same GitHub-backed bapX session. After sign-in, the customer operating surface uses the business main-agent conversation and limits workspace file operations to that account's `users/<username>/workspace` directory. The initial hosted main agent streams a connection check, reasoning, and a scoped workspace-status tool result; selecting and storing customer AI-provider credentials remains a Platform-owned configuration step.
+Opening `agents.bapx.in` requires the same GitHub-backed bapX session. After sign-in, the customer operating surface uses the business main-agent conversation and limits workspace file operations to that account's `root-sandbox/<username>/` workspace boundary. The initial hosted main agent streams a connection check, reasoning, and a scoped workspace-status tool result; selecting and storing customer AI-provider credentials remains a Platform-owned configuration step.

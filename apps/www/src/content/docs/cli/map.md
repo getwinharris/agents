@@ -20,17 +20,17 @@ Profiles add required-file checks on top of map freshness.
 
 ```sh
 bapX map --root demo --check --profile demo-project
-bapX map --root /root/bapx.in/users/<user> --check --profile user-workspace
-bapX map --root /root/bapx.in/users/<user>/<business-slug> --check --profile business-workspace
-bapX map --root /root/bapx.in/users/<user>/<business-slug>/projects/<project-name-slug> --check --profile user-project
+bapX map --root <real-user-workspace-path> --check --profile user-workspace
+bapX map --root <real-business-workspace-path> --check --profile business-workspace
+bapX map --root <real-project-workspace-path> --check --profile user-project
 ```
 
 `demo-project` requires `OKF.md`, `README.md`, `map.mmd`, `docs/index.md`, `docs/map.mmd`, `src/`, and `src/lib/bapX-client.ts`.
 
-`user-workspace` requires `.git/`, `OKF.md`, `index.md`, and `map.mmd`.
+`user-workspace` requires `.git/`, `OKF.md`, `index.yaml`, and `map.mmd`.
 
-`business-workspace` requires `index.md`, `map.mmd`, `DESIGN.md`, `brand.css`, `logos/index.md`, `logos/map.mmd`, `projects/index.md`, and `projects/map.mmd`.
+`business-workspace` requires `index.yaml`, `map.mmd`, `DESIGN.md`, `brand.css`, `logos/index.yaml`, `logos/map.mmd`, `projects/index.yaml`, and `projects/map.mmd`.
 
-`user-project` requires `index.md`, `map.mmd`, `docs/`, `docs/index.md`, and `docs/map.mmd`.
+`user-project` requires `index.yaml`, `map.mmd`, `docs/`, `docs/index.yaml`, and `docs/map.mmd`.
 
 Map validation does not replace browser tests, package tests, or source inspection. Use it as the structure check before release evidence.

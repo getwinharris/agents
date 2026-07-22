@@ -9,4 +9,10 @@ The bapX CLI is a supported build, development, validation, docs, and map tool f
 
 Non-sensitive architecture, extension points, source ownership, schemas, and development workflows belong in these public docs. Credentials, private host locations, incident procedures, secret rotation, and exploitable infrastructure details remain restricted.
 
-Every product change must update its tests, public developer/customer documentation, operational documentation, maps when structure changes, and `CHANGELOG.md` before it is shipped. See [Contributing](/docs/reference/contributing/) for the issue, discussion, branch, review, and validation workflow.
+Start with the public contracts:
+
+- [Source Ownership](/docs/reference/source-ownership/) — which source owns each surface and where new work belongs.
+- [Platform Auth and Workspace Contract](/docs/reference/platform-auth/) — public identity, connector, Admin, Agents, and OKF routing boundaries.
+- [Shipping Workflow](/docs/reference/shipping/) — docs, tests, map, browser, and release evidence required before merge.
+
+Every product change must update its tests, public developer/customer documentation, operational documentation, maps when structure changes, and `CHANGELOG.md` before it is shipped.

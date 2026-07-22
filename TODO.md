@@ -40,7 +40,7 @@ Tracking: [Discussion #34](https://github.com/getwinharris/agents/discussions/34
 - [ ] Resolve destinations only below the selected organization `projects/` root.
 - [ ] Refuse an existing project directory, conflicting project ID, conflicting repository identity, or incompatible existing Git remote without overwriting anything.
 - [ ] Clone into a temporary sibling directory and atomically move the verified result into place.
-- [ ] Create the required project `index.md`, `docs/index.md`, `docs/map.mmd`, `map.mmd`, collection record, and JSON Schema through the existing OKF/map owners.
+- [ ] Create the required project `index.yaml`, `docs/index.yaml`, `docs/map.mmd`, `map.mmd`, collection record, and JSON Schema through the existing OKF/map owners.
 - [ ] Preserve repository files, default branch, origin identity, commit SHA, and source visibility metadata.
 - [ ] Remove temporary files and revoke short-lived credentials after success or failure.
 - [ ] Add integration tests proving path isolation, idempotent failure, cleanup, and visibility preservation.

@@ -837,20 +837,20 @@ function validateMapProfile(root: string, profile: MapArgs['profile']): string[]
 			? [
 					['.git', 'dir'],
 					['OKF.md', 'file'],
-					['index.md', 'file'],
+					['index.yaml', 'file'],
 					['map.mmd', 'file'],
 				]
 			: profile === 'business-workspace'
 				? [
-						['index.md', 'file'],
+						['index.yaml', 'file'],
 						['map.mmd', 'file'],
 						['DESIGN.md', 'file'],
 						['brand.css', 'file'],
 						['logos', 'dir'],
-						['logos/index.md', 'file'],
+						['logos/index.yaml', 'file'],
 						['logos/map.mmd', 'file'],
 						['projects', 'dir'],
-						['projects/index.md', 'file'],
+						['projects/index.yaml', 'file'],
 						['projects/map.mmd', 'file'],
 					]
 			: profile === 'demo-project'
@@ -865,10 +865,10 @@ function validateMapProfile(root: string, profile: MapArgs['profile']): string[]
 						['src/lib/bapX-client.ts', 'file'],
 					]
 			: [
-					['index.md', 'file'],
+					['index.yaml', 'file'],
 					['map.mmd', 'file'],
 					['docs', 'dir'],
-					['docs/index.md', 'file'],
+					['docs/index.yaml', 'file'],
 					['docs/map.mmd', 'file'],
 				];
 

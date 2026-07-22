@@ -31,6 +31,12 @@ Every customer project remains inside:
 /root/bapx.in/users/<username>/<organization-slug>/projects/<project-slug>/
 ```
 
+Public-facing docs should describe this customer workspace boundary as:
+
+```text
+root-sandbox/<username>/<organization-slug>/projects/<project-slug>/
+```
+
 An imported repository never bypasses the user and organization hierarchy.
 
 ## Product surfaces

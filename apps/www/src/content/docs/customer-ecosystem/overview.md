@@ -32,7 +32,7 @@ Your credentials remain scoped to your account, business, and projects. Connecto
 New projects and imported GitHub repositories live inside the selected business:
 
 ```text
-users/<username>/<business-slug>/projects/<project-slug>/
+root-sandbox/<username>/<business-slug>/projects/<project-slug>/
 ```
 
 Importing an existing repository does not remove the user-level OKF or business/project workspace structure.
