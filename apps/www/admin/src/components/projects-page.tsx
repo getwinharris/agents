@@ -234,7 +234,7 @@ export function ProjectsPage() {
               onChange={(event) => { setProjectSlug(event.target.value.toLowerCase()); setConfirmed(false) }}
               required
               disabled={!resolved}
-              pattern="[a-z0-9][a-z0-9._-]{0,98}[a-z0-9]|[a-z0-9]"
+              pattern="[a-z0-9](?:[a-z0-9._]|-){0,98}[a-z0-9]|[a-z0-9]"
               maxLength={100}
               placeholder="owner-repository"
               className="mt-2 h-10 w-full rounded-md border bg-background px-3 font-mono text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"

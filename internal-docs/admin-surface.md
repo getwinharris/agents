@@ -79,7 +79,7 @@ The first working Projects slice reuses the existing Admin React application, ex
 
 ## Admin session handoff persistence
 
-The platform store owns a narrow, internal handoff primitive for exchanging an authenticated central-platform account for a future Admin-audience session without broadening the existing session cookie to the parent domain.
+The platform store and existing auth router exchange an authenticated central-platform account for an Admin-host session without broadening the existing session cookie to the parent domain.
 
 - Handoff bearer values are opaque 256-bit tokens. Persistence stores only their SHA-256 digests with the account id, `admin` audience, creation time, and absolute expiry.
 - The lifetime is fixed by the store at 60 seconds. Callers cannot supply or extend the TTL, and redemption fails at the exact expiry boundary.
@@ -87,7 +87,9 @@ The platform store owns a narrow, internal handoff primitive for exchanging an a
 - Missing persistence initializes an empty version-1 collection. Malformed JSON, unsupported schema versions, invalid collection envelopes, and malformed persisted records fail closed and must not be overwritten as empty state.
 - Every persisted record must contain a 64-character lowercase SHA-256 digest, a non-empty account id, the exact `admin` audience, parseable creation and expiry timestamps, and an expiry exactly 60 seconds after creation. Invalid record content or timing relationships are corruption, not expired data to prune.
 - Expired records are removed during issuance and redemption. A failed redemption that consumes nothing and removes no expired records leaves persistence byte-for-byte unchanged.
-- This primitive is not an HTTP authentication route and does not create or set an Admin cookie. It must not be treated as deployed authorization until issuance, redemption, entitlement revalidation, CSRF/origin enforcement, and the Admin-audience session owner are wired through the production request handler.
+- An anonymous Admin document request redirects to `bapx.in/api/auth/admin` with an allowlisted Admin return URL. An authenticated central session must pass the existing GitHub provider-ID authorization owner before the server returns a nonce-bound, no-store auto-submitting handoff form.
+- `POST admin.bapx.in/api/auth/admin/handoff` accepts only the exact `https://bapx.in` origin, redeems the bearer once, revalidates entitlement, creates the existing host-only session cookie, and redirects only to an HTTPS Admin URL. Wrong-origin requests are rejected before body parsing; expired, unknown, and replayed handoffs return `authentication_required`.
+- Anonymous Admin APIs continue returning JSON `401` rather than browser redirects. Anonymous Admin documents redirect through the central login and handoff flow, while authenticated non-Admin documents and APIs fail with `403`.
 - The JSON consume sequence is acceptable only after deployment proves that one process can serve redemption. A multi-process deployment requires transactional storage or cross-process exclusive locking before an exposed redemption route is enabled.
 - A restart discards only in-memory process state; persisted unexpired handoffs remain until consumed or pruned. Rollback of an exposed handoff flow must revoke persisted handoffs and Admin sessions while preserving default-deny Admin access.
 

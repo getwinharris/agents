@@ -25,6 +25,8 @@ The base workspace costs **$5 per month** and includes **5 GB** of storage, host
 
 Platform manages ownership and configuration. `agents.bapx.in` operates the selected business and project; `admin.bapx.in` uses the same operating model with bapX-wide authority.
 
+Opening `admin.bapx.in` first verifies the existing GitHub-backed bapX session on the central domain, then exchanges a single-use short-lived handoff for an Admin-host session. The server revalidates the configured GitHub provider-ID entitlement before serving the Admin workspace; customer accounts without that entitlement cannot use bapX-wide Admin authority.
+
 ### Repository import
 
 The Admin Projects surface resolves a GitHub repository through the configured GitHub App before enabling destination editing or import confirmation. It displays GitHub's canonical repository identity, visibility, and default branch, and suggests the non-overwriting Admin destination before mutation. Public repositories can then continue through the existing confirmed import operation. Private repository metadata may be displayed when authorized, but private cloning is not yet enabled and remains disabled in the Admin UI.

@@ -68,3 +68,14 @@ test('Admin invalidates and aborts stale repository resolution when the input ch
 	assert.match(source, /if \(requestId !== resolveRequestId\.current\) return/);
 	assert.match(source, /requestId === resolveRequestId\.current[\s\S]*setResolving\(false\)/);
 });
+
+test('Admin project slug validation compiles with browser Unicode-set semantics', () => {
+	const source = fs.readFileSync(path.resolve(testDirectory, '../admin/src/components/projects-page.tsx'), 'utf8');
+	const pattern = source.match(/pattern="([^"]+)"/)?.[1];
+	assert.ok(pattern);
+	const validation = new RegExp(`^(?:${pattern})$`, 'v');
+	assert.equal(validation.test('owner-repository'), true);
+	assert.equal(validation.test('owner_repository.2'), true);
+	assert.equal(validation.test('-owner'), false);
+	assert.equal(validation.test('owner/repository'), false);
+});
