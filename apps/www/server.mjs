@@ -17,6 +17,7 @@ const port = parseInt(process.env.PORT || '3002', 10);
 const dataDir = path.resolve(dirname, 'data');
 const postsFile = path.join(dataDir, 'posts.json');
 const workspaceRoot = process.env.WORKSPACE_ROOT || path.resolve(dirname, '../../..');
+const githubCliBootstrapFile = process.env.BAPX_GITHUB_CLI_BOOTSTRAP_FILE || path.join(workspaceRoot, 'data', 'platform', 'secrets', 'github-cli-bootstrap.json');
 const platformStore = createPlatformStore({ workspaceRoot });
 const adminAuthorization = parseAdminGithubUserIds(process.env.BAPX_ADMIN_GITHUB_USER_IDS);
 const agentsRuntimeOrigin = new URL(process.env.AGENTS_RUNTIME_ORIGIN || 'http://127.0.0.1:3003');
@@ -177,6 +178,37 @@ function getSessionAccount(req) {
 	return platformStore.getSessionAccount(getCookie(req, 'bapx_session'));
 }
 
+function consumeGitHubCliBootstrap(token) {
+	const supplied = String(token || '').trim();
+	if (!supplied) throw new Error('GitHub CLI bootstrap token is missing');
+	let bootstrap;
+	try {
+		bootstrap = JSON.parse(fs.readFileSync(githubCliBootstrapFile, 'utf8'));
+	} catch {
+		throw new Error('GitHub login is not configured');
+	}
+	if (bootstrap?.schemaVersion !== 1) throw new Error('GitHub CLI bootstrap is invalid');
+	if (new Date(String(bootstrap.expiresAt || '')).getTime() <= Date.now()) {
+		fs.rmSync(githubCliBootstrapFile, { force: true });
+		throw new Error('GitHub CLI bootstrap expired');
+	}
+	const expected = Buffer.from(String(bootstrap.tokenHash || ''), 'hex');
+	const actual = Buffer.from(crypto.createHash('sha256').update(supplied).digest('hex'), 'hex');
+	if (expected.length !== actual.length || !crypto.timingSafeEqual(expected, actual)) {
+		throw new Error('GitHub CLI bootstrap token is invalid');
+	}
+	const profile = bootstrap.profile || {};
+	const providerId = String(profile.id || '');
+	if (!adminAuthorization.hasGithubUserId(providerId)) throw new Error('GitHub CLI bootstrap user is not an authorized admin');
+	fs.rmSync(githubCliBootstrapFile, { force: true });
+	return {
+		id: providerId,
+		login: String(profile.login || ''),
+		name: String(profile.name || profile.login || ''),
+		email: String(profile.email || `${providerId}+${profile.login || 'github'}@users.noreply.github.com`),
+	};
+}
+
 function authorizeAdminApi(req, res, account, host, mutation = false) {
 	const decision = authorizeAdminApiRequest(account, adminAuthorization, {
 		mutation,
@@ -259,6 +291,17 @@ async function handleAuthAPI(req, res, urlPath, host) {
 			redirect(res, safeAdminReturnTo(body.returnTo));
 		} catch {
 			jsonResponse(res, 400, { error: 'invalid_handoff_request' });
+		}
+		return true;
+	}
+	if (req.method === 'GET' && urlPath === '/api/auth/oauth/github/cli-bootstrap' && host === 'bapx.in') {
+		try {
+			const url = new URL(req.url, 'https://bapx.in');
+			const { account } = await platformStore.loginWithGitHub(consumeGitHubCliBootstrap(url.searchParams.get('token')));
+			setSessionCookie(res, platformStore.createSession(account.id).token);
+			redirect(res, safeReturnTo(url.searchParams.get('returnTo')) || 'https://platform.bapx.in/');
+		} catch (error) {
+			redirect(res, `/login/?error=${encodeURIComponent(error.message)}`);
 		}
 		return true;
 	}

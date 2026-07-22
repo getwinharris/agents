@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
@@ -71,6 +72,7 @@ describe('Agents host routing', () => {
 	let nonAdminCookie;
 	let runtime;
 	let runtimePort;
+	let githubCliBootstrapFile;
 
 	before(async () => {
 		workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-agents-routing-'));
@@ -78,6 +80,7 @@ describe('Agents host routing', () => {
 		fs.mkdirSync(siblingRoot);
 		fs.writeFileSync(path.join(workspaceRoot, 'OKF.md'), '# Test OKF\n');
 		fs.writeFileSync(path.join(workspaceRoot, 'root-secret.md'), 'not customer visible\n');
+		githubCliBootstrapFile = path.join(workspaceRoot, 'data', 'platform', 'secrets', 'github-cli-bootstrap.json');
 		fs.writeFileSync(path.join(siblingRoot, 'sibling-secret.md'), 'outside authorized root\n');
 		const store = createPlatformStore({ workspaceRoot });
 		const { account } = await store.loginWithGitHub({
@@ -116,6 +119,7 @@ describe('Agents host routing', () => {
 				AGENTS_RUNTIME_ORIGIN: `http://127.0.0.1:${runtimePort}`,
 				BAPX_RUNTIME_TOKEN: 'runtime-test-token',
 				BAPX_ADMIN_GITHUB_USER_IDS: '1001',
+				BAPX_GITHUB_CLI_BOOTSTRAP_FILE: githubCliBootstrapFile,
 				GITHUB_CLIENT_ID: 'test-client-id',
 			},
 			stdio: 'ignore',
@@ -199,6 +203,32 @@ describe('Agents host routing', () => {
 		});
 		assert.equal(response.status, 303);
 		assert.match(response.headers.location, /^\/login\/\?error=GitHub%20App%20manifest%20code%20is%20missing/);
+	});
+
+	it('consumes a one-time GitHub CLI bootstrap only for an authorized admin identity', async () => {
+		const token = 'single-use-bootstrap-token';
+		fs.mkdirSync(path.dirname(githubCliBootstrapFile), { recursive: true });
+		fs.writeFileSync(githubCliBootstrapFile, `${JSON.stringify({
+			schemaVersion: 1,
+			tokenHash: crypto.createHash('sha256').update(token).digest('hex'),
+			expiresAt: new Date(Date.now() + 60_000).toISOString(),
+			profile: {
+				id: '1001',
+				login: 'routing-user',
+				name: 'Routing User',
+				email: 'routing@example.test',
+			},
+		})}\n`, { mode: 0o600 });
+
+		const response = await request(port, {
+			host: 'bapx.in',
+			pathname: `/api/auth/oauth/github/cli-bootstrap?token=${encodeURIComponent(token)}&returnTo=${encodeURIComponent('https://admin.bapx.in/')}`,
+		});
+
+		assert.equal(response.status, 303);
+		assert.equal(response.headers.location, 'https://admin.bapx.in/');
+		assert.match(response.headers['set-cookie']?.join(';') ?? '', /bapx_session=/);
+		assert.equal(fs.existsSync(githubCliBootstrapFile), false);
 	});
 
 	it('does not persist an external OAuth return destination', async () => {

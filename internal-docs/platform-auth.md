@@ -28,6 +28,7 @@ Admin authority is a wider workspace scope, not a different product or an admin-
 | Endpoint | Method | Current behavior |
 | --- | --- | --- |
 | `/api/auth/oauth/github` | `GET` | Starts GitHub OAuth with a short-lived state cookie. |
+| `/api/auth/oauth/github/cli-bootstrap` | `GET` | Internal one-time operator recovery path that consumes a hashed bootstrap token file and creates the first admin session when production OAuth credentials are still missing. |
 | `/api/auth/oauth/github/manifest` | `GET` | Opens GitHub's App Manifest registration page by POSTing the manifest for the configured owner. |
 | `/api/auth/oauth/github/manifest/callback` | `GET` | Exchanges GitHub's one-time manifest `code`, stores the returned App OAuth credentials in the platform secret store, and sends the operator back to login. |
 | `/api/auth/oauth/github/callback` | `GET` | Validates state, resolves a verified GitHub identity, creates or loads the account, and creates a device session. |
@@ -115,6 +116,30 @@ After changing credentials, recreate the `flue-www` container and verify that th
 endpoint redirects to `github.com/login/oauth/authorize`, the callback returns to the exact
 configured URL, a verified identity reaches Platform, and no credential appears in HTML,
 logs, account data, or the repository.
+
+If the App is not configured yet and an owner must enter Platform/Admin immediately,
+create a short-lived `/root/bapx.in/data/platform/secrets/github-cli-bootstrap.json`
+file with a SHA-256 hash of a one-time token:
+
+```json
+{
+  "schemaVersion": 1,
+  "tokenHash": "<sha256 hex of the one-time token>",
+  "expiresAt": "<ISO timestamp within minutes>",
+  "profile": {
+    "id": "<GitHub numeric user id from gh api user>",
+    "login": "<GitHub login>",
+    "name": "<display name>",
+    "email": "<verified email or GitHub noreply address>"
+  }
+}
+```
+
+The profile id must be listed in `BAPX_ADMIN_GITHUB_USER_IDS`. Visiting
+`https://bapx.in/api/auth/oauth/github/cli-bootstrap?token=...` consumes the file,
+creates or loads the GitHub-backed account, sets the normal `bapx_session` cookie,
+and redirects to Platform or an allowlisted `returnTo` URL. This is a recovery path,
+not the normal customer login flow.
 
 ## Incomplete wiring
 
