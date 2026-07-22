@@ -39,13 +39,43 @@ test('Admin project cards render durable status, operation, and commit evidence'
 	assert.match(source, /<dt[^>]*>Commit<\/dt>[\s\S]*project\.commitSha/);
 });
 
-test('Admin import exposes distinct accessible progress, success, and failure states', () => {
+test('Admin submits the confirmed canonical repository through the existing import owner', () => {
+	const source = fs.readFileSync(path.resolve(testDirectory, '../admin/src/components/projects-page.tsx'), 'utf8');
+	assert.match(source, /fetch\('\/api\/projects\/import'/);
+	assert.match(source, /body: JSON\.stringify\(\{[\s\S]*repositoryUrl: resolved\.repository\.httpsUrl,[\s\S]*projectSlug: projectSlug\.trim\(\),[\s\S]*confirmed,[\s\S]*\}\)/);
+	assert.doesNotMatch(source, /repositoryUrl:\s*\{\s*repositoryUrl,\s*projectSlug,\s*confirmed\s*\}/);
+});
+
+test('Admin resolve and import expose distinct accessible progress, success, and failure states', () => {
 	const source = fs.readFileSync(path.resolve(testDirectory, '../admin/src/components/projects-page.tsx'), 'utf8');
 	assert.match(source, /kind: 'progress' \| 'success' \| 'error'/);
 	assert.match(source, /data-state=\{status\.kind\}/);
 	assert.match(source, /role=\{status\.kind === 'error' \? 'alert' : 'status'\}/);
 	assert.match(source, /aria-live=\{status\.kind === 'error' \? 'assertive' : 'polite'\}/);
-	assert.match(source, /kind: 'progress',[\s\S]*Resolving and importing repository/);
+	assert.match(source, /kind: 'progress',[\s\S]*Resolving repository through the configured GitHub App/);
+	assert.match(source, /kind: 'success',[\s\S]*Resolved \$\{next\.repository\.fullName\}/);
+	assert.match(source, /kind: 'progress',[\s\S]*Importing the resolved repository/);
 	assert.match(source, /kind: 'success',[\s\S]*Imported \$\{body\.project/);
 	assert.match(source, /kind: 'error',[\s\S]*Repository import failed/);
+});
+
+test('Admin invalidates and aborts stale repository resolution when the input changes', () => {
+	const source = fs.readFileSync(path.resolve(testDirectory, '../admin/src/components/projects-page.tsx'), 'utf8');
+	assert.match(source, /const resolveRequestId = useRef\(0\)/);
+	assert.match(source, /const resolveAbortController = useRef<AbortController \| null>\(null\)/);
+	assert.match(source, /updateRepositoryUrl[\s\S]*resolveRequestId\.current \+= 1[\s\S]*resolveAbortController\.current\?\.abort\(\)/);
+	assert.match(source, /signal: controller\.signal/);
+	assert.match(source, /if \(requestId !== resolveRequestId\.current\) return/);
+	assert.match(source, /requestId === resolveRequestId\.current[\s\S]*setResolving\(false\)/);
+});
+
+test('Admin project slug validation compiles with browser Unicode-set semantics', () => {
+	const source = fs.readFileSync(path.resolve(testDirectory, '../admin/src/components/projects-page.tsx'), 'utf8');
+	const pattern = source.match(/pattern="([^"]+)"/)?.[1];
+	assert.ok(pattern);
+	const validation = new RegExp(`^(?:${pattern})$`, 'v');
+	assert.equal(validation.test('owner-repository'), true);
+	assert.equal(validation.test('owner_repository.2'), true);
+	assert.equal(validation.test('-owner'), false);
+	assert.equal(validation.test('owner/repository'), false);
 });

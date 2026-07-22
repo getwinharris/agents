@@ -165,6 +165,93 @@ describe('Agents host routing', () => {
 		assert.doesNotMatch(response.headers['set-cookie']?.join(';') ?? '', /bapx_oauth_return_to=/);
 	});
 
+	it('exchanges the central session for a single-use Admin host session', async () => {
+		const returnTo = 'https://admin.bapx.in/projects?source=handoff-test';
+		const anonymousAdmin = await request(port, { host: 'admin.bapx.in', pathname: '/projects?source=handoff-test' });
+		assert.equal(anonymousAdmin.status, 303);
+		assert.equal(
+			anonymousAdmin.headers.location,
+			`https://bapx.in/api/auth/admin?returnTo=${encodeURIComponent(returnTo)}`,
+		);
+
+		const anonymousIssuer = await request(port, {
+			host: 'bapx.in',
+			pathname: `/api/auth/admin?returnTo=${encodeURIComponent(returnTo)}`,
+		});
+		assert.equal(anonymousIssuer.status, 303);
+		assert.equal(
+			anonymousIssuer.headers.location,
+			`https://bapx.in/login/?returnTo=${encodeURIComponent(returnTo)}`,
+		);
+
+		const issued = await request(port, {
+			host: 'bapx.in',
+			pathname: `/api/auth/admin?returnTo=${encodeURIComponent(returnTo)}`,
+			headers: { cookie },
+		});
+		assert.equal(issued.status, 200);
+		assert.match(issued.headers['content-type'], /^text\/html/);
+		assert.equal(issued.headers['cache-control'], 'no-store');
+		assert.equal(issued.headers['referrer-policy'], 'no-referrer');
+		assert.match(issued.body, /action="https:\/\/admin\.bapx\.in\/api\/auth\/admin\/handoff"/);
+		const token = issued.body.match(/name="token" value="([^"]+)"/)?.[1];
+		assert.ok(token);
+
+		const form = new URLSearchParams({ token, returnTo }).toString();
+		const wrongOrigin = await request(port, {
+			method: 'POST',
+			host: 'admin.bapx.in',
+			pathname: '/api/auth/admin/handoff',
+			headers: { origin: 'https://evil.example', 'content-type': 'application/x-www-form-urlencoded' },
+			body: form,
+		});
+		assert.equal(wrongOrigin.status, 403);
+		assert.deepEqual(JSON.parse(wrongOrigin.body), { error: 'cross_origin_forbidden' });
+
+		const redeemed = await request(port, {
+			method: 'POST',
+			host: 'admin.bapx.in',
+			pathname: '/api/auth/admin/handoff',
+			headers: { origin: 'https://bapx.in', 'content-type': 'application/x-www-form-urlencoded' },
+			body: form,
+		});
+		assert.equal(redeemed.status, 303);
+		assert.equal(redeemed.headers.location, returnTo);
+		assert.match(redeemed.headers['set-cookie']?.join(';') ?? '', /bapx_session=/);
+		const adminCookie = redeemed.headers['set-cookie'][0].split(';')[0];
+		const shell = await request(port, {
+			host: 'admin.bapx.in',
+			pathname: '/projects?source=handoff-test',
+			headers: { cookie: adminCookie },
+		});
+		assert.equal(shell.status, 200);
+		assert.equal(shell.body, marker);
+
+		const replay = await request(port, {
+			method: 'POST',
+			host: 'admin.bapx.in',
+			pathname: '/api/auth/admin/handoff',
+			headers: { origin: 'https://bapx.in', 'content-type': 'application/x-www-form-urlencoded' },
+			body: form,
+		});
+		assert.equal(replay.status, 401);
+		assert.deepEqual(JSON.parse(replay.body), { error: 'authentication_required' });
+	});
+
+	it('denies Admin handoff issuance and shell access to a non-Admin account', async () => {
+		const issuance = await request(port, {
+			host: 'bapx.in',
+			pathname: '/api/auth/admin?returnTo=https%3A%2F%2Fadmin.bapx.in%2F',
+			headers: { cookie: nonAdminCookie },
+		});
+		assert.equal(issuance.status, 403);
+		assert.deepEqual(JSON.parse(issuance.body), { error: 'admin_forbidden' });
+
+		const shell = await request(port, { host: 'admin.bapx.in', headers: { cookie: nonAdminCookie } });
+		assert.equal(shell.status, 403);
+		assert.equal(shell.body, 'Admin access is forbidden');
+	});
+
 	it('serves the shared operating shell when the Agents hostname has a customer session', async () => {
 		const response = await request(port, { headers: { cookie } });
 		assert.equal(response.status, 200);

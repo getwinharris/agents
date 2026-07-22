@@ -1,5 +1,5 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import { ExternalLink, FolderGit2, Loader2 } from 'lucide-react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { ExternalLink, FolderGit2, Loader2, Search } from 'lucide-react'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 
@@ -19,37 +19,53 @@ type ImportResult = {
   message?: string
 }
 
+type ResolvedRepository = {
+  repository: {
+    owner: string
+    repository: string
+    fullName: string
+    httpsUrl: string
+    sshUrl: string
+  }
+  metadata: {
+    repositoryId: number
+    fullName: string
+    ownerType: string
+    defaultBranch: string
+    visibility: 'public' | 'private' | 'internal'
+    private: boolean
+    archived: boolean
+    status: string
+  }
+  project: {
+    slug: string
+    path: string
+  }
+}
+
+type ResolveResult = Partial<ResolvedRepository> & {
+  error?: string
+  message?: string
+}
+
 type StatusState = {
   kind: 'progress' | 'success' | 'error'
   message: string
 }
 
-function repositoryIdentity(repositoryUrl: string) {
-  const trimmed = repositoryUrl.trim().replace(/\.git$/, '')
-  const match = trimmed.match(/github\.com[/:]([^/]+)\/([^/?#]+)$/i)
-  if (!match) return ''
-  return `${match[1]}/${match[2]}`
-}
-
-function suggestedSlug(repositoryUrl: string) {
-  const identity = repositoryIdentity(repositoryUrl)
-  if (!identity) return ''
-  return identity
-    .replace('/', '-')
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
-
 export function ProjectsPage() {
   const [repositoryUrl, setRepositoryUrl] = useState('')
   const [projectSlug, setProjectSlug] = useState('')
+  const [resolved, setResolved] = useState<ResolvedRepository | null>(null)
   const [confirmed, setConfirmed] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [projectsLoading, setProjectsLoading] = useState(true)
   const [projectsLoadError, setProjectsLoadError] = useState<string | null>(null)
   const [status, setStatus] = useState<StatusState | null>(null)
+  const [resolving, setResolving] = useState(false)
   const [loading, setLoading] = useState(false)
+  const resolveRequestId = useRef(0)
+  const resolveAbortController = useRef<AbortController | null>(null)
 
   const loadProjects = async () => {
     setProjectsLoading(true)
@@ -70,33 +86,94 @@ export function ProjectsPage() {
 
   useEffect(() => {
     void loadProjects().catch(() => undefined)
+    return () => resolveAbortController.current?.abort()
   }, [])
 
   const updateRepositoryUrl = (value: string) => {
+    resolveRequestId.current += 1
+    resolveAbortController.current?.abort()
+    resolveAbortController.current = null
+    setResolving(false)
     setRepositoryUrl(value)
+    setResolved(null)
+    setProjectSlug('')
     setConfirmed(false)
-    if (!projectSlug || projectSlug === suggestedSlug(repositoryUrl)) setProjectSlug(suggestedSlug(value))
+    setStatus(null)
+  }
+
+  const resolveRepository = async () => {
+    const submittedRepositoryUrl = repositoryUrl.trim()
+    if (resolving || loading || !submittedRepositoryUrl) return
+
+    const requestId = resolveRequestId.current + 1
+    resolveRequestId.current = requestId
+    const controller = new AbortController()
+    resolveAbortController.current?.abort()
+    resolveAbortController.current = controller
+
+    setResolving(true)
+    setResolved(null)
+    setConfirmed(false)
+    setStatus({ kind: 'progress', message: 'Resolving repository through the configured GitHub App…' })
+    try {
+      const response = await fetch('/api/projects/resolve', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repositoryUrl: submittedRepositoryUrl }),
+        signal: controller.signal,
+      })
+      const body = (await response.json()) as ResolveResult
+      if (requestId !== resolveRequestId.current) return
+      if (!response.ok || !body.repository || !body.metadata || !body.project) {
+        throw new Error(body.message || body.error || 'Repository could not be resolved')
+      }
+      const next = body as ResolvedRepository
+      setResolved(next)
+      setProjectSlug(next.project.slug)
+      setStatus({
+        kind: 'success',
+        message: `Resolved ${next.repository.fullName} as a ${next.metadata.visibility} repository on ${next.metadata.defaultBranch}.`,
+      })
+    } catch (error) {
+      if (requestId !== resolveRequestId.current || (error instanceof DOMException && error.name === 'AbortError')) return
+      setStatus({ kind: 'error', message: error instanceof Error ? error.message : 'Repository could not be resolved' })
+    } finally {
+      if (requestId === resolveRequestId.current) {
+        resolveAbortController.current = null
+        setResolving(false)
+      }
+    }
   }
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
-    if (loading || !repositoryUrl.trim() || !projectSlug.trim() || !confirmed) {
-      setStatus({ kind: 'error', message: 'Confirm the displayed repository and destination before importing.' })
+    if (loading || !resolved || !projectSlug.trim() || !confirmed) {
+      setStatus({ kind: 'error', message: 'Resolve and confirm the displayed repository and destination before importing.' })
+      return
+    }
+    if (resolved.metadata.private) {
+      setStatus({ kind: 'error', message: 'Private repository cloning is not enabled in this Admin slice yet.' })
       return
     }
     setLoading(true)
-    setStatus({ kind: 'progress', message: 'Resolving and importing repository…' })
+    setStatus({ kind: 'progress', message: 'Importing the resolved repository…' })
     try {
       const response = await fetch('/api/projects/import', {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repositoryUrl: { repositoryUrl, projectSlug, confirmed } }),
+        body: JSON.stringify({
+          repositoryUrl: resolved.repository.httpsUrl,
+          projectSlug: projectSlug.trim(),
+          confirmed,
+        }),
       })
       const body = (await response.json()) as ImportResult
       if (!response.ok) throw new Error(body.message || body.error || 'Repository import failed')
       setRepositoryUrl('')
       setProjectSlug('')
+      setResolved(null)
       setConfirmed(false)
       setStatus({
         kind: 'success',
@@ -110,8 +187,8 @@ export function ProjectsPage() {
     }
   }
 
-  const canonicalRepository = repositoryIdentity(repositoryUrl) || 'Enter a supported repository URL'
-  const destinationPath = projectSlug ? `projects/${projectSlug}` : 'Enter a supported repository URL'
+  const canonicalRepository = resolved?.repository.fullName || 'Resolve a supported repository URL'
+  const destinationPath = resolved && projectSlug ? `projects/${projectSlug}` : 'Resolve a supported repository URL'
   const statusClassName = status?.kind === 'error'
     ? 'border-destructive/40 bg-destructive/10 text-destructive'
     : status?.kind === 'success'
@@ -129,20 +206,26 @@ export function ProjectsPage() {
             <p className="text-sm font-medium text-muted-foreground">Admin workspace</p>
             <h1 className="mt-1 text-4xl font-semibold tracking-tight">Projects</h1>
             <p className="mt-3 max-w-2xl text-muted-foreground">
-              Import a public GitHub repository into the existing bapX Admin workspace, then open it in the existing file editor.
+              Resolve a GitHub repository through the configured GitHub App, confirm its canonical identity and destination, then import it into the existing Admin workspace.
             </p>
           </div>
 
           <form onSubmit={submit} className="mt-8 rounded-xl border bg-card p-5 shadow-sm">
             <label htmlFor="repository-url" className="text-sm font-medium">GitHub repository URL</label>
-            <input
-              id="repository-url"
-              value={repositoryUrl}
-              onChange={(event) => updateRepositoryUrl(event.target.value)}
-              required
-              placeholder="https://github.com/owner/repository"
-              className="mt-2 h-10 w-full rounded-md border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
-            />
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+              <input
+                id="repository-url"
+                value={repositoryUrl}
+                onChange={(event) => updateRepositoryUrl(event.target.value)}
+                required
+                placeholder="https://github.com/owner/repository"
+                className="h-10 min-w-0 flex-1 rounded-md border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+              />
+              <Button type="button" variant="outline" onClick={resolveRepository} disabled={resolving || loading || !repositoryUrl.trim()}>
+                {resolving ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
+                Resolve
+              </Button>
+            </div>
 
             <label htmlFor="project-slug" className="mt-4 block text-sm font-medium">Project slug</label>
             <input
@@ -150,10 +233,11 @@ export function ProjectsPage() {
               value={projectSlug}
               onChange={(event) => { setProjectSlug(event.target.value.toLowerCase()); setConfirmed(false) }}
               required
-              pattern="[a-z0-9][a-z0-9._-]{0,98}[a-z0-9]|[a-z0-9]"
+              disabled={!resolved}
+              pattern="[a-z0-9](?:[a-z0-9._]|-){0,98}[a-z0-9]|[a-z0-9]"
               maxLength={100}
               placeholder="owner-repository"
-              className="mt-2 h-10 w-full rounded-md border bg-background px-3 font-mono text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+              className="mt-2 h-10 w-full rounded-md border bg-background px-3 font-mono text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
             />
 
             <div className="mt-4 rounded-lg border bg-muted/30 p-4">
@@ -166,23 +250,40 @@ export function ProjectsPage() {
                   <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Destination before mutation</dt>
                   <dd className="mt-2 break-all font-mono text-sm">{destinationPath}</dd>
                 </div>
+                {resolved ? (
+                  <>
+                    <div>
+                      <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Visibility</dt>
+                      <dd className="mt-2 text-sm">{resolved.metadata.visibility}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Default branch</dt>
+                      <dd className="mt-2 break-all font-mono text-sm">{resolved.metadata.defaultBranch}</dd>
+                    </div>
+                  </>
+                ) : null}
               </dl>
               <label className="mt-4 flex items-start gap-2 text-sm">
                 <input
                   type="checkbox"
                   checked={confirmed}
+                  disabled={!resolved || resolved.metadata.private}
                   onChange={(event) => setConfirmed(event.target.checked)}
                   className="mt-0.5 size-4"
                 />
-                <span>I confirm this public repository may be cloned into the displayed Admin project path.</span>
+                <span>
+                  {resolved?.metadata.private
+                    ? 'Private repository metadata is authorized, but private clone wiring remains unavailable in this slice.'
+                    : 'I confirm this resolved public repository may be cloned into the displayed Admin project path.'}
+                </span>
               </label>
             </div>
 
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs text-muted-foreground">
-                Supported now: public GitHub HTTPS and SSH repository references. Existing project directories are never overwritten.
+                Resolution is server-authorized. Existing project directories are never overwritten.
               </p>
-              <Button type="submit" disabled={loading || !repositoryUrl.trim() || !projectSlug.trim() || !confirmed}>
+              <Button type="submit" disabled={loading || resolving || !resolved || resolved.metadata.private || !projectSlug.trim() || !confirmed}>
                 {loading ? <Loader2 className="size-4 animate-spin" /> : <FolderGit2 className="size-4" />}
                 Confirm import
               </Button>
@@ -218,7 +319,7 @@ export function ProjectsPage() {
               </div>
             ) : projects.length === 0 ? (
               <div className="mt-4 rounded-lg border border-dashed p-6 text-sm text-muted-foreground" data-state="empty">
-                No imported projects yet. Submit a public repository above.
+                No imported projects yet. Resolve a repository above.
               </div>
             ) : (
               <div className="mt-4 grid gap-3" data-state="ready">

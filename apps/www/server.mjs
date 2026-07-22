@@ -1,11 +1,15 @@
 import http from 'node:http';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPlatformStore } from './src/server/platform-store.mjs';
 import { githubAuthorization, githubIdentity } from './src/server/github-oauth.mjs';
-import { authorizeAdminApiRequest, parseAdminGithubUserIds } from './src/server/admin-authorization.mjs';
+import { authorizeAdminApiRequest, authorizeAdminRequest, parseAdminGithubUserIds } from './src/server/admin-authorization.mjs';
 import { GitHubProjectImportError, importPublicGitHubProject, listGitHubProjects } from './src/server/github-project-import.mjs';
+import { resolveGitHubRepositoryReference } from './src/server/github-repository.mjs';
+import { resolveAuthorizedGitHubRepository } from './src/server/github-repository-metadata.mjs';
+import { createGitHubInstallationAuthorizationProvider } from './src/server/github-installation-authorization.mjs';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(dirname, 'dist');
@@ -16,6 +20,7 @@ const workspaceRoot = process.env.WORKSPACE_ROOT || path.resolve(dirname, '../..
 const platformStore = createPlatformStore({ workspaceRoot });
 const adminAuthorization = parseAdminGithubUserIds(process.env.BAPX_ADMIN_GITHUB_USER_IDS);
 const agentsRuntimeOrigin = new URL(process.env.AGENTS_RUNTIME_ORIGIN || 'http://127.0.0.1:3003');
+let githubInstallationTokenProvider;
 
 const HOST_PREFIX = {
 	'bapx.in': '',
@@ -113,6 +118,28 @@ function redirect(res, location) {
 	res.end();
 }
 
+function htmlEscape(value) {
+	return String(value)
+		.replaceAll('&', '&amp;')
+		.replaceAll('<', '&lt;')
+		.replaceAll('>', '&gt;')
+		.replaceAll('"', '&quot;')
+		.replaceAll("'", '&#39;');
+}
+
+function adminHandoffResponse(res, handoff, returnTo) {
+	const nonce = crypto.randomBytes(18).toString('base64url');
+	const body = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Opening Admin | bapX</title></head><body><main><p>Opening bapX Admin…</p><form id="admin-handoff" method="post" action="https://admin.bapx.in/api/auth/admin/handoff"><input type="hidden" name="token" value="${htmlEscape(handoff.token)}"><input type="hidden" name="returnTo" value="${htmlEscape(returnTo)}"><button type="submit">Continue to Admin</button></form></main><script nonce="${nonce}">document.getElementById('admin-handoff').requestSubmit()</script></body></html>`;
+	res.writeHead(200, {
+		'Content-Type': 'text/html; charset=utf-8',
+		'Cache-Control': 'no-store',
+		'Referrer-Policy': 'no-referrer',
+		'Content-Security-Policy': `default-src 'none'; form-action https://admin.bapx.in; script-src 'nonce-${nonce}'`,
+		'X-Content-Type-Options': 'nosniff',
+	});
+	res.end(body);
+}
+
 function setSessionCookie(res, token) {
 	res.setHeader('Set-Cookie', `bapx_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=34560000`);
 }
@@ -138,19 +165,73 @@ function authorizeAdminApi(req, res, account, host, mutation = false) {
 	return true;
 }
 
+function getGitHubInstallationToken(options) {
+	if (!githubInstallationTokenProvider) {
+		githubInstallationTokenProvider = createGitHubInstallationAuthorizationProvider();
+	}
+	return githubInstallationTokenProvider(options);
+}
+
+function suggestedProjectSlug(reference) {
+	return `${reference.owner}-${reference.repository}`
+		.toLowerCase()
+		.replace(/[^a-z0-9._-]+/g, '-')
+		.replace(/^-+|-+$/g, '');
+}
+
 function safeReturnTo(value) {
 	if (!value) return null;
 	try {
 		const target = new URL(value);
 		if (target.protocol !== 'https:' || target.username || target.password) return null;
-		if (!['agents.bapx.in', 'platform.bapx.in'].includes(target.hostname)) return null;
+		if (!['admin.bapx.in', 'agents.bapx.in', 'platform.bapx.in'].includes(target.hostname)) return null;
 		return target.href;
 	} catch {
 		return null;
 	}
 }
 
-async function handleAuthAPI(req, res, urlPath) {
+function safeAdminReturnTo(value) {
+	const target = safeReturnTo(value);
+	return target && new URL(target).hostname === 'admin.bapx.in' ? target : 'https://admin.bapx.in/';
+}
+
+async function handleAuthAPI(req, res, urlPath, host) {
+	if (req.method === 'GET' && urlPath === '/api/auth/admin' && host === 'bapx.in') {
+		const returnTo = safeAdminReturnTo(new URL(req.url, 'https://bapx.in').searchParams.get('returnTo'));
+		const account = getSessionAccount(req);
+		if (!account) {
+			redirect(res, `https://bapx.in/login/?returnTo=${encodeURIComponent(returnTo)}`);
+			return true;
+		}
+		const decision = authorizeAdminRequest(account, adminAuthorization);
+		if (!decision.ok) {
+			jsonResponse(res, decision.status, { error: decision.error });
+			return true;
+		}
+		adminHandoffResponse(res, platformStore.createAdminHandoff(account.id), returnTo);
+		return true;
+	}
+	if (req.method === 'POST' && urlPath === '/api/auth/admin/handoff' && host === 'admin.bapx.in') {
+		if (req.headers.origin !== 'https://bapx.in') {
+			jsonResponse(res, 403, { error: 'cross_origin_forbidden' });
+			return true;
+		}
+		try {
+			const body = await parseBody(req);
+			const account = platformStore.redeemAdminHandoff(body.token);
+			const decision = authorizeAdminRequest(account, adminAuthorization);
+			if (!decision.ok) {
+				jsonResponse(res, decision.status, { error: decision.error });
+				return true;
+			}
+			setSessionCookie(res, platformStore.createSession(account.id).token);
+			redirect(res, safeAdminReturnTo(body.returnTo));
+		} catch {
+			jsonResponse(res, 400, { error: 'invalid_handoff_request' });
+		}
+		return true;
+	}
 	if (req.method === 'GET' && urlPath === '/api/auth/oauth/github') {
 		try {
 			const authorization = githubAuthorization();
@@ -263,10 +344,29 @@ async function handleProjectsAPI(req, res, urlPath) {
 		jsonResponse(res, 200, { projects: listGitHubProjects({ workspaceRoot }) });
 		return true;
 	}
+	if (req.method === 'POST' && urlPath === '/api/projects/resolve') {
+		try {
+			const body = await parseBody(req);
+			const submittedRepository = resolveGitHubRepositoryReference(body.repositoryUrl);
+			const { repository, metadata } = await resolveAuthorizedGitHubRepository(submittedRepository, {
+				getInstallationToken: getGitHubInstallationToken,
+			});
+			const slug = suggestedProjectSlug(repository);
+			jsonResponse(res, 200, {
+				repository,
+				metadata,
+				project: { slug, path: `projects/${slug}` },
+			});
+		} catch (error) {
+			if (error?.code) jsonResponse(res, error.status || 400, { error: error.code, message: error.message });
+			else jsonResponse(res, 500, { error: 'resolve_failed', message: 'Repository resolution failed' });
+		}
+		return true;
+	}
 	if (req.method === 'POST' && urlPath === '/api/projects/import') {
 		try {
 			const body = await parseBody(req);
-			const imported = await importPublicGitHubProject(body.repositoryUrl, { workspaceRoot });
+			const imported = await importPublicGitHubProject(body, { workspaceRoot });
 			jsonResponse(res, 201, { project: { ...imported, name: imported.repository.fullName } });
 		} catch (error) {
 			if (error instanceof GitHubProjectImportError || error?.code) {
@@ -322,12 +422,25 @@ http.createServer(async (req, res) => {
 	const urlPath = req.url?.split('?')[0] ?? '';
 	if (host === 'docs.bapx.in' && urlPath === '/') { res.writeHead(302, { Location: 'https://docs.bapx.in/getting-started/quickstart/' }); res.end(); return; }
 	if (urlPath.startsWith('/api/auth/')) {
-		const handled = await handleAuthAPI(req, res, urlPath);
+		const handled = await handleAuthAPI(req, res, urlPath, host);
 		if (handled) return;
 	}
 	const sessionAccount = getSessionAccount(req);
 	if (prefix === '/agents' && req.method === 'HEAD' && urlPath === '/') { res.writeHead(200, { 'Cache-Control': 'no-store' }); res.end(); return; }
 	if (prefix === '/agents' && !sessionAccount) { redirect(res, `https://bapx.in/login/?returnTo=${encodeURIComponent(`https://agents.bapx.in${req.url || '/'}`)}`); return; }
+	if (prefix === '/admin' && !urlPath.startsWith('/api/')) {
+		const decision = authorizeAdminRequest(sessionAccount, adminAuthorization);
+		if (decision.error === 'authentication_required') {
+			const returnTo = safeAdminReturnTo(`https://admin.bapx.in${req.url || '/'}`);
+			redirect(res, `https://bapx.in/api/auth/admin?returnTo=${encodeURIComponent(returnTo)}`);
+			return;
+		}
+		if (!decision.ok) {
+			res.writeHead(decision.status, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
+			res.end('Admin access is forbidden');
+			return;
+		}
+	}
 	if ((prefix === '/agents' || prefix === '/admin') && urlPath.startsWith('/api/agents/')) {
 		if (prefix === '/admin') {
 			if (!authorizeAdminApi(req, res, sessionAccount, host, req.method !== 'GET' && req.method !== 'HEAD')) return;
