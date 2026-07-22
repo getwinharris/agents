@@ -48,6 +48,6 @@ bapX agents work best for ongoing, operational tasks:
 
 ## Next steps
 
-- [Create your first agent](/getting-started/quickstart/) in minutes
-- [Connect channels](/guide/channels/) to your agents
-- [Explore the platform](/platform/overview/) for billing, teams, and API keys
+- [Create your first agent](/docs/getting-started/quickstart/) in minutes
+- [Connect channels](/docs/guide/channels/) to your agents
+- [Explore the platform](/docs/platform/overview/) for billing, teams, and API keys

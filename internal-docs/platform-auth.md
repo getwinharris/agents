@@ -12,7 +12,7 @@ Do not add another authentication service, database application, dashboard root,
 
 ## Shared Platform and operating surfaces
 
-`platform.bapx.in` is the shared account and control plane for customer users and the bapX team. It owns authentication, profiles, businesses, projects, membership and permissions, billing and storage, API keys, connectors, MCP configuration, metrics, and observability.
+`platform.bapx.in` is the shared account and settings control plane for customer users and the bapX team. It owns authentication, profiles, business identity, membership and permissions, billing and storage, API keys, connectors, MCP configuration, metrics, and observability. It must not be treated as a separate operating workspace; Admin and Agents own the day-to-day people, agents, automations, projects, PRs, context, and chat surfaces.
 
 The operating surfaces apply the same product model to different workspace roots:
 
@@ -91,7 +91,7 @@ Do not describe these as working externally until implemented and validated:
 - logo, asset, PDF, presentation, spreadsheet, and document upload;
 - connector/tool selection and live credential setup during onboarding;
 - generated brand constraints based on uploaded/discovered material;
-- dashboard project creation, API-key management, connectors, MCP configuration, billing, and observability operations;
+- API-key management, connectors, MCP configuration, Razorpay billing, storage quotas, and observability operations;
 - real metrics and contribution/activity data.
 
 The Platform navigation, zero-state metrics, contribution grid, and operation buttons are currently a static dashboard information architecture. Session lookup and account display are connected.

@@ -24,7 +24,7 @@ function defineWorkflow<TInput, TOutput>(options: {
 
 Creates a branded workflow value. Default-export it from a discovered `workflows/<name>.ts` module.
 
-`agent` is required and supplies the execution policy and root harness. Exactly one of `action` or `run` is required. The extracted form does not accept `input` or `output`; those contracts belong to its Action. The inline form creates a workflow-private Action and uses the same schema, context, validation, serialization, and lifecycle contracts as [`defineAction()`](/api/action-api/).
+`agent` is required and supplies the execution policy and root harness. Exactly one of `action` or `run` is required. The extracted form does not accept `input` or `output`; those contracts belong to its Action. The inline form creates a workflow-private Action and uses the same schema, context, validation, serialization, and lifecycle contracts as [`defineAction()`](/docs/api/action-api/).
 
 The agent may be private to the workflow. Discovery under `agents/` is required only for persistent agent routes and `dispatch()`.
 
@@ -103,4 +103,4 @@ Schema-invalid input can therefore produce an admitted, observable failed run, b
 | `WorkflowAdmissionUnavailableError`    | `workflow_admission_unavailable`     | This runtime has no workflow admission hook.                    |
 | `WorkflowAdmissionError`               | `workflow_admission_failed`          | Target admission failed; `meta.workflow` identifies the module. |
 
-Action input, output, and serialization errors are documented in the [Action API](/api/action-api/#errors).
+Action input, output, and serialization errors are documented in the [Action API](/docs/api/action-api/#errors).

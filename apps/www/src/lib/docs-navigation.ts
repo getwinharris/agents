@@ -34,7 +34,7 @@ const allDocsSections: DocsSection[] = [
 				items: [
 					{ title: 'Getting Started', slug: 'getting-started/quickstart' },
 					{ title: 'Development', slug: 'reference/development' },
-					{ title: 'Why bapX?', slug: 'introduction/why-bapX' },
+					{ title: 'Why bapX?', slug: 'introduction/why-bapx' },
 					{ title: 'What is an agent?', slug: 'concepts/agents' },
 					{ title: 'Durable Agents', slug: 'concepts/durable-execution' },
 					{
@@ -64,6 +64,7 @@ const allDocsSections: DocsSection[] = [
 					{ title: 'Linear', slug: 'ecosystem/channels/linear' },
 					{ title: 'Microsoft Teams', slug: 'ecosystem/channels/teams' },
 					{ title: 'Notion', slug: 'ecosystem/channels/notion' },
+					{ title: 'Razorpay', slug: 'ecosystem/channels/razorpay' },
 					{ title: 'Resend', slug: 'ecosystem/channels/resend' },
 					{ title: 'Salesforce', slug: 'ecosystem/channels/salesforce-marketing-cloud' },
 					{ title: 'Shopify', slug: 'ecosystem/channels/shopify' },
@@ -87,7 +88,7 @@ const allDocsSections: DocsSection[] = [
 					{ title: 'islo', slug: 'ecosystem/sandboxes/islo' },
 					{ title: 'Mirage', slug: 'ecosystem/sandboxes/mirage' },
 					{ title: 'Modal', slug: 'ecosystem/sandboxes/modal' },
-					{ title: 'smolvm', slug: 'ecosystem/sandboxes/smolvm' },
+					{ title: 'OpenSandbox', slug: 'ecosystem/sandboxes/opensandbox' },
 					{ title: 'Vercel Sandbox', slug: 'ecosystem/sandboxes/vercel' },
 				],
 			},
@@ -95,6 +96,7 @@ const allDocsSections: DocsSection[] = [
 				title: 'Hosting and infrastructure',
 				items: [
 					{ title: 'AWS', slug: 'ecosystem/deploy/aws' },
+					{ title: 'bapX Host', slug: 'ecosystem/deploy/bapx-host' },
 					{ title: 'Cloudflare', slug: 'ecosystem/deploy/cloudflare' },
 					{ title: 'Docker', slug: 'ecosystem/deploy/docker' },
 					{ title: 'Fly.io', slug: 'ecosystem/deploy/fly' },
@@ -109,6 +111,7 @@ const allDocsSections: DocsSection[] = [
 			{
 				title: 'Data and storage',
 				items: [
+					{ title: 'bapXdb', slug: 'ecosystem/databases/bapxdb' },
 					{ title: 'libSQL', slug: 'ecosystem/databases/libsql' },
 					{ title: 'MongoDB', slug: 'ecosystem/databases/mongodb' },
 					{ title: 'MySQL', slug: 'ecosystem/databases/mysql' },
@@ -123,6 +126,7 @@ const allDocsSections: DocsSection[] = [
 				title: 'Observability and quality',
 				items: [
 					{ title: 'Braintrust', slug: 'ecosystem/tooling/braintrust' },
+					{ title: 'Cloud coding CLIs', slug: 'ecosystem/tooling/cloud-coding-clis' },
 					{ title: 'OpenTelemetry', slug: 'ecosystem/tooling/opentelemetry' },
 					{ title: 'Sentry', slug: 'ecosystem/tooling/sentry' },
 					{ title: 'Vitest Evals', slug: 'ecosystem/tooling/vitest-evals' },
@@ -134,7 +138,16 @@ const allDocsSections: DocsSection[] = [
 		key: 'platform',
 		title: 'Platform',
 		landingSlug: 'platform/overview',
-		groups: [{ title: 'Platform', items: [{ title: 'Overview', slug: 'platform/overview' }] }],
+		groups: [
+			{
+				title: 'Platform',
+				items: [
+					{ title: 'Overview', slug: 'platform/overview' },
+					{ title: 'Billing', slug: 'platform/billing' },
+					{ title: 'Organisations', slug: 'platform/organisations' },
+				],
+			},
+		],
 	},
 	{
 		key: 'mcp',
@@ -161,7 +174,7 @@ const allDocsSections: DocsSection[] = [
 export const docsSections = allDocsSections;
 
 export function docsHref(slug: string, anchor?: string) {
-	return `${import.meta.env.BASE_URL}${slug}/${anchor ? `#${anchor}` : ''}`;
+	return `${import.meta.env.BASE_URL}docs/${slug.toLowerCase()}/${anchor ? `#${anchor}` : ''}`;
 }
 
 function includesSlug(items: DocsNavItem[], slug: string): boolean {

@@ -72,4 +72,4 @@ Passing `modal(sandbox)` as an agent's `sandbox` exposes the created Modal Sandb
 
 Use Modal when your application already manages Modal applications, images, or sandbox lifetimes and needs to expose that compute boundary to Bapx operations. The adapter adapts the created sandbox; creation, shutdown, secret handling, networking, and image content remain your responsibility.
 
-See [Sandboxes](/guide/sandboxes/) and [Sandbox Adapter API](/api/sandbox-api/).
+See [Sandboxes](/docs/guide/sandboxes/) and [Sandbox Adapter API](/docs/api/sandbox-api/).

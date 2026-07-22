@@ -14,7 +14,7 @@ const { post } = Astro.props;
 const { Content, headings } = await render(post);
 ---
 
-<DocsLayout title={post.data.title} description={post.data.description} currentSlug={post.id} headings={headings} navigationSection={blogsSection} headerSections={[blogsSection]} publicBaseUrl="https://blogs.bapx.in/" markdownUrl={`/${post.id}/index.md`}>
+<DocsLayout title={post.data.title} description={post.data.description} currentSlug={post.id} headings={headings} navigationSection={blogsSection} headerSections={[blogsSection]} publicBaseUrl="https://blogs.bapx.in/" markdownUrl={`/blogs/${post.id}/index.md`}>
 	<p class="mb-6 text-sm text-[var(--docs-muted)]">{post.data.author ? `By ${post.data.author} · ` : ''}{post.data.pubDate.toLocaleDateString('en-US', { dateStyle: 'long', timeZone: 'UTC' })}</p>
 	<Content />
 </DocsLayout>

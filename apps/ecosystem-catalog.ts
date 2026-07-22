@@ -94,6 +94,13 @@ export const channels: EcosystemItem[] = [
 		homepageRank: 16,
 	},
 	{
+		name: 'Razorpay',
+		href: '/docs/ecosystem/channels/razorpay/',
+		background: '#0b72e7',
+		iconClass: 'monochrome-white',
+		keywords: 'razorpay payments india inr subscriptions billing connector',
+	},
+	{
 		name: 'Resend',
 		href: '/docs/ecosystem/channels/resend/',
 		icon: 'https://svgl.app/library/resend-icon-white.svg',
@@ -166,6 +173,13 @@ export const deploy: EcosystemItem[] = [
 		background: '#181717',
 		keywords: 'ecs express fargate ec2 cloud',
 		homepageRank: 2,
+	},
+	{
+		name: 'bapX Host',
+		href: '/docs/ecosystem/deploy/bapx-host/',
+		background: '#6d4aff',
+		iconClass: 'monochrome-white',
+		keywords: 'bapx host node.js hosting app.bapx.in subdomain',
 	},
 	{
 		name: 'Cloudflare',
@@ -280,7 +294,13 @@ export const sandboxes: EcosystemItem[] = [
 		brand: 'modal',
 		background: '#ffffff',
 	},
-	{ name: 'smolvm', href: '/docs/ecosystem/sandboxes/smolvm/', background: '#2563eb' },
+	{
+		name: 'OpenSandbox',
+		href: '/docs/ecosystem/sandboxes/opensandbox/',
+		background: '#111827',
+		iconClass: 'monochrome-white',
+		keywords: 'opensandbox alibaba sandbox docker kubernetes isolation',
+	},
 	{
 		name: 'Vercel Sandbox',
 		href: '/docs/ecosystem/sandboxes/vercel/',
@@ -292,6 +312,13 @@ export const sandboxes: EcosystemItem[] = [
 ].sort(sortEcosystemItemsLogoFirst);
 
 export const databases: EcosystemItem[] = [
+	{
+		name: 'bapXdb',
+		href: '/docs/ecosystem/databases/bapxdb/',
+		background: '#6d4aff',
+		iconClass: 'monochrome-white',
+		keywords: 'bapxdb okf yaml json database workspace storage',
+	},
 	{
 		name: 'libSQL',
 		href: '/docs/ecosystem/databases/libsql/',
@@ -360,6 +387,13 @@ export const tooling: EcosystemItem[] = [
 		background: '#2c1fea',
 		iconClass: 'ecosystem-logo-tooling',
 		keywords: 'braintrust observability tracing evaluation evals monitoring',
+	},
+	{
+		name: 'Cloud coding CLIs',
+		href: '/docs/ecosystem/tooling/cloud-coding-clis/',
+		background: '#111827',
+		iconClass: 'monochrome-white',
+		keywords: 'codex claude code opencode zed zcode kimi code antigravity github copilot cli kilo code roo code cline',
 	},
 	{
 		name: 'OpenTelemetry',

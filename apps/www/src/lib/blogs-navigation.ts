@@ -8,10 +8,10 @@ export const blogsSection: DocsSection = {
 		{
 			title: 'Categories',
 			items: [
-				{ title: 'Announcements', slug: 'announcement' },
-				{ title: 'Releases', slug: 'release' },
-				{ title: 'Research', slug: 'research' },
-				{ title: 'Tutorials', slug: 'tutorials' },
+				{ title: 'Announcements', href: '/blogs/announcement/' },
+				{ title: 'Releases', href: '/blogs/release/' },
+				{ title: 'Research', href: '/blogs/research/' },
+				{ title: 'Tutorials', href: '/blogs/tutorials/' },
 			],
 		},
 	],

@@ -66,7 +66,7 @@ canonical agent conversations, immutable attachments, accepted submissions, and 
 
 `@bapX/postgres` is a **Node.js** adapter. The Cloudflare target uses Durable
 Object SQLite automatically and rejects a `db.ts` file at build time, so this
-guide applies to Node deployments. See [Database](/guide/database/) for the
+guide applies to Node deployments. See [Database](/docs/guide/database/) for the
 full picture of how state is stored on each target.
 
 ## Bring your own driver
@@ -123,8 +123,8 @@ A Bapx database stores runtime state, not your whole application.
 | Run indexing for `/runs` lookups and `listRuns()`                 |                                                                |
 
 The submission rows are what make accepted work
-recoverable after an interruption. See [Durable Agents](/concepts/durable-execution/)
-for how recovery uses them, and the [Data Persistence API](/api/data-persistence-api/)
+recoverable after an interruption. See [Durable Agents](/docs/concepts/durable-execution/)
+for how recovery uses them, and the [Data Persistence API](/docs/api/data-persistence-api/)
 for the exact adapter contract.
 
 ## When to choose Postgres
@@ -137,6 +137,6 @@ for the exact adapter contract.
 | Cloudflare deployment                                          | Built-in Durable Object SQLite (no `db.ts`)                   |
 
 Choose Postgres when a replacement process must recover accepted work, when replicas need shared workflow history, or when a single host's disk is not a durable enough home for state. Keep one live owner for each agent instance and use instance-affine routing across replicas. Managed Postgres pairs naturally with the container deploy targets —
-see [Deploy on AWS](/ecosystem/deploy/aws/) for RDS, and the other
-[deploy guides](/ecosystem/deploy/node/) for provisioning a database
+see [Deploy on AWS](/docs/ecosystem/deploy/aws/) for RDS, and the other
+[deploy guides](/docs/ecosystem/deploy/node/) for provisioning a database
 alongside the server.

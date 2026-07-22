@@ -6,7 +6,7 @@ lastReviewedAt: 2026-06-12
 
 Bapx supports [Agent Skills](https://agentskills.io/specification): reusable instructions and supporting resources that agents can load for specialized, repeatable work, such as applying a review process, following an operational workflow, or using shared project guidance. Skills can be bundled with your application or supplied by the runtime workspace where an agent operates.
 
-Skills guide agent work; they do not add executable capabilities. Use [tools](/guide/tools/) or [sandboxes](/guide/sandboxes/) when an agent needs actions or workspace access.
+Skills guide agent work; they do not add executable capabilities. Use [tools](/docs/guide/tools/) or [sandboxes](/docs/guide/sandboxes/) when an agent needs actions or workspace access.
 
 ## Add a skill
 
@@ -27,7 +27,7 @@ src/
    └─ review-change.ts
 ```
 
-The example stores the skill in `src/skills/` alongside other authored source, but its location does not make it available on its own. Import its `SKILL.md` to include it in the application and make it available to an agent. See [Project Layout](/guide/project-layout/) for how Bapx organizes authored source.
+The example stores the skill in `src/skills/` alongside other authored source, but its location does not make it available on its own. Import its `SKILL.md` to include it in the application and make it available to an agent. See [Project Layout](/docs/guide/project-layout/) for how Bapx organizes authored source.
 
 ## Import a skill
 
@@ -69,7 +69,7 @@ Bapx also loads skills from the sandbox where a harness runs, with no import req
             └─ checklist.md
 ```
 
-Each discovered skill is available by its declared name without a TypeScript import or an entry in `skills`, and its supporting files remain in that sandbox workspace. This lets a repository checkout, CI environment, or prepared runtime workspace provide its own skills to a harness. See [Sandboxes](/guide/sandboxes/) for controlling the filesystem and working directory visible at runtime.
+Each discovered skill is available by its declared name without a TypeScript import or an entry in `skills`, and its supporting files remain in that sandbox workspace. This lets a repository checkout, CI environment, or prepared runtime workspace provide its own skills to a harness. See [Sandboxes](/docs/guide/sandboxes/) for controlling the filesystem and working directory visible at runtime.
 
 If an imported skill registered on an agent and a discovered workspace skill declare the same name, initialization fails rather than choosing one implicitly.
 
@@ -125,7 +125,7 @@ export default defineWorkflow({
 
 `args` provides input for this invocation of the skill. The `result` schema makes `response.data` a validated structured result; omit it when you want text output from `response.text`. The string passed to `session.skill(...)` is the declared skill name, not a path to `SKILL.md`.
 
-See the [Agent API](/api/agent-api/) for operation options and response types.
+See the [Agent API](/docs/api/agent-api/) for operation options and response types.
 
 ## When to use a skill
 
@@ -136,12 +136,12 @@ Skills are most useful when:
 - instructions need supporting templates, examples, or reference files;
 - a workspace should provide its own guidance without changing application code.
 
-For executable application capabilities, use a [tool](/guide/tools/). For application-controlled, multi-step agent work, use an [Action](/guide/actions/).
+For executable application capabilities, use a [tool](/docs/guide/tools/). For application-controlled, multi-step agent work, use an [Action](/docs/guide/actions/).
 
 ## Next steps
 
 - [Agent Skills specification](https://agentskills.io/specification) — create and structure compatible skills.
-- [Agents](/guide/building-agents/) — configure an agent's model and capabilities.
-- [Tools](/guide/tools/) — add executable capabilities that a skill may direct an agent to use.
-- [Sandboxes](/guide/sandboxes/) — control the runtime workspace where discovered skills and their files are available.
-- [Agent API](/api/agent-api/) — look up session operation options and result types.
+- [Agents](/docs/guide/building-agents/) — configure an agent's model and capabilities.
+- [Tools](/docs/guide/tools/) — add executable capabilities that a skill may direct an agent to use.
+- [Sandboxes](/docs/guide/sandboxes/) — control the runtime workspace where discovered skills and their files are available.
+- [Agent API](/docs/api/agent-api/) — look up session operation options and result types.

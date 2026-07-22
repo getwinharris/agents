@@ -84,4 +84,4 @@ Choose boxd when a task requires real Linux command behavior in an isolated prov
 
 Before reusing a VM across sessions or tenants, define identity, authorization, egress, secrets, and cleanup policies. Conversation persistence remains controlled separately by Bapx session storage.
 
-See [Sandboxes](/guide/sandboxes/) for execution-boundary design and [Sandbox Adapter API](/api/sandbox-api/) for the adapter contract.
+See [Sandboxes](/docs/guide/sandboxes/) for execution-boundary design and [Sandbox Adapter API](/docs/api/sandbox-api/) for the adapter contract.

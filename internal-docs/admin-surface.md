@@ -6,6 +6,8 @@
 
 The canonical `demo/` is the functional source for the agent conversation experience. It already owns the SDK/React integration, streaming messages, reasoning, tools, subagent display, conversation history, connection settings, and responsive sidebar. Do not replace that behavior with static Astro chat markup.
 
+The supplied Capy/GitHub Copilot screenshots and the verified Multica product direction define the operating pattern: bapX needs a working cockpit, not a static dashboard. The center of the product is the bapX agent composer with project/branch context, model and specialist-agent selection, recent work, task/PR/automation navigation, and human/agent status visible in one workspace. Reference products show agents assigned to issues like teammates, reporting blockers and progress in the same activity stream as humans, and coordinating squads through reusable skills and hosted coding/browser tools. Implement those patterns through the existing bapX/PI harness and canonical demo/Admin owners; do not create a second runtime or decorative clone.
+
 ## Integration contract
 
 - Keep `demo/` independently runnable as the canonical product harness and reference implementation.
@@ -102,13 +104,16 @@ The live `traefik-vmm1` deployment sends `agents.bapx.in` to `flue-www`, not dir
 The left navigation follows the canonical demo/sidebar interaction and includes:
 
 1. **New task** — starts a main-agent conversation.
-2. **Automations** — replaces Scheduled/Schedules and includes time, recurring schedule, webhook, repository-event, connector-event, and manual triggers.
-3. **MCPs** — business-owned Model Context Protocol connections, servers, tools, access, and credentials.
-4. **Projects** — replaces Sites and exposes workspace projects, repositories, files, maps, previews, and changes rooted at `/root/bapx.in`.
-5. **Team** — bapX people, roles, permissions, assignments, and human coordination.
-6. **Agents** — main and role-specific agents, including their tools, responsibilities, availability, and work.
-7. **Pull requests** — repository review and delivery work.
-8. **Chat** — opens the existing working main-agent conversation entry point; it must not render a separate zero-state or duplicate chat implementation.
+2. **Threads** — lists conversations, tasks, recent work, filters, folders, and status.
+3. **Pull requests** — repository review and delivery work.
+4. **Automations** — includes time, recurring schedule, webhook, repository-event, connector-event, and manual triggers with reusable templates.
+5. **Explore** — hosted search/browser/research workspace scoped to the selected business/project.
+6. **Context** — project files, repositories, maps, documents, credentials visibility, and memory sources.
+7. **MCPs** — business-owned Model Context Protocol connections, servers, tools, access, and credentials.
+8. **Projects** — exposes workspace projects, repositories, files, maps, previews, hosted app subdomains, and changes rooted at `/root/bapx.in`.
+9. **Team** — bapX people, roles, permissions, assignments, and human coordination.
+10. **Agents** — main and role-specific agents, including their tools, responsibilities, availability, and work.
+11. **Chat** — opens the existing working main-agent conversation entry point; it must not render a separate zero-state or duplicate chat implementation.
 
 The project list remains visible below the main navigation, matching the supplied reference structure.
 

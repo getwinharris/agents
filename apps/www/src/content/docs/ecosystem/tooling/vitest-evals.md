@@ -60,8 +60,8 @@ npx vitest-evals serve vitest-results.json
 
 The same artifact can be published by the `getsentry/vitest-evals` GitHub Action. Reports can contain prompts, outputs, tool arguments and results, errors, and application metadata; review retention and access requirements before uploading them.
 
-`vitest-evals` does not include a Braintrust reporter. Bapx's [Braintrust integration](/ecosystem/tooling/braintrust/) can independently trace the application execution, but those traces do not replace eval cases, assertions, judges, or CI gates.
+`vitest-evals` does not include a Braintrust reporter. Bapx's [Braintrust integration](/docs/ecosystem/tooling/braintrust/) can independently trace the application execution, but those traces do not replace eval cases, assertions, judges, or CI gates.
 
 ## Next steps
 
-See [Evals](/guide/evals/) for designing cases, choosing deterministic assertions or judges, evaluating workflows, and understanding the harness. A complete runnable project is available in [`examples/vitest-evals`](https://github.com/getwinharris/agents/tree/main/examples/vitest-evals).
+See [Evals](/docs/guide/evals/) for designing cases, choosing deterministic assertions or judges, evaluating workflows, and understanding the harness. A complete runnable project is available in [`examples/vitest-evals`](https://github.com/getwinharris/agents/tree/main/examples/vitest-evals).

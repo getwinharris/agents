@@ -75,4 +75,4 @@ bapX add database https://database.example/docs --print | codex
 bapX add tooling https://tool.example/docs --print | opencode
 ```
 
-See [Sandboxes](/guide/sandboxes/), [Channels](/guide/channels/), and the [Ecosystem](/ecosystem/) for implementation guidance.
+See [Sandboxes](/docs/guide/sandboxes/), [Channels](/docs/guide/channels/), and the [Ecosystem](/docs/ecosystem/) for implementation guidance.

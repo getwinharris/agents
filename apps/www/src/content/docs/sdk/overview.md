@@ -17,17 +17,17 @@ const client = createBapxClient({
 
 ## Client
 
-[`createBapxClient(...)`](/sdk/client/) configures access to a deployed Bapx application.
+[`createBapxClient(...)`](/docs/sdk/client/) configures access to a deployed Bapx application.
 
 ## API namespaces
 
-- [`client.agents`](/sdk/agents/) invokes persistent agent instances and streams their events.
-- [`client.workflows`](/sdk/workflows/) starts workflow runs.
-- [`client.runs`](/sdk/runs/) inspects and streams runs exposed by their owning workflows.
+- [`client.agents`](/docs/sdk/agents/) invokes persistent agent instances and streams their events.
+- [`client.workflows`](/docs/sdk/workflows/) starts workflow runs.
+- [`client.runs`](/docs/sdk/runs/) inspects and streams runs exposed by their owning workflows.
 
-Deployment-wide listing (all runs, all agents) is a server-side concern: compose your own endpoints from the `listRuns()`, `getRun()`, and `listAgents()` primitives exported by `@bapX/runtime`. See [compose your own admin endpoints](/api/routing-api/#compose-your-own-admin-endpoints).
+Deployment-wide listing (all runs, all agents) is a server-side concern: compose your own endpoints from the `listRuns()`, `getRun()`, and `listAgents()` primitives exported by `@bapX/runtime`. See [compose your own admin endpoints](/docs/api/routing-api/#compose-your-own-admin-endpoints).
 
 ## Shared types
 
-- [Events and records](/sdk/events/) describes observable events, records, and normalized model-turn data.
-- [Errors](/sdk/errors/) describes HTTP and stream errors.
+- [Events and records](/docs/sdk/events/) describes observable events, records, and normalized model-turn data.
+- [Errors](/docs/sdk/errors/) describes HTTP and stream errors.

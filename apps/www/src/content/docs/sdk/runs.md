@@ -36,7 +36,7 @@ The same options as [`BapxStreamOptions`](#bapXstreamoptions) minus `live`, whic
 stream(runId: string, options?: BapxStreamOptions): BapxEventStream<BapxEvent>;
 ```
 
-Streams workflow-run events via the [Durable Streams](https://durablestreams.com) protocol. See [Streaming Protocol](/api/streaming-protocol/) for the raw HTTP contract. Returns an async iterable of typed `BapxEvent` objects. When `live` is enabled, the stream tails the run until `run_end`, cancellation, or disconnection. Interrupted streams resume automatically from the last received offset.
+Streams workflow-run events via the [Durable Streams](https://durablestreams.com) protocol. See [Streaming Protocol](/docs/api/streaming-protocol/) for the raw HTTP contract. Returns an async iterable of typed `BapxEvent` objects. When `live` is enabled, the stream tails the run until `run_end`, cancellation, or disconnection. Interrupted streams resume automatically from the last received offset.
 
 ```ts
 const run = await client.workflows.invoke('summarize', {

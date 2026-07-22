@@ -5,7 +5,7 @@ description: Define finite agent-backed operations that can be reused by workflo
 
 An Action is reusable logic that orchestrates an agent harness in a deterministic, reliable way. Use one when a sensitive or reliability-critical task needs application-controlled steps, context, and results.
 
-Actions give [workflows](/guide/workflows/) and [agents](/guide/building-agents/) a reliable way to perform tasks that should follow application-defined logic instead of leaving every step to the model.
+Actions give [workflows](/docs/guide/workflows/) and [agents](/docs/guide/building-agents/) a reliable way to perform tasks that should follow application-defined logic instead of leaving every step to the model.
 
 ## Define an Action
 
@@ -58,7 +58,7 @@ Each invocation runs `summarize` with the workflow's configured agent and record
 
 Binding an Action to a workflow does not expose it to that workflow's model. Add it separately to the agent's `actions` list if the model should also be able to call it.
 
-For behavior used by only one workflow, define `input`, `output`, and `run` directly inside `defineWorkflow()`. See [Workflows](/guide/workflows/) for the recommended inline form and invocation options.
+For behavior used by only one workflow, define `input`, `output`, and `run` directly inside `defineWorkflow()`. See [Workflows](/docs/guide/workflows/) for the recommended inline form and invocation options.
 
 ## Give an Action to an agent
 
@@ -90,12 +90,12 @@ Actions are most useful when:
 - a multi-step task should behave consistently instead of relying on the model to plan every step;
 - the same agent-backed operation should be available to workflows, agents, or both.
 
-For a direct application function, use a [tool](/guide/tools/). For reusable instructions and resources, use a [skill](/guide/skills/).
+For a direct application function, use a [tool](/docs/guide/tools/). For reusable instructions and resources, use a [skill](/docs/guide/skills/).
 
 ## Next steps
 
-- [Workflows](/guide/workflows/) — run inline or reusable finite behavior as an inspectable job.
-- [Agents](/guide/building-agents/) — expose Actions alongside an agent's other reusable capabilities.
-- [Tools](/guide/tools/) — define direct application functions for models.
-- [Skills](/guide/skills/) — package reusable instructions and supporting resources.
-- [Action API](/api/action-api/) — look up complete schemas, context types, and error contracts.
+- [Workflows](/docs/guide/workflows/) — run inline or reusable finite behavior as an inspectable job.
+- [Agents](/docs/guide/building-agents/) — expose Actions alongside an agent's other reusable capabilities.
+- [Tools](/docs/guide/tools/) — define direct application functions for models.
+- [Skills](/docs/guide/skills/) — package reusable instructions and supporting resources.
+- [Action API](/docs/api/action-api/) — look up complete schemas, context types, and error contracts.

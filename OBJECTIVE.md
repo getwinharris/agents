@@ -35,9 +35,9 @@ An imported repository never bypasses the user and organization hierarchy.
 
 ## Product surfaces
 
-- `platform.bapx.in` owns identity, organizations, members, projects, storage, billing, GitHub authorization, API keys, connectors, MCP configuration, and cross-project observability.
-- `admin.bapx.in` is the bapX-team proving ground. It exercises shared orchestration against `/root/bapx.in` before customer availability.
-- `agents.bapx.in` operates a customer organization and its projects through the same shared orchestration with narrower authorization.
+- `platform.bapx.in` owns identity, account settings, subscription and storage limits, GitHub authorization, API keys, connectors, MCP configuration, and cross-project observability. Platform is the control plane, not a separate work surface.
+- `admin.bapx.in` is the bapX-team operating surface. It uses the same people, agents, automations, projects, tools, artifacts, audit, and chat model customers receive, with `/root/bapx.in` and whole-product authority.
+- `agents.bapx.in` operates a customer organization and its projects through that same shared orchestration with narrower authorization.
 - `bapx.in/<user>/<project>` is the planned public or authenticated project-profile alias requested for a GitHub-familiar URL. It does not exist yet. Before implementation, route resolution must define organization selection, duplicate project-name collisions, renames, transfers, reserved names, redirects, and private-project authorization while preserving the canonical organization-owned filesystem path.
 - `docs.bapx.in` publishes supported customer behavior and non-sensitive architecture, extension, agent, skill, automation, API, MCP, telemetry, and contribution contracts.
 
@@ -101,9 +101,13 @@ External CLIs are project-scoped tools invoked through the existing skill and ty
 
 ## Telemetry and audit objective
 
-Use the existing runtime observation model and `packages/opentelemetry/`. Follow applicable OpenTelemetry HTTP, Git, CI/CD, exception, and GenAI semantic conventions.
+Use the existing runtime observation model, `packages/opentelemetry/`, Sentry, Braintrust, and Vitest evals for observability, quality, and test evidence. Follow applicable OpenTelemetry HTTP, Git, CI/CD, exception, and GenAI semantic conventions.
 
 Telemetry must correlate organization, project, agent, session, workflow, operation, automation, repository, commit, and deployment identifiers. Record lifecycle state, duration, result, and structured failure classification. Do not record credentials, authorization headers, prompts, system instructions, private file contents, raw tool arguments, or browser storage by default.
+
+## Billing objective
+
+bapX billing is India-first. Razorpay owns subscriptions and payments in INR once deployment credentials are configured. The base subscription is ₹500/month for 5 GB and includes hosted agents/workflows, hosted search, browser sessions, Node.js project subdomains, TTS, and STT. Additional storage is billed at ₹100/GB/month up to 100 GB. Subscription callbacks and webhooks are advisory until signature verification, idempotency, and server-side quota enforcement have completed.
 
 ## Documentation objective
 

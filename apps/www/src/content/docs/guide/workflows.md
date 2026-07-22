@@ -4,7 +4,7 @@ description: Create, invoke, and expose finite agent-backed operations.
 lastReviewedAt: 2026-06-22
 ---
 
-Workflows are finite, inspectable operations for background jobs, document transformations, reviews, and CI tasks. Use an [agent](/guide/building-agents/) instead when work should continue across messages.
+Workflows are finite, inspectable operations for background jobs, document transformations, reviews, and CI tasks. Use an [agent](/docs/guide/building-agents/) instead when work should continue across messages.
 
 ## Create a workflow
 
@@ -27,11 +27,11 @@ export default defineWorkflow({
 });
 ```
 
-This defines the `summarize` workflow. Each invocation validates the supplied text, asks the model to summarize it, and returns a validated `{ summary }` result. Use this pattern for finite work that should have its own run, result, and event history. See the [Workflow API](/api/workflow-api/) for the complete definition contract.
+This defines the `summarize` workflow. Each invocation validates the supplied text, asks the model to summarize it, and returns a validated `{ summary }` result. Use this pattern for finite work that should have its own run, result, and event history. See the [Workflow API](/docs/api/workflow-api/) for the complete definition contract.
 
 ## Use a reusable Action
 
-Define the workflow inline as shown above for the ordinary case. If the workflow should run an existing [Action](/guide/actions/), bind that Action to its agent:
+Define the workflow inline as shown above for the ordinary case. If the workflow should run an existing [Action](/docs/guide/actions/), bind that Action to its agent:
 
 ```ts title="src/workflows/summarize.ts"
 import { defineAgent, defineWorkflow } from '@bapX/runtime';
@@ -43,7 +43,7 @@ export default defineWorkflow({
 });
 ```
 
-The Action owns the input, output, and handler, so the workflow does not repeat them. See [Actions](/guide/actions/) for when and how to define one.
+The Action owns the input, output, and handler, so the workflow does not repeat them. See [Actions](/docs/guide/actions/) for when and how to define one.
 
 ## Invoke a workflow
 
@@ -106,7 +106,7 @@ const events = await client.runs.events(runId);
 
 Invocation returns `{ runId }`, or `{ runId, result }` with `wait: 'result'`. The `runs` export also controls SDK `client.runs` and raw `GET` and `HEAD` requests to `/runs/<runId>`. Without the corresponding export, HTTP clients receive `404`. Run data may contain sensitive inputs, results, and model activity, so do not treat a run ID as a credential.
 
-These exports do not affect schedules, ambient `invoke()`, or server-side `listRuns()` and `getRun()`. A temporary local `bapX run` process additionally exposes route-free resources through an existing authored `bapX()` mount; remote attachment uses the server's authored exposure. See the [Workflow API HTTP exports](/api/workflow-api/#http-exports) for the complete contract.
+These exports do not affect schedules, ambient `invoke()`, or server-side `listRuns()` and `getRun()`. A temporary local `bapX run` process additionally exposes route-free resources through an existing authored `bapX()` mount; remote attachment uses the server's authored exposure. See the [Workflow API HTTP exports](/docs/api/workflow-api/#http-exports) for the complete contract.
 
 ## Use the workflow harness
 
@@ -121,4 +121,4 @@ async run({ harness, input }) {
 }
 ```
 
-A session can also run skills, delegate tasks, and produce schema-backed structured results. See [Agent API](/api/agent-api/), [Skills](/guide/skills/), [Subagents](/guide/subagents/), and [Sandboxes](/guide/sandboxes/).
+A session can also run skills, delegate tasks, and produce schema-backed structured results. See [Agent API](/docs/api/agent-api/), [Skills](/docs/guide/skills/), [Subagents](/docs/guide/subagents/), and [Sandboxes](/docs/guide/sandboxes/).

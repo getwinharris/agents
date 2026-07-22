@@ -1,9 +1,9 @@
 ---
 title: Why bapX?
-description: Fifteen years of marketing and branding operations, packaged as hosted agents for your business.
+description: Ten years of marketing and branding operations, packaged as hosted agents for your business.
 ---
 
-**bapX** packages 15+ years of marketing and branding operations into hosted agents. The platform is the delivery and control layer: your business owns its people, projects, brand assets, documents, provider credentials, connections, agents, and automations inside one OKF workspace.
+**bapX** packages 10+ years of marketing and branding operations into hosted agents. Platform is the account and settings control plane; Agents and Admin are the operating workspaces where people, projects, brand assets, documents, provider credentials, connectors, agents, automations, and the central bapX agent work together inside one OKF workspace.
 
 ## What bapX solves
 
@@ -19,13 +19,14 @@ bapX eliminates all of this. Your agents run in our cloud, connected to your too
 
 ## Platform features
 
-- **Managed agents** — Create, deploy, and run agents from your browser. No servers, no CLI, no DevOps.
+- **bapX agent cockpit** — Start work from one central agent that coordinates specialist agents, repository/project context, browser/search tools, automations, and human handoffs.
+- **Managed agents** — Create, deploy, and run agents from your browser. No customer-installed bapX CLI or DevOps setup.
 - **Team collaboration** — Invite team members, assign roles, share agents across your organisation.
 - **Channels** — Connect agents to Slack, GitHub, Linear, email, Discord, and more with one click.
 - **MCP Gateway** — Give your agents access to external tools and services through the Model Context Protocol at `api.bapx.in/mcp`.
 - **Workflows** — Define structured automations that run alongside your autonomous agents.
-- **Usage & billing** — $5/month includes 5 GB storage, hosting, TTS, and STT. Additional storage is $1/GB/month; bring your own AI-provider tokens and connector credentials. There is no free bapX plan.
-- **Observability** — Monitor agent activity, review conversation logs, and debug issues from your dashboard.
+- **Usage & billing** — ₹500/month includes 5 GB storage, hosted search, browser sessions, hosted agents/workflows, Node.js project subdomains, TTS, and STT. Additional storage is ₹100/GB/month up to 100 GB; bring your own AI-provider tokens and connector credentials. There is no free bapX plan.
+- **Observability and quality** — Monitor agent activity, review conversation logs, trace failures with OpenTelemetry and Sentry, and protect behavior with Braintrust and Vitest evals.
 
 ## For marketing and branding operations
 

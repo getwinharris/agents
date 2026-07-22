@@ -26,7 +26,7 @@ const posts = (await getCollection('blogs')).sort((a, b) => b.data.pubDate.value
 		{posts.map((post) => (
 			<li class="border-t border-[var(--hairline)] py-6">
 				<p class="m-0 text-sm text-[var(--docs-muted)]">{post.data.category} · {post.data.pubDate.toLocaleDateString('en-US', { dateStyle: 'long', timeZone: 'UTC' })}</p>
-				<h2 class="mt-2 text-2xl font-semibold"><a href={`/${post.id}/`}>{post.data.title}</a></h2>
+				<h2 class="mt-2 text-2xl font-semibold"><a href={`/blogs/${post.id}/`}>{post.data.title}</a></h2>
 				{post.data.description && <p class="mt-2 text-base text-[var(--docs-muted)]">{post.data.description}</p>}
 			</li>
 		))}

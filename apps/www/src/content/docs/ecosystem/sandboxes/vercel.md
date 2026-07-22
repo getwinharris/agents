@@ -129,4 +129,4 @@ const agent = defineAgent(() => ({
 
 Keep Vercel authentication values in trusted application configuration and determine whether sandboxes should be fresh per job or reusable for stable agent identities.
 
-See [Sandboxes](/guide/sandboxes/) and [Sandbox Adapter API](/api/sandbox-api/).
+See [Sandboxes](/docs/guide/sandboxes/) and [Sandbox Adapter API](/docs/api/sandbox-api/).

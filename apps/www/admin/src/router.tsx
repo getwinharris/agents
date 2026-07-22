@@ -30,9 +30,21 @@ function ChatRoute() {
 }
 
 const surfaces = {
+  threads: {
+    title: 'Threads',
+    description: 'Conversations, assigned tasks, recent work, folders, filters, blockers, and completion evidence.',
+  },
   automations: {
     title: 'Automations',
     description: 'Time, recurring schedule, webhook, repository-event, connector-event, and manual triggers.',
+  },
+  explore: {
+    title: 'Explore',
+    description: 'Hosted search, browser research, evidence gathering, and project-scoped discovery for the bapX agent.',
+  },
+  context: {
+    title: 'Context',
+    description: 'Project files, repositories, maps, documents, memories, credentials visibility, and operating constraints.',
   },
   mcps: {
     title: 'MCPs',

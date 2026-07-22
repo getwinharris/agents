@@ -56,13 +56,13 @@ local development, `bapX dev --env <file>` and `bapX run --env <file>` load any
 Turso is hosted, replicated libSQL. The blueprint installs `@bapX/libsql` and
 the official `@libsql/client`, and writes a source-root `db.ts` that wraps the
 client with a Turso configuration — it is the **same adapter** as
-[`bapX add database libsql`](/ecosystem/databases/libsql/), pointed at a Turso
+[`bapX add database libsql`](/docs/ecosystem/databases/libsql/), pointed at a Turso
 database. Bapx discovers `db.ts` at build time and wires it into the generated
 Node server.
 
 `@bapX/libsql` is a **Node.js** adapter. The Cloudflare target uses Durable
 Object SQLite automatically and rejects a `db.ts` file at build time, so this
-guide applies to Node deployments. See [Database](/guide/database/) for the
+guide applies to Node deployments. See [Database](/docs/guide/database/) for the
 full picture of how state is stored on each target.
 
 ## Create a database
@@ -111,7 +111,7 @@ export default libsql({
 
 Turso serializes writes server-side, so there is no embedded-file concurrency
 concern. The runner shape (`query`, `transaction`, `close`) and the `ResultSet`
-mapping are explained in the [libSQL guide](/ecosystem/databases/libsql/).
+mapping are explained in the [libSQL guide](/docs/ecosystem/databases/libsql/).
 
 ## Embedded replicas
 
@@ -150,8 +150,8 @@ A Bapx database stores runtime state, not your whole application.
 | Workflow-run records and persisted events                         | Provider credentials or secrets                                |
 | Run indexing for `/runs` lookups and `listRuns()`                 |                                                                |
 
-See [Durable Agents](/concepts/durable-execution/) for how recovery uses
-submission state, and the [Data Persistence API](/api/data-persistence-api/)
+See [Durable Agents](/docs/concepts/durable-execution/) for how recovery uses
+submission state, and the [Data Persistence API](/docs/api/data-persistence-api/)
 for the exact adapter contract.
 
 ## When to choose Turso
@@ -159,4 +159,4 @@ for the exact adapter contract.
 Choose Turso when you want a managed, replicated SQLite without running a
 server, and optionally embedded replicas for low-latency reads. For a local
 file or a libSQL server you operate yourself, use the same adapter via the
-[libSQL guide](/ecosystem/databases/libsql/). For external durable storage that supports process or host replacement, see [`@bapX/postgres`](/ecosystem/databases/postgres/). Node still requires one live owner per agent instance.
+[libSQL guide](/docs/ecosystem/databases/libsql/). For external durable storage that supports process or host replacement, see [`@bapX/postgres`](/docs/ecosystem/databases/postgres/). Node still requires one live owner per agent instance.

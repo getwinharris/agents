@@ -4,11 +4,11 @@ description: Deploy Bapx agents to Fly.io as a long-running Docker app on Fly Ma
 lastReviewedAt: 2026-06-20
 ---
 
-A Bapx server is a long-running HTTP service, not a serverless function, so deploy it to Fly Machines that stay up rather than scaling to zero between requests. `fly launch` builds the [Bapx Docker image](/ecosystem/deploy/docker/) and runs it on Machines, which suit a stateful, always-on server well.
+A Bapx server is a long-running HTTP service, not a serverless function, so deploy it to Fly Machines that stay up rather than scaling to zero between requests. `fly launch` builds the [Bapx Docker image](/docs/ecosystem/deploy/docker/) and runs it on Machines, which suit a stateful, always-on server well.
 
 ## Launch from the Dockerfile
 
-With a [Bapx Dockerfile](/ecosystem/deploy/docker/) at the project root, `fly launch` detects it, registers the build, and generates a `fly.toml`. The image is built and deployed by `fly deploy` — `fly launch` only records how to build it.
+With a [Bapx Dockerfile](/docs/ecosystem/deploy/docker/) at the project root, `fly launch` detects it, registers the build, and generates a `fly.toml`. The image is built and deployed by `fly deploy` — `fly launch` only records how to build it.
 
 ```bash
 fly launch
@@ -80,13 +80,13 @@ import { postgres } from '@bapX/postgres';
 export default postgres(process.env.DATABASE_URL!);
 ```
 
-Bapx discovers `db.ts` at build time and wires it into the generated server. The adapter handles schema creation, canonical conversation streams, immutable attachments, durable submission state, and workflow history. See [Database](/guide/database/) for adapter details and [Data Persistence API](/api/data-persistence-api/) for the contract.
+Bapx discovers `db.ts` at build time and wires it into the generated server. The adapter handles schema creation, canonical conversation streams, immutable attachments, durable submission state, and workflow history. See [Database](/docs/guide/database/) for adapter details and [Data Persistence API](/docs/api/data-persistence-api/) for the contract.
 
 ## Health and streaming
 
 Bapx does not generate a `/health` route — define one in `app.ts` for the `[[http_service.checks]]` path above, or drop the check. Fly's HTTP checks expect a 2xx and do not follow redirects, so with `force_https = true` either run the check over `https` or add `X-Forwarded-Proto = "https"` to its headers.
 
-Exposed workflow runs use long-lived `GET /runs/:runId` reads (long-poll/SSE). Keep at least one Machine running so auto-stop does not cut these connections. For long-running workflows, retain the invocation's `runId` and read the run from offset `-1` instead of holding one blocking request. See [Workflow HTTP exports](/api/workflow-api/#http-exports).
+Exposed workflow runs use long-lived `GET /runs/:runId` reads (long-poll/SSE). Keep at least one Machine running so auto-stop does not cut these connections. For long-running workflows, retain the invocation's `runId` and read the run from offset `-1` instead of holding one blocking request. See [Workflow HTTP exports](/docs/api/workflow-api/#http-exports).
 
 ## Going further
 

@@ -4,7 +4,7 @@ description: Run the Bapx Node server as a long-running Render web service.
 lastReviewedAt: 2026-06-20
 ---
 
-Bapx's Node target is a long-running HTTP server, not a serverless function, so it deploys to Render as a web service that stays up between requests. This guide covers the Render-specific setup; the build itself is the same `node` target described in [Deploy Agents on Node.js](/ecosystem/deploy/node/) — `npx bapX build --target node` produces `dist/server.mjs`, which you start with `node dist/server.mjs`.
+Bapx's Node target is a long-running HTTP server, not a serverless function, so it deploys to Render as a web service that stays up between requests. This guide covers the Render-specific setup; the build itself is the same `node` target described in [Deploy Agents on Node.js](/docs/ecosystem/deploy/node/) — `npx bapX build --target node` produces `dist/server.mjs`, which you start with `node dist/server.mjs`.
 
 The fastest start is the [Bapx template](https://render.com/templates/bapX): a one-click Blueprint that provisions a Node web service running the translation and assistant agents. The [Bapx + Postgres template](https://render.com/templates/bapX-with-postgresql) is the same service with a Render Postgres database wired in. Both render the rest of this guide as the explanation of what they set up.
 
@@ -95,13 +95,13 @@ import { postgres } from '@bapX/postgres';
 export default postgres(process.env.DATABASE_URL!);
 ```
 
-Bapx discovers `db.ts` at build time and wires it into the generated server — schema creation, canonical conversation streams, immutable attachments, durable submission state, and workflow history are handled by the adapter. See [Database](/guide/database/) for the adapter contract and alternatives. Note that a `free` Postgres database expires 30 days after creation; use a `basic-256mb` or larger plan for anything you intend to keep.
+Bapx discovers `db.ts` at build time and wires it into the generated server — schema creation, canonical conversation streams, immutable attachments, durable submission state, and workflow history are handled by the adapter. See [Database](/docs/guide/database/) for the adapter contract and alternatives. Note that a `free` Postgres database expires 30 days after creation; use a `basic-256mb` or larger plan for anything you intend to keep.
 
 ## Health and streaming
 
 Bapx does not generate a `/health` route. If you set `healthCheckPath`, define the matching route in `app.ts` — otherwise the check never passes and Render holds the deploy back. Drop `healthCheckPath` if you don't want a health gate.
 
-Exposed workflow runs are served through long-lived `GET /runs/:runId` reads (long-poll/SSE). Render imposes no fixed idle timeout and allows a request to run up to 100 minutes. Instance replacement can still close connections, so retain the invocation's `runId` and resume the run stream rather than relying on one blocking `?wait=result` request. The server's `SIGTERM` shutdown delay (default 30s, up to 300s via `maxShutdownDelaySeconds`) governs graceful shutdown. See [Workflow HTTP exports](/api/workflow-api/#http-exports).
+Exposed workflow runs are served through long-lived `GET /runs/:runId` reads (long-poll/SSE). Render imposes no fixed idle timeout and allows a request to run up to 100 minutes. Instance replacement can still close connections, so retain the invocation's `runId` and resume the run stream rather than relying on one blocking `?wait=result` request. The server's `SIGTERM` shutdown delay (default 30s, up to 300s via `maxShutdownDelaySeconds`) governs graceful shutdown. See [Workflow HTTP exports](/docs/api/workflow-api/#http-exports).
 
 ## Going further
 

@@ -9,7 +9,7 @@ harness and `@bapX/agent` package (forked from Bapx):
 - **Primary package**: `@bapX/agent`
 - **GitHub source**: `getwinharris/agents`
 - **Gateway**: `api.bapx.in/mcp`
-- **Pricing**: $5/month includes 5 GB workspace storage and agent/workflow hosting; additional storage is $1/GB/month. TTS and STT are included. Customers bring their own AI-provider and connector credentials.
+- **Pricing**: ₹500/month includes 5 GB workspace storage, hosted agents/workflows, hosted search, browser sessions, Node.js project subdomains, TTS, and STT; additional storage is ₹100/GB/month up to 100 GB. Customers bring their own AI-provider and connector credentials.
 
 Agents are TypeScript modules (`agents/<name>.ts`). Build agents that can spawn sub-agents,
 use skills (search, deploy, browser), and collaborate via built-in team features.
@@ -63,7 +63,7 @@ A blueprint is a Markdown implementation guide returned by `bapX add`; its kind 
 - `apps/www/admin/` — Admin subdomain application copied from the canonical demo by explicit product direction. It builds through the `apps-www` workspace into `apps/www/dist/admin/`; keep the copied Admin implementation aligned with relevant demo chat/runtime improvements without copying generated `dist` artifacts.
 - `internal-docs/` — Source documentation for agents and maintainers. Publish its non-sensitive developer and CLI contracts on `docs.bapx.in`; keep secrets, private host details, incident procedures, and exploitable operations restricted.
 - `docs/scheduled-research/` — Internal, source-grounded research records produced by approved recurring research workflows. Use plain Markdown without YAML frontmatter, maintain `index.md`, and organize records by durable category rather than provider-specific duplication.
-- `platform.bapx.in` — Account and business control plane. Every account owns a user-level OKF workspace; every new or imported project lives under `users/<username>/<business-slug>/projects/<project-slug>/`. Platform owns authentication, businesses, members, projects, storage, billing, API keys, connectors, MCP configuration, and business/project observability.
+- `platform.bapx.in` — Account, settings, billing, connector, API key, MCP, and observability control plane. Every account owns a user-level OKF workspace; every new or imported project lives under `users/<username>/<business-slug>/projects/<project-slug>/`. Platform configures the shared operating workspace; it is not a separate workspace product.
 - `admin.bapx.in` — The bapX business operating surface scoped to `/root/bapx.in`. Reuse the canonical demo's real React agent conversation inside the existing `apps/www` build; preserve the workspace editor under Projects and follow `internal-docs/admin-surface.md`. Its integration menu is MCPs, not Plugins. Do not create a duplicate admin frontend.
 - `agents.bapx.in` — The customer business operating surface scoped to `users/<username>/<business-slug>/` and its projects. It uses the same people, agents, automations, projects, and tool model as admin with customer-level authority.
 - `demo/` — Canonical demo app source. Do not duplicate it as `users/demo`; adapt it only into real user projects when explicitly needed.

@@ -65,7 +65,7 @@ time and wires the adapter into the generated Node server.
 
 This is a **Node.js** adapter. The Cloudflare target uses Durable Object SQLite
 and rejects `db.ts`, so MongoDB is not used on that target. See
-[Database](/guide/database/) for target-specific persistence behavior.
+[Database](/docs/guide/database/) for target-specific persistence behavior.
 
 ## Choose a supported deployment
 

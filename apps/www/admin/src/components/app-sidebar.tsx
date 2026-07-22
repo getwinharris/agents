@@ -1,11 +1,16 @@
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import {
   Bot,
+  Compass,
+  FileText,
+  GitBranch,
   GitPullRequest,
-  MessageCircle,
+  Home,
   MessageSquarePlus,
+  MessagesSquare,
   MoreHorizontal,
   Network,
+  Search,
   Settings,
   TimerReset,
   Trash2,
@@ -61,7 +66,7 @@ export function AppSidebar() {
         <Button asChild variant="outline" className="w-full justify-start gap-2">
           <Link to="/">
             <MessageSquarePlus className="size-4" />
-            New chat
+            New task
           </Link>
         </Button>
       </SidebarHeader>
@@ -70,19 +75,31 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
+              <SidebarMenuItem><SidebarMenuButton asChild><Link to="/"><Home /><span>Dashboard</span></Link></SidebarMenuButton></SidebarMenuItem>
+              <SidebarMenuItem><SidebarMenuButton asChild><Link to="/threads"><MessagesSquare /><span>Threads</span></Link></SidebarMenuButton></SidebarMenuItem>
+              {operatingSurface.showAdminPullRequests ? <SidebarMenuItem><SidebarMenuButton asChild><Link to="/pull-requests"><GitPullRequest /><span>PRs</span></Link></SidebarMenuButton></SidebarMenuItem> : null}
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/automations"><TimerReset /><span>Automations</span></Link></SidebarMenuButton></SidebarMenuItem>
+              <SidebarMenuItem><SidebarMenuButton asChild><Link to="/explore"><Compass /><span>Explore</span></Link></SidebarMenuButton></SidebarMenuItem>
+              <SidebarMenuItem><SidebarMenuButton asChild><Link to="/context"><FileText /><span>Context</span></Link></SidebarMenuButton></SidebarMenuItem>
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/mcps"><Network /><span>MCPs</span></Link></SidebarMenuButton></SidebarMenuItem>
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/projects"><FolderKanban /><span>Projects</span></Link></SidebarMenuButton></SidebarMenuItem>
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/team"><Users /><span>Team</span></Link></SidebarMenuButton></SidebarMenuItem>
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/agents"><Bot /><span>Agents</span></Link></SidebarMenuButton></SidebarMenuItem>
-              {operatingSurface.showAdminPullRequests ? <SidebarMenuItem><SidebarMenuButton asChild><Link to="/pull-requests"><GitPullRequest /><span>Pull requests</span></Link></SidebarMenuButton></SidebarMenuItem> : null}
-              <SidebarMenuItem><SidebarMenuButton asChild><Link to="/"><MessageCircle /><span>Chat</span></Link></SidebarMenuButton></SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
           <SidebarGroupLabel>Projects and conversations</SidebarGroupLabel>
           <SidebarGroupContent>
+            <div className="mb-2 flex items-center gap-2 rounded-md border bg-background/60 px-2 py-1.5 text-xs text-muted-foreground">
+              <Search className="size-3.5" />
+              <span className="truncate">Search tasks, files, PRs…</span>
+            </div>
+            <div className="mb-2 flex items-center gap-2 rounded-md border bg-background/60 px-2 py-1.5 text-xs">
+              <GitBranch className="size-3.5 text-muted-foreground" />
+              <span className="font-mono">main</span>
+              <span className="text-muted-foreground">workspace branch</span>
+            </div>
             {conversations.length === 0 ? (
               <p className="px-2 py-1.5 text-xs text-muted-foreground">No conversations yet.</p>
             ) : (

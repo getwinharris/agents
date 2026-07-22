@@ -6,7 +6,7 @@ lastReviewedAt: 2026-05-29
 
 Models determine what kind of work an agent can perform. Providers determine how your application reaches those models, authenticates its requests, and applies any transport-specific configuration.
 
-This guide covers model selection and provider setup. For configuring addressable agents, see [Agents](/guide/building-agents/). For running model-driven work inside finite orchestration, see [Workflows](/guide/workflows/). For provider registration signatures, see the [Provider API](/api/provider-api/). For operation inputs and results, see the [Agent API](/api/agent-api/).
+This guide covers model selection and provider setup. For configuring addressable agents, see [Agents](/docs/guide/building-agents/). For running model-driven work inside finite orchestration, see [Workflows](/docs/guide/workflows/). For provider registration signatures, see the [Provider API](/docs/api/provider-api/). For operation inputs and results, see the [Agent API](/docs/api/agent-api/).
 
 ## Model specifier
 
@@ -30,7 +30,7 @@ export default defineAgent(() => ({
 }));
 ```
 
-Model specifiers can also be supplied by reusable profiles and subagents, or used to override the default model for an individual prompt, skill, or task operation. Responses report the selected model as `{ provider, id }`, preserving the provider ID and model ID from this specifier. See [Agents](/guide/building-agents/), [Subagents](/guide/subagents/), and the [Agent API](/api/agent-api/) for those API-specific behaviors.
+Model specifiers can also be supplied by reusable profiles and subagents, or used to override the default model for an individual prompt, skill, or task operation. Responses report the selected model as `{ provider, id }`, preserving the provider ID and model ID from this specifier. See [Agents](/docs/guide/building-agents/), [Subagents](/docs/guide/subagents/), and the [Agent API](/docs/api/agent-api/) for those API-specific behaviors.
 
 ## Model reasoning effort
 
@@ -74,7 +74,7 @@ Most hosted providers require credentials before they will accept model requests
 | `openai`     | `OPENAI_API_KEY`     |
 | `openrouter` | `OPENROUTER_API_KEY` |
 
-Keep credential values out of agent modules and committed configuration files. `bapX build`, `bapX dev`, and `bapX run` load project-root `.env` before configuration, with `--env` available to select one alternate file. During Cloudflare development, Worker runtime variables continue to use `.env` or `.dev.vars` through Workers tooling. See [Configuration](/reference/configuration/) for details.
+Keep credential values out of agent modules and committed configuration files. `bapX build`, `bapX dev`, and `bapX run` load project-root `.env` before configuration, with `--env` available to select one alternate file. During Cloudflare development, Worker runtime variables continue to use `.env` or `.dev.vars` through Workers tooling. See [Configuration](/docs/reference/configuration/) for details.
 
 Some provider paths authenticate through their platform integration instead of a model-provider API key. In particular, the binding-backed `cloudflare/...` provider uses your Worker's `AI` binding, as described in [Cloudflare Workers AI](#cloudflare-workers-ai-cloudflare-only).
 

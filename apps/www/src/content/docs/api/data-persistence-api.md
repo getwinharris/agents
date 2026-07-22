@@ -18,7 +18,7 @@ import type {
 } from '@bapX/runtime/adapter';
 ```
 
-Application code usually configures an adapter through `db.ts`; see [Database](/guide/database/). Always typecheck an adapter against the package exports. If this page and the package differ, the package wins.
+Application code usually configures an adapter through `db.ts`; see [Database](/docs/guide/database/). Always typecheck an adapter against the package exports. If this page and the package differ, the package wins.
 
 Every backend implements the same observable contract. Atomic operations must remain atomic under concurrency regardless of whether the backend uses transactions, conditional writes, or another native primitive.
 

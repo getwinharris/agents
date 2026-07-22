@@ -146,10 +146,11 @@ Tracking: [Discussion #34](https://github.com/getwinharris/agents/discussions/34
 ## Stage 8 — Industrial readiness
 
 - [ ] Add service-level objectives for authentication, repository import, agent operations, automations, and browser sessions.
+- [ ] Implement Razorpay INR subscriptions: ₹500/month base with 5 GB included, ₹100/GB/month for 6-100 GB, signed webhook verification, idempotent event handling, and server-enforced quotas.
 - [ ] Add backup, restore, migration, retention, deletion, export, and disaster-recovery verification for filesystem collections and project repositories.
 - [ ] Add dependency provenance, lockfile policy, secret scanning, push protection, security reporting, and signed release procedures.
 - [ ] Add organization roles, least-privilege permissions, audit export, session/device management, and account recovery.
-- [ ] Add quotas and concurrency controls for storage, agents, automations, browser sessions, and connector calls.
+- [ ] Add quotas and concurrency controls for storage, hosted search, agents, automations, browser sessions, Node.js project subdomains, and connector calls.
 - [ ] Run accessibility, performance, reliability, threat-model, and tenant-isolation reviews before declaring general availability.
 
 ## Evidence sources

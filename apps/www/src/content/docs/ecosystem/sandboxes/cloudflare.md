@@ -81,4 +81,4 @@ export default defineAgent<Env>(({ id, env }) => ({
 
 Use Cloudflare Sandbox when an agent on Cloudflare needs git, package installation, native binaries, or other Linux tooling. Prefer Cloudflare Shell instead when a durable workspace with Workspace-oriented operations is sufficient and a Linux toolchain is unnecessary.
 
-Treat network egress, mounted data, credentials, and side effects as application security decisions. See [Sandboxes](/guide/sandboxes/#remote-sandboxes) and [Deploy on Cloudflare](/ecosystem/deploy/cloudflare/).
+Treat network egress, mounted data, credentials, and side effects as application security decisions. See [Sandboxes](/docs/guide/sandboxes/#remote-sandboxes) and [Deploy on Cloudflare](/docs/ecosystem/deploy/cloudflare/).

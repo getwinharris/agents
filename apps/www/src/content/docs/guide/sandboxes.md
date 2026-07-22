@@ -4,7 +4,7 @@ description: Give agents a workspace for files and command-driven work.
 lastReviewedAt: 2026-05-30
 ---
 
-Sandboxes give an agent a workspace to read, write, and run commands in while it works. Use them when an agent needs to operate on files or run commands, rather than only respond to prompts or call application-defined [tools](/guide/tools/).
+Sandboxes give an agent a workspace to read, write, and run commands in while it works. Use them when an agent needs to operate on files or run commands, rather than only respond to prompts or call application-defined [tools](/docs/guide/tools/).
 
 Bapx provides a lightweight virtual sandbox by default. Use a local sandbox when a trusted Node.js agent should operate directly on its host machine, or a remote sandbox when work needs an isolated environment with its own tooling and lifecycle.
 
@@ -59,7 +59,7 @@ export default defineAgent(() => ({
 
 `local()` makes host files and installed commands reachable through the agent's workspace capabilities. It does not provide isolation between model-directed work and the host machine.
 
-Host environment variables are deliberately limited by default. If a command requires an additional value, expose it explicitly through `local({ env: { ... } })`. Avoid giving a model-directed shell broad credentials when a narrow application [tool](/guide/tools/) can perform the required action instead.
+Host environment variables are deliberately limited by default. If a command requires an additional value, expose it explicitly through `local({ env: { ... } })`. Avoid giving a model-directed shell broad credentials when a narrow application [tool](/docs/guide/tools/) can perform the required action instead.
 
 Use `local()` only where the host and input are already trusted for this level of access. Do not use it as an isolation boundary for untrusted requests or multiple tenants.
 
@@ -69,9 +69,9 @@ Use a remote sandbox when agent work needs an environment that should not run on
 
 A remote sandbox is supplied through an integration appropriate to the provider or platform. Your application is responsible for deciding which workspace belongs to which agent instance or workflow, what credentials and network access it receives, whether it may be reused, and when it is deleted or expired.
 
-See the Ecosystem **Sandboxes** integrations, such as [Daytona](/ecosystem/sandboxes/daytona/), to connect a provider-managed remote sandbox. If you need to implement an integration, see the [Sandbox Adapter API](/api/sandbox-api/).
+See the Ecosystem **Sandboxes** integrations, such as [Daytona](/docs/ecosystem/sandboxes/daytona/), to connect a provider-managed remote sandbox. If you need to implement an integration, see the [Sandbox Adapter API](/docs/api/sandbox-api/).
 
-Cloudflare deployments can use [Cloudflare Sandbox](/ecosystem/sandboxes/cloudflare/) for a native container-backed Linux sandbox. Use it when an agent deployed on Cloudflare needs tools such as git, package installation, or native commands; its setup and lifecycle details belong in the integration guide.
+Cloudflare deployments can use [Cloudflare Sandbox](/docs/ecosystem/sandboxes/cloudflare/) for a native container-backed Linux sandbox. Use it when an agent deployed on Cloudflare needs tools such as git, package installation, or native commands; its setup and lifecycle details belong in the integration guide.
 
 A sandbox integration may expose different model-facing capabilities than the virtual and local sandboxes. Check the integration documentation before assuming ordinary file or command tools are available.
 
@@ -91,9 +91,9 @@ Choose the narrowest sandbox that supports the task. Expanding the environment e
 
 ## Next steps
 
-- [Agents](/guide/building-agents/) — configure continuing agents that work inside a sandbox.
-- [Workflows](/guide/workflows/) — stage files and collect artifacts during finite work.
-- [Tools](/guide/tools/) — expose bounded application actions separately from workspace access.
-- [Skills](/guide/skills/) — bundle procedures or provide workspace-discovered skills.
-- [Sandbox Adapter API](/api/sandbox-api/) — implement a provider-backed sandbox integration.
-- [Daytona](/ecosystem/sandboxes/daytona/) and [Cloudflare Sandbox](/ecosystem/sandboxes/cloudflare/) — configure remote sandbox integrations.
+- [Agents](/docs/guide/building-agents/) — configure continuing agents that work inside a sandbox.
+- [Workflows](/docs/guide/workflows/) — stage files and collect artifacts during finite work.
+- [Tools](/docs/guide/tools/) — expose bounded application actions separately from workspace access.
+- [Skills](/docs/guide/skills/) — bundle procedures or provide workspace-discovered skills.
+- [Sandbox Adapter API](/docs/api/sandbox-api/) — implement a provider-backed sandbox integration.
+- [Daytona](/docs/ecosystem/sandboxes/daytona/) and [Cloudflare Sandbox](/docs/ecosystem/sandboxes/cloudflare/) — configure remote sandbox integrations.

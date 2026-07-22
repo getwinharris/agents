@@ -5,10 +5,12 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 
 export async function getStaticPaths() {
 	const entries = await getCollection('docs');
-	return entries.map((entry) => ({
-		params: { slug: entry.id },
-		props: { entry, slug: entry.id },
-	}));
+	return entries
+		.filter((entry) => !entry.id.startsWith('ecosystem/'))
+		.map((entry) => ({
+			params: { slug: entry.id },
+			props: { entry, slug: entry.id },
+		}));
 }
 
 const { entry, slug } = Astro.props;

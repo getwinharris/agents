@@ -12,7 +12,7 @@ bapX update <kind> <name-or-url> [--print]
 
 ## Description
 
-`bapX update` fetches the same complete, current Markdown blueprint as [`bapX add`](/cli/add/). It does not edit project files itself.
+`bapX update` fetches the same complete, current Markdown blueprint as [`bapX add`](/docs/cli/add/). It does not edit project files itself.
 
 Most integrations have a primary generated file with a marker identifying the blueprint version that produced it:
 
@@ -37,7 +37,7 @@ Give the fetched blueprint to a coding agent. How the agent updates the integrat
 
 | Option    | Description                                                                    |
 | --------- | ------------------------------------------------------------------------------ |
-| `--print` | Write raw blueprint Markdown to stdout, matching [`bapX add`](/cli/add/). |
+| `--print` | Write raw blueprint Markdown to stdout, matching [`bapX add`](/docs/cli/add/). |
 
 ## Examples
 

@@ -35,8 +35,23 @@ A provider/service integration and a CLI tool are two facets of the same capabil
 | Razorpay | Payments connector/MCP work | `razorpay` for test/live orders, payments, refunds, payment links, subscriptions, settlements, and other explicitly approved operations | Connector, CLI skill, and approval policy are planned |
 | Google Workspace | Google Chat channel and customer ecosystem description | `gws` for Drive, Gmail, Calendar, Docs, Sheets, Chat, and other authorized Workspace APIs | Google Chat exists; full Workspace connector and CLI capability are planned |
 | Vercel | Vercel Sandbox catalog | `vercel` for authorized project linking, environment, build, deploy, and inspection operations | Sandbox exists; deployment connector and CLI capability are planned |
+| Coding CLIs | Cloud coding CLI tooling page and Admin/Agents cockpit | Codex CLI, Claude Code, OpenCode, Zed/Zcode, Kimi Code, Antigravity, GitHub Copilot CLI, Kilo Code, Roo Code, Cline, OpenClaw/Null Claw-like tiny agents, and other approved CLIs through the hosted runtime | Planned; each executable must be versioned, health-checked, permission-scoped, and surfaced as a specialist capability, not as a separate product runtime |
 
 The Google Workspace CLI repository is published by the `googleworkspace` GitHub organization but explicitly describes itself as not an officially supported Google product and as pre-1.0. Pin an evaluated release and preserve that status in user-facing availability.
+
+## Human and agent coordination references
+
+Use the supplied Capy/GitHub Copilot screenshots and the verified Multica product direction as product references for the Admin/Agents cockpit:
+
+- central bapX agent composer with selected project, branch, model/provider, and specialist-agent routing;
+- left workspace navigation for dashboard/tasks, threads, PRs, automations, exploration/browser/search, context, settings, and projects;
+- issue/task assignment to agents the same way a teammate is assigned, including status, blockers, review requests, and completion evidence;
+- activity timelines where human actions, agent reasoning/status, tool calls, PRs, and automation runs are visible together;
+- automation templates for Slack, GitHub, Linear, Sentry, webhooks, schedules, and manual runs;
+- reusable skills exposed as automations or agent capabilities without making customers install the internal bapX CLI;
+- hosted coding/browser tools running inside scoped sandboxes with per-business/project permissions.
+
+These references guide product behavior, not source ownership. Implement through the existing `demo/`, `apps/www/admin/`, `apps/agents-runtime/`, `packages/runtime/`, and `packages/cli/` owners.
 
 ## Shared Browser skill
 

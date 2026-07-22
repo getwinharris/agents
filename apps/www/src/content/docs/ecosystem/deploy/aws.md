@@ -6,7 +6,7 @@ lastReviewedAt: 2026-06-20
 
 Bapx's Node target is a long-running HTTP server, not a function. It holds agent sessions in process and serves streamed responses over long-lived connections, so on AWS you run it as a container service that stays up — Bapx owns the server, AWS owns the platform around it.
 
-Every option here runs the same image from [Deploy Agents with Docker](/ecosystem/deploy/docker/). Build it, push it to a private repository in [Amazon ECR](https://docs.aws.amazon.com/AmazonECR/latest/userguide/), and point one of the compute options below at that image:
+Every option here runs the same image from [Deploy Agents with Docker](/docs/ecosystem/deploy/docker/). Build it, push it to a private repository in [Amazon ECR](https://docs.aws.amazon.com/AmazonECR/latest/userguide/), and point one of the compute options below at that image:
 
 ```bash
 aws ecr create-repository --repository-name bapX-agents
@@ -47,7 +47,7 @@ aws ecs create-express-gateway-service \
 | Health check    | `--health-check-path` is the ALB target-group path. Bapx does not generate one — define `/health` in `app.ts`.                                                                                                                                                                                                                 |
 | Scaling         | `--scaling-target` sets `minTaskCount` / `maxTaskCount`; scaling tracks CPU. Keep `minTaskCount` ≥ 1 so a process is always up to hold sessions.                                                                                                                                                                               |
 
-For exposed workflow runs, the ALB sits in front of long-lived `GET /runs/:runId` reads (long-poll/SSE). Raise the target group's idle timeout, and retain the invocation's `runId` so clients can reconnect and resume the run stream. Multiple tasks need shared Postgres for durable state and workflow history, but each agent instance must still be routed to one live task; do not round-robin the same instance. See [Workflow HTTP exports](/api/workflow-api/#http-exports).
+For exposed workflow runs, the ALB sits in front of long-lived `GET /runs/:runId` reads (long-poll/SSE). Raise the target group's idle timeout, and retain the invocation's `runId` so clients can reconnect and resume the run stream. Multiple tasks need shared Postgres for durable state and workflow history, but each agent instance must still be routed to one live task; do not round-robin the same instance. See [Workflow HTTP exports](/docs/api/workflow-api/#http-exports).
 
 ## EC2 (simplest, full control)
 

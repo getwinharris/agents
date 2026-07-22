@@ -8,11 +8,11 @@ Build and deploy Bapx agents as a Node.js server. This guide walks you through c
 
 By the end, you will have a Bapx agent running as a Node.js server, and you will know how to add subagents, sandbox context, external CLIs, remote sandboxes, and durable session storage when your agent needs them.
 
-This guide focuses on deploying the generated Node server. First review the [CLI overview](/cli/overview/) for the development lifecycle and build output, then see [Routing](/guide/routing/) for direct HTTP agent delivery, workflow endpoints, and asynchronous `dispatch(...)` from application-owned routes. To package the server as a container image, see [Deploy Agents with Docker](/ecosystem/deploy/docker/).
+This guide focuses on deploying the generated Node server. First review the [CLI overview](/docs/cli/overview/) for the development lifecycle and build output, then see [Routing](/docs/guide/routing/) for direct HTTP agent delivery, workflow endpoints, and asynchronous `dispatch(...)` from application-owned routes. To package the server as a container image, see [Deploy Agents with Docker](/docs/ecosystem/deploy/docker/).
 
 ## Project layout
 
-The project root is your project directory. Bapx selects authored source from `.bapX/`, then `src/`, then the project root. The first matching directory wins, and layouts never mix. See [Project Layout](/guide/project-layout/) for the full convention.
+The project root is your project directory. Bapx selects authored source from `.bapX/`, then `src/`, then the project root. The first matching directory wins, and layouts never mix. See [Project Layout](/docs/guide/project-layout/) for the full convention.
 
 By default `bapX build` writes to `./dist/` at the project root; pass `--output <path>` to redirect the build elsewhere. Examples in this guide use the `./.bapX/` layout.
 
@@ -231,9 +231,9 @@ No container startup, real project context, fast iteration. If you need a tighte
 
 The examples above use either the default virtual sandbox or the local sandbox. When you need full isolation per session — each user gets their own Linux environment with git, Node.js, Python, etc. — you want a remote sandbox.
 
-Bapx connects to remote sandboxes through project-owned sandbox adapters installed from `bapX add` blueprints. Run `bapX add` with no arguments to see what's currently supported, or `bapX add sandbox <url>` to have your coding agent build an adapter for an unsupported provider against the [Sandbox Adapter API](/api/sandbox-api/).
+Bapx connects to remote sandboxes through project-owned sandbox adapters installed from `bapX add` blueprints. Run `bapX add` with no arguments to see what's currently supported, or `bapX add sandbox <url>` to have your coding agent build an adapter for an unsupported provider against the [Sandbox Adapter API](/docs/api/sandbox-api/).
 
-The Ecosystem catalog lists available provider integrations, including [Daytona](/ecosystem/sandboxes/daytona/), [E2B](/ecosystem/sandboxes/e2b/), [Modal](/ecosystem/sandboxes/modal/), and [Vercel Sandbox](/ecosystem/sandboxes/vercel/). Other adapters follow the same application-owned lifecycle shape.
+The Ecosystem catalog lists available provider integrations, including [Daytona](/docs/ecosystem/sandboxes/daytona/), [E2B](/docs/ecosystem/sandboxes/e2b/), [Modal](/docs/ecosystem/sandboxes/modal/), and [Vercel Sandbox](/docs/ecosystem/sandboxes/vercel/). Other adapters follow the same application-owned lifecycle shape.
 
 ### When to use a remote sandbox
 
@@ -250,7 +250,7 @@ Start with the local or virtual sandbox. Move to a remote sandbox when you need 
 
 On Node.js, canonical agent conversations, attachments, and accepted submissions use in-memory SQLite by default, so they persist for the lifetime of one process but are lost on restart. Add `db.ts` when that state must survive restart or support replacement recovery. A shared database does not remove the requirement for one live Node owner per agent instance.
 
-See [Database](/guide/database/) for `db.ts`, SQLite, Postgres, and custom adapter setup. See [Data Persistence API](/api/data-persistence-api/) for the adapter contract.
+See [Database](/docs/guide/database/) for `db.ts`, SQLite, Postgres, and custom adapter setup. See [Data Persistence API](/docs/api/data-persistence-api/) for the adapter contract.
 
 ## Building and deploying
 
@@ -276,7 +276,7 @@ The default root-mounted Bapx application can expose:
 - `POST /workflows/:name` — invoke a workflow module that exports `route`;
 - `GET /runs/:runId` — stream or inspect runs whose owning workflow exports `runs` middleware (`?meta` reads the run record).
 
-Bapx does not add a health endpoint or deployment-wide inspection routes by default. Define a host-required health route in `app.ts`, expose per-workflow run resources with `runs` middleware, and [compose your own admin endpoints](/api/routing-api/#compose-your-own-admin-endpoints) behind operator authorization when listing is required. Agent prompt routes advance sessions without creating runs.
+Bapx does not add a health endpoint or deployment-wide inspection routes by default. Define a host-required health route in `app.ts`, expose per-workflow run resources with `runs` middleware, and [compose your own admin endpoints](/docs/api/routing-api/#compose-your-own-admin-endpoints) behind operator authorization when listing is required. Agent prompt routes advance sessions without creating runs.
 
 ### Choosing a sandbox strategy
 

@@ -3,7 +3,7 @@ title: Errors
 description: SDK HTTP and stream error types.
 ---
 
-See [Errors Reference](/api/errors-reference/) for shared transport envelopes and stable public error categories.
+See [Errors Reference](/docs/api/errors-reference/) for shared transport envelopes and stable public error categories.
 
 ## `BapxApiError`
 

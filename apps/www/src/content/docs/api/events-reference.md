@@ -144,7 +144,7 @@ Subscribes to live workflow-run and agent-interaction activity emitted in the cu
 
 `observe()` receives every emitted event, including `turn_request` — the full model-visible request is available to in-process observability without being persisted to the primary database.
 
-See [Observability](/guide/observability/) for application setup and exporter guidance.
+See [Observability](/docs/guide/observability/) for application setup and exporter guidance.
 
 #### `BapxObservationSubscriber`
 
@@ -159,4 +159,4 @@ Receives a detached immutable observation and its originating context. Subscribe
 
 ## Public errors
 
-Transport errors use the shared `BapxPublicError` shape. See [Errors Reference](/api/errors-reference/) for its fields, stable categories, transport envelopes, and the distinction between transport errors and open-ended workflow failure records.
+Transport errors use the shared `BapxPublicError` shape. See [Errors Reference](/docs/api/errors-reference/) for its fields, stable categories, transport envelopes, and the distinction between transport errors and open-ended workflow failure records.

@@ -21,7 +21,7 @@ const run = await client.workflows.invoke('summarize', {
 console.log(run.runId); // "run_01JX..."
 ```
 
-If the workflow exports `runs` middleware, use the returned `runId` with [`client.runs`](/sdk/runs/) to stream events, fetch events, or retrieve run metadata.
+If the workflow exports `runs` middleware, use the returned `runId` with [`client.runs`](/docs/sdk/runs/) to stream events, fetch events, or retrieve run metadata.
 
 Pass `wait: 'result'` to hold the request open until the run finishes and resolve with its terminal result:
 

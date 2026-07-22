@@ -5,7 +5,7 @@ description: Configure database-backed state for Bapx agents and workflow runs.
 
 Bapx uses a database for canonical agent conversation streams, external attachment payloads, accepted agent submissions, and workflow-run records. On Node.js, database setup is explicit through `db.ts`. On Cloudflare, generated Durable Objects use SQLite automatically.
 
-This guide covers how `db.ts` works, which built-in adapters are available, and what database-backed state does and does not cover. For interruption recovery and restart behavior, see [Durable Agents](/concepts/durable-execution/). For the exact adapter contract, see [Data Persistence API](/api/data-persistence-api/).
+This guide covers how `db.ts` works, which built-in adapters are available, and what database-backed state does and does not cover. For interruption recovery and restart behavior, see [Durable Agents](/docs/concepts/durable-execution/). For the exact adapter contract, see [Data Persistence API](/docs/api/data-persistence-api/).
 
 ## `db.ts`
 
@@ -63,7 +63,7 @@ A shared Postgres database is the right choice when another Node process must re
 
 On Cloudflare, generated agent and workflow Durable Objects use SQLite automatically. Canonical agent streams, attachments, accepted submissions, workflow-run records, and event streams are stored in Durable Object SQLite; run indexing is stored in Bapx's generated `BapxRegistry` Durable Object. No `db.ts` file is needed, and Cloudflare builds reject one if present.
 
-Cloudflare Durable Objects also provide the ownership boundary for agent execution: one agent instance owns its own ordered submission queue. See [Cloudflare](/guide/targets/cloudflare/) for generated Durable Object behavior and [Deploy Agents on Cloudflare](/ecosystem/deploy/cloudflare/) for Wrangler migrations.
+Cloudflare Durable Objects also provide the ownership boundary for agent execution: one agent instance owns its own ordered submission queue. See [Cloudflare](/docs/guide/targets/cloudflare/) for generated Durable Object behavior and [Deploy Agents on Cloudflare](/docs/ecosystem/deploy/cloudflare/) for Wrangler migrations.
 
 ## What the database stores
 

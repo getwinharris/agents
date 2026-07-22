@@ -18,7 +18,7 @@ bapX add tooling vitest-evals
 
 The tooling blueprint creates `createBapxAgentHarness(...)`, which prompts an HTTP-exposed agent through `@bapX/sdk` and records its response, model usage, costs, and tool calls in the format expected by `vitest-evals`. Each eval case gets a fresh agent instance, so saved conversation history cannot affect other cases. To evaluate a workflow instead, create a harness around `client.workflows.invoke(...)` and return the workflow result as its output.
 
-For protected deployments, configure the SDK client with the required token or headers. See [Vitest Evals tooling](/ecosystem/tooling/vitest-evals/) for setup and reporting details.
+For protected deployments, configure the SDK client with the required token or headers. See [Vitest Evals tooling](/docs/ecosystem/tooling/vitest-evals/) for setup and reporting details.
 
 In addition to ordinary Vitest assertions and case tables, `vitest-evals` supports model-based and deterministic judges, normalized transcripts and tool calls, tool replay, JSON reports, a local report UI, and GitHub reporting. See the [`vitest-evals` documentation](https://vitest-evals.sentry.dev/docs) for the complete feature set and API.
 
@@ -78,7 +78,7 @@ A complete runnable version of the agent, harness, and eval is available in [`ex
 
 ## Braintrust
 
-[Braintrust](https://www.braintrust.dev) provides a hosted platform for datasets, experiments, scoring, and comparing eval results over time. You can run Braintrust evals against the same public Bapx agent and workflow APIs used in this guide. Bapx also provides a [Braintrust tooling integration](/ecosystem/tooling/braintrust/) that exports model, tool, task, usage, and error traces from the application. Experiment results and runtime traces serve different purposes, but identifiers such as `runId`, `instanceId`, and `submissionId` can connect a failed case to the execution that produced it.
+[Braintrust](https://www.braintrust.dev) provides a hosted platform for datasets, experiments, scoring, and comparing eval results over time. You can run Braintrust evals against the same public Bapx agent and workflow APIs used in this guide. Bapx also provides a [Braintrust tooling integration](/docs/ecosystem/tooling/braintrust/) that exports model, tool, task, usage, and error traces from the application. Experiment results and runtime traces serve different purposes, but identifiers such as `runId`, `instanceId`, and `submissionId` can connect a failed case to the execution that produced it.
 
 ## Bring your own evals
 

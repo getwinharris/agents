@@ -4,7 +4,7 @@ description: Run the Bapx Node server as a long-running Railway service.
 lastReviewedAt: 2026-06-20
 ---
 
-Bapx's Node target is a long-running HTTP server, not a serverless function, so it deploys to Railway as a standard service that stays up between requests. This guide covers the Railway-specific setup; the build itself is the same `node` target described in [Deploy Agents on Node.js](/ecosystem/deploy/node/) — `npx bapX build --target node` produces `dist/server.mjs`, which you start with `node dist/server.mjs`.
+Bapx's Node target is a long-running HTTP server, not a serverless function, so it deploys to Railway as a standard service that stays up between requests. This guide covers the Railway-specific setup; the build itself is the same `node` target described in [Deploy Agents on Node.js](/docs/ecosystem/deploy/node/) — `npx bapX build --target node` produces `dist/server.mjs`, which you start with `node dist/server.mjs`.
 
 Railway owns the platform — building the repo, injecting `PORT`, running the start command, provisioning Postgres. Bapx owns the server it starts. The two meet at the build command, the start command, and a handful of environment variables.
 
@@ -17,7 +17,7 @@ Railway builds a connected repo with [Railpack](https://railpack.com), which aut
 
 The build externalizes your dependencies rather than bundling them, so `node_modules` must be present at runtime. `npm ci` installs them; keep `@bapX/cli` available to the build command. The built server reads only the environment present when it starts — it does not load `.env` — so configuration lives in Railway variables, not a committed file.
 
-To build from a container instead, drop the Dockerfile from [Deploy Agents with Docker](/ecosystem/deploy/docker/) at the repo root. Railway detects a root `Dockerfile` (capital `D`) and builds with it in place of Railpack; point at a non-standard path with the `RAILWAY_DOCKERFILE_PATH` variable.
+To build from a container instead, drop the Dockerfile from [Deploy Agents with Docker](/docs/ecosystem/deploy/docker/) at the repo root. Railway detects a root `Dockerfile` (capital `D`) and builds with it in place of Railpack; point at a non-standard path with the `RAILWAY_DOCKERFILE_PATH` variable.
 
 ## Config as code
 
@@ -73,13 +73,13 @@ import { postgres } from '@bapX/postgres';
 export default postgres(process.env.DATABASE_URL!);
 ```
 
-Bapx discovers `db.ts` at build time and wires it into the generated server. Schema creation, canonical streams, attachments, and durable submission state are handled by the adapter. See [Database](/guide/database/) for the adapter contract and alternatives.
+Bapx discovers `db.ts` at build time and wires it into the generated server. Schema creation, canonical streams, attachments, and durable submission state are handled by the adapter. See [Database](/docs/guide/database/) for the adapter contract and alternatives.
 
 ## Health and streaming
 
 Bapx does not generate a `/health` route. If you set `deploy.healthcheckPath`, define the matching route in `app.ts` — otherwise Railway's check never passes and the deploy is held back. Without a health check, Railway considers the deploy ready once the process binds `PORT`.
 
-Exposed workflow runs are streamed through `GET /runs/:runId` with long-poll or SSE. For long-running workflows, retain the invocation's `runId` and read that resource from offset `-1` instead of holding one `?wait=result` request. Railway's edge proxy keeps active streams open, but treat any attached request as bounded; move genuinely long work to a scheduled run or separate worker. See [Workflow HTTP exports](/api/workflow-api/#http-exports).
+Exposed workflow runs are streamed through `GET /runs/:runId` with long-poll or SSE. For long-running workflows, retain the invocation's `runId` and read that resource from offset `-1` instead of holding one `?wait=result` request. Railway's edge proxy keeps active streams open, but treat any attached request as bounded; move genuinely long work to a scheduled run or separate worker. See [Workflow HTTP exports](/docs/api/workflow-api/#http-exports).
 
 ## Going further
 

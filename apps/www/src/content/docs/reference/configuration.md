@@ -15,7 +15,7 @@ export default defineConfig({
 
 Only the options listed below are accepted. Bapx recognizes `bapX.config.ts`, `.mts`, `.mjs`, `.js`, `.cjs`, and `.cts`, in that priority order. TypeScript configuration files are loaded directly by Node and must use erasable syntax.
 
-For source-module placement, see [Project Layout](/guide/project-layout/). For configuration-file discovery, command-line overrides, and environment files, see the [CLI reference](/cli/overview/).
+For source-module placement, see [Project Layout](/docs/guide/project-layout/). For configuration-file discovery, command-line overrides, and environment files, see the [CLI reference](/docs/cli/overview/).
 
 ## `target`
 

@@ -84,4 +84,4 @@ Use Cloudflare Shell when files must be stored in a durable Workspace and agent 
 
 If the workspace should survive later user interactions, associate it with a stable addressable agent instance. A workspace created inside one workflow invocation belongs to that invocation's owner rather than forming a shared cross-run workspace.
 
-See [Sandboxes](/guide/sandboxes/) and [Deploy on Cloudflare](/ecosystem/deploy/cloudflare/).
+See [Sandboxes](/docs/guide/sandboxes/) and [Deploy on Cloudflare](/docs/ecosystem/deploy/cloudflare/).

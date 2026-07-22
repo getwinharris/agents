@@ -10,6 +10,7 @@ import { channels, databases, deploy, sandboxes, tooling } from '../../../../../
 	headings={[]}
 	showTableOfContents={false}
 	variant="directory"
+	markdownUrl=""
 >
 	<div class="ecosystem-directory">
 		<header class="mb-4">
@@ -31,7 +32,7 @@ import { channels, databases, deploy, sandboxes, tooling } from '../../../../../
 			<ul class="ecosystem-grid" role="list">
 				{channels.map((item) => (
 					<li data-ecosystem-item data-search={`${item.name} ${item.keywords ?? ''}`.toLowerCase()}>
-						<a class="ecosystem-item group" href={item.href.replace(/^\/docs/, '')} aria-label={item.name}>
+						<a class="ecosystem-item group" href={item.href} aria-label={item.name}>
 							<span class="ecosystem-icon" style={`--ecosystem-icon-bg: ${item.background}`}>
 								{item.icon ? (
 									<img class:list={['ecosystem-logo', item.iconClass]} src={item.icon} alt="" loading="lazy" />
@@ -66,7 +67,7 @@ import { channels, databases, deploy, sandboxes, tooling } from '../../../../../
 			<ul class="ecosystem-grid" role="list">
 				{sandboxes.map((item) => (
 					<li data-ecosystem-item data-search={`${item.name} ${item.keywords ?? ''}`.toLowerCase()}>
-						<a class="ecosystem-item group" href={item.href.replace(/^\/docs/, '')} aria-label={item.name}>
+						<a class="ecosystem-item group" href={item.href} aria-label={item.name}>
 							<span class="ecosystem-icon" style={`--ecosystem-icon-bg: ${item.background}`}>
 								{
 									item.icon ? (
@@ -121,7 +122,7 @@ import { channels, databases, deploy, sandboxes, tooling } from '../../../../../
 			<ul class="ecosystem-grid" role="list">
 				{deploy.map((item) => (
 					<li data-ecosystem-item data-search={`${item.name} ${item.keywords ?? ''}`.toLowerCase()}>
-						<a class="ecosystem-item group" href={item.href.replace(/^\/docs/, '')} aria-label={item.name}>
+						<a class="ecosystem-item group" href={item.href} aria-label={item.name}>
 							<span class="ecosystem-icon" style={`--ecosystem-icon-bg: ${item.background}`}>
 								{item.icon ? (
 									<img class:list={['ecosystem-logo', item.iconClass]} src={item.icon} alt="" loading="lazy" />
@@ -141,7 +142,7 @@ import { channels, databases, deploy, sandboxes, tooling } from '../../../../../
 			<ul class="ecosystem-grid" role="list">
 				{databases.map((item) => (
 					<li data-ecosystem-item data-search={`${item.name} ${item.keywords ?? ''}`.toLowerCase()}>
-						<a class="ecosystem-item group" href={item.href.replace(/^\/docs/, '')} aria-label={item.name}>
+						<a class="ecosystem-item group" href={item.href} aria-label={item.name}>
 							<span class="ecosystem-icon" style={`--ecosystem-icon-bg: ${item.background}`}>
 								{item.icon ? (
 									<img class:list={['ecosystem-logo', item.iconClass]} src={item.icon} alt="" loading="lazy" />
@@ -178,7 +179,7 @@ import { channels, databases, deploy, sandboxes, tooling } from '../../../../../
 			<ul class="ecosystem-grid" role="list">
 				{tooling.map((item) => (
 					<li data-ecosystem-item data-search={`${item.name} ${item.keywords ?? ''}`.toLowerCase()}>
-						<a class="ecosystem-item group" href={item.href.replace(/^\/docs/, '')} aria-label={item.name}>
+						<a class="ecosystem-item group" href={item.href} aria-label={item.name}>
 							<span class="ecosystem-icon" style={`--ecosystem-icon-bg: ${item.background}`}>
 								{item.icon ? (
 									<img class:list={['ecosystem-logo', item.iconClass]} src={item.icon} alt="" loading="lazy" />

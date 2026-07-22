@@ -60,7 +60,7 @@ Node server.
 
 `@bapX/mysql` supports **MySQL 8 with InnoDB** on the **Node.js target**. The
 Cloudflare target uses Durable Object SQLite automatically and rejects `db.ts`
-at build time. See [Database](/guide/database/) for persistence by target.
+at build time. See [Database](/docs/guide/database/) for persistence by target.
 
 ## Bring your own driver
 
@@ -131,14 +131,14 @@ A Bapx database stores runtime state, not your whole application.
 | Durable submission claims and leases                              | Provider credentials or secrets          |
 | Workflow-run records, persisted events, and run indexes           |                                          |
 
-See [Durable Agents](/concepts/durable-execution/) for recovery behavior
-and the [Data Persistence API](/api/data-persistence-api/) for the adapter
+See [Durable Agents](/docs/concepts/durable-execution/) for recovery behavior
+and the [Data Persistence API](/docs/api/data-persistence-api/) for the adapter
 contract.
 
 ## When to choose MySQL
 
 Choose MySQL when your Node deployment already operates MySQL 8, or when replacement processes and multiple replicas need durable agent state and shared workflow history in an InnoDB-backed database. Preserve one live owner per agent instance. For single-host persistence, file-backed `sqlite()` may
-be simpler. Choose [`@bapX/postgres`](/ecosystem/databases/postgres/) when
+be simpler. Choose [`@bapX/postgres`](/docs/ecosystem/databases/postgres/) when
 Postgres is your existing operational standard, or
-[`@bapX/libsql`](/ecosystem/databases/libsql/) for SQLite and libSQL
+[`@bapX/libsql`](/docs/ecosystem/databases/libsql/) for SQLite and libSQL
 workloads.
