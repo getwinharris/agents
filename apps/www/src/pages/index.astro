@@ -1,8 +1,54 @@
 ---
 import "../styles/global.css";
-import { Code } from "astro:components";
-import { HERO, COPY_PROMPT } from "../code-snippets";
 import { ecosystemPublicHref, homepageEcosystemItems } from "../../../ecosystem-catalog";
+
+const navItems = [
+  ["Home", "https://bapx.in/"],
+  ["Products", "/products/"],
+  ["Pricing", "/pricing/"],
+  ["Docs", "https://docs.bapx.in/"],
+  ["Research", "https://blogs.bapx.in/research/"],
+  ["Releases", "https://blogs.bapx.in/release/"],
+  ["Media Hub", "https://mediahub.bapx.in/"],
+] as const;
+
+const cockpitAgents = [
+  { name: "Brand", state: "active", detail: "keeps tone, offers, and product story aligned" },
+  { name: "Build", state: "queued", detail: "turns approved work into code, PRs, and deploys" },
+  { name: "Browser", state: "ready", detail: "tests sign-up, checkout, docs, and product flows" },
+  { name: "Research", state: "running", detail: "checks current standards before plans become scope" },
+  { name: "Ops", state: "watching", detail: "monitors Sentry, telemetry, evals, and usage signals" },
+];
+
+const workQueue = [
+  ["01", "Import project", "Resolve repo, owner, branch, and OKF workspace."],
+  ["02", "Plan work", "Create issues, assign agents, and keep humans in control."],
+  ["03", "Execute safely", "Run sandboxed CLI, browser, MCP, and hosted workflows."],
+  ["04", "Review & ship", "Validate tests, PRs, observability, and release notes."],
+] as const;
+
+const timelineRows = [
+  ["thinking", "bapX agent splits the request into product, code, docs, billing, and browser work."],
+  ["searching", "Research checks current MCP/A2A, sandbox, connector, and agent-platform standards."],
+  ["editing", "Build agents patch the project, docs, OKF files, tests, and public product surface."],
+  ["testing", "Browser, Sentry, OpenTelemetry, Braintrust, and Vitest eval evidence attach to the task."],
+  ["reviewing", "Humans approve scope, PRs, billing changes, connectors, and production release."],
+] as const;
+
+const capabilities = [
+  ["Agent team cockpit", "Central bapX agent coordinates specialists, threads, PRs, automations, and project context."],
+  ["Hosted developer tools", "Codex, Claude Code, OpenCode, Kimi Code, Zed/Zcode, Antigravity, and Copilot-style CLIs run as project-scoped tools on bapX infrastructure when enabled."],
+  ["MCP + A2A access", "Agents expose tool access through the MCP gateway and agent-to-agent handoffs instead of vague direct API claims."],
+  ["Channels & connectors", "GitHub, Slack, Linear, Sentry, Razorpay, webhooks, browser, search, and external MCPs are handled as connectors."],
+  ["OKF workspace", "Private work stays in the account/business/project workspace; public-facing docs use root-sandbox//<username>/<business-slug>/projects/<project-slug>/."],
+  ["Razorpay billing", "India-first subscription path: ₹500/month base, 5 GB included, ₹100/GB/month up to 100 GB."],
+] as const;
+
+const comparisonRows = [
+  ["Capy.ai", "Parallel cloud coding tasks, isolated VMs, review, PR creation.", "bapX needs the same visible task fleet: queue, sandbox, PR, and review status."],
+  ["Linear", "Humans and agents share issues, projects, documents, status, and activity.", "bapX needs business/project work to feel like one shared operating layer."],
+  ["GitHub Copilot", "IDE, CLI, GitHub issues/PRs, MCP, policies, and approval visibility.", "bapX needs hosted CLIs and MCP/A2A controls to be surfaced as governed tools."],
+] as const;
 
 ---
 
@@ -47,11 +93,9 @@ import { ecosystemPublicHref, homepageEcosystemItems } from "../../../ecosystem-
             <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
           </a>
           <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
-            <a href="/" class="active">Home</a>
-            <a href="https://docs.bapx.in/getting-started/quickstart/">Docs</a>
-            <a href="https://blogs.bapx.in/">Blogs</a>
-            <a href="https://mediahub.bapx.in/">Media Hub</a>
-            <a href="https://platform.bapx.in/">Platform</a>
+            {navItems.map(([label, href]) => (
+              <a href={href} class={label === "Home" ? "active" : undefined}>{label}</a>
+            ))}
           </div>
         </div>
         <div class="flex items-center gap-3">
@@ -63,71 +107,140 @@ import { ecosystemPublicHref, homepageEcosystemItems } from "../../../ecosystem-
         </div>
       </div>
       <div id="landing-mobile-menu" class="landing-mobile-menu" hidden>
-        <a href="/" class="active">Home</a>
-        <a href="https://docs.bapx.in/getting-started/quickstart/">Docs</a>
-        <a href="https://blogs.bapx.in/">Blogs</a>
-        <a href="https://mediahub.bapx.in/">Media Hub</a>
-        <a href="https://platform.bapx.in/">Platform</a>
+        {navItems.map(([label, href]) => (
+          <a href={href} class={label === "Home" ? "active" : undefined}>{label}</a>
+        ))}
         <a href="https://agents.bapx.in/">Agents</a>
       </div>
     </nav>
 
     <main>
       <!-- HERO -->
-      <section class="page-section page-header">
-        <div class="section-inner" style="max-width: 1200px;">
-          <h1 class="display-xl" style="max-width: 14ch;">
-            Our marketing team, built into your agents.
-          </h1>
-          <p class="body-lg" style="margin-top: 1.5rem; max-width: 560px;">
-            Put 10+ years of marketing and branding operations to work in your business. bapX turns proven agency workflows into hosted agents your team can direct, observe, and improve.
-          </p>
-          <div class="hero-actions">
-            <a href="https://platform.bapx.in/" class="bapx-pill bapx-pill-primary">Get started — ₹500/month</a>
-            <a href="https://docs.bapx.in/getting-started/quickstart/" class="bapx-pill">Read the docs</a>
+      <section class="page-section page-header hero-operating-room">
+        <div class="section-inner hero-grid">
+          <div class="hero-copy">
+            <h1 class="display-xl">
+              Your company’s agent team, coordinated by bapX.
+            </h1>
+            <p class="body-lg">
+              Put 10+ years of marketing, product, support, and developer operations into a hosted workspace where people and specialist agents plan, execute, review, and ship together.
+            </p>
+            <div class="hero-actions">
+              <a href="https://platform.bapx.in/" class="bapx-pill bapx-pill-primary">Start — ₹500/month</a>
+              <a href="https://docs.bapx.in/ecosystem/" class="bapx-pill">See the ecosystem</a>
+            </div>
           </div>
-        </div>
-      </section>
 
-      <!-- Why bapX -->
-      <section class="page-section">
-        <div class="section-inner">
-          <div class="section-heading">
-            <div>
-              <h2 class="display-md">Agency operations, ready to deploy.</h2>
-              <p class="body-lg" style="margin-top: 1.5rem;">
-                bapX is the operating knowledge of a marketing and branding agency, packaged as agents. Build campaign, brand, content, media, reporting, and product workflows around the way your business already works.
-              </p>
-              <p class="body-lg" style="margin-top: 1.5rem;">
-                Agents are hosted for you and organised under your account, businesses, and projects. Bring your AI-provider keys and connector credentials, or import an existing GitHub project without leaving the bapX OKF workspace structure.
-              </p>
+          <div class="agent-console" aria-label="bapX agent team cockpit preview">
+            <div class="console-topline">
+              <span>bapX agent</span>
+              <span>main · live</span>
+            </div>
+            <div class="agent-command">
+              <span>Ask bapX to coordinate…</span>
+              <span class="agent-mic" aria-hidden="true"></span>
+            </div>
+            <div class="agent-network">
+              <div class="agent-core">
+                <img src="/brand/bapx-logo-main.svg" alt="" />
+                <span>coordinates sub-agents</span>
+              </div>
+              {cockpitAgents.map((agent) => (
+                <article class={`agent-node ${agent.state}`}>
+                  <div>
+                    <strong>{agent.name}</strong>
+                    <span>{agent.detail}</span>
+                  </div>
+                  <em>{agent.state}</em>
+                </article>
+              ))}
+            </div>
+            <div class="queue-strip">
+              <span>Threads</span>
+              <span>PRs</span>
+              <span>Automations</span>
+              <span>MCPs</span>
+              <span>Billing</span>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Platform features -->
+      <section class="page-section comparison-section">
+        <div class="section-inner">
+          <div class="section-heading compact">
+            <h2 class="display-md">What the benchmark products make obvious.</h2>
+            <p class="body-lg">
+              Capy shows parallel execution. Linear shows people and agents sharing one product system. Copilot shows IDE, CLI, GitHub, MCP, and approvals in the same developer loop. bapX has to make those ideas visible for business operations.
+            </p>
+          </div>
+          <div class="comparison-table">
+            {comparisonRows.map(([product, signal, bapxNeed]) => (
+              <article>
+                <span class="mono-label">{product}</span>
+                <p>{signal}</p>
+                <strong>{bapxNeed}</strong>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section class="page-section">
         <div class="section-inner">
           <div class="section-heading compact">
-            <h2 class="display-md">Your business stays in control.</h2>
+            <h2 class="display-md">Work moves through one operating loop.</h2>
             <p class="body-lg">
-              Each account has its own OKF workspace. Every business, project, agent, automation, asset, and connection has a defined place that your people can manage together.
+              bapX is not a pile of disconnected tools. The central agent understands the workspace, opens the right channel, assigns specialist agents, records evidence, and hands the result back for review.
             </p>
           </div>
-          <div class="card-grid-3" style="margin-top: 2rem;">
-            <div class="card">
-              <span class="mono-label">Business workspace</span>
-              <p class="body-sm" style="margin-top: .75rem; color: var(--ink);">Manage businesses, projects, people, brand assets, documents, and agent work from one structured workspace.</p>
+          <div class="work-loop">
+            {workQueue.map(([step, title, body]) => (
+              <article>
+                <span>{step}</span>
+                <h3>{title}</h3>
+                <p>{body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section class="page-section evidence-section">
+        <div class="section-inner evidence-grid">
+          <div>
+            <span class="mono-label">Work in motion</span>
+            <h2 class="display-md" style="margin-top: 1rem;">The UI should show the operating proof.</h2>
+            <p class="body-lg" style="margin-top: 1.25rem;">
+              bapX follows the best pattern from Claude, Cursor, Linear, Expo, and Copilot: show the real work surface. The product should expose timelines, queues, code windows, browser checks, PR evidence, connector state, and observability, not only marketing tiles.
+            </p>
+          </div>
+          <div class="timeline-card">
+            {timelineRows.map(([state, body]) => (
+              <article>
+                <span>{state}</span>
+                <p>{body}</p>
+              </article>
+            ))}
+          </div>
+          <div class="code-window-card">
+            <div class="code-window-top">
+              <span>okf/project.yaml</span>
+              <span>validated</span>
             </div>
-            <div class="card">
-              <span class="mono-label">Bring your tools</span>
-              <p class="body-sm" style="margin-top: .75rem; color: var(--ink);">Connect your AI providers, MCP servers, APIs, social channels, GitHub repositories, and business tools.</p>
-            </div>
-            <div class="card">
-              <span class="mono-label">People and agents</span>
-              <p class="body-sm" style="margin-top: .75rem; color: var(--ink);">Invite people, assign responsibilities, and coordinate role-specific agents across each business and project.</p>
-            </div>
+            <pre><code>project:
+  host: "&lt;projectname&gt;.app.bapx.in"
+  workspace: "root-sandbox//user/business/projects/project"
+  agent: "bapX"
+  connectors:
+    - github
+    - linear
+    - sentry
+    - razorpay
+  quality:
+    - vitest-evals
+    - opentelemetry
+    - braintrust</code></pre>
           </div>
         </div>
       </section>
@@ -142,7 +255,7 @@ import { ecosystemPublicHref, homepageEcosystemItems } from "../../../ecosystem-
             </p>
             <a href="https://docs.bapx.in/ecosystem/" class="bapx-pill" style="margin-top: 1rem;">View all integrations</a>
           </div>
-          <div class="client-grid">
+          <div class="client-grid compact-clients">
             {homepageEcosystemItems.slice(0, 12).map((app) => (
               <a href={ecosystemPublicHref(app)} class="client-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100px; padding: 1rem; text-align: center;">
                 {app.icon ? (
@@ -159,54 +272,46 @@ import { ecosystemPublicHref, homepageEcosystemItems } from "../../../ecosystem-
         </div>
       </section>
 
-      <!-- Features -->
       <section class="page-section">
         <div class="section-inner">
           <div class="section-heading compact">
-            <h2 class="display-md">India-first billing for storage and hosted work.</h2>
-            <p class="body-lg">₹500/month includes 5 GB storage, hosted agents and workflows, hosted search, browser sessions, Node.js project subdomains, TTS, and STT. Scale to 100 GB at ₹100/GB/month. Bring your own AI tokens and connector credentials.</p>
+            <h2 class="display-md">Capabilities that need to be surfaced as product, not promises.</h2>
+            <p class="body-lg">The UI now leads with the concrete operating model: agents as a team, governed hosted tools, channels, MCP/A2A, OKF workspace structure, and India billing.</p>
           </div>
-          <div class="card-grid-auto" style="margin-top: 3rem;">
-            <a href="/docs/platform/overview/" class="card">
-              <span class="mono-label">Managed</span>
-              <h3 class="display-md" style="margin-top: .5rem;">Workspace</h3>
-              <p class="body-sm" style="margin-top: .75rem;">Create and manage agents from your browser. No infrastructure to set up.</p>
-            </a>
-            <a href="/docs/guide/channels/" class="card">
-              <span class="mono-label">Connect</span>
-              <h3 class="display-md" style="margin-top: .5rem;">Channels</h3>
-              <p class="body-sm" style="margin-top: .75rem;">Connect agents to Slack, GitHub, email, Discord, and more.</p>
-            </a>
-            <a href="/docs/platform/organisations/" class="card">
-              <span class="mono-label">Team</span>
-              <h3 class="display-md" style="margin-top: .5rem;">Organisations</h3>
-              <p class="body-sm" style="margin-top: .75rem;">Invite your team, assign roles, and collaborate on agents.</p>
-            </a>
-            <a href="/docs/mcp/overview/" class="card">
-              <span class="mono-label">MCP</span>
-              <h3 class="display-md" style="margin-top: .5rem;">MCP Gateway</h3>
-              <p class="body-sm" style="margin-top: .75rem;">Give agents access to external tools via the Model Context Protocol.</p>
-            </a>
-            <a href="/docs/platform/billing/" class="card">
-              <span class="mono-label">Usage</span>
-              <h3 class="display-md" style="margin-top: .5rem;">Billing & Limits</h3>
-              <p class="body-sm" style="margin-top: .75rem;">₹500/mo includes 5 GB. Add storage at ₹100/GB/month up to 100 GB.</p>
-            </a>
-            <a href="/docs/guide/observability/" class="card">
-              <span class="mono-label">Monitor</span>
-              <h3 class="display-md" style="margin-top: .5rem;">Observability</h3>
-              <p class="body-sm" style="margin-top: .75rem;">View agent activity, conversation logs, and usage from your dashboard.</p>
-            </a>
-            <a href="/docs/api/agent-api/" class="card">
-              <span class="mono-label">API</span>
-              <h3 class="display-md" style="margin-top: .5rem;">Platform API</h3>
-              <p class="body-sm" style="margin-top: .75rem;">Programmatic access to your agents, workspaces, and billing.</p>
-            </a>
-            <a href="/docs/getting-started/quickstart/" class="card" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; background: var(--canvas-mid);">
-              <span class="mono-label" style="color: var(--body);">Get Started</span>
-              <h3 class="display-md" style="margin-top: .5rem;">Start for ₹500/month <span style="display: inline-block; transition: transform .15s;">&rarr;</span></h3>
-              <p class="body-sm" style="margin-top: .75rem;">Create your account, business workspace, and first project with 5 GB included.</p>
-            </a>
+          <div class="capability-grid">
+            {capabilities.map(([title, body]) => (
+              <article class="capability-card">
+                <span class="mono-label">{title}</span>
+                <p>{body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section class="page-section pricing-band">
+        <div class="section-inner pricing-panel">
+          <div>
+            <span class="mono-label">Billing & scale</span>
+            <h2 class="display-lg">₹500/month, then ₹100 per GB.</h2>
+            <p class="body-lg">
+              Includes 5 GB storage, hosted agents and workflows, hosted search, browser sessions, Node.js project subdomains, TTS, and STT. Scale storage up to 100 GB and bring your own provider tokens.
+            </p>
+          </div>
+          <div class="pricing-meter" aria-label="bapX storage pricing example">
+            <div>
+              <span>Included</span>
+              <strong>5 GB</strong>
+            </div>
+            <div>
+              <span>Scale limit</span>
+              <strong>100 GB</strong>
+            </div>
+            <div>
+              <span>Billing connector</span>
+              <strong>Razorpay</strong>
+            </div>
+            <a href="/pricing/" class="bapx-pill bapx-pill-primary">View pricing</a>
           </div>
         </div>
       </section>

@@ -245,6 +245,470 @@ img[src="/brand/bapx-logo-main.svg"] {
 
 .hero-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 2.125rem; }
 
+.hero-operating-room {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-operating-room::before,
+.hero-operating-room::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+  border-radius: 9999px;
+  filter: blur(56px);
+  opacity: .42;
+}
+
+.hero-operating-room::before {
+  width: 34rem;
+  height: 34rem;
+  right: -12rem;
+  top: 5rem;
+  background: radial-gradient(circle, rgba(136,81,217,.42), transparent 64%);
+}
+
+.hero-operating-room::after {
+  width: 28rem;
+  height: 28rem;
+  left: -10rem;
+  bottom: -12rem;
+  background: radial-gradient(circle, rgba(255,122,23,.22), transparent 66%);
+}
+
+.hero-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, .92fr) minmax(360px, .82fr);
+  gap: clamp(2rem, 6vw, 5.5rem);
+  align-items: center;
+}
+
+.hero-copy .display-xl {
+  max-width: 10.5ch;
+}
+
+.hero-copy .body-lg {
+  max-width: 620px;
+  margin-top: 1.5rem;
+}
+
+.agent-console {
+  position: relative;
+  min-height: 620px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(136,81,217,.14), transparent 42%),
+    linear-gradient(25deg, rgba(255,122,23,.08), transparent 58%),
+    rgba(25,25,25,.78);
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.agent-console::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background-image:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at 50% 42%, black 0 48%, transparent 78%);
+  opacity: .7;
+}
+
+.console-topline,
+.agent-command,
+.agent-network,
+.queue-strip {
+  position: relative;
+  z-index: 1;
+}
+
+.console-topline,
+.queue-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  color: var(--body-mid);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: .75rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.agent-command {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 4rem;
+  margin-top: 1rem;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 8px;
+  background: rgba(10,10,10,.72);
+  padding: 0 1rem;
+  color: var(--body-mid);
+}
+
+.agent-mic {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 50% 36%, var(--ink) 0 3px, transparent 4px),
+    linear-gradient(var(--ink), var(--ink)) 50% 58% / 2px 10px no-repeat,
+    rgba(136,81,217,.28);
+}
+
+.agent-network {
+  display: grid;
+  gap: .75rem;
+  margin-top: 1rem;
+}
+
+.agent-core,
+.agent-node {
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: rgba(10,10,10,.68);
+}
+
+.agent-core {
+  display: grid;
+  place-items: center;
+  min-height: 160px;
+  text-align: center;
+}
+
+.agent-core img {
+  width: 7rem;
+  opacity: .92;
+}
+
+.agent-core span {
+  margin-top: .75rem;
+  color: var(--body-mid);
+  font-size: .875rem;
+}
+
+.agent-node {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .875rem;
+}
+
+.agent-node strong {
+  display: block;
+  color: var(--ink);
+  font-size: .9375rem;
+  font-weight: 400;
+}
+
+.agent-node span {
+  display: block;
+  margin-top: .25rem;
+  color: var(--body-mid);
+  font-size: .8125rem;
+  line-height: 1.4;
+}
+
+.agent-node em {
+  align-self: start;
+  justify-self: start;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 9999px;
+  padding: .125rem .5rem;
+  color: var(--body);
+  font-size: .6875rem;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.agent-node.active em,
+.agent-node.running em {
+  border-color: rgba(177,107,228,.6);
+  color: var(--accent-light-orchid);
+}
+
+.queue-strip {
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.queue-strip span {
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 9999px;
+  padding: .35rem .65rem;
+  background: rgba(10,10,10,.48);
+}
+
+.comparison-section {
+  border-top: 1px solid var(--hairline);
+}
+
+.comparison-table {
+  display: grid;
+  gap: .875rem;
+}
+
+.comparison-table article {
+  display: grid;
+  grid-template-columns: minmax(130px, .25fr) minmax(0, .8fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: baseline;
+  border-top: 1px solid var(--hairline);
+  padding: 1.125rem 0;
+}
+
+.comparison-table p,
+.comparison-table strong,
+.work-loop p,
+.capability-card p,
+.pricing-panel p {
+  color: var(--body);
+  font-size: .9375rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.comparison-table strong {
+  color: var(--ink);
+}
+
+.work-loop {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .875rem;
+}
+
+.work-loop article,
+.capability-card,
+.pricing-panel,
+.pricing-meter {
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--canvas-card);
+}
+
+.work-loop article {
+  min-height: 220px;
+  padding: 1.25rem;
+}
+
+.work-loop span {
+  color: var(--accent-light-orchid);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: .75rem;
+  letter-spacing: .12em;
+}
+
+.work-loop h3 {
+  margin-top: 2.5rem;
+  color: var(--ink);
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-weight: 400;
+  letter-spacing: -.025em;
+}
+
+.work-loop p {
+  margin-top: .75rem;
+}
+
+.evidence-section {
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.evidence-grid {
+  display: grid;
+  grid-template-columns: minmax(0, .72fr) minmax(320px, .78fr);
+  gap: .875rem;
+  align-items: start;
+}
+
+.evidence-grid > div:first-child {
+  padding-right: clamp(0rem, 4vw, 2rem);
+}
+
+.timeline-card,
+.code-window-card {
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--canvas-card);
+}
+
+.timeline-card {
+  display: grid;
+  gap: .5rem;
+  padding: 1rem;
+}
+
+.timeline-card article {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 8px;
+  background: rgba(10,10,10,.46);
+  padding: .875rem;
+}
+
+.timeline-card span {
+  justify-self: start;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 9999px;
+  padding: .25rem .55rem;
+  color: var(--accent-light-orchid);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: .68rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.timeline-card p {
+  color: var(--body);
+  font-size: .875rem;
+  line-height: 1.45;
+}
+
+.code-window-card {
+  grid-column: 2;
+  overflow: hidden;
+}
+
+.code-window-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--hairline);
+  padding: .75rem 1rem;
+  color: var(--body-mid);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: .75rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.code-window-card pre {
+  margin: 0;
+  overflow-x: auto;
+  padding: 1rem;
+}
+
+.code-window-card code {
+  color: var(--body);
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: .8125rem;
+  line-height: 1.65;
+}
+
+.compact-clients .client-card {
+  min-height: 112px !important;
+}
+
+.capability-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .875rem;
+  margin-top: 3rem;
+}
+
+.capability-card {
+  min-height: 190px;
+  padding: 1.375rem;
+}
+
+.capability-card p {
+  margin-top: 1.375rem;
+  color: var(--ink);
+}
+
+.pricing-band {
+  padding-top: 0;
+}
+
+.pricing-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: clamp(1.5rem, 5vw, 4rem);
+  align-items: center;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  background:
+    linear-gradient(140deg, rgba(136,81,217,.2), transparent 52%),
+    linear-gradient(35deg, rgba(255,122,23,.12), transparent 58%),
+    var(--canvas-card);
+}
+
+.pricing-panel .display-lg {
+  margin-top: 1rem;
+  max-width: 12ch;
+}
+
+.pricing-panel .body-lg {
+  margin-top: 1.25rem;
+  max-width: 780px;
+}
+
+.pricing-meter {
+  display: grid;
+  gap: .75rem;
+  padding: 1rem;
+  background: rgba(10,10,10,.55);
+}
+
+.pricing-meter div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--hairline);
+  padding: .875rem 0;
+}
+
+.pricing-meter span {
+  color: var(--body-mid);
+  font-size: .875rem;
+}
+
+.pricing-meter strong {
+  color: var(--ink);
+  font-size: .9375rem;
+  font-weight: 400;
+}
+
+.pricing-meter .bapx-pill {
+  justify-content: center;
+  margin-top: .5rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .agent-console::before {
+    animation: bapx-drift 18s linear infinite;
+  }
+
+  .agent-node.running,
+  .agent-node.active {
+    animation: bapx-pulse 3.5s ease-in-out infinite;
+  }
+}
+
+@keyframes bapx-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-42px, -42px, 0); }
+}
+
+@keyframes bapx-pulse {
+  0%, 100% { border-color: var(--hairline); }
+  50% { border-color: rgba(177,107,228,.58); }
+}
+
 /* ── Auth ────────────────────────────────────────────────────────────────── */
 
 .auth-shell {
@@ -622,6 +1086,12 @@ img[src="/brand/bapx-logo-main.svg"] {
 @media (max-width: 1024px) {
   .client-grid { grid-template-columns: repeat(2, 1fr); }
   .card-grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .hero-grid,
+  .pricing-panel,
+  .evidence-grid { grid-template-columns: 1fr; }
+  .agent-console { min-height: auto; }
+  .work-loop { grid-template-columns: repeat(2, 1fr); }
+  .code-window-card { grid-column: auto; }
   .auth-hero,
   .auth-grid { grid-template-columns: 1fr; }
   .oauth-grid,
@@ -634,6 +1104,11 @@ img[src="/brand/bapx-logo-main.svg"] {
   body > nav > div { padding: 0 1.25rem; }
   .client-grid { grid-template-columns: 1fr; }
   .card-grid-3, .card-grid-2, .media-board { grid-template-columns: 1fr; }
+  .comparison-table article,
+  .work-loop,
+  .capability-grid { grid-template-columns: 1fr; }
+  .agent-node { display: grid; }
+  .timeline-card article { grid-template-columns: 1fr; }
   .mediahub-services { grid-template-columns: 1fr; }
   .auth-shell { padding: 3rem 1rem; }
   .auth-field-grid,

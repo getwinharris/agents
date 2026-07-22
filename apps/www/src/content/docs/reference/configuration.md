@@ -68,7 +68,7 @@ export const vite = defineViteConfig({
 });
 ```
 
-Bapx owns the Vite project root, server mode, host, port, and its internal plugins. Other Vite options are merged into the Node and Cloudflare development servers.
+Bapx owns the Vite project root, server mode, host, port, and its internal Vite integrations. Other Vite options are merged into the Node and Cloudflare development servers.
 
 ## `defineConfig()`
 
