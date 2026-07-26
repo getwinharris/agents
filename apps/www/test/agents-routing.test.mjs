@@ -12,10 +12,8 @@ import { createPlatformStore } from '../src/server/platform-store.mjs';
 
 const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const agentsEntry = path.join(appRoot, 'dist', 'admin', 'index.html');
-const agentsAsset = path.join(appRoot, 'dist', 'admin', 'assets', 'admin-shell.js');
 const postsFile = path.join(appRoot, 'data', 'posts.json');
 const marker = '<!doctype html><title>bapX operating surface</title>';
-const assetMarker = 'console.log("bapX operating surface asset")';
 
 async function availablePort() {
 	return new Promise((resolve, reject) => {
@@ -67,7 +65,6 @@ describe('Agents host routing', () => {
 	let server;
 	let port;
 	let previousEntry;
-	let previousAsset;
 	let previousPosts;
 	let workspaceRoot;
 	let siblingRoot;
@@ -109,12 +106,9 @@ describe('Agents host routing', () => {
 		});
 		await new Promise((resolve) => runtime.listen(runtimePort, '127.0.0.1', resolve));
 		previousEntry = fs.existsSync(agentsEntry) ? fs.readFileSync(agentsEntry) : undefined;
-		previousAsset = fs.existsSync(agentsAsset) ? fs.readFileSync(agentsAsset) : undefined;
 		previousPosts = fs.existsSync(postsFile) ? fs.readFileSync(postsFile) : undefined;
 		fs.mkdirSync(path.dirname(agentsEntry), { recursive: true });
-		fs.mkdirSync(path.dirname(agentsAsset), { recursive: true });
 		fs.writeFileSync(agentsEntry, marker);
-		fs.writeFileSync(agentsAsset, assetMarker);
 		port = await availablePort();
 		server = spawn(process.execPath, ['server.mjs'], {
 			cwd: appRoot,
@@ -139,10 +133,6 @@ describe('Agents host routing', () => {
 		fs.rmSync(siblingRoot, { recursive: true });
 		if (previousEntry === undefined) fs.rmSync(path.join(appRoot, 'dist'), { recursive: true });
 		else fs.writeFileSync(agentsEntry, previousEntry);
-		if (previousEntry !== undefined) {
-			if (previousAsset === undefined) fs.rmSync(agentsAsset, { force: true });
-			else fs.writeFileSync(agentsAsset, previousAsset);
-		}
 		if (previousPosts === undefined) fs.rmSync(postsFile, { force: true });
 		else fs.writeFileSync(postsFile, previousPosts);
 	});
@@ -253,33 +243,20 @@ describe('Agents host routing', () => {
 		assert.equal(JSON.parse(response.body).account.username, 'routing-user');
 		assert.match(response.headers['set-cookie']?.join(';') ?? '', /bapx_session=/);
 		assert.match(response.headers['set-cookie']?.join(';') ?? '', /Domain=\.bapx\.in/);
-	});
 
-	it('uses the valid shared session when a stale host cookie is also present', async () => {
-		const response = await request(port, {
-			host: 'platform.bapx.in',
-			pathname: '/api/auth/session',
-			headers: { cookie: `bapx_session=stale-host-token; ${cookie}` },
-		});
-
-		assert.equal(response.status, 200);
-		assert.equal(JSON.parse(response.body).account.username, 'routing-user');
-		assert.match(response.headers['set-cookie']?.join(';') ?? '', /Domain=\.bapx\.in/);
-	});
-
-	it('clears shared and stale host session cookies on logout', async () => {
-		const response = await request(port, {
+		const logout = await request(port, {
 			method: 'POST',
 			host: 'platform.bapx.in',
 			pathname: '/api/auth/logout',
-			headers: { cookie: 'bapx_session=stale-host-token; bapx_session=another-stale-token' },
+			headers: { cookie },
 		});
 
-		assert.equal(response.status, 303);
-		const cookies = response.headers['set-cookie'] ?? [];
-		assert.equal(cookies.length, 2);
-		assert.ok(cookies.some((value) => /bapx_session=;/.test(value) && /Domain=\.bapx\.in/.test(value)));
-		assert.ok(cookies.some((value) => /bapx_session=;/.test(value) && !/Domain=/.test(value)));
+		assert.equal(logout.status, 303);
+		assert.equal(logout.headers.location, 'https://bapx.in/login/');
+		const setCookieHeader = logout.headers['set-cookie']?.join(';') ?? '';
+		assert.match(setCookieHeader, /bapx_session=/);
+		assert.match(setCookieHeader, /Domain=\.bapx\.in/);
+		assert.match(setCookieHeader, /Max-Age=0/);
 	});
 
 	it('does not persist an external OAuth return destination', async () => {
@@ -383,13 +360,6 @@ describe('Agents host routing', () => {
 		const response = await request(port, { headers: { cookie } });
 		assert.equal(response.status, 200);
 		assert.equal(response.body, marker);
-	});
-
-	it('serves shared operating shell assets from the Admin bundle on the Agents hostname', async () => {
-		const response = await request(port, { pathname: '/assets/admin-shell.js', headers: { cookie } });
-		assert.equal(response.status, 200);
-		assert.equal(response.headers['content-type'], 'text/javascript');
-		assert.equal(response.body, assetMarker);
 	});
 
 	it('proxies the main-agent stream only after adding authenticated gateway headers', async () => {

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { type ChildProcess, spawn, spawnSync } from 'node:child_process';
+import { type ChildProcess, spawn } from 'node:child_process';
 import * as fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,8 +28,6 @@ import { parseAgentInput, runTarget } from '../src/lib/run-controller.ts';
 import { parseHeaders, resolveServerUrl } from '../src/lib/run-http.ts';
 import { brand, brandRows, error as cliError, note, row, success } from '../src/lib/terminal.ts';
 import { BLUEPRINTS, KIND_ROOTS } from './_blueprints.generated.ts';
-
-const cliDirectory = path.dirname(fileURLToPath(import.meta.url));
 
 interface ApplicationConfigArgs {
 	target?: 'node' | 'cloudflare';
@@ -107,7 +105,6 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  bapX update <kind> <name|url> [--print]\n' +
 			'  bapX docs  [read <path> | search <query>]\n' +
 			'  bapX okf   [index|query] --root <path> [query]\n' +
-			'  bapX browse [verify <url> | -- <agent-browser args...>] [--root <path>] [--session <name>] [--namespace <name>]\n' +
 			'  bapX map   [--root <path>] [--check] [--profile <user-workspace|business-workspace|user-project|demo-project>]\n' +
 			'\n' +
 			'Commands:\n' +
@@ -119,7 +116,6 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  update Fetch an updated blueprint implementation guide for an AI coding agent to follow.\n' +
 			'  docs   Browse the Bapx docs. No args lists pages; `read` prints a page as markdown; `search` prints JSON results.\n' +
 			'  okf    Index or query OKF Markdown knowledge inside one authorized workspace root.\n' +
-			'  browse Run the pinned agent-browser CLI through a bapX-scoped isolated browser session.\n' +
 			'  map    Generate or validate the project root map.mmd from the real directory layout.\n' +
 			'\n' +
 			'Flags:\n' +
@@ -135,8 +131,6 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  --force              (bapX init) Overwrite an existing bapX.config.* in the target directory.\n' +
 			'  --check              (bapX map) Validate map.mmd without writing it.\n' +
 			'  --profile <name>     (bapX map) Also validate required bapX workspace/project files.\n' +
-			'  --session <name>     (bapX browse) Browser session name. Default: derived from root/user/business/project/actor.\n' +
-			'  --namespace <name>   (bapX browse) Browser daemon/state namespace. Default: derived from root/user/business/project.\n' +
 			'\n' +
 			'Examples:\n' +
 			'  bapX dev --target node\n' +
@@ -148,7 +142,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  bapX build --target node --output ./build\n' +
 			'  bapX init --target node\n' +
 			'  bapX add\n' +
-			'  bapX add sandbox e2b | claude\n' +
+			'  bapX add sandbox daytona | claude\n' +
 			'  bapX add channel slack | codex\n' +
 			'  bapX add sandbox https://e2b.dev | claude\n' +
 			'  bapX add channel https://developers.notion.com/reference/webhooks | codex\n' +
@@ -158,9 +152,6 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  bapX docs search "durable execution"\n' +
 			'  bapX okf index --root ./my-business\n' +
 			'  bapX okf query --root ./my-business "billing connector"\n' +
-			'  bapX browse verify https://bapx.in/\n' +
-			'  bapX browse --session admin-smoke -- open https://admin.bapx.in/\n' +
-			'  bapX browse -- snapshot -i\n' +
 			'  bapX map --root ./my-app\n' +
 			'  bapX map --root ./my-business --check --profile business-workspace\n' +
 			'  bapX map --root ./my-business/projects/my-app --check --profile user-project\n' +
@@ -267,17 +258,6 @@ interface MapArgs {
 		| undefined;
 }
 
-interface BrowseArgs {
-	command: 'browse';
-	action: 'passthrough' | 'verify';
-	/** Explicit --root value, or undefined to default to cwd. Absolute when set. */
-	explicitRoot: string | undefined;
-	session: string | undefined;
-	namespace: string | undefined;
-	args: string[];
-	url: string | undefined;
-}
-
 type ParsedArgs =
 	| RunArgs
 	| BuildArgs
@@ -286,7 +266,6 @@ type ParsedArgs =
 	| DocsArgs
 	| OkfArgs
 	| InitArgs
-	| BrowseArgs
 	| MapArgs;
 
 type ParsedOptionToken = Extract<
@@ -556,6 +535,11 @@ function parseOkfArgs(rest: string[]): OkfArgs {
 		new Set(['--root', '--output']),
 	);
 
+	if (values.root === undefined) {
+		console.error('Missing required --root flag.\n\nUsage:\n  bapX okf index --root <path> [--output <path>]\n  bapX okf query --root <path> <query>');
+		process.exit(1);
+	}
+
 	if (action === 'index') {
 		for (const positional of positionals) {
 			fail(`Unexpected argument for \`bapX okf index\`: ${positional}`, true);
@@ -650,56 +634,6 @@ function parseMapArgs(rest: string[]): MapArgs {
 	};
 }
 
-function parseBrowseArgs(rest: string[]): BrowseArgs {
-	const values: { root?: string; session?: string; namespace?: string } = {};
-	const positionals: string[] = [];
-
-	for (let index = 0; index < rest.length; index += 1) {
-		const token = rest[index];
-		if (token === '--') {
-			positionals.push(...rest.slice(index + 1));
-			break;
-		}
-		if (token === '--root' || token === '--session' || token === '--namespace') {
-			const value = rest[index + 1];
-			if (!value) fail(`Missing value for ${token}`);
-			if (token === '--root') values.root = value;
-			else if (token === '--session') values.session = value;
-			else values.namespace = value;
-			index += 1;
-			continue;
-		}
-		positionals.push(token ?? '');
-	}
-
-	if (positionals[0] === 'verify') {
-		const url = positionals[1];
-		if (!url) {
-			fail('Missing URL for `bapX browse verify`.\n\nUsage:\n  bapX browse verify <url> [--root <path>] [--session <name>] [--namespace <name>]');
-		}
-		if (positionals[2] !== undefined) fail(`Unexpected argument for \`bapX browse verify\`: ${positionals[2]}`);
-		return {
-			command: 'browse',
-			action: 'verify',
-			explicitRoot: values.root ? path.resolve(values.root) : undefined,
-			session: values.session,
-			namespace: values.namespace,
-			args: [],
-			url,
-		};
-	}
-
-	return {
-		command: 'browse',
-		action: 'passthrough',
-		explicitRoot: values.root ? path.resolve(values.root) : undefined,
-		session: values.session,
-		namespace: values.namespace,
-		args: positionals,
-		url: undefined,
-	};
-}
-
 function parseArgs(argv: string[]): ParsedArgs {
 	const [command, ...rest] = argv;
 
@@ -731,10 +665,6 @@ function parseArgs(argv: string[]): ParsedArgs {
 
 	if (command === 'map') {
 		return parseMapArgs(rest);
-	}
-
-	if (command === 'browse') {
-		return parseBrowseArgs(rest);
 	}
 
 	// `--target` is optional at parse time — the config file may supply it.
@@ -1989,136 +1919,6 @@ function okfCommand(args: OkfArgs): void {
 	queryOkfIndex(root, concepts, args.query);
 }
 
-function sanitizeBrowserScope(value: string): string {
-	return value
-		.toLowerCase()
-		.replace(/[^a-z0-9._-]+/g, '-')
-		.replace(/^-+|-+$/g, '')
-		.slice(0, 48) || 'default';
-}
-
-function browserRoot(args: BrowseArgs): string {
-	const root = args.explicitRoot ?? process.cwd();
-	if (!isDirectory(root)) fail(`[bapX] Browser root does not exist or is not a directory: ${root}`);
-	return root;
-}
-
-function browserScopeParts(root: string): string[] {
-	return [
-		process.env.BAPX_BROWSER_USER || process.env.BAPX_USER || '',
-		process.env.BAPX_BROWSER_BUSINESS || process.env.BAPX_BUSINESS || '',
-		process.env.BAPX_BROWSER_PROJECT || process.env.BAPX_PROJECT || '',
-		process.env.BAPX_BROWSER_ACTOR || process.env.BAPX_ACTOR || '',
-		root,
-	].filter(Boolean);
-}
-
-function defaultBrowserNamespace(root: string): string {
-	return sanitizeBrowserScope(`bapx-${stableOkfHash(browserScopeParts(root).join(':'))}`);
-}
-
-function defaultBrowserSession(root: string): string {
-	const actor = process.env.BAPX_BROWSER_ACTOR || process.env.BAPX_ACTOR || 'shared';
-	return sanitizeBrowserScope(`bapx-${actor}-${stableOkfHash(browserScopeParts(root).join(':'))}`);
-}
-
-function executableName(name: string): string {
-	return process.platform === 'win32' ? `${name}.cmd` : name;
-}
-
-function findUpBin(start: string, name: string): string | undefined {
-	let cursor = path.resolve(start);
-	while (true) {
-		const candidate = path.join(cursor, 'node_modules', '.bin', executableName(name));
-		if (fs.existsSync(candidate)) return candidate;
-		const parent = path.dirname(cursor);
-		if (parent === cursor) return undefined;
-		cursor = parent;
-	}
-}
-
-function resolveAgentBrowserBin(root: string): string {
-	const fromRoot = findUpBin(root, 'agent-browser');
-	if (fromRoot) return fromRoot;
-	const fromCli = findUpBin(cliDirectory, 'agent-browser');
-	if (fromCli) return fromCli;
-	return 'agent-browser';
-}
-
-function runAgentBrowser(root: string, args: string[], options: { session: string; namespace: string }): number {
-	const bin = resolveAgentBrowserBin(root);
-	const result = spawnSync(bin, ['--session', options.session, '--namespace', options.namespace, ...args], {
-		cwd: root,
-		stdio: 'inherit',
-		env: {
-			...process.env,
-			AGENT_BROWSER_SESSION: options.session,
-			AGENT_BROWSER_NAMESPACE: options.namespace,
-		},
-	});
-	if (result.error) {
-		fail(
-			`[bapX] agent-browser is not available. Run \`npm install\` for this workspace, then \`bapX browse -- install\` once before browser validation.\n${result.error.message}`,
-		);
-	}
-	return result.status ?? 1;
-}
-
-function browserEvidencePath(root: string, url: string): string {
-	const hostname = (() => {
-		try {
-			return new URL(url).hostname;
-		} catch {
-			return 'site';
-		}
-	})();
-	const evidenceDir = path.join(root, '.agents', 'browser', 'evidence');
-	fs.mkdirSync(evidenceDir, { recursive: true });
-	const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-	return path.join(evidenceDir, `${stamp}-${sanitizeBrowserScope(hostname)}.png`);
-}
-
-function browseCommand(args: BrowseArgs): void {
-	const root = browserRoot(args);
-	const session = args.session ? sanitizeBrowserScope(args.session) : defaultBrowserSession(root);
-	const namespace = args.namespace ? sanitizeBrowserScope(args.namespace) : defaultBrowserNamespace(root);
-
-	if (args.action === 'passthrough') {
-		if (args.args.length === 0) {
-			console.error(
-				'Missing agent-browser command.\n\nUsage:\n  bapX browse verify <url>\n  bapX browse -- <agent-browser args...>\n\nExample:\n  bapX browse -- open https://bapx.in/',
-			);
-			process.exit(1);
-		}
-		process.exit(runAgentBrowser(root, args.args, { session, namespace }));
-	}
-
-	const url = args.url ?? '';
-	const screenshot = browserEvidencePath(root, url);
-	const commands = [
-		['open', url],
-		['wait', '--load', 'networkidle'],
-		['eval', 'document.body.innerText.trim().length > 0 ? "HAS_CONTENT" : "BLANK"'],
-		['errors'],
-		['screenshot', screenshot],
-		['snapshot', '-i'],
-	] satisfies string[][];
-	let failed = false;
-	for (const command of commands) {
-		const code = runAgentBrowser(root, command, { session, namespace });
-		if (code !== 0) {
-			failed = true;
-			break;
-		}
-	}
-	runAgentBrowser(root, ['close'], { session, namespace });
-	if (failed) process.exit(1);
-	success(`browser verified ${url}`);
-	note(`session ${session}`);
-	note(`namespace ${namespace}`);
-	note(`screenshot ${screenshot}`);
-}
-
 function printHumanInstructions(args: BlueprintCommandArgs) {
 	const cmd = `bapX ${args.command} ${args.kind} ${shellQuote(args.target)}`;
 	const stream = process.stderr;
@@ -2238,8 +2038,6 @@ async function main() {
 		okfCommand(args);
 	} else if (args.command === 'init') {
 		initCommand(args);
-	} else if (args.command === 'browse') {
-		browseCommand(args);
 	} else if (args.command === 'map') {
 		mapCommand(args);
 	} else if (args.command === 'run') {
