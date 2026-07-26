@@ -2070,7 +2070,7 @@ function browserEvidencePath(root: string, url: string): string {
 			return 'site';
 		}
 	})();
-	const evidenceDir = path.join(root, '.bapx', 'browser', 'evidence');
+	const evidenceDir = path.join(root, '.agents', 'browser', 'evidence');
 	fs.mkdirSync(evidenceDir, { recursive: true });
 	const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 	return path.join(evidenceDir, `${stamp}-${sanitizeBrowserScope(hostname)}.png`);

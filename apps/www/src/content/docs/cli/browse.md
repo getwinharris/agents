@@ -19,6 +19,6 @@ For quick production smoke checks, use `verify`:
 npx bapX browse verify https://bapx.in/
 ```
 
-`verify` opens the URL, waits for network idle, checks that the page has content, records browser errors, writes a screenshot under `.bapx/browser/evidence/`, prints an interactive snapshot, and closes the browser session.
+`verify` opens the URL, waits for network idle, checks that the page has content, records browser errors, writes a screenshot under `.agents/browser/evidence/`, prints an interactive snapshot, and closes the browser session.
 
 This command is intentionally a CLI boundary. Users may still install MCP servers inside their own sandbox when a project requires MCP, but bapX's own browser automation uses the self-hosted CLI path.

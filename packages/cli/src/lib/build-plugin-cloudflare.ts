@@ -632,7 +632,7 @@ export default {
 		// Windows too (native path separator there is `\`).
 		const additions: BapxAdditions = {
 			defaultName: path.basename(ctx.root) || 'bapX-agents',
-			main: '.bapX-vite/_entry.ts',
+			main: '.agents/build/vite/_entry.ts',
 			doBindings: bapXBindings,
 		};
 

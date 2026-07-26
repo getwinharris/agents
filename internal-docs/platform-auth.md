@@ -65,7 +65,7 @@ not bapX login methods.
 
 ## Production GitHub configuration
 
-The `flue-www` service receives these values from the VPS deployment environment:
+The `bapx-www` service receives these values from the VPS deployment environment:
 
 | Variable | Purpose |
 | --- | --- |
@@ -109,10 +109,10 @@ To create the GitHub App without clicking through the whole settings UI:
    values:
 
    ```bash
-   docker compose --project-directory /docker/traefik-vmm1 -f /docker/traefik-vmm1/docker-compose.yml up -d --force-recreate flue-www
+   docker compose --project-directory /docker/traefik-vmm1 -f /docker/traefik-vmm1/docker-compose.yml up -d --force-recreate bapx-www
    ```
 
-After changing credentials, recreate the `flue-www` container and verify that the start
+After changing credentials, recreate the `bapx-www` container and verify that the start
 endpoint redirects to `github.com/login/oauth/authorize`, the callback returns to the exact
 configured URL, a verified identity reaches Platform, and no credential appears in HTML,
 logs, account data, or the repository.

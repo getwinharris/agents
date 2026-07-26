@@ -60,7 +60,7 @@ root-sandbox/<username>/<business-slug>/projects/<project-slug>/
 Within that project boundary, bapX allocates browser profile storage under a server-derived profile id:
 
 ```txt
-.bapx/browser/profiles/<server-derived-profile-id>/
+.agents/browser/profiles/<server-derived-profile-id>/
 ```
 
 That profile is shared by the authorized user and that user's project agents so browser sessions can continue inside the same project context. Other users and other project scopes receive different profile ids and cannot resolve paths into another user's workspace. Browser profile data is not telemetry and must not be copied into logs, traces, or public artifacts.

@@ -256,7 +256,7 @@ describe('bapX run', () => {
 
 		assert.equal(exitCode, 0, stderr);
 		assert.equal(fs.existsSync(path.join(root, 'dist')), false);
-		assert.equal(fs.existsSync(path.join(root, '.bapX-vite')), false);
+		assert.equal(fs.existsSync(path.join(root, '.agents/build/vite')), false);
 		assert.equal(fs.existsSync(path.join(root, 'node_modules', '.vite')), false);
 		assert.deepEqual(
 			temporaryEntriesAfter.filter((entry) => !temporaryEntriesBefore.has(entry)),
