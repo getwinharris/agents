@@ -14,6 +14,8 @@
 
 ### Fixes & Other Changes
 
+- `agents.bapx.in` now serves the shared Admin/Agents bundle assets from the existing Admin build when a signed-in customer opens the Agents surface, fixing the authenticated white page caused by looking for `/assets/*` under a nonexistent `dist/agents/` bundle.
+- Added `bapX browse` as a real `agent-browser` CLI wrapper with bapX-scoped session/namespace isolation and a `verify` smoke-check mode for live product browser testing without introducing a browser MCP dependency.
 - Added `bapX okf index` and `bapX okf query` as the first local OKF Markdown retrieval surface, including v0.1/v0.2 metadata extraction, root-bound output isolation, public CLI docs, and internal implementation notes for the remaining semantic-index work (#45).
 - Ecosystem catalog and docs now use the requested labels `bapXhost`, `bapXdb`, and `bapXsandbox E2B`, add Google Cloud to hosting and infrastructure, remove the invented extra console package/page, and keep catalog/navigation entries backed by rendered documentation pages.
 - Dependency maintenance removed the vulnerable Daytona SDK from the default hello-world example install, updated Cloudflare example/test tooling, Astro/MDX, Braintrust, and Cloudflare `agents` example dependencies, and reduced npm audit exposure without forcing provider downgrades.

@@ -2,7 +2,7 @@
 /**
  * Prepares publish artifacts for the core packages (`@bapX/cli`,
  * `@bapX/runtime`, and `@bapX/sdk`):
- * - Copies `apps/docs/src/content/docs` into `<package>/docs` for agent consumption.
+ * - Copies `apps/www/src/content/docs` into `<package>/docs` for agent consumption.
  * - Syncs the root README.md into each package.
  * - Embeds the `bapX docs` catalog into the installable Bapx skill.
  *
@@ -16,9 +16,12 @@ import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
-const docsSource = join(repoRoot, 'apps/docs/src/content/docs');
+const docsSource = join(repoRoot, 'apps/www/src/content/docs');
 const readmeSource = join(repoRoot, 'README.md');
-const skillPath = join(repoRoot, 'skills/bapX/SKILL.md');
+const skillPaths = [
+	join(repoRoot, 'skills/bapX/SKILL.md'),
+	join(repoRoot, '.agents/skills/bapX/SKILL.md'),
+];
 const catalogStart = '<!-- bapX-docs-catalog:start -->';
 const catalogEnd = '<!-- bapX-docs-catalog:end -->';
 
@@ -72,9 +75,11 @@ export async function preparePublishArtifacts() {
 		cwd: repoRoot,
 		maxBuffer: 10 * 1024 * 1024,
 	});
-	const skillSource = await readFile(skillPath, 'utf8');
-	await writeFile(skillPath, embedDocsCatalog(skillSource, catalog));
-	console.error('[bapX] Embedded the documentation catalog in skills/bapX/SKILL.md');
+	for (const skillPath of skillPaths) {
+		const skillSource = await readFile(skillPath, 'utf8');
+		await writeFile(skillPath, embedDocsCatalog(skillSource, catalog));
+		console.error(`[bapX] Embedded the documentation catalog in ${skillPath}`);
+	}
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

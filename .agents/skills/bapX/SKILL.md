@@ -36,6 +36,8 @@ api/workflow-api -- Workflow API
   Reference for creating and invoking workflows with @bapX/runtime.
 cli/add -- bapX add
   Reference for discovering and applying Bapx implementation blueprints.
+cli/browse -- Browse
+  Use the wrapped agent-browser CLI through bapX with isolated browser sessions.
 cli/build -- bapX build
   Reference for creating deployable Bapx application artifacts.
 cli/dev -- bapX dev
@@ -94,6 +96,7 @@ ecosystem/deploy/docker -- Deploy Agents with Docker
 ecosystem/deploy/fly -- Deploy Agents on Fly.io
 ecosystem/deploy/github-actions -- Build Agents for GitHub Actions
 ecosystem/deploy/gitlab-ci -- Build Agents for GitLab CI/CD
+ecosystem/deploy/google-cloud -- Google Cloud
 ecosystem/deploy/node -- Deploy Agents on Node.js
 ecosystem/deploy/railway -- Deploy Agents on Railway
 ecosystem/deploy/render -- Deploy Agents on Render
@@ -161,7 +164,7 @@ okf/workspace-maps -- Workspace Maps
   How bapX stores generated map.mmd files for user, business, and project workspaces.
 platform/billing -- Platform billing
   India-first bapX subscription and storage limits.
-platform/organisations -- Businesses
+platform/organisations -- Organisations
   How bapX scopes people, projects, Admin, and Agents.
 platform/overview -- Platform Overview
   Manage your bapX account settings, billing, API keys, connectors, MCP configuration, and observability.
