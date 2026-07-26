@@ -29,6 +29,8 @@ import { parseHeaders, resolveServerUrl } from '../src/lib/run-http.ts';
 import { brand, brandRows, error as cliError, note, row, success } from '../src/lib/terminal.ts';
 import { BLUEPRINTS, KIND_ROOTS } from './_blueprints.generated.ts';
 
+const cliDirectory = path.dirname(fileURLToPath(import.meta.url));
+
 interface ApplicationConfigArgs {
 	target?: 'node' | 'cloudflare';
 	explicitRoot: string | undefined;
@@ -2038,7 +2040,7 @@ function findUpBin(start: string, name: string): string | undefined {
 function resolveAgentBrowserBin(root: string): string {
 	const fromRoot = findUpBin(root, 'agent-browser');
 	if (fromRoot) return fromRoot;
-	const fromCli = findUpBin(dirname, 'agent-browser');
+	const fromCli = findUpBin(cliDirectory, 'agent-browser');
 	if (fromCli) return fromCli;
 	return 'agent-browser';
 }
