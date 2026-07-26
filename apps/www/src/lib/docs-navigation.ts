@@ -41,6 +41,7 @@ const allDocsSections: DocsSection[] = [
 					{ title: 'What is an agent?', slug: 'concepts/agents' },
 					{ title: 'Durable Agents', slug: 'concepts/durable-execution' },
 					{ title: 'OKF CLI', slug: 'cli/okf' },
+					{ title: 'Browser CLI', slug: 'cli/browse' },
 					{
 						title: 'Changelog',
 						href: 'https://github.com/getwinharris/agents/blob/main/CHANGELOG.md',

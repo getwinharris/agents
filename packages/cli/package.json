@@ -35,11 +35,12 @@
 		"test:integration:cloudflare": "vitest run --config vitest.integration.cloudflare.config.ts --no-file-parallelism"
 	},
 	"dependencies": {
-		"@cloudflare/vite-plugin": "^1.39.2",
 		"@bapX/runtime": "*",
 		"@bapX/sdk": "*",
+		"@cloudflare/vite-plugin": "^1.39.2",
 		"@hono/node-server": "^2.0.3",
 		"@vercel/detect-agent": "^1.2.3",
+		"agent-browser": "0.33.0",
 		"debug": "^4.4.3",
 		"minisearch": "^7.2.0",
 		"package-up": "^5.0.0",

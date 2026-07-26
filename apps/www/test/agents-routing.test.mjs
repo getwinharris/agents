@@ -12,8 +12,10 @@ import { createPlatformStore } from '../src/server/platform-store.mjs';
 
 const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const agentsEntry = path.join(appRoot, 'dist', 'admin', 'index.html');
+const agentsAsset = path.join(appRoot, 'dist', 'admin', 'assets', 'admin-shell.js');
 const postsFile = path.join(appRoot, 'data', 'posts.json');
 const marker = '<!doctype html><title>bapX operating surface</title>';
+const assetMarker = 'console.log("bapX operating surface asset")';
 
 async function availablePort() {
 	return new Promise((resolve, reject) => {
@@ -65,6 +67,7 @@ describe('Agents host routing', () => {
 	let server;
 	let port;
 	let previousEntry;
+	let previousAsset;
 	let previousPosts;
 	let workspaceRoot;
 	let siblingRoot;
@@ -106,9 +109,12 @@ describe('Agents host routing', () => {
 		});
 		await new Promise((resolve) => runtime.listen(runtimePort, '127.0.0.1', resolve));
 		previousEntry = fs.existsSync(agentsEntry) ? fs.readFileSync(agentsEntry) : undefined;
+		previousAsset = fs.existsSync(agentsAsset) ? fs.readFileSync(agentsAsset) : undefined;
 		previousPosts = fs.existsSync(postsFile) ? fs.readFileSync(postsFile) : undefined;
 		fs.mkdirSync(path.dirname(agentsEntry), { recursive: true });
+		fs.mkdirSync(path.dirname(agentsAsset), { recursive: true });
 		fs.writeFileSync(agentsEntry, marker);
+		fs.writeFileSync(agentsAsset, assetMarker);
 		port = await availablePort();
 		server = spawn(process.execPath, ['server.mjs'], {
 			cwd: appRoot,
@@ -133,6 +139,10 @@ describe('Agents host routing', () => {
 		fs.rmSync(siblingRoot, { recursive: true });
 		if (previousEntry === undefined) fs.rmSync(path.join(appRoot, 'dist'), { recursive: true });
 		else fs.writeFileSync(agentsEntry, previousEntry);
+		if (previousEntry !== undefined) {
+			if (previousAsset === undefined) fs.rmSync(agentsAsset, { force: true });
+			else fs.writeFileSync(agentsAsset, previousAsset);
+		}
 		if (previousPosts === undefined) fs.rmSync(postsFile, { force: true });
 		else fs.writeFileSync(postsFile, previousPosts);
 	});
@@ -373,6 +383,13 @@ describe('Agents host routing', () => {
 		const response = await request(port, { headers: { cookie } });
 		assert.equal(response.status, 200);
 		assert.equal(response.body, marker);
+	});
+
+	it('serves shared operating shell assets from the Admin bundle on the Agents hostname', async () => {
+		const response = await request(port, { pathname: '/assets/admin-shell.js', headers: { cookie } });
+		assert.equal(response.status, 200);
+		assert.equal(response.headers['content-type'], 'text/javascript');
+		assert.equal(response.body, assetMarker);
 	});
 
 	it('proxies the main-agent stream only after adding authenticated gateway headers', async () => {

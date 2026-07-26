@@ -591,7 +591,14 @@ http.createServer(async (req, res) => {
 	const suffix = urlPath.endsWith('/') || urlPath === '' ? 'index.html' : '';
 	const sharedAsset = urlPath.startsWith('/_astro/') || urlPath.startsWith('/brand/') || /^\/(favicon|apple-touch-icon|site\.webmanifest|web-app-manifest|og\d)/.test(urlPath);
 	const operatingSurface = prefix === '/admin' || prefix === '/agents';
-	const candidates = sharedAsset ? [path.join(root, urlPath, suffix), path.join(root, prefix, urlPath, suffix)] : operatingSurface ? [path.join(root, prefix, urlPath, suffix)] : [path.join(root, prefix, urlPath, suffix), path.join(root, urlPath, suffix)];
+	const operatingSurfaceAsset = prefix === '/agents' && (urlPath.startsWith('/assets/') || urlPath === '/icons.svg' || urlPath === '/favicon.svg');
+	const candidates = sharedAsset
+		? [path.join(root, urlPath, suffix), path.join(root, prefix, urlPath, suffix)]
+		: operatingSurfaceAsset
+			? [path.join(root, 'admin', urlPath, suffix), path.join(root, prefix, urlPath, suffix)]
+			: operatingSurface
+				? [path.join(root, prefix, urlPath, suffix)]
+				: [path.join(root, prefix, urlPath, suffix), path.join(root, urlPath, suffix)];
 	let finalPath = candidates.find((candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isFile());
 	if (!finalPath && operatingSurface && req.method === 'GET' && !path.extname(urlPath)) {
 		const operatingSurfaceEntry = path.join(root, 'admin', 'index.html');

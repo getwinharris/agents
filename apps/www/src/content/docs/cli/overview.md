@@ -66,3 +66,4 @@ A build packages the discovered application for its runtime target. It does not 
 | [`bapX update`](/docs/cli/update/)   | Fetch a current blueprint so a coding agent can apply its newer upgrade guides. |
 | [`bapX docs`](/docs/cli/docs/)       | List, read, and search the bundled Bapx documentation.                          |
 | [`bapX okf`](/docs/cli/okf/)         | Index and query OKF Markdown knowledge inside one authorized workspace root.     |
+| [`bapX browse`](/docs/cli/browse/)   | Drive a real isolated browser session through the wrapped agent-browser CLI.     |

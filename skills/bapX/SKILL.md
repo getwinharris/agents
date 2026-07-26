@@ -36,6 +36,8 @@ api/workflow-api -- Workflow API
   Reference for creating and invoking workflows with @bapX/runtime.
 cli/add -- bapX add
   Reference for discovering and applying Bapx implementation blueprints.
+cli/browse -- Browse
+  Use the wrapped agent-browser CLI through bapX with isolated browser sessions.
 cli/build -- bapX build
   Reference for creating deployable Bapx application artifacts.
 cli/dev -- bapX dev
@@ -88,12 +90,13 @@ ecosystem/databases/supabase -- Supabase
 ecosystem/databases/turso -- Turso
 ecosystem/databases/valkey -- Valkey
 ecosystem/deploy/aws -- Deploy Agents on AWS
-ecosystem/deploy/bapx-host -- bapX Host
+ecosystem/deploy/bapx-host -- bapXhost
 ecosystem/deploy/cloudflare -- Deploy to Cloudflare
 ecosystem/deploy/docker -- Deploy Agents with Docker
 ecosystem/deploy/fly -- Deploy Agents on Fly.io
 ecosystem/deploy/github-actions -- Build Agents for GitHub Actions
 ecosystem/deploy/gitlab-ci -- Build Agents for GitLab CI/CD
+ecosystem/deploy/google-cloud -- Google Cloud
 ecosystem/deploy/node -- Deploy Agents on Node.js
 ecosystem/deploy/railway -- Deploy Agents on Railway
 ecosystem/deploy/render -- Deploy Agents on Render
@@ -102,12 +105,11 @@ ecosystem/sandboxes/boxd -- boxd
 ecosystem/sandboxes/cloudflare -- Cloudflare Sandbox
 ecosystem/sandboxes/cloudflare-shell -- Cloudflare Shell
 ecosystem/sandboxes/daytona -- Daytona
-ecosystem/sandboxes/e2b -- E2B
+ecosystem/sandboxes/e2b -- bapXsandbox E2B
 ecosystem/sandboxes/exedev -- exe.dev
 ecosystem/sandboxes/islo -- islo
 ecosystem/sandboxes/mirage -- Mirage
 ecosystem/sandboxes/modal -- Modal
-ecosystem/sandboxes/opensandbox -- OpenSandbox
 ecosystem/sandboxes/vercel -- Vercel Sandbox
 ecosystem/tooling/braintrust -- Braintrust
 ecosystem/tooling/cloud-coding-clis -- Cloud coding CLIs
@@ -152,7 +154,7 @@ guide/tools -- Tools
   Give agents application capabilities through custom tools and MCP servers.
 guide/workflows -- Workflows
   Create, invoke, and expose finite agent-backed operations.
-introduction/why-bapX -- Why bapX?
+introduction/why-bapx -- Why bapX?
   Ten years of marketing and branding operations, packaged as hosted agents for your business.
 mcp/overview -- MCP Gateway
   Connect agents through the Model Context Protocol gateway at api.bapx.in/mcp.
@@ -162,7 +164,7 @@ okf/workspace-maps -- Workspace Maps
   How bapX stores generated map.mmd files for user, business, and project workspaces.
 platform/billing -- Platform billing
   India-first bapX subscription and storage limits.
-platform/organisations -- Businesses
+platform/organisations -- Organisations
   How bapX scopes people, projects, Admin, and Agents.
 platform/overview -- Platform Overview
   Manage your bapX account settings, billing, API keys, connectors, MCP configuration, and observability.
