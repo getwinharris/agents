@@ -4,7 +4,12 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { createPlatformStore } from '../src/server/platform-store.mjs';
+import {
+	browserProfileRoot,
+	createPlatformStore,
+	customerBusinessWorkspaceRoot,
+	customerProjectWorkspaceRoot,
+} from '../src/server/platform-store.mjs';
 
 test('GitHub login creates an account, user workspace, and owned business', async (t) => {
 	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-platform-'));
@@ -20,6 +25,7 @@ test('GitHub login creates an account, user workspace, and owned business', asyn
 	});
 
 	assert.equal(result.account.username, 'mediahub');
+	assert.equal(result.account.primaryBusinessSlug, 'workspace');
 	assert.equal(result.business.owner, 'mediahub');
 	assert.deepEqual(result.account.providers, [{ id: '12345', login: 'mediahub', name: 'github' }]);
 	assert.equal('passwordHash' in result.account, false);
@@ -29,6 +35,54 @@ test('GitHub login creates an account, user workspace, and owned business', asyn
 	assert.equal(fs.existsSync(path.join(root, 'users/mediahub/workspace/collections/business.json')), true);
 	assert.equal(fs.existsSync(path.join(root, 'data/platform/schemas/accounts.schema.json')), true);
 	assert.equal(fs.existsSync(path.join(root, 'data/platform/schemas/sessions.schema.json')), true);
+});
+
+test('customer workspace roots resolve to the owned business and project boundary', async (t) => {
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-platform-scope-'));
+	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
+
+	const store = createPlatformStore({ workspaceRoot: root });
+	const { account } = await store.loginWithGitHub({
+		id: '13579',
+		login: 'scope-owner',
+		name: 'Scope Owner',
+		email: 'scope@example.com',
+	});
+
+	assert.equal(customerBusinessWorkspaceRoot(root, account), path.join(root, 'users/scope-owner/workspace'));
+	assert.equal(
+		customerProjectWorkspaceRoot(root, account, 'media-hub'),
+		path.join(root, 'users/scope-owner/workspace/projects/media-hub'),
+	);
+	assert.throws(
+		() => customerProjectWorkspaceRoot(root, account, '../other-user'),
+		/Invalid project slug/,
+	);
+});
+
+test('browser profile roots are isolated by account business project and actor scope', async (t) => {
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-browser-profile-'));
+	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
+
+	const store = createPlatformStore({ workspaceRoot: root });
+	const { account: first } = await store.loginWithGitHub({ id: '2001', login: 'first-user', name: 'First User', email: 'first@example.com' });
+	const { account: second } = await store.loginWithGitHub({ id: '2002', login: 'second-user', name: 'Second User', email: 'second@example.com' });
+
+	const firstProfile = browserProfileRoot(root, first, { projectSlug: 'shop-app' });
+	const firstSharedProfile = browserProfileRoot(root, first, { projectSlug: 'shop-app', actor: 'shared' });
+	const secondProfile = browserProfileRoot(root, second, { projectSlug: 'shop-app' });
+
+	assert.match(firstProfile, /users\/first-user\/workspace\/projects\/shop-app\/\.bapx\/browser\/profiles\/[a-f0-9]{32}$/);
+	assert.equal(firstProfile, firstSharedProfile);
+	assert.notEqual(firstProfile, secondProfile);
+	assert.equal(firstProfile.startsWith(path.join(root, 'users/first-user/workspace/projects/shop-app')), true);
+	assert.equal(secondProfile.startsWith(path.join(root, 'users/second-user/workspace/projects/shop-app')), true);
+	assert.throws(
+		() => browserProfileRoot(root, first, { projectSlug: 'shop-app', actor: '../second-user' }),
+		/Invalid browser profile scope/,
+	);
 });
 
 test('GitHub provider id returns the existing account without creating another workspace', async (t) => {

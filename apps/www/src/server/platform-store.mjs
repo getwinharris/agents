@@ -25,6 +25,49 @@ function validSlug(value) {
 	return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
 }
 
+export function primaryBusinessSlugForAccount(account) {
+	const slug = String(account?.primaryBusinessSlug || 'workspace').trim().toLowerCase();
+	if (!validSlug(slug)) throw new Error('Invalid primary business slug');
+	return slug;
+}
+
+export function customerBusinessWorkspaceRoot(workspaceRoot, account, businessSlug = primaryBusinessSlugForAccount(account)) {
+	const usersRoot = path.resolve(workspaceRoot, 'users');
+	const username = String(account?.username || '').trim().toLowerCase();
+	const slug = String(businessSlug || '').trim().toLowerCase();
+	if (!validSlug(username) || !validSlug(slug)) throw new Error('Invalid customer workspace scope');
+	const resolved = path.resolve(usersRoot, username, slug);
+	if (!resolved.startsWith(`${usersRoot}${path.sep}`)) throw new Error('Invalid customer workspace root');
+	return resolved;
+}
+
+export function customerProjectWorkspaceRoot(workspaceRoot, account, projectSlug, businessSlug = primaryBusinessSlugForAccount(account)) {
+	const project = String(projectSlug || '').trim().toLowerCase();
+	if (!validSlug(project)) throw new Error('Invalid project slug');
+	const businessRoot = customerBusinessWorkspaceRoot(workspaceRoot, account, businessSlug);
+	const resolved = path.resolve(businessRoot, 'projects', project);
+	if (!resolved.startsWith(`${path.resolve(businessRoot, 'projects')}${path.sep}`)) throw new Error('Invalid project workspace root');
+	return resolved;
+}
+
+export function browserProfileRoot(workspaceRoot, account, { businessSlug, projectSlug = 'business', actor = 'shared' } = {}) {
+	const business = businessSlug || primaryBusinessSlugForAccount(account);
+	const project = String(projectSlug || 'business').trim().toLowerCase();
+	const actorScope = String(actor || 'shared').trim().toLowerCase();
+	if (!validSlug(project) || !validSlug(actorScope)) throw new Error('Invalid browser profile scope');
+	const scopeRoot = project === 'business'
+		? customerBusinessWorkspaceRoot(workspaceRoot, account, business)
+		: customerProjectWorkspaceRoot(workspaceRoot, account, project, business);
+	const profileId = crypto
+		.createHash('sha256')
+		.update([account.id, account.username, business, project, actorScope].join(':'))
+		.digest('hex')
+		.slice(0, 32);
+	const resolved = path.resolve(scopeRoot, '.bapx', 'browser', 'profiles', profileId);
+	if (!resolved.startsWith(`${path.resolve(scopeRoot)}${path.sep}`)) throw new Error('Invalid browser profile root');
+	return resolved;
+}
+
 function folderIndex({ title, description, type = 'folder-index', children = [] }) {
 	const quote = (value) => JSON.stringify(value);
 	const childLines = children.length === 0
@@ -191,7 +234,7 @@ export function createPlatformStore({ workspaceRoot }) {
 			if (accounts.accounts.some((item) => item.username === username)) throw new Error('GitHub username conflicts with an existing account');
 			const now = new Date().toISOString();
 			const name = String(profile.name ?? '').trim() || username;
-			const account = { id: crypto.randomUUID(), username, name, email, providers: [{ name: 'github', id: providerId, login: username }], createdAt: now, updatedAt: now };
+			const account = { id: crypto.randomUUID(), username, name, email, primaryBusinessSlug: 'workspace', providers: [{ name: 'github', id: providerId, login: username }], createdAt: now, updatedAt: now };
 			const business = { id: crypto.randomUUID(), name: `${name} Workspace`, slug: 'workspace', owner: username, website: null, socialLinks: {}, createdAt: now, updatedAt: now };
 			ensureUserWorkspace(workspaceRoot, account, business);
 			accounts.accounts.push(account);

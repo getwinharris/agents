@@ -1,10 +1,12 @@
 ---
 title: E2B
-description: Connect a Bapx agent to an E2B Linux sandbox.
-lastReviewedAt: 2026-05-30
+description: Connect a Bapx agent to the default hosted E2B Linux sandbox path.
+lastReviewedAt: 2026-07-26
 ---
 
-The E2B adapter adapts an initialized E2B sandbox from the `e2b` package into Bapx's sandbox interface. Use it for provider-managed Linux execution when an agent needs shell commands and workspace files outside the application host.
+E2B is the default hosted remote sandbox path for bapX when an agent needs an isolated Linux workspace for commands, files, browser work, or project deployment preparation. The project adapter adapts an initialized E2B sandbox from the `e2b` package into Bapx's sandbox interface.
+
+The current public blueprint is adapter-level: it wires an existing E2B sandbox into a Bapx agent. The hosted bapX product owns account, business, project, and browser-profile isolation above that adapter.
 
 ## Quickstart
 
@@ -45,7 +47,23 @@ export function e2b(sandbox: E2BSandbox): SandboxFactory {
 }
 ```
 
-Pass an initialized E2B `Sandbox` to `e2b(...)`, then assign the returned factory to an agent's `sandbox` property. Bapx resolves workspace paths from `/home/user`, exposes E2B's files and commands through session operations, forwards command timeouts in milliseconds, and reports only the file metadata E2B exposes. E2B's direct remove API has no recursive or force controls, so the adapter rejects either option before deletion. Your application remains responsible for sandbox configuration and lifecycle.
+Pass an initialized E2B `Sandbox` to `e2b(...)`, then assign the returned factory to an agent's `sandbox` property. Bapx resolves workspace paths from `/home/user`, exposes E2B's files and commands through session operations, forwards command timeouts in milliseconds, and reports only the file metadata E2B exposes. E2B's direct remove API has no recursive or force controls, so the adapter rejects either option before deletion. In self-hosted projects, your application remains responsible for sandbox configuration and lifecycle.
+
+## Hosted bapX isolation
+
+Hosted bapX scopes remote sandbox work by the signed-in account, selected business, and selected project. Customer project work is represented publicly as:
+
+```txt
+root-sandbox/<username>/<business-slug>/projects/<project-slug>/
+```
+
+Within that project boundary, bapX allocates browser profile storage under a server-derived profile id:
+
+```txt
+.bapx/browser/profiles/<server-derived-profile-id>/
+```
+
+That profile is shared by the authorized user and that user's project agents so browser sessions can continue inside the same project context. Other users and other project scopes receive different profile ids and cannot resolve paths into another user's workspace. Browser profile data is not telemetry and must not be copied into logs, traces, or public artifacts.
 
 ## Configure
 
@@ -73,6 +91,6 @@ const agent = defineAgent(() => ({
 }));
 ```
 
-Select templates, timeouts, network access, secret exposure, and resource reuse through your application and provider policy. Bapx adapts the active environment; it does not choose provider retention for you.
+Select templates, timeouts, network access, secret exposure, and resource reuse through your application and provider policy. Bapx adapts the active environment; it does not choose provider retention for self-hosted projects.
 
 See [Sandboxes](/docs/guide/sandboxes/) and [Sandbox Adapter API](/docs/api/sandbox-api/).
