@@ -12,6 +12,7 @@
 
 ### Fixes & Other Changes
 
+- Added `bapX okf index` and `bapX okf query` as the first local OKF Markdown retrieval surface, including v0.1/v0.2 metadata extraction, root-bound output isolation, public CLI docs, and internal implementation notes for the remaining semantic-index work (#45).
 - Restored `agents.bapx.in` with the shared Admin/Agents React operating surface, an authenticated same-origin gateway to the hosted main-agent runtime, customer-rooted workspace APIs, useful runtime-unavailable responses, and official AI Elements rendering for streamed text, reasoning, tools, loading, cancellation, and failures.
 - Customer Agents workspace APIs now resolve through the account's primary business workspace and hosted browser profile roots are derived from account, business, project, and shared browser scope, so project browser state can be shared by the authorized user and their agents without crossing into another user's profile.
 - Agents now returns a cache-disabled HTTP 200 to root `HEAD` health checks while retaining the GitHub sign-in redirect for unauthenticated browser `GET` requests.

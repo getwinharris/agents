@@ -44,6 +44,10 @@ cli/docs -- bapX docs
   Reference for listing, reading, and searching the bundled Bapx documentation.
 cli/init -- bapX init
   Reference for creating an initial Bapx project configuration file.
+cli/map -- Map
+  Generate and validate map.mmd files for bapX user, business, demo, and project workspaces.
+cli/okf -- bapX okf
+  Reference for indexing and querying OKF Markdown knowledge inside one authorized workspace root.
 cli/overview -- CLI
   Use the Bapx CLI to configure, develop, exercise, inspect, and build an application.
 cli/run -- bapX run
@@ -51,9 +55,11 @@ cli/run -- bapX run
 cli/update -- bapX update
   Reference for updating integrations from newer Bapx blueprint upgrade guides.
 concepts/agents -- What is an agent?
-  What an AI agent actually is, why a model alone isn't one, and what makes a Bapx agent different.
+  How bapX agents work — autonomous AI agents running in the cloud for your business and team.
 concepts/durable-execution -- Durable Agents
   Understand how Bapx agents and workflows handle server restarts, interrupted connections, and other disruptions.
+customer-ecosystem/overview -- Ecosystem
+  Connect your bapX business workspace through MCPs, business connectors, APIs, repositories, and communication channels.
 ecosystem/channels/discord -- Discord
 ecosystem/channels/github -- GitHub
 ecosystem/channels/google-chat -- Google Chat
@@ -61,6 +67,7 @@ ecosystem/channels/intercom -- Intercom
 ecosystem/channels/linear -- Linear
 ecosystem/channels/messenger -- Facebook Messenger
 ecosystem/channels/notion -- Notion
+ecosystem/channels/razorpay -- Razorpay
 ecosystem/channels/resend -- Resend
 ecosystem/channels/salesforce-marketing-cloud -- Salesforce Marketing Cloud
 ecosystem/channels/shopify -- Shopify
@@ -71,6 +78,7 @@ ecosystem/channels/telegram -- Telegram
 ecosystem/channels/twilio -- Twilio
 ecosystem/channels/whatsapp -- WhatsApp
 ecosystem/channels/zendesk -- Zendesk
+ecosystem/databases/bapxdb -- bapXdb
 ecosystem/databases/libsql -- libSQL
 ecosystem/databases/mongodb -- MongoDB
 ecosystem/databases/mysql -- MySQL
@@ -80,6 +88,7 @@ ecosystem/databases/supabase -- Supabase
 ecosystem/databases/turso -- Turso
 ecosystem/databases/valkey -- Valkey
 ecosystem/deploy/aws -- Deploy Agents on AWS
+ecosystem/deploy/bapx-host -- bapX Host
 ecosystem/deploy/cloudflare -- Deploy to Cloudflare
 ecosystem/deploy/docker -- Deploy Agents with Docker
 ecosystem/deploy/fly -- Deploy Agents on Fly.io
@@ -98,13 +107,15 @@ ecosystem/sandboxes/exedev -- exe.dev
 ecosystem/sandboxes/islo -- islo
 ecosystem/sandboxes/mirage -- Mirage
 ecosystem/sandboxes/modal -- Modal
+ecosystem/sandboxes/opensandbox -- OpenSandbox
 ecosystem/sandboxes/vercel -- Vercel Sandbox
 ecosystem/tooling/braintrust -- Braintrust
+ecosystem/tooling/cloud-coding-clis -- Cloud coding CLIs
 ecosystem/tooling/opentelemetry -- OpenTelemetry
 ecosystem/tooling/sentry -- Sentry
 ecosystem/tooling/vitest-evals -- Vitest Evals
 getting-started/quickstart -- Getting Started
-  Set up a Bapx project automatically or create your first agent manually.
+  Create your paid bapX account, business workspace, and first hosted agent project.
 guide/actions -- Actions
   Define finite agent-backed operations that can be reused by workflows and agents.
 guide/building-agents -- Agents
@@ -124,7 +135,7 @@ guide/project-layout -- Project Layout
 guide/react -- React
   Build React interfaces for live agent conversations and workflow runs.
 guide/routing -- Routing
-  Compose Bapx with application routes, middleware, and custom HTTP ingress.
+  Compose bapX with application routes, middleware, and custom HTTP ingress.
 guide/sandboxes -- Sandboxes
   Give agents a workspace for files and command-driven work.
 guide/schedules -- Schedules
@@ -142,9 +153,31 @@ guide/tools -- Tools
 guide/workflows -- Workflows
   Create, invoke, and expose finite agent-backed operations.
 introduction/why-bapX -- Why bapX?
-  Build autonomous AI agents and powerful workflows with a programmable TypeScript harness, and run them anywhere.
+  Ten years of marketing and branding operations, packaged as hosted agents for your business.
+mcp/overview -- MCP Gateway
+  Connect agents through the Model Context Protocol gateway at api.bapx.in/mcp.
+okf/overview -- Open Knowledge Format
+  OKF is a plain-text knowledge format for humans and AI agents.
+okf/workspace-maps -- Workspace Maps
+  How bapX stores generated map.mmd files for user, business, and project workspaces.
+platform/billing -- Platform billing
+  India-first bapX subscription and storage limits.
+platform/organisations -- Businesses
+  How bapX scopes people, projects, Admin, and Agents.
+platform/overview -- Platform Overview
+  Manage your bapX account settings, billing, API keys, connectors, MCP configuration, and observability.
 reference/configuration -- Configuration
   Reference for bapX.config.ts options.
+reference/contributing -- Contributing
+  Report bugs and propose bapX features through the agents repository.
+reference/development -- bapX Development
+  Public source, CLI, documentation, and contribution contracts for developers building bapX.
+reference/platform-auth -- Platform Auth and Workspace Contract
+  Public authentication, workspace, Admin, Agents, and connector boundary for bapX.
+reference/shipping -- Shipping Workflow
+  Public code-to-docs, validation, and release evidence contract for bapX changes.
+reference/source-ownership -- Source Ownership
+  Public ownership map for bapX app surfaces, docs, CLI, runtime, Admin, Agents, and OKF workspaces.
 sdk/agents -- client.agents
   Invoke persistent agent instances and read their conversations.
 sdk/client -- createBapxClient(...)
