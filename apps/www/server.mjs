@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createPlatformStore } from './src/server/platform-store.mjs';
+import { createPlatformStore, customerBusinessWorkspaceRoot } from './src/server/platform-store.mjs';
 import { exchangeGitHubAppManifestCode, githubAppCredentials, githubAppManifestRegistration, githubAuthorization, githubIdentity } from './src/server/github-oauth.mjs';
 import { authorizeAdminApiRequest, authorizeAdminRequest, parseAdminGithubUserIds } from './src/server/admin-authorization.mjs';
 import { GitHubProjectImportError, importPublicGitHubProject, listGitHubProjects } from './src/server/github-project-import.mjs';
@@ -405,7 +405,7 @@ async function handleWorkspaceAPI(req, res, urlPath, scopeRoot = workspaceRoot) 
 }
 
 function customerWorkspaceRoot(account) {
-	return path.join(workspaceRoot, 'users', account.username, 'workspace');
+	return customerBusinessWorkspaceRoot(workspaceRoot, account);
 }
 
 function proxyAgentAPI(req, res, account) {

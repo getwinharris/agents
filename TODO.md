@@ -121,6 +121,7 @@ Tracking: [Discussion #34](https://github.com/getwinharris/agents/discussions/34
 
 ## Stage 6 — Inbuilt browser and desktop experience
 
+- [ ] Complete [Issue #87](https://github.com/getwinharris/agents/issues/87) so hosted E2B sandbox lifecycle commands and per-project browser profile allocation are implemented, validated, and promoted through Admin before Agents.
 - [ ] Pin Playwright and install its matching Chromium through the owning npm workspace/package lifecycle.
 - [ ] Implement one Browser skill that selects Firecrawl for search/scrape/crawl/remote sandbox, Browser Use for fast persistent CDP interaction, and pinned Playwright for deterministic tests/traces; do not create a separate browser or research agent.
 - [ ] Pin and health-check Firecrawl CLI, Browser Use CLI, and Playwright CLI through an owning tracked package/runtime lifecycle rather than copying third-party skill files or relying on global, untracked binaries.
