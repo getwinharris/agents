@@ -11,7 +11,7 @@ root-sandbox/<username>/<business-slug>/projects/<project-slug>/
 
 The public `root-sandbox/` name is the customer-facing workspace boundary. The server-owned storage path remains internal and is not part of the public product contract.
 
-Creating an account uses a verified GitHub identity and creates the user workspace and its first organisation. bapX does not store a password. The device session continues until explicit logout, subject to browser cookie retention. Repository authorization remains a separate GitHub App permission flow.
+Creating an account uses a verified GitHub identity and creates the user workspace and its first business. bapX does not store a password. The device session is shared across the production bapX subdomains and continues until explicit logout, subject to browser cookie retention. Repository authorization remains a separate GitHub App permission flow.
 
 The India-first subscription costs **₹500 per month** and includes **5 GB** of storage, hosted search, browser sessions, hosted agents and workflows, Node.js project subdomains, TTS, and STT. Additional storage costs **₹100 per GB per month** up to **100 GB**. Customers bring their own AI-provider and connector credentials.
 
@@ -26,7 +26,7 @@ The India-first subscription costs **₹500 per month** and includes **5 GB** of
 
 Platform manages ownership and configuration. `agents.bapx.in` operates the selected business and project; `admin.bapx.in` uses the same operating model with bapX-wide authority over `/root/bapx.in`.
 
-Opening `admin.bapx.in` first verifies the existing GitHub-backed bapX session on the central domain, then exchanges a single-use short-lived handoff for an Admin-host session. The server revalidates the configured GitHub provider-ID entitlement before serving the Admin workspace; customer accounts without that entitlement cannot use bapX-wide Admin authority.
+Opening `admin.bapx.in` uses the shared GitHub-backed bapX session, then exchanges a single-use short-lived handoff before granting Admin authority. The server revalidates the configured GitHub provider-ID entitlement before serving the Admin workspace; customer accounts without that entitlement cannot use bapX-wide Admin authority.
 
 ### Repository import
 

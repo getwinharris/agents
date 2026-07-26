@@ -228,7 +228,21 @@ describe('Agents host routing', () => {
 		assert.equal(response.status, 303);
 		assert.equal(response.headers.location, 'https://admin.bapx.in/');
 		assert.match(response.headers['set-cookie']?.join(';') ?? '', /bapx_session=/);
+		assert.match(response.headers['set-cookie']?.join(';') ?? '', /Domain=\.bapx\.in/);
 		assert.equal(fs.existsSync(githubCliBootstrapFile), false);
+	});
+
+	it('refreshes an authenticated Platform session for the whole bapX subdomain family', async () => {
+		const response = await request(port, {
+			host: 'platform.bapx.in',
+			pathname: '/api/auth/session',
+			headers: { cookie },
+		});
+
+		assert.equal(response.status, 200);
+		assert.equal(JSON.parse(response.body).account.username, 'routing-user');
+		assert.match(response.headers['set-cookie']?.join(';') ?? '', /bapx_session=/);
+		assert.match(response.headers['set-cookie']?.join(';') ?? '', /Domain=\.bapx\.in/);
 	});
 
 	it('does not persist an external OAuth return destination', async () => {
@@ -293,6 +307,7 @@ describe('Agents host routing', () => {
 		assert.equal(redeemed.status, 303);
 		assert.equal(redeemed.headers.location, returnTo);
 		assert.match(redeemed.headers['set-cookie']?.join(';') ?? '', /bapx_session=/);
+		assert.match(redeemed.headers['set-cookie']?.join(';') ?? '', /Domain=\.bapx\.in/);
 		const adminCookie = redeemed.headers['set-cookie'][0].split(';')[0];
 		const shell = await request(port, {
 			host: 'admin.bapx.in',

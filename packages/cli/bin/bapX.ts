@@ -104,6 +104,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  bapX add   [<kind> <name|url>] [--print]\n' +
 			'  bapX update <kind> <name|url> [--print]\n' +
 			'  bapX docs  [read <path> | search <query>]\n' +
+			'  bapX okf   [index|query] --root <path> [query]\n' +
 			'  bapX map   [--root <path>] [--check] [--profile <user-workspace|business-workspace|user-project|demo-project>]\n' +
 			'\n' +
 			'Commands:\n' +
@@ -114,6 +115,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  add    Fetch a blueprint implementation guide for an AI coding agent to follow.\n' +
 			'  update Fetch an updated blueprint implementation guide for an AI coding agent to follow.\n' +
 			'  docs   Browse the Bapx docs. No args lists pages; `read` prints a page as markdown; `search` prints JSON results.\n' +
+			'  okf    Index or query OKF Markdown knowledge inside one authorized workspace root.\n' +
 			'  map    Generate or validate the project root map.mmd from the real directory layout.\n' +
 			'\n' +
 			'Flags:\n' +
@@ -148,6 +150,8 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  bapX docs\n' +
 			'  bapX docs read guide/sandboxes\n' +
 			'  bapX docs search "durable execution"\n' +
+			'  bapX okf index --root ./my-business\n' +
+			'  bapX okf query --root ./my-business "billing connector"\n' +
 			'  bapX map --root ./my-app\n' +
 			'  bapX map --root ./my-business --check --profile business-workspace\n' +
 			'  bapX map --root ./my-business/projects/my-app --check --profile user-project\n' +
@@ -223,6 +227,16 @@ interface DocsArgs {
 	value: string;
 }
 
+interface OkfArgs {
+	command: 'okf';
+	action: 'index' | 'query';
+	/** Explicit --root value, or undefined to default to cwd. Absolute when set. */
+	explicitRoot: string | undefined;
+	/** Optional index output path for `index`. Must remain inside --root. */
+	explicitOutput: string | undefined;
+	query: string;
+}
+
 interface InitArgs {
 	command: 'init';
 	target: 'node' | 'cloudflare';
@@ -244,7 +258,15 @@ interface MapArgs {
 		| undefined;
 }
 
-type ParsedArgs = RunArgs | BuildArgs | DevArgs | BlueprintCommandArgs | DocsArgs | InitArgs | MapArgs;
+type ParsedArgs =
+	| RunArgs
+	| BuildArgs
+	| DevArgs
+	| BlueprintCommandArgs
+	| DocsArgs
+	| OkfArgs
+	| InitArgs
+	| MapArgs;
 
 type ParsedOptionToken = Extract<
 	NonNullable<ReturnType<typeof parseNodeArgs>['tokens']>[number],
@@ -491,6 +513,55 @@ function parseDocsArgs(rest: string[]): DocsArgs {
 	process.exit(1);
 }
 
+function parseOkfArgs(rest: string[]): OkfArgs {
+	const [action, ...tail] = rest;
+	if (action !== 'index' && action !== 'query') {
+		const label = action === undefined ? 'Missing' : `Unknown`;
+		const detail = action === undefined ? 'OKF action' : `\`bapX okf\` action: ${action}`;
+		console.error(
+			`${label} ${detail}.\n\nUsage:\n  bapX okf index --root <path> [--output <path>]\n  bapX okf query --root <path> <query>`,
+		);
+		process.exit(1);
+	}
+
+	const { positionals, values } = parseCommandOptions(
+		'okf',
+		tail,
+		{
+			root: { type: 'string' },
+			output: { type: 'string' },
+		},
+		new Set(action === 'index' ? ['--root', '--output'] : ['--root']),
+		new Set(['--root', '--output']),
+	);
+
+	if (action === 'index') {
+		for (const positional of positionals) {
+			fail(`Unexpected argument for \`bapX okf index\`: ${positional}`, true);
+		}
+		return {
+			command: 'okf',
+			action,
+			explicitRoot: pathFlag(values, 'root', 'Missing value for --root'),
+			explicitOutput: pathFlag(values, 'output', 'Missing value for --output'),
+			query: '',
+		};
+	}
+
+	const query = positionals.join(' ').trim();
+	if (!query) {
+		console.error('Missing OKF query.\n\nUsage:\n  bapX okf query --root <path> <query>');
+		process.exit(1);
+	}
+	return {
+		command: 'okf',
+		action,
+		explicitRoot: pathFlag(values, 'root', 'Missing value for --root'),
+		explicitOutput: undefined,
+		query,
+	};
+}
+
 function parseInitArgs(rest: string[]): InitArgs {
 	const { positionals, values } = parseCommandOptions(
 		'init',
@@ -577,6 +648,10 @@ function parseArgs(argv: string[]): ParsedArgs {
 
 	if (command === 'docs') {
 		return parseDocsArgs(rest);
+	}
+
+	if (command === 'okf') {
+		return parseOkfArgs(rest);
 	}
 
 	if (command === 'init') {
@@ -1383,6 +1458,7 @@ interface DocsPage {
 function resolveDocsRoot(): string | undefined {
 	const here = path.dirname(fileURLToPath(import.meta.url));
 	const candidates = [
+		path.join(here, '../../../apps/www/src/content/docs'),
 		path.join(here, '../../../apps/docs/src/content/docs'),
 		path.join(here, '../docs'),
 	];
@@ -1585,6 +1661,259 @@ function docsCommand(args: DocsArgs): void {
 	process.stderr.write('\nRead a page with: bapX docs read <path>\n');
 }
 
+interface OkfConcept {
+	id: string;
+	path: string;
+	type: string | undefined;
+	title: string;
+	description: string | undefined;
+	status: string | undefined;
+	staleAfter: string | undefined;
+	generatedAt: string | undefined;
+	verifiedAt: string | undefined;
+	sourceCount: number;
+	tags: string[];
+	body: string;
+	hash: string;
+}
+
+interface OkfScalarObject {
+	[key: string]: string | string[] | OkfScalarObject | undefined;
+}
+
+const OKF_SKIPPED_DIRECTORIES = new Set([
+	'.git',
+	'.turbo',
+	'node_modules',
+	'dist',
+	'build',
+	'test-results',
+]);
+
+function isPathInsideRoot(root: string, candidate: string): boolean {
+	const relative = path.relative(root, candidate);
+	return relative === '' || (!!relative && !relative.startsWith('..') && !path.isAbsolute(relative));
+}
+
+function resolveOkfRoot(explicitRoot: string | undefined): string {
+	const root = path.resolve(explicitRoot ?? process.cwd());
+	if (!isDirectory(root)) fail(`[bapX] OKF root does not exist or is not a directory: ${root}`);
+	return root;
+}
+
+function parseOkfScalar(raw: string): string | string[] {
+	const value = raw.trim();
+	if (value.startsWith('[') && value.endsWith(']')) {
+		return value
+			.slice(1, -1)
+			.split(',')
+			.map((item) => item.trim().replace(/^['"]|['"]$/g, ''))
+			.filter(Boolean);
+	}
+	return value.replace(/^['"]|['"]$/g, '');
+}
+
+function parseOkfFrontmatter(source: string): { data: OkfScalarObject; body: string } {
+	if (!source.startsWith('---\n')) return { data: {}, body: source };
+	const end = source.indexOf('\n---\n', 4);
+	if (end === -1) return { data: {}, body: source };
+
+	const data: OkfScalarObject = {};
+	let activeObject: OkfScalarObject | undefined;
+	for (const line of source.slice(4, end).split('\n')) {
+		if (!line.trim() || line.trimStart().startsWith('#')) continue;
+
+		const nested = line.match(/^ {2}([A-Za-z][\w-]*):\s*(.*)$/);
+		if (nested && activeObject) {
+			activeObject[nested[1] ?? ''] = parseOkfScalar(nested[2] ?? '');
+			continue;
+		}
+
+		activeObject = undefined;
+		const match = line.match(/^([A-Za-z][\w-]*):\s*(.*)$/);
+		if (!match) continue;
+		const key = match[1] ?? '';
+		const value = match[2] ?? '';
+		if (!value.trim()) {
+			const object: OkfScalarObject = {};
+			data[key] = object;
+			activeObject = object;
+			continue;
+		}
+		data[key] = parseOkfScalar(value);
+	}
+
+	return { data, body: source.slice(end + '\n---\n'.length) };
+}
+
+function okfString(data: OkfScalarObject, key: string): string | undefined {
+	const value = data[key];
+	return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
+function okfStringArray(data: OkfScalarObject, key: string): string[] {
+	const value = data[key];
+	if (Array.isArray(value)) return value;
+	if (typeof value === 'string' && value.trim()) return [value];
+	return [];
+}
+
+function okfNestedString(data: OkfScalarObject, key: string, nestedKey: string): string | undefined {
+	const value = data[key];
+	if (!value || Array.isArray(value) || typeof value === 'string') return undefined;
+	const nested = value[nestedKey];
+	return typeof nested === 'string' && nested.trim() ? nested : undefined;
+}
+
+function stableOkfHash(content: string): string {
+	let hash = 5381;
+	for (let index = 0; index < content.length; index += 1) {
+		hash = ((hash << 5) + hash) ^ content.charCodeAt(index);
+	}
+	return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+function listOkfMarkdownFiles(root: string, dir = root): string[] {
+	const files: string[] = [];
+	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+		const absPath = path.join(dir, entry.name);
+		if (!isPathInsideRoot(root, absPath)) continue;
+		if (entry.isDirectory()) {
+			if (!OKF_SKIPPED_DIRECTORIES.has(entry.name)) files.push(...listOkfMarkdownFiles(root, absPath));
+			continue;
+		}
+		if (entry.isFile() && /\.md$/i.test(entry.name)) files.push(absPath);
+	}
+	return files.sort((a, b) => a.localeCompare(b));
+}
+
+function loadOkfConcepts(root: string): OkfConcept[] {
+	return listOkfMarkdownFiles(root).map((filePath) => {
+		const source = fs.readFileSync(filePath, 'utf8');
+		const relative = path.relative(root, filePath).split(path.sep).join('/');
+		const { data, body } = parseOkfFrontmatter(source);
+		const id = relative.replace(/\.md$/i, '').replace(/\/index$/, '');
+		const generatedAt = okfNestedString(data, 'generated', 'at') ?? okfString(data, 'timestamp');
+		const verifiedAt = okfNestedString(data, 'verified', 'at') ?? okfString(data, 'verified_at');
+		const title = okfString(data, 'title') ?? relative.replace(/\.md$/i, '');
+		const sources = okfStringArray(data, 'sources');
+		return {
+			id,
+			path: relative,
+			type: okfString(data, 'type'),
+			title,
+			description: okfString(data, 'description'),
+			status: okfString(data, 'status'),
+			staleAfter: okfString(data, 'stale_after'),
+			generatedAt,
+			verifiedAt,
+			sourceCount: sources.length,
+			tags: okfStringArray(data, 'tags'),
+			body,
+			hash: stableOkfHash(source),
+		};
+	});
+}
+
+function buildOkfIndexPayload(root: string, concepts: OkfConcept[]) {
+	return {
+		schema: 'bapx.okf.index.v1',
+		root,
+		generatedAt: new Date().toISOString(),
+		conceptCount: concepts.length,
+		concepts: concepts.map(({ body: _body, ...concept }) => concept),
+	};
+}
+
+function writeOkfIndex(args: OkfArgs, root: string, concepts: OkfConcept[]): void {
+	const payload = JSON.stringify(buildOkfIndexPayload(root, concepts), null, 2);
+	if (!args.explicitOutput) {
+		process.stdout.write(`${payload}\n`);
+		return;
+	}
+	const output = path.resolve(args.explicitOutput);
+	if (!isPathInsideRoot(root, output)) {
+		fail(`[bapX] OKF index output must stay inside the OKF root: ${output}`);
+	}
+	fs.writeFileSync(output, `${payload}\n`);
+	success(`wrote ${path.relative(process.cwd(), output) || output}`);
+}
+
+function queryOkfIndex(root: string, concepts: OkfConcept[], query: string): void {
+	const index = new MiniSearch({
+		idField: 'id',
+		fields: ['title', 'description', 'type', 'status', 'tags', 'content'],
+		storeFields: [
+			'path',
+			'title',
+			'description',
+			'type',
+			'status',
+			'staleAfter',
+			'generatedAt',
+			'verifiedAt',
+			'sourceCount',
+			'tags',
+			'content',
+		],
+		searchOptions: {
+			boost: { title: 4, description: 2, type: 2, status: 2, tags: 2 },
+			prefix: true,
+			fuzzy: 0.2,
+		},
+	});
+
+	index.addAll(
+		concepts.map((concept) => ({
+			id: concept.id,
+			path: concept.path,
+			title: concept.title,
+			description: concept.description,
+			type: concept.type,
+			status: concept.status,
+			staleAfter: concept.staleAfter,
+			generatedAt: concept.generatedAt,
+			verifiedAt: concept.verifiedAt,
+			sourceCount: concept.sourceCount,
+			tags: concept.tags.join(' '),
+			content: docsMarkdownToPlainText(concept.body),
+		})),
+	);
+
+	const results = index
+		.search(query)
+		.slice(0, 10)
+		.map((result) => ({
+			id: result.id as string,
+			path: result.path as string,
+			title: result.title as string,
+			description: (result.description as string) || undefined,
+			type: (result.type as string) || undefined,
+			status: (result.status as string) || undefined,
+			staleAfter: (result.staleAfter as string) || undefined,
+			generatedAt: (result.generatedAt as string) || undefined,
+			verifiedAt: (result.verifiedAt as string) || undefined,
+			sourceCount: result.sourceCount as number,
+			tags: String(result.tags ?? '')
+				.split(' ')
+				.filter(Boolean),
+			excerpt: buildDocsExcerpt((result.content as string) ?? '', result.terms),
+			score: Math.round(result.score * 100) / 100,
+		}));
+
+	process.stdout.write(`${JSON.stringify({ schema: 'bapx.okf.query.v1', root, query, results }, null, 2)}\n`);
+}
+
+function okfCommand(args: OkfArgs): void {
+	const root = resolveOkfRoot(args.explicitRoot);
+	const concepts = loadOkfConcepts(root);
+	if (args.action === 'index') {
+		writeOkfIndex(args, root, concepts);
+		return;
+	}
+	queryOkfIndex(root, concepts, args.query);
+}
+
 function printHumanInstructions(args: BlueprintCommandArgs) {
 	const cmd = `bapX ${args.command} ${args.kind} ${shellQuote(args.target)}`;
 	const stream = process.stderr;
@@ -1700,6 +2029,8 @@ async function main() {
 		await blueprintCommand(args);
 	} else if (args.command === 'docs') {
 		docsCommand(args);
+	} else if (args.command === 'okf') {
+		okfCommand(args);
 	} else if (args.command === 'init') {
 		initCommand(args);
 	} else if (args.command === 'map') {

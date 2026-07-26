@@ -65,3 +65,4 @@ A build packages the discovered application for its runtime target. It does not 
 | [`bapX add`](/docs/cli/add/)         | Fetch sandbox, channel, or database installation blueprints for a coding agent. |
 | [`bapX update`](/docs/cli/update/)   | Fetch a current blueprint so a coding agent can apply its newer upgrade guides. |
 | [`bapX docs`](/docs/cli/docs/)       | List, read, and search the bundled Bapx documentation.                          |
+| [`bapX okf`](/docs/cli/okf/)         | Index and query OKF Markdown knowledge inside one authorized workspace root.     |
