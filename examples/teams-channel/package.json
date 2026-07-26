@@ -14,8 +14,8 @@
 	},
 	"devDependencies": {
 		"@bapX/cli": "*",
-		"@cloudflare/vitest-pool-workers": "0.16.20",
-		"agents": "^0.14.2",
+		"@cloudflare/vitest-pool-workers": "0.18.8",
+		"agents": "^0.19.0",
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.6"
 	}

@@ -29,7 +29,7 @@ Read https://bapx.in/start.md then help create my first agent...
 
 Read our [Getting Started](https://docs.bapx.in/getting-started/quickstart/) guide for full details.
 
-_Update: `bapX run` can execute either an agent or workflow on Node.js or Cloudflare. The experimental interactive console now ships separately as `@bapX/dev-console`._
+_Update: `bapX run` can execute either an agent or workflow on Node.js or Cloudflare. Interactive operator workflows stay inside Admin/Agents and the supported `@bapX/cli` command surface._
 
 ## Introducing: Agents
 
@@ -121,7 +121,7 @@ Coding agents changed everything, so we designed bapX to take advantage. `bapX a
 ```sh
 bapX add channel slack
 bapX add channel linear
-bapX add sandbox daytona
+bapX add sandbox e2b
 bapX add database postgres
 bapX add tooling opentelemetry
 ```

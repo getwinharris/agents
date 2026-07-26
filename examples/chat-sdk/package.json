@@ -6,19 +6,19 @@
 		"test:e2e": "node ./test/e2e.mjs"
 	},
 	"dependencies": {
+		"@bapX/runtime": "*",
 		"@chat-adapter/github": "*",
 		"@chat-adapter/state-memory": "*",
 		"@earendil-works/pi-ai": "^0.80.2",
-		"@bapX/runtime": "*",
-		"agents": "^0.14.2",
+		"agents": "^0.19.0",
 		"chat": "*",
 		"hono": "^4.8.3",
 		"just-bash": "^3.0.1",
 		"valibot": "^1.0.0"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20260602.1",
 		"@bapX/cli": "*",
-		"wrangler": "^4.97.0"
+		"@cloudflare/workers-types": "^4.20260602.1",
+		"wrangler": "^4.114.0"
 	}
 }

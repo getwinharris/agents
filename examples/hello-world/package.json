@@ -3,9 +3,8 @@
 	"private": true,
 	"type": "module",
 	"dependencies": {
-		"@daytona/sdk": "*",
 		"@bapX/runtime": "*",
-		"agents": "^0.14.2",
+		"agents": "^0.19.0",
 		"hono": "^4.7.0",
 		"just-bash": "^3.0.1",
 		"valibot": "^1.0.0"
