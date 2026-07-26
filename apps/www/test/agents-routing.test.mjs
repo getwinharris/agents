@@ -245,6 +245,33 @@ describe('Agents host routing', () => {
 		assert.match(response.headers['set-cookie']?.join(';') ?? '', /Domain=\.bapx\.in/);
 	});
 
+	it('uses the valid shared session when a stale host cookie is also present', async () => {
+		const response = await request(port, {
+			host: 'platform.bapx.in',
+			pathname: '/api/auth/session',
+			headers: { cookie: `bapx_session=stale-host-token; ${cookie}` },
+		});
+
+		assert.equal(response.status, 200);
+		assert.equal(JSON.parse(response.body).account.username, 'routing-user');
+		assert.match(response.headers['set-cookie']?.join(';') ?? '', /Domain=\.bapx\.in/);
+	});
+
+	it('clears shared and stale host session cookies on logout', async () => {
+		const response = await request(port, {
+			method: 'POST',
+			host: 'platform.bapx.in',
+			pathname: '/api/auth/logout',
+			headers: { cookie: 'bapx_session=stale-host-token; bapx_session=another-stale-token' },
+		});
+
+		assert.equal(response.status, 303);
+		const cookies = response.headers['set-cookie'] ?? [];
+		assert.equal(cookies.length, 2);
+		assert.ok(cookies.some((value) => /bapx_session=;/.test(value) && /Domain=\.bapx\.in/.test(value)));
+		assert.ok(cookies.some((value) => /bapx_session=;/.test(value) && !/Domain=/.test(value)));
+	});
+
 	it('does not persist an external OAuth return destination', async () => {
 		const response = await request(port, {
 			host: 'bapx.in',

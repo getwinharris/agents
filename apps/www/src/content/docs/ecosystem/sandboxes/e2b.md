@@ -1,16 +1,16 @@
 ---
-title: E2B
-description: Connect a Bapx agent to the default hosted E2B Linux sandbox path.
+title: E2B self-hosted sandbox
+description: Connect a Bapx agent to hosted or self-hosted E2B Linux sandboxes.
 lastReviewedAt: 2026-07-26
 ---
 
-E2B is the default hosted remote sandbox path for bapX when an agent needs an isolated Linux workspace for commands, files, browser work, or project deployment preparation. The project adapter adapts an initialized E2B sandbox from the `e2b` package into Bapx's sandbox interface.
+E2B is the default remote sandbox path for bapX when an agent needs an isolated Linux workspace for commands, files, browser work, or project deployment preparation. The project adapter adapts an initialized E2B sandbox from the `e2b` package into Bapx's sandbox interface.
 
-The current public blueprint is adapter-level: it wires an existing E2B sandbox into a Bapx agent. The hosted bapX product owns account, business, project, and browser-profile isolation above that adapter.
+The current public blueprint is adapter-level: it wires an existing E2B sandbox into a Bapx agent. E2B can be used through the managed E2B service or through E2B's self-hosted infrastructure path. The hosted bapX product owns account, business, project, and browser-profile isolation above that adapter.
 
 ## Quickstart
 
-Add provider-managed Linux sandbox capability to an existing Bapx project with the [E2B](https://e2b.dev) blueprint. Run the following command in your terminal or coding agent of choice:
+Add Linux sandbox capability to an existing Bapx project with the [E2B](https://e2b.dev) blueprint. Run the following command in your terminal or coding agent of choice:
 
 ```bash
 bapX add sandbox e2b
@@ -74,7 +74,7 @@ That profile is shared by the authorized user and that user's project agents so 
 | Requirement                    | Purpose                                                                     |
 | ------------------------------ | --------------------------------------------------------------------------- |
 | `e2b` package                  | **Required** — Provides the initialized E2B sandbox adapted by Bapx.        |
-| Provider-managed Linux sandbox | **Required** — Supplies the command and filesystem environment.             |
+| Managed or self-hosted E2B sandbox | **Required** — Supplies the command and filesystem environment.             |
 | Application-owned lifecycle    | **Required** — Creates the sandbox and closes or retains it as appropriate. |
 
 ## Integration shape

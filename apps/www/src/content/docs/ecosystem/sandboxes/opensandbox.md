@@ -1,12 +1,12 @@
 ---
-title: OpenSandbox
-description: Planned OpenSandbox adapter for per-user and per-project sandbox isolation.
-lastReviewedAt: 2026-07-22
+title: bapXsandbox
+description: Planned bapXsandbox adapter based on OpenSandbox-style isolation for per-user and per-project workspaces.
+lastReviewedAt: 2026-07-26
 ---
 
-OpenSandbox is being evaluated as a remote sandbox adapter for user-specific and project-specific isolation.
+bapXsandbox is the bapX product name for the planned OpenSandbox-style remote sandbox adapter for user-specific and project-specific isolation.
 
-The official OpenSandbox project describes a unified sandbox API with Docker and Kubernetes runtime options for coding agents, GUI agents, code execution, and evaluation workflows. bapX would use it only through the existing Sandbox Adapter API and the PI/Bapx harness.
+The upstream OpenSandbox project describes a unified sandbox API with Docker and Kubernetes runtime options for coding agents, GUI agents, code execution, and evaluation workflows. bapX would expose that capability as bapXsandbox only through the existing Sandbox Adapter API and the PI/Bapx harness.
 
 ## Planned evaluation
 

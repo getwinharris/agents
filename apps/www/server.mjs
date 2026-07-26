@@ -177,15 +177,35 @@ function setSessionCookie(res, token, host = 'bapx.in') {
 }
 
 function clearSessionCookie(res, host = 'bapx.in') {
-	res.setHeader('Set-Cookie', `bapx_session=; ${sessionCookieAttributes(host, 0)}`);
+	const cookies = [`bapx_session=; ${sessionCookieAttributes(host, 0)}`];
+	if (host === 'bapx.in' || host.endsWith('.bapx.in')) {
+		cookies.push(`bapx_session=; ${sessionCookieAttributes('', 0)}`);
+	}
+	res.setHeader('Set-Cookie', cookies);
+}
+
+function getCookieValues(req, name) {
+	return String(req.headers.cookie || '')
+		.split(';')
+		.map((part) => part.trim())
+		.filter((part) => part.startsWith(`${name}=`))
+		.map((part) => part.slice(name.length + 1));
 }
 
 function getCookie(req, name) {
-	return String(req.headers.cookie || '').split(';').map((part) => part.trim()).find((part) => part.startsWith(`${name}=`))?.slice(name.length + 1);
+	return getCookieValues(req, name).at(-1);
+}
+
+function getSession(req) {
+	for (const token of getCookieValues(req, 'bapx_session').toReversed()) {
+		const account = platformStore.getSessionAccount(token);
+		if (account) return { token, account };
+	}
+	return { token: undefined, account: null };
 }
 
 function getSessionAccount(req) {
-	return platformStore.getSessionAccount(getCookie(req, 'bapx_session'));
+	return getSession(req).account;
 }
 
 function consumeGitHubCliBootstrap(token) {
@@ -361,14 +381,13 @@ async function handleAuthAPI(req, res, urlPath, host) {
 		return true;
 	}
 	if (req.method === 'POST' && urlPath === '/api/auth/logout') {
-		platformStore.deleteSession(getCookie(req, 'bapx_session'));
+		for (const token of getCookieValues(req, 'bapx_session')) platformStore.deleteSession(token);
 		clearSessionCookie(res, host);
 		redirect(res, 'https://bapx.in/login/');
 		return true;
 	}
 	if (req.method === 'GET' && urlPath === '/api/auth/session') {
-		const token = getCookie(req, 'bapx_session');
-		const account = platformStore.getSessionAccount(token);
+		const { token, account } = getSession(req);
 		if (account) setSessionCookie(res, token, host);
 		jsonResponse(res, account ? 200 : 401, { account });
 		return true;
