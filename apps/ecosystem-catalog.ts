@@ -286,7 +286,7 @@ export const sandboxes: EcosystemItem[] = [
 		homepageRank: 9,
 	},
 	{
-		name: 'E2B self-hosted sandbox',
+		name: 'bapXsandbox E2B',
 		href: '/docs/ecosystem/sandboxes/e2b/',
 		brand: 'e2b',
 		background: '#ffffff',
@@ -300,13 +300,6 @@ export const sandboxes: EcosystemItem[] = [
 		href: '/docs/ecosystem/sandboxes/modal/',
 		brand: 'modal',
 		background: '#ffffff',
-	},
-	{
-		name: 'bapXsandbox',
-		href: '/docs/ecosystem/sandboxes/opensandbox/',
-		background: '#111827',
-		iconClass: 'monochrome-white',
-		keywords: 'bapxsandbox opensandbox alibaba sandbox docker kubernetes isolation',
 	},
 	{
 		name: 'Vercel Sandbox',
@@ -456,7 +449,7 @@ const homepageOrder = [
 	'MySQL',
 	'Node.js',
 	'Redis',
-	'E2B self-hosted sandbox',
+	'bapXsandbox E2B',
 	'MongoDB',
 	'OpenTelemetry',
 	'Twilio',

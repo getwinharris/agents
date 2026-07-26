@@ -71,7 +71,7 @@ A remote sandbox is supplied through an integration appropriate to the provider 
 
 Hosted bapX uses [E2B](/docs/ecosystem/sandboxes/e2b/) as the default remote Linux sandbox path for customer project work. Other sandbox integrations remain available for self-hosted or provider-specific deployments.
 
-See the Ecosystem **Sandboxes** integrations, such as [E2B](/docs/ecosystem/sandboxes/e2b/) and [Daytona](/docs/ecosystem/sandboxes/daytona/), to connect a provider-managed remote sandbox. If you need to implement an integration, see the [Sandbox Adapter API](/docs/api/sandbox-api/).
+See the Ecosystem **Sandboxes** integrations, especially [bapXsandbox E2B](/docs/ecosystem/sandboxes/e2b/), to connect a provider-managed remote sandbox. If you need to implement an integration, see the [Sandbox Adapter API](/docs/api/sandbox-api/).
 
 Cloudflare deployments can use [Cloudflare Sandbox](/docs/ecosystem/sandboxes/cloudflare/) for a native container-backed Linux sandbox. Use it when an agent deployed on Cloudflare needs tools such as git, package installation, or native commands; its setup and lifecycle details belong in the integration guide.
 
@@ -100,4 +100,4 @@ Hosted browser sessions add one more boundary: the persistent browser profile is
 - [Tools](/docs/guide/tools/) — expose bounded application actions separately from workspace access.
 - [Skills](/docs/guide/skills/) — bundle procedures or provide workspace-discovered skills.
 - [Sandbox Adapter API](/docs/api/sandbox-api/) — implement a provider-backed sandbox integration.
-- [Daytona](/docs/ecosystem/sandboxes/daytona/) and [Cloudflare Sandbox](/docs/ecosystem/sandboxes/cloudflare/) — configure remote sandbox integrations.
+- [bapXsandbox E2B](/docs/ecosystem/sandboxes/e2b/) and [Cloudflare Sandbox](/docs/ecosystem/sandboxes/cloudflare/) — configure remote sandbox integrations.

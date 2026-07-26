@@ -37,7 +37,7 @@ export type {
 	ConversationLiveMode,
 } from './public/observe.ts';
 // The conversation `updates` wire union is not stable application API, but
-// first-party presenters (CLI, dev console) reduce it directly, so the type is
+// first-party presenters such as the CLI reduce it directly, so the type is
 // exported for them. Application code should consume materialized
 // `BapxConversationState` via `observe()` rather than handling chunks.
 export type { ConversationStreamChunk } from './public/conversation-stream.ts';

@@ -61,7 +61,7 @@ Build agents that can safely take action, maintain continuity, and connect to th
 - **[Cloudflare Workers](https://docs.bapx.in/ecosystem/deploy/cloudflare/)**
 - **[GitHub Actions](https://docs.bapx.in/ecosystem/deploy/github-actions/)**
 - **[GitLab CI/CD](https://docs.bapx.in/ecosystem/deploy/gitlab-ci/)**
-- **[Daytona](https://docs.bapx.in/ecosystem/sandboxes/daytona/)**
+- **[bapXsandbox E2B](https://docs.bapx.in/ecosystem/sandboxes/e2b/)**
 - **[Render](https://docs.bapx.in/ecosystem/deploy/render/)**
 
 ## Packages

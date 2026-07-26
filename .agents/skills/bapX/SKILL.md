@@ -88,7 +88,7 @@ ecosystem/databases/supabase -- Supabase
 ecosystem/databases/turso -- Turso
 ecosystem/databases/valkey -- Valkey
 ecosystem/deploy/aws -- Deploy Agents on AWS
-ecosystem/deploy/bapx-host -- bapX Host
+ecosystem/deploy/bapx-host -- bapXhost
 ecosystem/deploy/cloudflare -- Deploy to Cloudflare
 ecosystem/deploy/docker -- Deploy Agents with Docker
 ecosystem/deploy/fly -- Deploy Agents on Fly.io
@@ -102,12 +102,11 @@ ecosystem/sandboxes/boxd -- boxd
 ecosystem/sandboxes/cloudflare -- Cloudflare Sandbox
 ecosystem/sandboxes/cloudflare-shell -- Cloudflare Shell
 ecosystem/sandboxes/daytona -- Daytona
-ecosystem/sandboxes/e2b -- E2B
+ecosystem/sandboxes/e2b -- bapXsandbox E2B
 ecosystem/sandboxes/exedev -- exe.dev
 ecosystem/sandboxes/islo -- islo
 ecosystem/sandboxes/mirage -- Mirage
 ecosystem/sandboxes/modal -- Modal
-ecosystem/sandboxes/opensandbox -- OpenSandbox
 ecosystem/sandboxes/vercel -- Vercel Sandbox
 ecosystem/tooling/braintrust -- Braintrust
 ecosystem/tooling/cloud-coding-clis -- Cloud coding CLIs

@@ -142,7 +142,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  bapX build --target node --output ./build\n' +
 			'  bapX init --target node\n' +
 			'  bapX add\n' +
-			'  bapX add sandbox daytona | claude\n' +
+			'  bapX add sandbox e2b | claude\n' +
 			'  bapX add channel slack | codex\n' +
 			'  bapX add sandbox https://e2b.dev | claude\n' +
 			'  bapX add channel https://developers.notion.com/reference/webhooks | codex\n' +

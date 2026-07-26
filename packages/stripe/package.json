@@ -37,7 +37,7 @@
 		"stripe": "^22.0.2"
 	},
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "0.16.20",
+		"@cloudflare/vitest-pool-workers": "0.18.8",
 		"@types/node": "^22.10.10",
 		"stripe": "22.2.1",
 		"tsdown": "^0.22.0",

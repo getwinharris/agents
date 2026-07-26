@@ -69,7 +69,7 @@ Passing `env: { ...process.env }` exposes the full host environment to the model
 
 When agent work needs per-session isolation, a Linux toolchain, or a provider-managed environment, use a remote sandbox adapter instead of `local()`. Remote sandboxes run on external infrastructure and connect through the [Sandbox Adapter API](/docs/api/sandbox-api/).
 
-See the Ecosystem [Sandboxes](/docs/ecosystem/#sandboxes) catalog for available integrations, including [Daytona](/docs/ecosystem/sandboxes/daytona/), [E2B](/docs/ecosystem/sandboxes/e2b/), and [Modal](/docs/ecosystem/sandboxes/modal/).
+See the Ecosystem [Sandboxes](/docs/ecosystem/#sandboxes) catalog for available integrations. The hosted bapX product uses [bapXsandbox E2B](/docs/ecosystem/sandboxes/e2b/) for managed per-user and per-project isolation.
 
 ## Environment and secrets
 
