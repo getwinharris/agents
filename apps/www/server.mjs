@@ -166,8 +166,18 @@ function githubAppManifestConfiguredResponse(res, app) {
 	res.end(body);
 }
 
-function setSessionCookie(res, token) {
-	res.setHeader('Set-Cookie', `bapx_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=34560000`);
+function sessionCookieAttributes(host, maxAge = 34_560_000) {
+	const attributes = ['Path=/', 'HttpOnly', 'Secure', 'SameSite=Lax', `Max-Age=${maxAge}`];
+	if (host === 'bapx.in' || host.endsWith('.bapx.in')) attributes.splice(1, 0, 'Domain=.bapx.in');
+	return attributes.join('; ');
+}
+
+function setSessionCookie(res, token, host = 'bapx.in') {
+	res.setHeader('Set-Cookie', `bapx_session=${token}; ${sessionCookieAttributes(host)}`);
+}
+
+function clearSessionCookie(res, host = 'bapx.in') {
+	res.setHeader('Set-Cookie', `bapx_session=; ${sessionCookieAttributes(host, 0)}`);
 }
 
 function getCookie(req, name) {
@@ -287,7 +297,7 @@ async function handleAuthAPI(req, res, urlPath, host) {
 				jsonResponse(res, decision.status, { error: decision.error });
 				return true;
 			}
-			setSessionCookie(res, platformStore.createSession(account.id).token);
+			setSessionCookie(res, platformStore.createSession(account.id).token, host);
 			redirect(res, safeAdminReturnTo(body.returnTo));
 		} catch {
 			jsonResponse(res, 400, { error: 'invalid_handoff_request' });
@@ -298,7 +308,7 @@ async function handleAuthAPI(req, res, urlPath, host) {
 		try {
 			const url = new URL(req.url, 'https://bapx.in');
 			const { account } = await platformStore.loginWithGitHub(consumeGitHubCliBootstrap(url.searchParams.get('token')));
-			setSessionCookie(res, platformStore.createSession(account.id).token);
+			setSessionCookie(res, platformStore.createSession(account.id).token, host);
 			redirect(res, safeReturnTo(url.searchParams.get('returnTo')) || 'https://platform.bapx.in/');
 		} catch (error) {
 			redirect(res, `/login/?error=${encodeURIComponent(error.message)}`);
@@ -342,7 +352,7 @@ async function handleAuthAPI(req, res, urlPath, host) {
 			const url = new URL(req.url, 'https://bapx.in');
 			if (!url.searchParams.get('state') || url.searchParams.get('state') !== getCookie(req, 'bapx_oauth_state')) throw new Error('GitHub login state is invalid or expired');
 			const { account } = await platformStore.loginWithGitHub(await githubIdentity(url.searchParams.get('code')));
-			setSessionCookie(res, platformStore.createSession(account.id).token);
+			setSessionCookie(res, platformStore.createSession(account.id).token, host);
 			const returnTo = safeReturnTo(decodeURIComponent(getCookie(req, 'bapx_oauth_return_to') || ''));
 			redirect(res, returnTo || 'https://platform.bapx.in/');
 		} catch (error) {
@@ -352,14 +362,14 @@ async function handleAuthAPI(req, res, urlPath, host) {
 	}
 	if (req.method === 'POST' && urlPath === '/api/auth/logout') {
 		platformStore.deleteSession(getCookie(req, 'bapx_session'));
-		res.setHeader('Set-Cookie', 'bapx_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
+		clearSessionCookie(res, host);
 		redirect(res, 'https://bapx.in/login/');
 		return true;
 	}
 	if (req.method === 'GET' && urlPath === '/api/auth/session') {
 		const token = getCookie(req, 'bapx_session');
 		const account = platformStore.getSessionAccount(token);
-		if (account) setSessionCookie(res, token);
+		if (account) setSessionCookie(res, token, host);
 		jsonResponse(res, account ? 200 : 401, { account });
 		return true;
 	}

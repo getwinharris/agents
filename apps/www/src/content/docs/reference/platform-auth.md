@@ -9,6 +9,7 @@ bapX uses Platform for account identity and configuration. Agents/Admin use the 
 
 - Platform signup creates or resumes a user account and user-level OKF workspace.
 - GitHub identity is used for current bapX sessions and repository authorization.
+- A production `bapx_session` cookie is scoped to the `.bapx.in` subdomain family so login works across Platform, Agents, and Admin.
 - Repository access is a separate GitHub App permission flow; signing in is not the same as authorizing every repository.
 - Provider credentials such as OpenAI, OpenRouter, Anthropic, Google, and connector credentials are workspace settings, not shared global secrets.
 
@@ -33,7 +34,7 @@ Repository installation authorization still requires installing the App on the o
 Customer projects live under:
 
 ```text
-root-sandbox//<username>/<business-slug>/projects/<project-slug>/
+root-sandbox/<username>/<business-slug>/projects/<project-slug>/
 ```
 
 Platform owns account, billing, storage quota, API keys, connectors, MCP configuration, and observability. Agents/Admin own the operating workspace: central bapX agent chat, specialist agents, automations, projects, team work, and connector-driven actions.
