@@ -73,7 +73,7 @@ export function createExecutionLifecycle(options: ExecutionLifecycleOptions): Ex
 		cleaned = true;
 		if (cloudflareScratch) restoreFiles(cloudflareScratch);
 		if (!cloudflareInputDirExisted && application) {
-			const inputDir = path.join(application.cfg.root, '.bapX-vite');
+			const inputDir = path.join(application.cfg.root, '.agents', 'build', 'vite');
 			try {
 				if (fs.readdirSync(inputDir).length === 0) fs.rmdirSync(inputDir);
 			} catch {}
@@ -172,10 +172,10 @@ export function createExecutionLifecycle(options: ExecutionLifecycleOptions): Ex
 	async function startLocalRuntime(): Promise<void> {
 		if (!application) throw new Error('[bapX] Local application was not resolved.');
 		if (application.cfg.target === 'cloudflare') {
-			cloudflareInputDirExisted = fs.existsSync(path.join(application.cfg.root, '.bapX-vite'));
+			cloudflareInputDirExisted = fs.existsSync(path.join(application.cfg.root, '.agents', 'build', 'vite'));
 			cloudflareScratch = snapshotFiles([
-				path.join(application.cfg.root, '.bapX-vite', '_entry.ts'),
-				path.join(application.cfg.root, '.bapX-vite.wrangler.jsonc'),
+				path.join(application.cfg.root, '.agents', 'build', 'vite', '_entry.ts'),
+				path.join(application.cfg.root, '.agents.wrangler.jsonc'),
 			]);
 		}
 		runtime = await startLocalHttpRuntime({

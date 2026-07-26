@@ -63,7 +63,7 @@ export function browserProfileRoot(workspaceRoot, account, { businessSlug, proje
 		.update([account.id, account.username, business, project, actorScope].join(':'))
 		.digest('hex')
 		.slice(0, 32);
-	const resolved = path.resolve(scopeRoot, '.bapx', 'browser', 'profiles', profileId);
+	const resolved = path.resolve(scopeRoot, '.agents', 'browser', 'profiles', profileId);
 	if (!resolved.startsWith(`${path.resolve(scopeRoot)}${path.sep}`)) throw new Error('Invalid browser profile root');
 	return resolved;
 }

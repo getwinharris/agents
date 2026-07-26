@@ -2140,7 +2140,7 @@ export class Session implements BapxSession, AgentSubmissionSession {
 												? params.path
 												: undefined;
 										return typeof resourcePath === 'string' &&
-											resourcePath.startsWith('/.bapX/packaged-skills/')
+											resourcePath.startsWith('/.agents/packaged-skills/')
 											? packagedRead.execute(
 													id,
 													params as { path: string; offset?: number; limit?: number },

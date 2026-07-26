@@ -9,7 +9,7 @@ const MAX_GREP_MATCHES = 100;
 const MAX_GREP_LINE_LENGTH = 500;
 const MAX_GLOB_RESULTS = 1000;
 const BASE64_READ_LINE_LENGTH = 76;
-const PACKAGED_SKILLS_ROOT = '/.bapX/packaged-skills/';
+const PACKAGED_SKILLS_ROOT = '/.agents/packaged-skills/';
 export const READ_SKILL_RESOURCE_TOOL_NAME = 'read_skill_resource';
 
 export interface TaskToolParams {
@@ -562,7 +562,7 @@ export function formatPackagedSkillFilePath(skillId: string, filePath: string): 
 }
 
 function packagedSkillReadPath(skillId: string, filePath: string): string {
-	return `/.bapX/packaged-skills/${encodeURIComponent(skillId)}/${filePath}`;
+	return `/.agents/packaged-skills/${encodeURIComponent(skillId)}/${filePath}`;
 }
 
 function countOccurrences(str: string, substr: string): number {

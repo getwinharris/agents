@@ -6,7 +6,7 @@ import {
 
 const additions = {
 	defaultName: 'fixture',
-	main: '.bapX-vite/_entry.ts',
+	main: '.agents/build/vite/_entry.ts',
 	doBindings: [{ name: 'FLUE_ASSISTANT_AGENT', class_name: 'BapxAssistantAgent' }],
 };
 

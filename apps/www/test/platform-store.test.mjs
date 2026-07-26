@@ -74,7 +74,7 @@ test('browser profile roots are isolated by account business project and actor s
 	const firstSharedProfile = browserProfileRoot(root, first, { projectSlug: 'shop-app', actor: 'shared' });
 	const secondProfile = browserProfileRoot(root, second, { projectSlug: 'shop-app' });
 
-	assert.match(firstProfile, /users\/first-user\/workspace\/projects\/shop-app\/\.bapx\/browser\/profiles\/[a-f0-9]{32}$/);
+	assert.match(firstProfile, /users\/first-user\/workspace\/projects\/shop-app\/\.agents\/browser\/profiles\/[a-f0-9]{32}$/);
 	assert.equal(firstProfile, firstSharedProfile);
 	assert.notEqual(firstProfile, secondProfile);
 	assert.equal(firstProfile.startsWith(path.join(root, 'users/first-user/workspace/projects/shop-app')), true);

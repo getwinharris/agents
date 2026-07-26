@@ -97,7 +97,7 @@ The auth router issues the GitHub-backed `bapx_session` cookie for the `.bapx.in
 
 ## Production routing
 
-The live `traefik-vmm1` deployment sends `agents.bapx.in` to `flue-www`, not directly to the agent runtime. `flue-www` and `agents-runtime` share `BAPX_RUNTIME_TOKEN`; because `agents-runtime` uses host networking while `flue-www` is bridge-networked for Traefik labels, the gateway must use the Docker bridge host address `http://172.17.0.1:3003` rather than `127.0.0.1`. The runtime container mounts its generated `dist/` and the repository `node_modules/` read-only. Validate both the unauthenticated login redirect and an authenticated streamed submission after recreating either service.
+The live `traefik-vmm1` deployment sends `agents.bapx.in` to `bapx-www`, not directly to the agent runtime. `bapx-www` and `agents-runtime` share `BAPX_RUNTIME_TOKEN`; because `agents-runtime` uses host networking while `bapx-www` is bridge-networked for Traefik labels, the gateway must use the Docker bridge host address `http://172.17.0.1:3003` rather than `127.0.0.1`. The runtime container mounts its generated `dist/` and the repository `node_modules/` read-only. Validate both the unauthenticated login redirect and an authenticated streamed submission after recreating either service.
 
 ## Navigation
 

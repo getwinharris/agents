@@ -35,8 +35,8 @@ export interface BuildContext {
 	 *
 	 * Note that this is the literal output directory — `server.mjs` and
 	 * other artifacts are written directly inside it. Cloudflare's
-	 * generated Vite inputs (`<root>/.bapX-vite/` and the composed
-	 * `<root>/.bapX-vite.wrangler.jsonc`) always anchor on `root`,
+	 * generated Vite inputs (`<root>/.agents/build/vite/` and the composed
+	 * root-level `<root>/.agents.wrangler.jsonc`) always anchor on `root`,
 	 * regardless of this value.
 	 */
 	output: string;
@@ -118,12 +118,12 @@ export interface BuildPlugin {
 export interface ViteCloudflareInputs {
 	/**
 	 * Composed wrangler config contents, written to
-	 * `<root>/.bapX-vite.wrangler.jsonc` at the project root so official
+	 * `<root>/.agents.wrangler.jsonc` at the project root so official
 	 * local variable discovery continues to find `.dev.vars` and `.env`.
 	 */
 	wranglerConfig: string;
 	/**
-	 * Extra files written next to the generated entry in `<root>/.bapX-vite/`.
+	 * Extra files written next to the generated entry in `<root>/.agents/build/vite/`.
 	 * Keys are filenames relative to that directory.
 	 */
 	entryDirFiles?: Record<string, string>;

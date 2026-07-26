@@ -14,6 +14,7 @@
 
 ### Fixes & Other Changes
 
+- Generated agent/browser working state now uses `.agents` paths instead of legacy `.bapX` or `.bapx` paths: browser profiles live under `.agents/browser/profiles`, browser CLI evidence under `.agents/browser/evidence`, packaged skill virtual resources under `/.agents/packaged-skills`, and Cloudflare Vite scratch under `.agents/build/vite`.
 - Production `agents.bapx.in` now points the authenticated web gateway at the reachable private agents runtime origin in the VPS Docker topology, restoring central bapX agent message submission after the live 503 runtime-proxy failure.
 - `agents.bapx.in` now serves the shared Admin/Agents bundle assets from the existing Admin build when a signed-in customer opens the Agents surface, fixing the authenticated white page caused by looking for `/assets/*` under a nonexistent `dist/agents/` bundle.
 - Added `bapX browse` as a real `agent-browser` CLI wrapper with bapX-scoped session/namespace isolation and a `verify` smoke-check mode for live product browser testing without introducing a browser MCP dependency.

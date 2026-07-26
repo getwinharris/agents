@@ -97,7 +97,7 @@ describe('defineSkill()', () => {
 			instructions: 'Inspect the patch carefully.',
 			files: { 'references/checklist.md': 'Check errors.' },
 		});
-		const resourcePath = `/.bapX/packaged-skills/${encodeURIComponent(review.id)}/references/checklist.md`;
+		const resourcePath = `/.agents/packaged-skills/${encodeURIComponent(review.id)}/references/checklist.md`;
 		provider.setResponses([
 			fauxAssistantMessage(fauxToolCall('activate_skill', { name: 'code-review' }), {
 				stopReason: 'toolUse',
@@ -170,7 +170,7 @@ describe('defineSkill()', () => {
 		provider.setResponses([
 			fauxAssistantMessage(
 				fauxToolCall('read', {
-					path: `/.bapX/packaged-skills/${encodeURIComponent(review.id)}/missing.md`,
+					path: `/.agents/packaged-skills/${encodeURIComponent(review.id)}/missing.md`,
 				}),
 				{ stopReason: 'toolUse' },
 			),

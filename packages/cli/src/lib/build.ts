@@ -345,11 +345,11 @@ function getUserExternals(root: string): string[] {
 }
 
 export function viteInputDir(root: string): string {
-	return path.join(root, '.bapX-vite');
+	return path.join(root, '.agents', 'build', 'vite');
 }
 
 export function cloudflareViteConfigPath(root: string): string {
-	return path.join(root, '.bapX-vite.wrangler.jsonc');
+	return path.join(root, '.agents.wrangler.jsonc');
 }
 
 export function createSharedViteConfig(root: string) {
