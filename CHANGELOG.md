@@ -8,12 +8,14 @@
 - GitHub App setup now uses the correct Manifest POST flow, owns `/api/auth/oauth/github/manifest/callback`, exchanges GitHub's one-time manifest code server-side, and stores the returned App OAuth credentials in the platform secret store so signup/login can become configured from the org-owner browser approval path.
 - bapX signup and login now use GitHub identity only. Password and Google identity controls are removed, verified GitHub identities create the user workspace and first organisation, and device sessions persist until logout.
 - GitHub-backed sessions now use the production `.bapx.in` cookie scope so login carries across Platform, Agents, and Admin subdomains instead of falling back to the login page after OAuth.
+- GitHub-backed session reads now choose a valid shared bapX session when stale host-only cookies are also present, and logout clears both shared and host-only session scopes so older bad cookies cannot keep redirecting users back to login.
 - Agents sign-in now preserves an allowlisted `agents.bapx.in` return destination through GitHub OAuth while rejecting external return URLs.
 - Admin now exchanges the existing central GitHub-backed session for a single-use, 60-second Admin handoff, revalidates the configured GitHub provider-ID entitlement, and refreshes the shared session before serving Admin. Anonymous, non-Admin, wrong-origin, and replayed access fail closed before the Admin shell or workspace APIs are exposed.
 
 ### Fixes & Other Changes
 
 - Added `bapX okf index` and `bapX okf query` as the first local OKF Markdown retrieval surface, including v0.1/v0.2 metadata extraction, root-bound output isolation, public CLI docs, and internal implementation notes for the remaining semantic-index work (#45).
+- Ecosystem catalog and docs now use the requested labels `bapXhost`, `bapXsandbox`, and `E2B self-hosted sandbox`, add Google Cloud to hosting and infrastructure, publish the real `@bapX/dev-console` reference, and keep catalog/navigation entries backed by rendered documentation pages.
 - Restored `agents.bapx.in` with the shared Admin/Agents React operating surface, an authenticated same-origin gateway to the hosted main-agent runtime, customer-rooted workspace APIs, useful runtime-unavailable responses, and official AI Elements rendering for streamed text, reasoning, tools, loading, cancellation, and failures.
 - Customer Agents workspace APIs now resolve through the account's primary business workspace and hosted browser profile roots are derived from account, business, project, and shared browser scope, so project browser state can be shared by the authorized user and their agents without crossing into another user's profile.
 - Agents now returns a cache-disabled HTTP 200 to root `HEAD` health checks while retaining the GitHub sign-in redirect for unauthenticated browser `GET` requests.

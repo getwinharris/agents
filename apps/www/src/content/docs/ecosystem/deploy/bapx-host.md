@@ -1,10 +1,10 @@
 ---
-title: bapX Host
+title: bapXhost
 description: Hosted Node.js project runtime and app.bapx.in subdomains.
-lastReviewedAt: 2026-07-22
+lastReviewedAt: 2026-07-26
 ---
 
-bapX Host is the planned managed Node.js hosting layer for customer projects.
+bapXhost is the planned managed Node.js hosting layer for customer projects.
 
 Each project may claim a project subdomain in the form:
 

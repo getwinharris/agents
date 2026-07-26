@@ -152,7 +152,7 @@ guide/tools -- Tools
   Give agents application capabilities through custom tools and MCP servers.
 guide/workflows -- Workflows
   Create, invoke, and expose finite agent-backed operations.
-introduction/why-bapX -- Why bapX?
+introduction/why-bapx -- Why bapX?
   Ten years of marketing and branding operations, packaged as hosted agents for your business.
 mcp/overview -- MCP Gateway
   Connect agents through the Model Context Protocol gateway at api.bapx.in/mcp.

@@ -175,7 +175,7 @@ export const deploy: EcosystemItem[] = [
 		homepageRank: 2,
 	},
 	{
-		name: 'bapX Host',
+		name: 'bapXhost',
 		href: '/docs/ecosystem/deploy/bapx-host/',
 		background: '#6d4aff',
 		iconClass: 'monochrome-white',
@@ -220,6 +220,13 @@ export const deploy: EcosystemItem[] = [
 		background: '#ffffff',
 		keywords: 'ci cd',
 		homepageRank: 15,
+	},
+	{
+		name: 'Google Cloud',
+		href: '/docs/ecosystem/deploy/google-cloud/',
+		icon: 'https://svgl.app/library/google-cloud.svg',
+		background: '#ffffff',
+		keywords: 'gcloud google cloud sdk cloud run compute deb install',
 	},
 	{
 		name: 'Node.js',
@@ -279,7 +286,7 @@ export const sandboxes: EcosystemItem[] = [
 		homepageRank: 9,
 	},
 	{
-		name: 'E2B',
+		name: 'E2B self-hosted sandbox',
 		href: '/docs/ecosystem/sandboxes/e2b/',
 		brand: 'e2b',
 		background: '#ffffff',
@@ -295,11 +302,11 @@ export const sandboxes: EcosystemItem[] = [
 		background: '#ffffff',
 	},
 	{
-		name: 'OpenSandbox',
+		name: 'bapXsandbox',
 		href: '/docs/ecosystem/sandboxes/opensandbox/',
 		background: '#111827',
 		iconClass: 'monochrome-white',
-		keywords: 'opensandbox alibaba sandbox docker kubernetes isolation',
+		keywords: 'bapxsandbox opensandbox alibaba sandbox docker kubernetes isolation',
 	},
 	{
 		name: 'Vercel Sandbox',
@@ -439,6 +446,7 @@ const homepageOrder = [
 	'Supabase',
 	'Notion',
 	'Daytona',
+	'Google Cloud',
 	'Render',
 	'Vercel Sandbox',
 	'Telegram',
@@ -448,7 +456,7 @@ const homepageOrder = [
 	'MySQL',
 	'Node.js',
 	'Redis',
-	'E2B',
+	'E2B self-hosted sandbox',
 	'MongoDB',
 	'OpenTelemetry',
 	'Twilio',
