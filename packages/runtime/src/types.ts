@@ -345,6 +345,8 @@ export interface AgentConfig {
 	model: Model<any>;
 	/** Resolve a model specifier to a Model instance. Throws on invalid specifiers. */
 	resolveModel: (model: string) => Model<any> | undefined;
+	/** Request/harness-scoped provider bearer values. Never emitted in events or telemetry. */
+	providerAuth?: Readonly<Record<string, string>>;
 	/**
 	 * Agent-wide default reasoning effort. Per-call values override this. The
 	 * harness substitutes `"medium"` when unset; see `AgentRuntimeConfig.thinkingLevel`.
@@ -381,6 +383,8 @@ export interface AgentProfile {
 	subagents?: AgentProfile[];
 	/** Default reasoning effort. Individual operations may override this value. */
 	thinkingLevel?: ThinkingLevel;
+	/** Request/harness-scoped provider bearer values resolved by the application credential boundary. */
+	providerAuth?: Readonly<Record<string, string>>;
 	/**
 	 * Automatic conversation-compaction configuration. `false` disables
 	 * threshold compaction; overflow recovery and explicit `session.compact()`
@@ -417,6 +421,8 @@ export interface AgentRuntimeConfig {
 	subagents?: AgentProfile[];
 	/** Default reasoning effort. Individual operations may override this value. */
 	thinkingLevel?: ThinkingLevel;
+	/** Request/harness-scoped provider bearer values resolved by the application credential boundary. */
+	providerAuth?: Readonly<Record<string, string>>;
 	/**
 	 * Automatic conversation-compaction configuration. `false` disables
 	 * threshold compaction; overflow recovery and explicit `session.compact()`

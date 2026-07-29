@@ -1,5 +1,5 @@
 **/.astro/
-**/.bapX-vite/
+**/.agents/build/vite/
 **/.wrangler/
 **/dist/
 **/node_modules/

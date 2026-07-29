@@ -7,8 +7,8 @@
 	},
 	"workspaces": {
 		".": {
-			"entry": [".bapX/{app,cloudflare,agents/*,workflows/*}.{ts,mts,js,mjs}"],
-			"project": [".bapX/**/*.{ts,mts,js,mjs}"],
+			"entry": [".agents/{app,cloudflare,agents/*,workflows/*}.{ts,mts,js,mjs}"],
+			"project": [".agents/**/*.{ts,mts,js,mjs}"],
 			"ignoreDependencies": ["bgproc", "just-bash"]
 		},
 		"examples/*": {

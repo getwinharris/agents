@@ -1728,8 +1728,9 @@ export class Session implements BapxSession, AgentSubmissionSession {
 	}
 
 	private getProviderApiKey(providerId: string): string | undefined {
+		// Harness-scoped OAuth wins over process-global provider registration.
 		// Undefined falls through to pi-ai's env-var lookup.
-		return getRegisteredApiKey(providerId);
+		return this.config.providerAuth?.[providerId] ?? getRegisteredApiKey(providerId);
 	}
 
 	/**

@@ -14,6 +14,9 @@
 
 ### Fixes & Other Changes
 
+- The repository-owned GitHub PR redirect workflow and its privileged write helper now live under the selected `.agents/` source root, so `bapX run pr-redirect` can discover the workflow while preserving the existing base-ref-only GitHub Actions security boundary.
+- Agents now has a tenant-scoped durable task and approval ledger with named least-privilege specialists, evidence integrity, recovery leases, and a shared Admin oversight boundary; Platform now renders the existing connector catalog and starts encrypted workspace-scoped OpenAI device OAuth for `openai-codex/gpt-5.6-sol` without requesting an API key.
+- Authenticated customer agent calls now carry a gateway-owned canonical business-workspace scope that the private runtime validates against the account claim, with a read-only workflow endpoint for verifying the accepted scope without reading or mutating workspace content.
 - Generated agent/browser working state now uses `.agents` paths instead of legacy `.bapX` or `.bapx` paths: browser profiles live under `.agents/browser/profiles`, browser CLI evidence under `.agents/browser/evidence`, packaged skill virtual resources under `/.agents/packaged-skills`, and Cloudflare Vite scratch under `.agents/build/vite`.
 - Production `agents.bapx.in` now points the authenticated web gateway at the reachable private agents runtime origin in the VPS Docker topology, restoring central bapX agent message submission after the live 503 runtime-proxy failure.
 - `agents.bapx.in` now serves the shared Admin/Agents bundle assets from the existing Admin build when a signed-in customer opens the Agents surface, fixing the authenticated white page caused by looking for `/assets/*` under a nonexistent `dist/agents/` bundle.

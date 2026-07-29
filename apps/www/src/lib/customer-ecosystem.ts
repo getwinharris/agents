@@ -4,10 +4,11 @@ import {
 	deploy,
 	sandboxes,
 	tooling,
+	modelProviders,
 	type EcosystemItem,
 } from '../../../ecosystem-catalog';
 
-export type CustomerEcosystemCategory = 'channels' | 'databases' | 'sandboxes' | 'deploy' | 'tooling';
+export type CustomerEcosystemCategory = 'channels' | 'databases' | 'sandboxes' | 'deploy' | 'tooling' | 'providers';
 
 export interface CustomerEcosystemEntry {
 	category: CustomerEcosystemCategory;
@@ -23,6 +24,12 @@ const groups: Array<{
 	items: EcosystemItem[];
 	purpose: (name: string) => string;
 }> = [
+	{
+		category: 'providers',
+		title: 'Model providers',
+		items: modelProviders,
+		purpose: (name) => `Connect a business-owned ${name} account or credential to the provider-neutral bapX agent harness.`,
+	},
 	{
 		category: 'channels',
 		title: 'Channels and connectors',

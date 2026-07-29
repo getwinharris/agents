@@ -46,6 +46,16 @@ describe('defineAgent()', () => {
 		expect(initialize).toHaveBeenCalledWith({ id: 'workflow-run', env });
 	});
 
+	it('accepts harness-scoped provider auth without changing the provider-neutral model specifier', async () => {
+		const harness = await createContext().initializeRootHarness(
+			defineAgent(() => ({
+				model: 'openai-codex/gpt-5.6-sol',
+				providerAuth: { 'openai-codex': 'workspace-oauth-bearer' },
+			})),
+		);
+		expect(harness).toBeDefined();
+	});
+
 	it('rejects unknown runtime fields when an initializer returns unsupported configuration', async () => {
 		const agent = defineAgent(() => ({ model: 'anthropic/claude-haiku-4-5', unsupported: true }) as never);
 

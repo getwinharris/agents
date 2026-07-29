@@ -8,6 +8,7 @@ import {
 import { AppSidebar } from '@/components/app-sidebar'
 import { ChatView } from '@/components/chat/chat-view'
 import { NewChat } from '@/components/new-chat'
+import { OrchestrationPage } from '@/components/orchestration-page'
 import { ProjectsPage } from '@/components/projects-page'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { SidebarTrigger } from '@/components/ui/sidebar'
@@ -105,7 +106,7 @@ const operationalRoutes = (Object.keys(surfaces) as Array<keyof typeof surfaces>
   createRoute({
     getParentRoute: () => rootRoute,
     path: `/${surface}`,
-    component: () => <OperationalSurface surface={surface} />,
+    component: () => surface === 'threads' ? <OrchestrationPage /> : <OperationalSurface surface={surface} />,
   }),
 )
 

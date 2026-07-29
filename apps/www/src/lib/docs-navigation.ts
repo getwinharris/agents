@@ -30,6 +30,13 @@ const allDocsSections: DocsSection[] = [
 		landingSlug: 'getting-started/quickstart',
 		groups: [
 			{
+				title: 'Model providers',
+				items: [
+					{ title: 'OpenAI account OAuth', slug: 'guide/delegated-tasks' },
+					{ title: 'Provider-neutral models', slug: 'guide/models' },
+				],
+			},
+			{
 				title: 'Introduction',
 				items: [
 					{ title: 'Getting Started', slug: 'getting-started/quickstart' },

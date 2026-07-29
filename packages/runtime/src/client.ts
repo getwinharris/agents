@@ -285,6 +285,7 @@ export async function initializeRootHarness(
 		),
 		model: resolvedModel,
 		thinkingLevel: definition.thinkingLevel ?? config.agentConfig.thinkingLevel,
+		providerAuth: definition.providerAuth,
 		compaction: definition.compaction ?? config.agentConfig.compaction,
 		durability: definition.durability,
 	};

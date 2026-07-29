@@ -420,7 +420,14 @@ export const tooling: EcosystemItem[] = [
 	},
 ].sort(sortEcosystemItems);
 
-const catalog = [...channels, ...deploy, ...databases, ...tooling, ...sandboxes];
+export const modelProviders: EcosystemItem[] = [
+	{ name: 'Anthropic', href: '/docs/ecosystem/providers/anthropic/', background: '#d97757', keywords: 'claude model provider oauth' },
+	{ name: 'Google', href: '/docs/ecosystem/providers/google/', icon: 'https://svgl.app/library/google.svg', background: '#ffffff', keywords: 'gemini vertex model provider' },
+	{ name: 'OpenAI', href: '/docs/ecosystem/providers/openai/', icon: 'https://svgl.app/library/openai.svg', background: '#181717', iconClass: 'monochrome-white', keywords: 'chatgpt codex device oauth gpt-5.6-sol model provider' },
+	{ name: 'OpenRouter', href: '/docs/ecosystem/providers/openrouter/', background: '#ffffff', keywords: 'model gateway provider' },
+].sort(sortEcosystemItems);
+
+const catalog = [...channels, ...deploy, ...databases, ...tooling, ...sandboxes, ...modelProviders];
 const homepageOrder = [
 	'Cloudflare',
 	'Slack',

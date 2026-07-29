@@ -99,7 +99,11 @@ The auth router issues the GitHub-backed `bapx_session` cookie for the `.bapx.in
 
 The live `traefik-vmm1` deployment sends `agents.bapx.in` to `bapx-www`, not directly to the agent runtime. `bapx-www` and `agents-runtime` share `BAPX_RUNTIME_TOKEN`; because `agents-runtime` uses host networking while `bapx-www` is bridge-networked for Traefik labels, the gateway must use the Docker bridge host address `http://172.17.0.1:3003` rather than `127.0.0.1`. The runtime container mounts its generated `dist/` and the repository `node_modules/` read-only. Validate both the unauthenticated login redirect and an authenticated streamed submission after recreating either service.
 
+Authenticated customer agent requests also carry a gateway-owned canonical scope claim in the exact form `users/<username>/<business-slug>`. The private runtime accepts a request only when the shared token is valid, the account and scope are canonical slugs, and the username embedded in the scope matches the account claim. Browser-supplied identity or scope headers are overwritten. `GET agents.bapx.in/api/orchestration/workspace-verification` invokes the runtime's read-only `workspace-verifier` workflow with gateway-constructed input and returns no files, credentials, or mutable operation. This verifier is not exposed as Admin evidence: Admin owns `/root/bapx.in`, while the implemented verifier proves only a customer business scope.
+
 ## Navigation
+
+Platform owns connector configuration. Its connector inventory is rendered from `apps/ecosystem-catalog.ts`, including model providers, and its OpenAI action proxies an authenticated customer business scope to the private runtime's device-OAuth route. Agents consumes only that business scope. Admin shares the operating UI and orchestration concepts for `/root/bapx.in`, plus bapX repository and user management, but its wider authority does not implicitly expose customer task evidence or connector credentials.
 
 The left navigation follows the canonical demo/sidebar interaction and includes:
 
