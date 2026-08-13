@@ -9,8 +9,9 @@ server (`hostinger/api-mcp-server`) so agents can manage hosting infrastructure 
 websites, VPS instances, domains and DNS, email marketing, subscriptions, and
 ecommerce — as scoped, auditable tools.
 
-Hostinger's server exposes **over 100 tools**. Do not attempt to re-wrap them as
-individual Bapx tools. Connect the server and expose a filtered subset.
+Hostinger publishes `hostinger-api-mcp` as **12 scope-separated servers**, not one
+monolith. The combined `all` server exposes **350 tools**. Do not connect `all`
+and filter afterwards — mount only the scoped server the project actually needs.
 
 ## Inspect the project
 
@@ -21,9 +22,8 @@ Inspect `bapX.config.ts`, `app.ts`, existing modules under `agents/` and
 
 Determine the configured target before wiring anything:
 
-- **Node:** supported. The Hostinger MCP server **requires Node.js 24 or newer**.
-  Verify the deployment runtime before proceeding — a Node 22 target cannot run
-  this server in-process and must reach it over `streamable-http` instead.
+- **Node:** supported. `hostinger-api-mcp@1.35.6` declares `engines.node >=20.0.0`,
+  so any currently supported Node target can run it.
 - **Cloudflare:** the server cannot be spawned in a Worker. Connect to a
   separately hosted instance over `streamable-http`.
 
@@ -65,16 +65,41 @@ Use the existing `connectMcpServer` export from `@bapX/runtime`
 
 ## Scope the toolset
 
-Exposing all 100+ tools to a general agent is not acceptable — the set includes
-destructive and billing-bearing operations (VPS rebuild and delete, domain
-purchase, subscription changes).
+Exposing all 350 tools to a general agent is not acceptable. Verified destructive
+and billing-bearing operations in the `all` server include
+`VPS_purchaseNewVirtualMachineV1`, `VPS_recreateVirtualMachineV1`,
+`VPS_deleteSnapshotV1`, `billing_deletePaymentMethodV1` and
+`domains_cancelOutgoingDomainMoveV1`.
 
-Select an explicit allowlist for the agent's actual job. A read-only diagnostic
-agent should receive only list and get operations:
+**Pick the narrowest published server.** This is a structural boundary — the
+tools are not present at all — and is far stronger than filtering at runtime:
+
+| Server binary | Tools |
+| --- | --- |
+| `hostinger-horizons-mcp` | 2 |
+| `hostinger-dns-mcp` | 10 |
+| `hostinger-billing-mcp` | 10 |
+| `hostinger-ecommerce-mcp` | 18 |
+| `hostinger-agency-hosting-mcp` | 27 |
+| `hostinger-wordpress-mcp` | 36 |
+| `hostinger-domains-mcp` | 40 |
+| `hostinger-mail-mcp` | 41 |
+| `hostinger-reach-mcp` | 42 |
+| `hostinger-hosting-mcp` | 57 |
+| `hostinger-vps-mcp` | 67 |
+| `hostinger-api-mcp` (all) | **350** |
+
+A DNS-management agent mounts `hostinger-dns-mcp` and is then incapable of
+purchasing a VPS, regardless of prompt or model error.
+
+If a further read-only restriction is needed within a scope, filter on the
+verified naming convention — tools are named `<GROUP>_<verb><Resource>V<n>`, for
+example `DNS_getDNSSnapshotV1` and `VPS_deleteFirewallV1`. Match the verb after
+the group prefix, not the start of the string:
 
 ```ts
 const readOnly = hostinger.tools.filter((tool) =>
-  /^(list|get)_/.test(tool.name),
+  /^[A-Za-z-]+_(get|list)/.test(tool.name),
 );
 ```
 
@@ -85,7 +110,7 @@ invent a new approval mechanism when the project already has one.
 
 ## Verify
 
-1. Confirm the deployment target runs Node.js 24+, or that the MCP server is
+1. Confirm the deployment target runs Node.js 20+, or that the MCP server is
    reachable over `streamable-http` from the configured target.
 2. Confirm `HOSTINGER_API_TOKEN` resolves at runtime and is absent from logs,
    committed files, and error payloads.
