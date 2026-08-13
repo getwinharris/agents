@@ -10,6 +10,7 @@ import { GitHubProjectImportError, importPublicGitHubProject, listGitHubProjects
 import { resolveGitHubRepositoryReference } from './src/server/github-repository.mjs';
 import { resolveAuthorizedGitHubRepository } from './src/server/github-repository-metadata.mjs';
 import { createGitHubInstallationAuthorizationProvider } from './src/server/github-installation-authorization.mjs';
+import { bearerToken, createApiKeyStore, proxyToApiPlane } from './src/server/api-gateway.mjs';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(dirname, 'dist');
@@ -21,6 +22,9 @@ const githubCliBootstrapFile = process.env.BAPX_GITHUB_CLI_BOOTSTRAP_FILE || pat
 const platformStore = createPlatformStore({ workspaceRoot });
 const adminAuthorization = parseAdminGithubUserIds(process.env.BAPX_ADMIN_GITHUB_USER_IDS);
 const agentsRuntimeOrigin = new URL(process.env.AGENTS_RUNTIME_ORIGIN || 'http://127.0.0.1:3003');
+const apiKeyStore = createApiKeyStore({ workspaceRoot });
+const apiPlaneOrigin = process.env.BAPX_API_PLANE_ORIGIN || 'http://127.0.0.1:20130';
+const apiPlaneToken = process.env.BAPX_API_PLANE_TOKEN || '';
 let githubInstallationTokenProvider;
 
 const HOST_PREFIX = {
@@ -582,10 +586,65 @@ async function handleAdminAPI(req, res, urlPath) {
 	return false;
 }
 
+function readRawBody(req) {
+	return new Promise((resolve, reject) => {
+		const chunks = [];
+		req.on('data', (chunk) => chunks.push(chunk));
+		req.on('end', () => resolve(Buffer.concat(chunks)));
+		req.on('error', reject);
+	});
+}
+
+// api.bapx.in — the customer-facing gateway.
+//
+// Only /v1/* is exposed. The plane's dashboard, admin and auth surfaces are
+// single-tenant and must never be reachable from here.
+async function handleApiGateway(req, res, urlPath) {
+	if (!urlPath.startsWith('/v1/')) {
+		jsonResponse(res, 404, { error: { message: 'Unknown endpoint', type: 'not_found' } });
+		return;
+	}
+	const identity = apiKeyStore.verify(bearerToken(req));
+	if (!identity) {
+		res.writeHead(401, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'WWW-Authenticate': 'Bearer' });
+		res.end(JSON.stringify({ error: { message: 'Invalid bapX API key', type: 'invalid_request_error' } }));
+		return;
+	}
+	const body = req.method === 'GET' || req.method === 'HEAD' ? undefined : await readRawBody(req);
+	await proxyToApiPlane(req, res, { origin: apiPlaneOrigin, planeToken: apiPlaneToken, urlPath, body });
+}
+
+// Session-authenticated key management for the Platform UI.
+async function handleApiKeyAdmin(req, res, urlPath) {
+	const account = getSessionAccount(req);
+	if (!account) { jsonResponse(res, 401, { error: 'authentication_required' }); return true; }
+	if (req.method === 'GET' && urlPath === '/api/platform/api-keys') {
+		jsonResponse(res, 200, { keys: apiKeyStore.list(account.id) });
+		return true;
+	}
+	if (req.method === 'POST' && urlPath === '/api/platform/api-keys') {
+		const payload = await parseBody(req).catch(() => ({}));
+		const { secret, key } = apiKeyStore.issue(account.id, payload.name);
+		jsonResponse(res, 201, { key, secret });
+		return true;
+	}
+	if (req.method === 'DELETE' && urlPath.startsWith('/api/platform/api-keys/')) {
+		const id = decodeURIComponent(urlPath.slice('/api/platform/api-keys/'.length));
+		jsonResponse(res, apiKeyStore.revoke(account.id, id) ? 200 : 404, { revoked: id });
+		return true;
+	}
+	return false;
+}
+
 http.createServer(async (req, res) => {
 	const host = req.headers.host?.toLowerCase().replace(/:\d+$/, '') ?? 'bapx.in';
 	const prefix = HOST_PREFIX[host] ?? '';
 	const urlPath = req.url?.split('?')[0] ?? '';
+	if (host === 'api.bapx.in') { await handleApiGateway(req, res, urlPath); return; }
+	if (urlPath.startsWith('/api/platform/api-keys')) {
+		const handled = await handleApiKeyAdmin(req, res, urlPath);
+		if (handled) return;
+	}
 	if (host === 'docs.bapx.in' && urlPath === '/') { res.writeHead(302, { Location: 'https://docs.bapx.in/getting-started/quickstart/' }); res.end(); return; }
 	if (urlPath.startsWith('/api/auth/')) {
 		const handled = await handleAuthAPI(req, res, urlPath, host);

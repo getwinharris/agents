@@ -155,6 +155,7 @@ const allDocsSections: DocsSection[] = [
 				title: 'Platform',
 				items: [
 					{ title: 'Overview', slug: 'platform/overview' },
+					{ title: 'API', slug: 'platform/api' },
 					{ title: 'Billing', slug: 'platform/billing' },
 					{ title: 'Organisations', slug: 'platform/organisations' },
 				],
