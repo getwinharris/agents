@@ -127,3 +127,9 @@ Hostinger publishes this server officially at
 Pin the version the project has validated rather than tracking latest — the tool
 surface changes as Hostinger's API evolves, and an unpinned upgrade can silently
 widen an agent's authority.
+
+## Upgrade Guide
+
+### Version 1 — 2026-08-13
+
+Initial version.

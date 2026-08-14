@@ -45,6 +45,14 @@ An imported repository never bypasses the user and organization hierarchy.
 - `admin.bapx.in` is the bapX-team operating surface. It uses the same people, agents, automations, projects, tools, artifacts, audit, and chat model customers receive, with `/root/bapx.in` and whole-product authority.
 - `agents.bapx.in` operates a customer organization and its projects through that same shared orchestration with narrower authorization.
 - `bapx.in/<user>/<project>` is the planned public or authenticated project-profile alias requested for a GitHub-familiar URL. It does not exist yet. Before implementation, route resolution must define organization selection, duplicate project-name collisions, renames, transfers, reserved names, redirects, and private-project authorization while preserving the canonical organization-owned filesystem path.
+- `api.bapx.in` is the customer API and MCP gateway. It fronts the **API plane**, an
+  operator-run deployment of `github.com/bapXai/api` (a fork of OmniRoute, MIT).
+  The plane is used **as published** — it is deployed from a prebuilt image and
+  configured, not modified. Its `instanceName` and `customLogo` settings carry
+  bapX branding so it presents the same header, nav, and logo as every other
+  subdomain. Customers reach it only through bapX-issued keys; the plane is never
+  exposed directly. Every model call runs on the customer's own provider
+  credentials — bapX routes and meters, it does not resell capacity.
 - `docs.bapx.in` publishes supported customer behavior and non-sensitive architecture, extension, agent, skill, automation, API, MCP, telemetry, and contribution contracts.
 
 ## GitHub adaptation
@@ -141,4 +149,10 @@ Every capability follows this path:
 
 ## Current delivery decision
 
-The first objective is [Discussion #34](https://github.com/getwinharris/agents/discussions/34) and [Issue #35](https://github.com/getwinharris/agents/issues/35): resolve GitHub repository URLs and import repositories into organization-owned projects through Admin with structured telemetry. GitHub signup, the full repository profile UI, the packaged browser, and Agents promotion remain later gated stages.
+The active objective is the API plane at `platform.bapx.in` and `api.bapx.in`:
+deploy `bapXai/api` as published, brand it through its own settings rather than
+by editing it, and issue per-business API keys in front of it under strict BYOK.
+Tracked in [Issue #103](https://github.com/getwinharris/agents/issues/103) and
+[PR #111](https://github.com/getwinharris/agents/pull/111).
+
+The prior objective is [Discussion #34](https://github.com/getwinharris/agents/discussions/34) and [Issue #35](https://github.com/getwinharris/agents/issues/35): resolve GitHub repository URLs and import repositories into organization-owned projects through Admin with structured telemetry. GitHub signup, the full repository profile UI, the packaged browser, and Agents promotion remain later gated stages.

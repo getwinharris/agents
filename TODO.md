@@ -154,6 +154,45 @@ Tracking: [Discussion #34](https://github.com/getwinharris/agents/discussions/34
 - [ ] Add quotas and concurrency controls for storage, hosted search, agents, automations, browser sessions, Node.js project subdomains, and connector calls.
 - [ ] Run accessibility, performance, reliability, threat-model, and tenant-isolation reviews before declaring general availability.
 
+## Stage 9 — API plane and customer API keys
+
+Tracking: [Issue #103](https://github.com/getwinharris/agents/issues/103), [PR #111](https://github.com/getwinharris/agents/pull/111)
+
+The plane is `github.com/bapXai/api` (OmniRoute fork, MIT). It is deployed **as
+published** and configured — not edited. Branding is applied through its own
+`instanceName` and `customLogo` settings, so the bapX header, nav, and logo are a
+configuration change with zero code divergence from upstream.
+
+### Plane
+
+- [x] Run the plane as its own compose project, internal only, never publicly exposed.
+- [x] Pull prebuilt images. **Never build on the VPS** — the Next.js build OOM-killed the host (`global_oom`, 4.68 GB RSS and climbing).
+- [x] Verify it serves `/v1/models` and streams `/v1/chat/completions`.
+- [ ] Set `instanceName` and `customLogo` to bapX branding.
+- [ ] Build fork images in CI (>=8 GB builder) and push to a registry the VPS pulls from.
+
+### Gateway and keys
+
+- [x] Issue per-business API keys; store only SHA-256 hashes; verify with `timingSafeEqual`.
+- [x] Expose `/v1/*` only, so the plane's single-tenant dashboard and admin auth stay unreachable.
+- [x] Never forward the customer's `Authorization` header upstream.
+- [x] Revocation cuts access immediately.
+- [ ] Route `api.bapx.in` in Traefik — currently 404.
+- [ ] Deploy release snapshot `98f04e31`.
+
+### Business connectors
+
+- [x] Store per-business connector credentials encrypted at rest (AES-256-GCM), never returned to any caller.
+- [x] Connect and disconnect connectors from Platform.
+- [ ] Surface connected connectors in Agents and resolve them at run time.
+- [ ] Move to credential injection at the egress boundary so agents never hold a secret.
+
+### Blueprint coverage
+
+- [x] `blueprints/tooling--hostinger.md` — Hostinger MCP, 12 scope-separated servers.
+- [ ] Blueprint for the API plane itself, so a project can target `api.bapx.in/v1` as a model provider.
+- [ ] Blueprint index regenerated so new blueprints resolve at `bapx.in/cli/blueprints/<slug>.md`.
+
 ## Evidence sources
 
 - [GitHub Discussions GraphQL API](https://docs.github.com/en/graphql/reference/discussions)

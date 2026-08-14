@@ -11,6 +11,7 @@ import { resolveGitHubRepositoryReference } from './src/server/github-repository
 import { resolveAuthorizedGitHubRepository } from './src/server/github-repository-metadata.mjs';
 import { createGitHubInstallationAuthorizationProvider } from './src/server/github-installation-authorization.mjs';
 import { bearerToken, createApiKeyStore, proxyToApiPlane } from './src/server/api-gateway.mjs';
+import { createConnectorStore } from './src/server/connector-store.mjs';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(dirname, 'dist');
@@ -23,6 +24,7 @@ const platformStore = createPlatformStore({ workspaceRoot });
 const adminAuthorization = parseAdminGithubUserIds(process.env.BAPX_ADMIN_GITHUB_USER_IDS);
 const agentsRuntimeOrigin = new URL(process.env.AGENTS_RUNTIME_ORIGIN || 'http://127.0.0.1:3003');
 const apiKeyStore = createApiKeyStore({ workspaceRoot });
+const connectorStore = createConnectorStore({ workspaceRoot });
 const apiPlaneOrigin = process.env.BAPX_API_PLANE_ORIGIN || 'http://127.0.0.1:20130';
 const apiPlaneToken = process.env.BAPX_API_PLANE_TOKEN || '';
 let githubInstallationTokenProvider;
@@ -614,6 +616,48 @@ async function handleApiGateway(req, res, urlPath) {
 	await proxyToApiPlane(req, res, { origin: apiPlaneOrigin, planeToken: apiPlaneToken, urlPath, body });
 }
 
+// Business connector connections, for the Platform UI and Agents.
+//
+// Credentials go in and never come back out: every response here is metadata.
+async function handleConnectorAPI(req, res, urlPath) {
+	const account = getSessionAccount(req);
+	if (!account) { jsonResponse(res, 401, { error: 'authentication_required' }); return true; }
+	const businessSlug = account.primaryBusinessSlug || 'workspace';
+
+	if (req.method === 'GET' && urlPath === '/api/platform/connections') {
+		jsonResponse(res, 200, {
+			configured: connectorStore.configured(),
+			businessSlug,
+			connections: connectorStore.list(account.id, businessSlug),
+		});
+		return true;
+	}
+
+	if (req.method === 'POST' && urlPath === '/api/platform/connections') {
+		const payload = await parseBody(req).catch(() => ({}));
+		try {
+			const connection = connectorStore.connect(account.id, businessSlug, {
+				slug: payload.slug,
+				name: payload.name,
+				category: payload.category,
+				credential: payload.credential,
+			});
+			jsonResponse(res, 201, { connection });
+		} catch (error) {
+			jsonResponse(res, 400, { error: error.message });
+		}
+		return true;
+	}
+
+	if (req.method === 'DELETE' && urlPath.startsWith('/api/platform/connections/')) {
+		const id = decodeURIComponent(urlPath.slice('/api/platform/connections/'.length));
+		jsonResponse(res, connectorStore.disconnect(account.id, id) ? 200 : 404, { disconnected: id });
+		return true;
+	}
+
+	return false;
+}
+
 // Session-authenticated key management for the Platform UI.
 async function handleApiKeyAdmin(req, res, urlPath) {
 	const account = getSessionAccount(req);
@@ -641,6 +685,10 @@ http.createServer(async (req, res) => {
 	const prefix = HOST_PREFIX[host] ?? '';
 	const urlPath = req.url?.split('?')[0] ?? '';
 	if (host === 'api.bapx.in') { await handleApiGateway(req, res, urlPath); return; }
+	if (urlPath.startsWith('/api/platform/connections')) {
+		const handled = await handleConnectorAPI(req, res, urlPath);
+		if (handled) return;
+	}
 	if (urlPath.startsWith('/api/platform/api-keys')) {
 		const handled = await handleApiKeyAdmin(req, res, urlPath);
 		if (handled) return;
