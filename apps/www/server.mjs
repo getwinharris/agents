@@ -378,6 +378,11 @@ async function handleAuthAPI(req, res, urlPath, host) {
 			const url = new URL(req.url, 'https://bapx.in');
 			if (!url.searchParams.get('state') || url.searchParams.get('state') !== getCookie(req, 'bapx_oauth_state')) throw new Error('GitHub login state is invalid or expired');
 			const { account } = await platformStore.loginWithGitHub(await githubIdentity(url.searchParams.get('code')));
+			// Every account gets a default API key on first sign-in so Agents works
+			// immediately. Issued once — a returning user keeps the key they have,
+			// and a user who deliberately revoked all keys does not get a new one
+			// silently minted behind their back.
+			if (!apiKeyStore.hasEverIssued(account.id)) apiKeyStore.issue(account.id, 'Default key');
 			setSessionCookie(res, platformStore.createSession(account.id).token, host);
 			const returnTo = safeReturnTo(decodeURIComponent(getCookie(req, 'bapx_oauth_return_to') || ''));
 			redirect(res, returnTo || 'https://platform.bapx.in/');

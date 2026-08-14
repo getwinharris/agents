@@ -77,8 +77,16 @@ export function createApiKeyStore({ workspaceRoot }) {
 				lastUsedAt: null,
 			};
 			stored.keys.push(record);
+			stored.issued = [...new Set([...(stored.issued || []), accountId])];
 			writeJson(keysFile, stored);
 			return { secret, key: { ...record, hash: undefined } };
+		},
+
+		// Distinguishes "new account" from "user revoked everything". Reads the
+		// issued ledger rather than the live key list so revocation is respected.
+		hasEverIssued(accountId) {
+			const stored = load();
+			return (stored.issued || []).includes(accountId);
 		},
 
 		list(accountId) {
