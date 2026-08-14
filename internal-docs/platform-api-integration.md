@@ -186,6 +186,33 @@ management password and its own provider credentials.
   is seconds, not milliseconds, and idle RAM per instance is substantial. **On the
   current 2 vCPU / 7 GB VPS this does not scale past a handful of tenants.**
 
+### Settled 2026-08-13 — per-business instances are required for OAuth
+
+The plane ships **23 provider OAuth implementations** (`src/lib/oauth/providers/`):
+claude, codex, cursor, antigravity, kilocode, cline, grok-cli, kiro, zed, trae,
+raycast, qoder, github, gitlab-duo, and more — authorization-code, device flow,
+and token import. That lets a customer connect an AI client they already pay for
+instead of buying API credit. It is the most valuable thing in the repo for our
+customers.
+
+But `provider_connections` (`src/lib/db/core.ts:227`) has **no `user_id`,
+`tenant_id`, `owner_id` or `account_id` column** — the `email` column holds the
+*provider* account's address, not a bapX user. Connections belong to the
+instance.
+
+So on a shared plane, **every customer shares one set of provider connections**:
+customer A's Claude OAuth would serve customer B's traffic, against A's
+subscription. Not configurable — the data model has no user dimension.
+
+OIDC does not solve it either. The plane supports OIDC and bapX can be the IdP,
+but the login route's own comment scopes it to "the dashboard admin gate" — it
+changes *who the single admin is*, it does not create per-user accounts.
+
+**Therefore: per-customer OAuth requires Option B, one instance per business.**
+Option A stays correct for the *shared BYOK API key* path, but cannot deliver
+per-user OAuth without patching upstream — exactly the fork divergence the
+"use as published" direction rules out. Tracked in #113.
+
 ### Recommendation
 
 **Option A now, Option B as the scale path** for customers who need hard
