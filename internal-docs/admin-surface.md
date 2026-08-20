@@ -113,7 +113,8 @@ The left navigation follows the canonical demo/sidebar interaction and includes:
 8. **Projects** — exposes workspace projects, repositories, files, maps, previews, hosted app subdomains, and changes rooted at `/root/bapx.in`.
 9. **Team** — bapX people, roles, permissions, assignments, and human coordination.
 10. **Agents** — main and role-specific agents, including their tools, responsibilities, availability, and work.
-11. **Chat** — opens the existing working main-agent conversation entry point; it must not render a separate zero-state or duplicate chat implementation.
+11. **MediaHub** — Admin-only external navigation to the direct-client enterprise delivery funnel. It is not rendered on the customer Agents surface and does not make MediaHub an Agents subscription feature.
+12. **Chat** — opens the existing working main-agent conversation entry point; it must not render a separate zero-state or duplicate chat implementation.
 
 The project list remains visible below the main navigation, matching the supplied reference structure.
 

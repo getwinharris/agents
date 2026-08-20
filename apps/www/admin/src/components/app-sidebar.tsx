@@ -3,6 +3,7 @@ import {
   Bot,
   Compass,
   FileText,
+  GalleryVerticalEnd,
   GitBranch,
   GitPullRequest,
   Home,
@@ -85,6 +86,7 @@ export function AppSidebar() {
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/projects"><FolderKanban /><span>Projects</span></Link></SidebarMenuButton></SidebarMenuItem>
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/team"><Users /><span>Team</span></Link></SidebarMenuButton></SidebarMenuItem>
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/agents"><Bot /><span>Agents</span></Link></SidebarMenuButton></SidebarMenuItem>
+              {operatingSurface.showMediaHub ? <SidebarMenuItem><SidebarMenuButton asChild><a href="https://mediahub.bapx.in/"><GalleryVerticalEnd /><span>MediaHub</span></a></SidebarMenuButton></SidebarMenuItem> : null}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

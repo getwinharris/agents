@@ -1,51 +1,37 @@
 ---
 import "../styles/global.css";
-import { ecosystemPublicHref, homepageEcosystemItems } from "../../../ecosystem-catalog";
+import { channels, ecosystemPublicHref, homepageEcosystemItems } from "../../../ecosystem-catalog";
 
 const navItems = [
-  ["Home", "https://bapx.in/"],
-  ["Products", "/products/"],
-  ["Pricing", "/pricing/"],
+  ["Product", "/products/"],
+  ["Platform", "https://platform.bapx.in/"],
   ["Docs", "https://docs.bapx.in/"],
   ["Research", "https://blogs.bapx.in/research/"],
-  ["Releases", "https://blogs.bapx.in/release/"],
   ["Media Hub", "https://mediahub.bapx.in/"],
 ] as const;
 
-const cockpitAgents = [
-  { name: "Brand", state: "active", detail: "keeps tone, offers, and product story aligned" },
-  { name: "Build", state: "queued", detail: "turns approved work into code, PRs, and deploys" },
-  { name: "Browser", state: "ready", detail: "tests sign-up, checkout, docs, and product flows" },
-  { name: "Research", state: "running", detail: "checks current standards before plans become scope" },
-  { name: "Ops", state: "watching", detail: "checks Sentry, OpenTelemetry, Braintrust, evals, and usage" },
+const operatingStages = [
+  ["01", "Bring the project", "Import from your tools and capture the context."],
+  ["02", "Direct the work", "Define goals, constraints, and how agents should work."],
+  ["03", "Verify the result", "Check outputs, run evaluations, and close the loop."],
+  ["04", "Ship with evidence", "Publish results with provenance and an audit trail."],
+] as const;
+
+const productSurfaces = [
+  ["Platform", "Account, billing, keys, connectors, and observability.", "https://platform.bapx.in/"],
+  ["Agents", "The customer workspace for people, projects, automations, and agents.", "https://agents.bapx.in/"],
+  ["Admin", "The bapX operating surface with whole-system authority.", "https://admin.bapx.in/"],
+] as const;
+
+const integrationNames = new Set(["GitHub", "Slack", "Linear", "Sentry", "Shopify", "Razorpay"]);
+const razorpay = channels.find((item) => item.name === "Razorpay");
+const featuredIntegrations = [
+  ...homepageEcosystemItems.filter((item) => integrationNames.has(item.name)),
+  ...(razorpay ? [razorpay] : []),
 ];
-
-const workQueue = [
-  ["01", "Import project", "Resolve repo, owner, branch, and OKF workspace."],
-  ["02", "Plan work", "Create issues, assign agents, and keep humans in control."],
-  ["03", "Execute safely", "Run sandboxed CLI, browser, MCP, and hosted workflows."],
-  ["04", "Review & ship", "Validate tests, PRs, observability, and release notes."],
-] as const;
-
-const timelineRows = [
-  ["thinking", "bapX agent splits the request into product, code, docs, billing, and browser work."],
-  ["searching", "Research checks current MCP/A2A, sandbox, connector, and agent-platform standards."],
-  ["editing", "Build agents patch the project, docs, OKF files, tests, and public product surface."],
-  ["testing", "Browser, Sentry, OpenTelemetry, Braintrust, and Vitest eval evidence attach to the task."],
-  ["reviewing", "Humans approve scope, PRs, billing changes, connectors, and production release."],
-] as const;
-
-const capabilities = [
-  ["Agent team cockpit", "Central bapX agent coordinates specialists, threads, PRs, automations, and project context."],
-  ["Hosted developer tools", "Codex, Claude Code, OpenCode, Kimi Code, Zed/Zcode, Antigravity, and Copilot-style CLIs run as project-scoped tools on bapX infrastructure when enabled."],
-  ["MCP + A2A access", "Agents expose tool access through the MCP gateway and agent-to-agent handoffs instead of vague direct API claims."],
-  ["Channels & connectors", "GitHub, Slack, Linear, Sentry, Razorpay, webhooks, browser, search, and external MCPs are handled as connectors."],
-  ["OKF workspace", "Private work stays in the account/business/project workspace; public-facing docs use root-sandbox//<username>/<business-slug>/projects/<project-slug>/."],
-  ["Razorpay billing", "India-first subscription path: ₹500/month base, 5 GB included, ₹100/GB/month up to 100 GB."],
-] as const;
-
 ---
 
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -56,44 +42,36 @@ const capabilities = [
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="generator" content={Astro.generator} />
-    <title>bapX — Marketing operations, built into agents</title>
-    <meta name="description" content="Put 10+ years of marketing and branding operations to work through hosted agents. ₹500/month includes 5 GB storage, hosting, hosted search, browser sessions, Node.js project subdomains, TTS, and STT." />
+    <title>bapX — The operating system for people and agents</title>
+    <meta name="description" content="Run projects in one hosted workspace where your team and specialist agents plan, build, verify, and ship together." />
     <meta name="theme-color" content="#0a0a0a" />
     <link rel="canonical" href="https://bapx.in/" />
-
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="bapX" />
-    <meta property="og:title" content="bapX — Marketing operations, built into agents" />
-    <meta property="og:description" content="Put 10+ years of marketing and branding operations to work through hosted agents." />
+    <meta property="og:title" content="bapX — The operating system for people and agents" />
+    <meta property="og:description" content="Run projects in one hosted workspace where your team and specialist agents plan, build, verify, and ship together." />
     <meta property="og:url" content="https://bapx.in/" />
     <meta property="og:image" content="https://bapx.in/og3.jpg" />
     <meta property="og:image:alt" content="bapX logo" />
-
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="bapX — Marketing operations, built into agents" />
-    <meta name="twitter:description" content="Put 10+ years of marketing and branding operations to work through hosted agents." />
+    <meta name="twitter:title" content="bapX — The operating system for people and agents" />
+    <meta name="twitter:description" content="One hosted workspace for people, projects, and specialist agents." />
     <meta name="twitter:image" content="https://bapx.in/og3.jpg" />
     <meta name="twitter:image:alt" content="bapX logo" />
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
+    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/90 backdrop-blur-sm">
       <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         <div class="flex h-full items-center gap-8">
-          <a href="/" class="flex items-center gap-2">
-            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
-          </a>
+          <a href="/" aria-label="bapX home"><img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" /></a>
           <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
-            {navItems.map(([label, href]) => (
-              <a href={href} class={label === "Home" ? "active" : undefined}>{label}</a>
-            ))}
+            {navItems.map(([label, href]) => <a href={href}>{label}</a>)}
           </div>
         </div>
         <div class="flex items-center gap-3">
-          <a href="https://agents.bapx.in/" class="bapx-pill landing-desktop-action">Agents</a>
           <a href="/login/" class="bapx-pill bapx-pill-primary">Sign in</a>
           <button class="landing-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="landing-mobile-menu">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
@@ -101,75 +79,56 @@ const capabilities = [
         </div>
       </div>
       <div id="landing-mobile-menu" class="landing-mobile-menu" hidden>
-        {navItems.map(([label, href]) => (
-          <a href={href} class={label === "Home" ? "active" : undefined}>{label}</a>
-        ))}
-        <a href="https://agents.bapx.in/">Agents</a>
+        {navItems.map(([label, href]) => <a href={href}>{label}</a>)}
       </div>
     </nav>
 
     <main>
-      <!-- HERO -->
-      <section class="page-section page-header hero-operating-room">
-        <div class="section-inner hero-grid">
-          <div class="hero-copy">
-            <h1 class="display-xl">
-              Your company’s agent team, coordinated by bapX.
-            </h1>
-            <p class="body-lg">
-              Put 10+ years of marketing, product, support, and developer operations into a hosted workspace where people and specialist agents plan, execute, review, and ship together.
-            </p>
+      <section class="landing-hero">
+        <div class="section-inner">
+          <div class="landing-hero-copy">
+            <h1>The operating system for people and agents.</h1>
+            <p>Run projects in one hosted workspace where your team and specialist agents plan, build, verify, and ship together.</p>
             <div class="hero-actions">
-              <a href="https://platform.bapx.in/" class="bapx-pill bapx-pill-primary">Start — ₹500/month</a>
-              <a href="https://docs.bapx.in/ecosystem/" class="bapx-pill">See the ecosystem</a>
+              <a href="https://platform.bapx.in/" class="bapx-button bapx-button-primary">Open platform</a>
+              <a href="#operating-loop" class="bapx-button">See how it works</a>
             </div>
           </div>
 
-          <div class="agent-console" aria-label="bapX agent team cockpit preview">
-            <div class="console-topline">
-              <span>bapX agent</span>
-              <span>main · live</span>
+          <div class="workspace-preview" aria-label="bapX workspace product preview">
+            <div class="workspace-preview-top">
+              <span>Workspace</span>
+              <strong>Acme operations</strong>
             </div>
-            <div class="agent-command">
-              <span>Ask bapX to coordinate…</span>
-              <span class="agent-mic" aria-hidden="true"></span>
-            </div>
-            <div class="agent-network">
-              <div class="agent-core">
-                <img src="/brand/bapx-logo-main.svg" alt="" />
-                <span>coordinates sub-agents</span>
+            <div class="workspace-preview-body">
+              <aside>
+                <span class="preview-label">Projects</span>
+                <a href="https://agents.bapx.in/">Commerce launch</a>
+                <a href="https://agents.bapx.in/">Support operations</a>
+                <a href="https://agents.bapx.in/">Product delivery</a>
+              </aside>
+              <div class="workspace-main">
+                <div class="main-agent-row">
+                  <div><span class="preview-label">Main agent</span><strong>bapX agent</strong></div>
+                  <span class="agent-state">Ready</span>
+                </div>
+                <div class="workspace-columns">
+                  <section><span class="preview-label">Projects</span><strong>Checkout redesign</strong><p>Repository, context, and delivery plan.</p></section>
+                  <section><span class="preview-label">Automations</span><strong>Test and verify</strong><p>Review gates and recurring operations.</p></section>
+                  <section><span class="preview-label">Browser</span><strong>Live product check</strong><p>Page state, screenshots, and errors.</p></section>
+                  <section><span class="preview-label">Review</span><strong>Evidence attached</strong><p>PR, audit trail, and release result.</p></section>
+                </div>
               </div>
-              {cockpitAgents.map((agent) => (
-                <article class={`agent-node ${agent.state}`}>
-                  <div>
-                    <strong>{agent.name}</strong>
-                    <span>{agent.detail}</span>
-                  </div>
-                  <em>{agent.state}</em>
-                </article>
-              ))}
-            </div>
-            <div class="queue-strip">
-              <span>Threads</span>
-              <span>PRs</span>
-              <span>Automations</span>
-              <span>MCPs</span>
-              <span>Billing</span>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="page-section">
+      <section id="operating-loop" class="landing-band operating-loop-section">
         <div class="section-inner">
-          <div class="section-heading compact">
-            <h2 class="display-md">Work moves through one operating loop.</h2>
-            <p class="body-lg">
-              bapX is not a pile of disconnected tools. The central agent understands the workspace, opens the right channel, assigns specialist agents, records evidence, and hands the result back for review.
-            </p>
-          </div>
-          <div class="work-loop">
-            {workQueue.map(([step, title, body]) => (
+          <h2>One workspace. One operating loop.</h2>
+          <div class="operating-rail">
+            {operatingStages.map(([step, title, body]) => (
               <article>
                 <span>{step}</span>
                 <h3>{title}</h3>
@@ -180,122 +139,52 @@ const capabilities = [
         </div>
       </section>
 
-      <section class="page-section evidence-section">
-        <div class="section-inner evidence-grid">
-          <div>
-            <span class="mono-label">Work in motion</span>
-            <h2 class="display-md" style="margin-top: 1rem;">Live work should be visible.</h2>
-            <p class="body-lg" style="margin-top: 1.25rem;">
-              The product surface should show the actual bapX operating room: central chat, specialist agents, task queues, code and browser checks, PR evidence, connector state, billing state, and observability/eval evidence when work is running.
-            </p>
-          </div>
-          <div class="timeline-card">
-            {timelineRows.map(([state, body]) => (
-              <article>
-                <span>{state}</span>
-                <p>{body}</p>
-              </article>
-            ))}
-          </div>
-          <div class="code-window-card">
-            <div class="code-window-top">
-              <span>okf/project.yaml</span>
-              <span>validated</span>
-            </div>
-            <pre><code>project:
-  host: "&lt;projectname&gt;.app.bapx.in"
-  workspace: "root-sandbox//user/business/projects/project"
-  agent: "bapX"
-  connectors:
-    - github
-    - linear
-    - sentry
-    - razorpay
-  quality:
-    - vitest-evals
-    - opentelemetry
-    - braintrust</code></pre>
-          </div>
-        </div>
-      </section>
-
-      <!-- Ecosystem -->
-      <section class="page-section">
+      <section class="landing-band product-boundaries">
         <div class="section-inner">
-          <div class="section-heading compact">
-            <h2 class="display-md">Connect to the tools you already use.</h2>
-            <p class="body-lg">
-              bapX integrates with your team's workflow through channels, APIs, and managed integrations.
-            </p>
-            <a href="https://docs.bapx.in/ecosystem/" class="bapx-pill" style="margin-top: 1rem;">View all integrations</a>
-          </div>
-          <div class="client-grid compact-clients">
-            {homepageEcosystemItems.slice(0, 12).map((app) => (
-              <a href={ecosystemPublicHref(app)} class="client-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100px; padding: 1rem; text-align: center;">
-                {app.icon ? (
-                  <img src={app.icon} alt={app.name} style="max-height: 2.5rem; max-width: 80%; filter: brightness(0) invert(1); opacity: .6;" />
-                ) : (
-                  <span style="color: var(--body-mid); font-size: .875rem;">{app.name}</span>
-                )}
+          <h2>The product has clear boundaries.</h2>
+          <div class="surface-rail">
+            {productSurfaces.map(([title, body, href]) => (
+              <a href={href}>
+                <span aria-hidden="true"></span>
+                <h3>{title}</h3>
+                <p>{body}</p>
+                <em>Open {title}</em>
               </a>
             ))}
-            <a href="https://docs.bapx.in/ecosystem/" class="client-card" style="display: flex; align-items: center; justify-content: center; min-height: 120px;">
-              <span style="color: var(--body-mid); font-size: .875rem;">View all &rarr;</span>
-            </a>
           </div>
         </div>
       </section>
 
-      <section class="page-section">
+      <section class="landing-band integrations-band">
         <div class="section-inner">
-          <div class="section-heading compact">
-            <h2 class="display-md">What bapX exposes as the operating surface.</h2>
-            <p class="body-lg">The UI leads with the concrete product model: the central bapX agent, specialist agents, governed hosted tools, channels, MCP/A2A, OKF workspace structure, and India billing.</p>
+          <div class="integration-heading">
+            <h2>Connect the systems already running your business.</h2>
+            <a href="https://docs.bapx.in/ecosystem/">View ecosystem</a>
           </div>
-          <div class="capability-grid">
-            {capabilities.map(([title, body]) => (
-              <article class="capability-card">
-                <span class="mono-label">{title}</span>
-                <p>{body}</p>
-              </article>
+          <div class="integration-rail">
+            {featuredIntegrations.map((item) => (
+              <a href={ecosystemPublicHref(item)}>
+                {item.icon ? <img src={item.icon} alt="" /> : <span aria-hidden="true">{item.name.slice(0, 1)}</span>}
+                <strong>{item.name}</strong>
+              </a>
             ))}
           </div>
         </div>
       </section>
 
-      <section class="page-section pricing-band">
-        <div class="section-inner pricing-panel">
+      <section class="landing-band landing-pricing">
+        <div class="section-inner">
           <div>
-            <span class="mono-label">Billing & scale</span>
-            <h2 class="display-lg">₹500/month, then ₹100 per GB.</h2>
-            <p class="body-lg">
-              Includes 5 GB storage, hosted agents and workflows, hosted search, browser sessions, Node.js project subdomains, TTS, and STT. Scale storage up to 100 GB and bring your own provider tokens.
-            </p>
+            <h2>Hosted operations from ₹500/month.</h2>
+            <p>Includes 5 GB workspace storage. Bring your own model and connector credentials.</p>
           </div>
-          <div class="pricing-meter" aria-label="bapX storage pricing example">
-            <div>
-              <span>Included</span>
-              <strong>5 GB</strong>
-            </div>
-            <div>
-              <span>Scale limit</span>
-              <strong>100 GB</strong>
-            </div>
-            <div>
-              <span>Billing connector</span>
-              <strong>Razorpay</strong>
-            </div>
-            <a href="/pricing/" class="bapx-pill bapx-pill-primary">View pricing</a>
-          </div>
+          <a href="/pricing/" class="bapx-button bapx-button-primary">View pricing</a>
         </div>
       </section>
     </main>
 
     <footer class="page-footer">
-      <div class="section-inner">
-      <span>bapX — Marketing operations, built into agents.</span>
-      <span>&copy; {new Date().getFullYear()}</span>
-      </div>
+      <div class="section-inner"><span>bapX — The operating system for people and agents.</span><span>&copy; {new Date().getFullYear()}</span></div>
     </footer>
     <script is:inline>
       const menuToggle = document.querySelector('.landing-menu-toggle');
