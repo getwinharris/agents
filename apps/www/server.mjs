@@ -903,6 +903,14 @@ http.createServer(async (req, res) => {
 		await verifyWorkspaceRuntime(res, sessionAccount); return;
 	}
 	if (prefix === '/agents' && urlPath.startsWith('/api/orchestration/')) {
+		// Same-site is not same-origin. The session cookie is scoped .bapx.in, so a
+		// page on a hosted project subdomain carries it, and a text/plain fetch
+		// containing JSON needs no preflight. Without this check such a page could
+		// submit tasks as the victim, and approve or cancel known task ids.
+		if (!isPlatformMutationAllowed(req, host)) {
+			jsonResponse(res, 403, { error: 'cross_origin_forbidden' });
+			return;
+		}
 		await proxyAgentAPI(req, res, sessionAccount); return;
 	}
 	if (prefix === '/agents' && urlPath.startsWith('/api/ws/')) {

@@ -295,7 +295,15 @@ export function createPlatformStore({ workspaceRoot }) {
 	});
 
 	return {
+		// Must share the same queue as password registration. A password
+		// registration awaiting scrypt holds a stale snapshot; a GitHub signup
+		// completing in that window is overwritten when the password write lands,
+		// and its account, workspace and session are orphaned.
 		async loginWithGitHub(profile) {
+			return withAccountLock(() => this._loginWithGitHub(profile));
+		},
+
+		async _loginWithGitHub(profile) {
 			const providerId = String(profile.id ?? '');
 			const username = String(profile.login ?? '').trim().toLowerCase();
 			const email = String(profile.email ?? '').trim().toLowerCase();

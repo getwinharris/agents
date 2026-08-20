@@ -104,8 +104,18 @@ export class FileOrchestrationStore {
     let held
     try { held = JSON.parse(fs.readFileSync(lock, 'utf8')) }
     catch { held = null }
-    const age = held?.at ? this.now().getTime() - Date.parse(held.at) : Number.NaN
-    const ownerAlive = held?.pid === process.pid || (Number.isInteger(held?.pid) && processAlive(held.pid))
+    // A crash between creating the lock and writing its metadata leaves an empty
+    // or partial file. Treating that as "unknown age" wedged the task forever,
+    // which is the exact failure this reclaim exists to prevent. Fall back to the
+    // file's own mtime, which is always present.
+    let age
+    if (held?.at) {
+      age = this.now().getTime() - Date.parse(held.at)
+    } else {
+      try { age = this.now().getTime() - fs.statSync(lock).mtimeMs }
+      catch (error) { if (error.code === 'ENOENT') return this.acquireLock(lock); throw error }
+    }
+    const ownerAlive = Number.isInteger(held?.pid) && (held.pid === process.pid || processAlive(held.pid))
     // Only reclaim when the holder is gone AND the lock is older than the stale
     // window. A live holder must still conflict.
     if (ownerAlive || !(age >= LOCK_STALE_MS)) {
