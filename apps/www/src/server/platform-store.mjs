@@ -229,6 +229,28 @@ function usernameFromEmail(email, taken) {
 	return candidate;
 }
 
+// Account mutations are read-modify-write against one JSON collection, and
+// registration now awaits scrypt between the read and the write. Two concurrent
+// registrations would otherwise both append to stale snapshots, the later write
+// would replace the file with only its own copy, and the losing account would
+// vanish despite having returned success — leaving an orphaned workspace and a
+// session pointing at an account that no longer exists.
+//
+// Serialize every account mutation through one promise chain. This is a single
+// process writing a single file; a queue is sufficient and keeps the failure
+// mode obvious. A durable store would use a transaction instead.
+let accountMutationQueue = Promise.resolve();
+
+function withAccountLock(operation) {
+	const result = accountMutationQueue.then(operation, operation);
+	// Keep the chain alive regardless of outcome so one failure cannot wedge it.
+	accountMutationQueue = result.then(
+		() => undefined,
+		() => undefined,
+	);
+	return result;
+}
+
 // Credential material never leaves the store. Every account returned to a
 // caller goes through here.
 function publicAccount(account) {
@@ -306,7 +328,11 @@ export function createPlatformStore({ workspaceRoot }) {
 
 		// Email + password registration. GitHub remains available and can be linked
 		// later, but it is no longer required to hold a bapX account.
-		async registerWithPassword({ email, password, name }) {
+		async registerWithPassword(input) {
+			return withAccountLock(() => this._registerWithPassword(input));
+		},
+
+		async _registerWithPassword({ email, password, name }) {
 			const cleanEmail = String(email ?? '').trim().toLowerCase();
 			const cleanPassword = String(password ?? '');
 			if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new Error('Enter a valid email address');

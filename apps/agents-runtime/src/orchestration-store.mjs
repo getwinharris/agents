@@ -27,6 +27,19 @@ function assertScope(scope) {
 }
 function scoped(task, scope) { return task.account === scope.account && task.workspaceScope === scope.workspaceScope }
 
+// A lock older than this whose owner is gone is treated as abandoned.
+const LOCK_STALE_MS = 60_000
+
+function processAlive(pid) {
+  try {
+    // Signal 0 performs the permission and existence check without delivering.
+    process.kill(pid, 0)
+    return true
+  } catch (error) {
+    return error.code === 'EPERM'
+  }
+}
+
 export class OrchestrationConflictError extends Error {}
 export class OrchestrationAuthorizationError extends Error {}
 
@@ -77,11 +90,39 @@ export class FileOrchestrationStore {
     return fs.readdirSync(this.directory).filter((name) => name.endsWith('.json')).map((name) => this.readRaw(name.slice(0, -5)))
       .filter((record) => record && scoped(record, scope)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(clone)
   }
+  // A lock file only ever removed by this process's finally block survives a
+  // crash or a kill. Every later approval, cancellation, claim, progress update,
+  // completion, or lease recovery for that task then conflicts forever, which
+  // defeats the durable store's whole point and needs an operator to clear by
+  // hand. Record ownership and age, and reclaim a demonstrably stale lock.
+  acquireLock(lock) {
+    try {
+      return fs.openSync(lock, 'wx', 0o600)
+    } catch (error) {
+      if (error.code !== 'EEXIST') throw error
+    }
+    let held
+    try { held = JSON.parse(fs.readFileSync(lock, 'utf8')) }
+    catch { held = null }
+    const age = held?.at ? this.now().getTime() - Date.parse(held.at) : Number.NaN
+    const ownerAlive = held?.pid === process.pid || (Number.isInteger(held?.pid) && processAlive(held.pid))
+    // Only reclaim when the holder is gone AND the lock is older than the stale
+    // window. A live holder must still conflict.
+    if (ownerAlive || !(age >= LOCK_STALE_MS)) {
+      throw new OrchestrationConflictError('Task is being updated; reload before retrying.')
+    }
+    fs.rmSync(lock, { force: true })
+    try {
+      return fs.openSync(lock, 'wx', 0o600)
+    } catch (error) {
+      if (error.code === 'EEXIST') throw new OrchestrationConflictError('Task is being updated; reload before retrying.')
+      throw error
+    }
+  }
   update(scope, taskId, expectedVersion, mutate, eventType) {
     const lock = `${this.file(taskId)}.lock`
-    let descriptor
-    try { descriptor = fs.openSync(lock, 'wx', 0o600) }
-    catch (error) { if (error.code === 'EEXIST') throw new OrchestrationConflictError('Task is being updated; reload before retrying.'); throw error }
+    const descriptor = this.acquireLock(lock)
+    fs.writeFileSync(descriptor, JSON.stringify({ pid: process.pid, at: this.now().toISOString() }))
     try {
       const record = this.get(scope, taskId)
       if (!record) return null
@@ -105,6 +146,13 @@ export class FileOrchestrationStore {
     }, `state:${state}`)
   }
   approve(scope, taskId, expectedVersion, decision, actor) {
+    // Anything other than the two valid decisions was previously persisted
+    // verbatim and treated as a cancellation, so a missing field or a typo like
+    // 'approvd' permanently cancelled the task while returning success to the
+    // caller. Reject it before the record is touched.
+    if (decision !== 'approved' && decision !== 'rejected') {
+      throw new TypeError("Approval decision must be 'approved' or 'rejected'.")
+    }
     return this.update(scope, taskId, expectedVersion, (record) => {
       if (record.state !== 'waiting_approval' || record.approval.state !== 'pending') throw new OrchestrationConflictError('Task is not awaiting approval.')
       record.approval = { state: decision, actor, at: this.now().toISOString() }

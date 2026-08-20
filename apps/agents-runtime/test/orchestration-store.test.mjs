@@ -17,6 +17,46 @@ const beta = { account: 'beta-user', workspaceScope: 'users/beta-user/acme' }
 const submission = { sessionId: 'conversation-1', profile: 'research', objective: 'Gather bounded evidence.' }
 
 describe('FileOrchestrationStore', () => {
+  it('rejects an invalid approval decision instead of cancelling the task', () => {
+    const { store } = fixture()
+    const task = store.create(alpha, { ...submission, requiresApproval: true })
+    for (const decision of [undefined, '', 'approvd', 'yes', 'APPROVED']) {
+      assert.throws(() => store.approve(alpha, task.id, task.version, decision, 'owner'), TypeError)
+    }
+    // The task must still be approvable afterwards.
+    const approved = store.approve(alpha, task.id, task.version, 'approved', 'owner')
+    assert.equal(approved.state, 'queued')
+    assert.equal(approved.approval.state, 'approved')
+  })
+
+
+  it('reclaims a lock abandoned by a dead process but never one still held', () => {
+    // A lock removed only by the owning process's finally block survives a crash
+    // or kill. Without reclamation every later update to that task conflicts
+    // forever and needs an operator to clear the file by hand.
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-orchestration-'))
+    directories.push(directory)
+    let clock = new Date('2026-07-29T12:00:00.000Z')
+    const store = new FileOrchestrationStore({ directory, now: () => clock })
+    const task = store.create(alpha, submission)
+    const lock = path.join(directory, `${task.id}.json.lock`)
+
+    // A live holder must still conflict, however old the lock claims to be.
+    fs.writeFileSync(lock, JSON.stringify({ pid: process.pid, at: new Date('2026-07-29T11:00:00.000Z').toISOString() }))
+    assert.throws(() => store.transition(alpha, task.id, task.version, 'accepted'), OrchestrationConflictError)
+
+    // A dead holder within the stale window must also still conflict.
+    fs.writeFileSync(lock, JSON.stringify({ pid: 0x7ffffffe, at: clock.toISOString() }))
+    assert.throws(() => store.transition(alpha, task.id, task.version, 'accepted'), OrchestrationConflictError)
+
+    // Same dead holder, once the lock is demonstrably stale: reclaim it.
+    clock = new Date('2026-07-29T12:05:00.000Z')
+    const moved = store.transition(alpha, task.id, task.version, 'accepted')
+    assert.equal(moved.state, 'accepted')
+    assert.equal(fs.existsSync(lock), false)
+  })
+
+
   it('isolates records by trusted account and workspace when tenants share one store', () => {
     const { store } = fixture()
     const task = store.create(alpha, submission)
