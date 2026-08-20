@@ -437,15 +437,29 @@ function customerWorkspaceRoot(account) {
 	return customerBusinessWorkspaceRoot(workspaceRoot, account);
 }
 
-function proxyAgentAPI(req, res, account) {
+function customerWorkspaceScope(account) {
+	const relative = path.relative(workspaceRoot, customerWorkspaceRoot(account));
+	if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) throw new Error('Invalid customer workspace scope');
+	return relative.split(path.sep).join('/');
+}
+
+function runtimeHeaders(account) {
+	return {
+		'x-bapx-account': account.username,
+		'x-bapx-workspace-scope': customerWorkspaceScope(account),
+		'x-bapx-runtime-token': process.env.BAPX_RUNTIME_TOKEN || '',
+	};
+}
+
+function proxyAgentAPI(req, res, account, upstreamPath = req.url) {
 	return new Promise((resolve) => {
 		const upstream = http.request({
 			protocol: agentsRuntimeOrigin.protocol,
 			hostname: agentsRuntimeOrigin.hostname,
 			port: agentsRuntimeOrigin.port,
 			method: req.method,
-			path: req.url,
-			headers: { ...req.headers, host: agentsRuntimeOrigin.host, 'x-bapx-account': account.username, 'x-bapx-runtime-token': process.env.BAPX_RUNTIME_TOKEN || '' },
+			path: upstreamPath,
+			headers: { ...req.headers, host: agentsRuntimeOrigin.host, ...runtimeHeaders(account) },
 		}, (upstreamResponse) => {
 			res.writeHead(upstreamResponse.statusCode || 502, upstreamResponse.headers);
 			upstreamResponse.pipe(res);
@@ -457,6 +471,37 @@ function proxyAgentAPI(req, res, account) {
 			resolve();
 		});
 		req.pipe(upstream);
+	});
+}
+
+function verifyWorkspaceRuntime(res, account) {
+	return new Promise((resolve) => {
+		const body = JSON.stringify({ account: account.username, workspaceScope: customerWorkspaceScope(account) });
+		const upstream = http.request({
+			protocol: agentsRuntimeOrigin.protocol,
+			hostname: agentsRuntimeOrigin.hostname,
+			port: agentsRuntimeOrigin.port,
+			method: 'POST',
+			path: '/api/workflows/workspace-verifier?wait=result',
+			headers: {
+				host: agentsRuntimeOrigin.host,
+				'content-type': 'application/json',
+				'content-length': Buffer.byteLength(body),
+				...runtimeHeaders(account),
+			},
+		}, (upstreamResponse) => {
+			res.writeHead(upstreamResponse.statusCode || 502, {
+				'Content-Type': upstreamResponse.headers['content-type'] || 'application/json',
+				'Cache-Control': 'no-store',
+			});
+			upstreamResponse.pipe(res);
+			upstreamResponse.on('end', resolve);
+		});
+		upstream.on('error', () => {
+			jsonResponse(res, 503, { error: 'Workspace verification is temporarily unavailable.' });
+			resolve();
+		});
+		upstream.end(body);
 	});
 }
 
@@ -547,6 +592,11 @@ http.createServer(async (req, res) => {
 		if (handled) return;
 	}
 	const sessionAccount = getSessionAccount(req);
+	if (prefix === '/platform' && urlPath.startsWith('/api/platform/connectors/openai-codex/')) {
+		if (!sessionAccount) { jsonResponse(res, 401, { error: 'Sign in to manage connectors.' }); return; }
+		const upstreamPath = urlPath.replace('/api/platform/connectors/openai-codex', '/api/orchestration/provider-auth/openai-codex');
+		await proxyAgentAPI(req, res, sessionAccount, upstreamPath); return;
+	}
 	if (prefix === '/agents' && req.method === 'HEAD' && urlPath === '/') { res.writeHead(200, { 'Cache-Control': 'no-store' }); res.end(); return; }
 	if (prefix === '/agents' && !sessionAccount) { redirect(res, `https://bapx.in/login/?returnTo=${encodeURIComponent(`https://agents.bapx.in${req.url || '/'}`)}`); return; }
 	if (prefix === '/admin' && !urlPath.startsWith('/api/')) {
@@ -568,6 +618,12 @@ http.createServer(async (req, res) => {
 		} else if (!sessionAccount) {
 			jsonResponse(res, 401, { error: 'Sign in to use the main agent.' }); return;
 		}
+		await proxyAgentAPI(req, res, sessionAccount); return;
+	}
+	if (prefix === '/agents' && req.method === 'GET' && urlPath === '/api/orchestration/workspace-verification') {
+		await verifyWorkspaceRuntime(res, sessionAccount); return;
+	}
+	if (prefix === '/agents' && urlPath.startsWith('/api/orchestration/')) {
 		await proxyAgentAPI(req, res, sessionAccount); return;
 	}
 	if (prefix === '/agents' && urlPath.startsWith('/api/ws/')) {

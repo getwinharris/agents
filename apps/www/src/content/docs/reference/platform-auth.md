@@ -48,6 +48,8 @@ Admin and Agents use the same product model. The difference is authority:
 
 Admin is not a separate product with different concepts. It is the wider-scope version of the same people, projects, agents, automations, MCPs, API, connectors, billing, and observability model.
 
+For customer agent operations, the authenticated gateway derives the canonical business scope as `users/<username>/<business-slug>` and replaces any browser-supplied identity or scope headers before calling the private runtime. The runtime requires its private shared token and rejects a scope whose embedded username differs from the authenticated account. An authenticated customer can call `GET /api/orchestration/workspace-verification` on `agents.bapx.in` to run a read-only workflow that reports the accepted account and scope; it does not read workspace files or perform mutations. Admin verification remains separate because Admin has wider `/root/bapx.in` authority.
+
 ## Connector boundary
 
 Connectors are customer- or business-scoped. A connector should expose:

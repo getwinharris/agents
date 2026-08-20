@@ -75,6 +75,7 @@ describe('Agents host routing', () => {
 	let nonAdminCookie;
 	let runtime;
 	let runtimePort;
+	let runtimeRequests;
 	let githubCliBootstrapFile;
 
 	before(async () => {
@@ -101,11 +102,29 @@ describe('Agents host routing', () => {
 		cookie = `bapx_session=${store.createSession(account.id).token}`;
 		nonAdminCookie = `bapx_session=${store.createSession(nonAdminAccount.id).token}`;
 		runtimePort = await availablePort();
+		runtimeRequests = [];
 		runtime = http.createServer((request, response) => {
 			assert.equal(request.headers['x-bapx-account'], 'routing-user');
 			assert.equal(request.headers['x-bapx-runtime-token'], 'runtime-test-token');
-			response.writeHead(200, { 'content-type': 'text/event-stream' });
-			response.end('event: message\ndata: {"type":"ready"}\n\n');
+			assert.equal(request.headers['x-bapx-workspace-scope'], 'users/routing-user/workspace');
+			let body = '';
+			request.setEncoding('utf8');
+			request.on('data', (chunk) => { body += chunk; });
+			request.on('end', () => {
+				runtimeRequests.push({ method: request.method, url: request.url, body });
+				if (request.url === '/api/orchestration/provider-auth/openai-codex/device') {
+					response.writeHead(202, { 'content-type': 'application/json' });
+					response.end(JSON.stringify({ state: 'awaiting_user', userCode: 'ABCD-EFGH' }));
+					return;
+				}
+				if (request.url === '/api/workflows/workspace-verifier?wait=result') {
+					response.writeHead(200, { 'content-type': 'application/json' });
+					response.end(JSON.stringify({ verified: true, workspaceScope: 'users/routing-user/workspace' }));
+					return;
+				}
+				response.writeHead(200, { 'content-type': 'text/event-stream' });
+				response.end('event: message\ndata: {"type":"ready"}\n\n');
+			});
 		});
 		await new Promise((resolve) => runtime.listen(runtimePort, '127.0.0.1', resolve));
 		previousEntry = fs.existsSync(agentsEntry) ? fs.readFileSync(agentsEntry) : undefined;
@@ -157,6 +176,55 @@ describe('Agents host routing', () => {
 		const response = await request(port, { method: 'HEAD' });
 		assert.equal(response.status, 200);
 		assert.equal(response.body, '');
+	});
+
+	it('runs the read-only verifier with gateway-owned identity and workspace scope', async () => {
+		const response = await request(port, {
+			host: 'agents.bapx.in',
+			pathname: '/api/orchestration/workspace-verification',
+			headers: {
+				cookie,
+				'x-bapx-account': 'spoofed-user',
+				'x-bapx-workspace-scope': 'users/spoofed-user/workspace',
+			},
+		});
+
+		assert.equal(response.status, 200);
+		assert.deepEqual(JSON.parse(response.body), {
+			verified: true,
+			workspaceScope: 'users/routing-user/workspace',
+		});
+		assert.deepEqual(runtimeRequests.at(-1), {
+			method: 'POST',
+			url: '/api/workflows/workspace-verifier?wait=result',
+			body: JSON.stringify({
+				account: 'routing-user',
+				workspaceScope: 'users/routing-user/workspace',
+			}),
+		});
+	});
+
+	it('routes durable task requests with gateway-owned scope and without trusting browser claims', async () => {
+		const response = await request(port, {
+			host: 'agents.bapx.in',
+			pathname: '/api/orchestration/tasks',
+			headers: { cookie, 'x-bapx-account': 'spoofed-user', 'x-bapx-workspace-scope': 'users/spoofed-user/workspace' },
+		});
+		assert.equal(response.status, 200);
+		assert.deepEqual(runtimeRequests.at(-1), { method: 'GET', url: '/api/orchestration/tasks', body: '' });
+	});
+
+	it('starts the workspace-scoped OpenAI connector from Platform without an API-key payload', async () => {
+		const response = await request(port, {
+			host: 'platform.bapx.in',
+			method: 'POST',
+			pathname: '/api/platform/connectors/openai-codex/device',
+			headers: { cookie, 'content-type': 'application/json' },
+			body: '{}',
+		});
+		assert.equal(response.status, 202);
+		assert.deepEqual(JSON.parse(response.body), { state: 'awaiting_user', userCode: 'ABCD-EFGH' });
+		assert.deepEqual(runtimeRequests.at(-1), { method: 'POST', url: '/api/orchestration/provider-auth/openai-codex/device', body: '{}' });
 	});
 
 	it('carries an allowlisted Agents destination into the GitHub OAuth flow', async () => {

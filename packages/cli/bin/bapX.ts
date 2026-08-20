@@ -555,6 +555,7 @@ function parseOkfArgs(rest: string[]): OkfArgs {
 		new Set(action === 'index' ? ['--root', '--output'] : ['--root']),
 		new Set(['--root', '--output']),
 	);
+	if (values.root === undefined) fail('Missing value for --root', true);
 
 	if (action === 'index') {
 		for (const positional of positionals) {

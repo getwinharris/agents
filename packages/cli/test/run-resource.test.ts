@@ -1,10 +1,13 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
+import { resolveConfig } from '../src/lib/config.ts';
 import { resolveRunResource } from '../src/lib/run-resource.ts';
 
 const roots: string[] = [];
+const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
 afterEach(() => {
 	for (const root of roots.splice(0)) fs.rmSync(root, { recursive: true, force: true });
@@ -22,6 +25,19 @@ function project(files: string[]): string {
 }
 
 describe('resolveRunResource()', () => {
+	it('resolves the repository PR redirect workflow from the selected source root', async () => {
+		const { bapXConfig } = await resolveConfig({
+			cwd: repositoryRoot,
+			inline: { target: 'node' },
+		});
+
+		expect(resolveRunResource(bapXConfig.sourceRoot, 'workflow:pr-redirect')).toMatchObject({
+			kind: 'workflow',
+			name: 'pr-redirect',
+			filePath: path.join(repositoryRoot, '.agents', 'workflows', 'pr-redirect.ts'),
+		});
+	});
+
 	it('resolves a unique resource using source-root discovery', () => {
 		const root = project(['agents/support.ts']);
 

@@ -5,18 +5,63 @@ import {
   fauxToolCall,
   registerFauxProvider,
 } from '@earendil-works/pi-ai/compat'
-import { type AgentRouteHandler, defineAgent, defineTool, registerProvider } from '@bapX/runtime'
+import { type AgentRouteHandler, defineAgent, defineAgentProfile, defineTool, registerProvider } from '@bapX/runtime'
 import * as v from 'valibot'
-import { isAuthorizedRuntimeRequest } from '../runtime-policy.mjs'
+import path from 'node:path'
+import { FileOrchestrationStore } from '../orchestration-store.mjs'
+import { currentWorkspaceAuthorization, withWorkspaceAuthorization } from '../request-scope.mjs'
+import { authorizeWorkspaceRuntimeRequest } from '../runtime-policy.mjs'
+import { resolveOpenAICodexCredential, WorkspaceCredentialStore } from '../provider-auth.mjs'
 
 export const route: AgentRouteHandler = async (context, next) => {
-  const expected = process.env.BAPX_RUNTIME_TOKEN
-  const supplied = context.req.header('x-bapx-runtime-token')
-  if (!isAuthorizedRuntimeRequest(expected, supplied)) return context.json({ error: 'Unauthorized' }, 401)
-  return next()
+  const authorization = authorizeWorkspaceRuntimeRequest({
+    expectedToken: process.env.BAPX_RUNTIME_TOKEN,
+    suppliedToken: context.req.header('x-bapx-runtime-token'),
+    account: context.req.header('x-bapx-account'),
+    workspaceScope: context.req.header('x-bapx-workspace-scope'),
+  })
+  if (!authorization) return context.json({ error: 'Unauthorized' }, 401)
+  return withWorkspaceAuthorization(authorization, next)
 }
 
-export default defineAgent(({ id }) => {
+const research = defineAgentProfile({
+  name: 'research',
+  description: 'Read-only research and evidence gathering.',
+  instructions: 'Research only the bounded objective. Do not mutate workspace or external state. Return sources and uncertainty.',
+})
+const engineering = defineAgentProfile({
+  name: 'engineering',
+  description: 'Project-scoped implementation specialist.',
+  instructions: 'Implement only the bounded objective inside the authorized project. Never publish, deploy, or expand permissions.',
+})
+const verification = defineAgentProfile({
+  name: 'verification',
+  description: 'Independent read-only verification specialist.',
+  instructions: 'Verify evidence and observable behavior. Do not modify the implementation under review.',
+})
+
+export default defineAgent(async ({ id }) => {
+  let openAICredential
+  if (process.env.BAPX_CREDENTIAL_ENCRYPTION_KEY) {
+    const authorization = currentWorkspaceAuthorization()
+    openAICredential = await resolveOpenAICodexCredential({
+      scope: authorization,
+      store: new WorkspaceCredentialStore({
+        directory: process.env.BAPX_PROVIDER_CREDENTIAL_DIR || path.resolve('.agents/credentials'),
+        encryptionKey: process.env.BAPX_CREDENTIAL_ENCRYPTION_KEY,
+      }),
+    })
+  }
+  if (openAICredential) {
+    return {
+      model: 'openai-codex/gpt-5.6-sol',
+      providerAuth: { 'openai-codex': openAICredential.access },
+      thinkingLevel: 'medium',
+      instructions: 'Own the user conversation and operate only inside the gateway-authenticated workspace. Delegate bounded work to the least-privilege named specialist. A delegated background task is not complete until its structured evidence is independently verified.',
+      subagents: [research, engineering, verification],
+      tools: orchestrationTools(),
+    }
+  }
   const providerId = `bapx-bootstrap-${id.replace(/[^a-zA-Z0-9_-]/g, '-')}`
   const faux = registerFauxProvider({
     api: providerId,
@@ -64,14 +109,38 @@ export default defineAgent(({ id }) => {
   return {
     model: `${providerId}/main`,
     thinkingLevel: 'low',
-    instructions: 'Operate only inside the workspace scope supplied by the authenticated bapX gateway.',
-    tools: [
+    instructions: 'Own the user conversation and operate only inside the gateway-authenticated workspace. Delegate bounded work to the least-privilege named specialist. A delegated background task is not complete until its structured evidence is independently verified.',
+    subagents: [research, engineering, verification],
+    tools: orchestrationTools(),
+  }
+})
+
+function orchestrationTools() {
+  return [
       defineTool({
         name: 'workspace_status',
         description: 'Confirm that the authenticated customer workspace gateway is active.',
         input: v.object({ request: v.string() }),
         run: async () => ({ scoped: true, runtime: 'main' }),
       }),
-    ],
-  }
-})
+      defineTool({
+        name: 'submit_specialist_task',
+        description: 'Durably submit bounded background work to a named least-privilege specialist and immediately return its task receipt.',
+        input: v.object({
+          sessionId: v.string(),
+          profile: v.picklist(['research', 'engineering', 'verification']),
+          objective: v.string(),
+          completionCriteria: v.optional(v.array(v.string())),
+          requiresApproval: v.optional(v.boolean()),
+        }),
+        run: async (input) => {
+          const authorization = currentWorkspaceAuthorization()
+          const store = new FileOrchestrationStore({
+            directory: process.env.BAPX_ORCHESTRATION_DIR || path.resolve('.agents/orchestration/tasks'),
+          })
+          const task = store.create(authorization, input)
+          return { taskId: task.id, state: task.state, profile: task.profile, version: task.version }
+        },
+      }),
+  ]
+}

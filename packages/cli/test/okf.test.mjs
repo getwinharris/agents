@@ -45,6 +45,22 @@ async function withOkfBundle(callback) {
 }
 
 describe('bapX okf', () => {
+	it('rejects index when --root is omitted', async () => {
+		const result = await runCli(['okf', 'index']);
+
+		assert.equal(result.code, 1);
+		assert.equal(result.stdout, '');
+		assert.match(result.stderr, /Missing value for --root/);
+	});
+
+	it('rejects query when --root is omitted', async () => {
+		const result = await runCli(['okf', 'query', 'github repository identity']);
+
+		assert.equal(result.code, 1);
+		assert.equal(result.stdout, '');
+		assert.match(result.stderr, /Missing value for --root/);
+	});
+
 	it('indexes Markdown concepts with v0.1 and v0.2 metadata when root is explicit', async () => {
 		await withOkfBundle(async (root) => {
 			const result = await runCli(['okf', 'index', '--root', root]);
