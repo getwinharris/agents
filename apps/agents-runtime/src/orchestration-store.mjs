@@ -31,9 +31,10 @@ export class OrchestrationConflictError extends Error {}
 export class OrchestrationAuthorizationError extends Error {}
 
 export class FileOrchestrationStore {
-  constructor({ directory, now = () => new Date() }) {
+  constructor({ directory, now = () => new Date(), lockStaleMs = 60_000 }) {
     this.directory = directory
     this.now = now
+    this.lockStaleMs = lockStaleMs
     fs.mkdirSync(directory, { recursive: true, mode: 0o700 })
   }
   file(taskId) { return path.join(this.directory, `${taskId}.json`) }
@@ -77,11 +78,97 @@ export class FileOrchestrationStore {
     return fs.readdirSync(this.directory).filter((name) => name.endsWith('.json')).map((name) => this.readRaw(name.slice(0, -5)))
       .filter((record) => record && scoped(record, scope)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(clone)
   }
+  acquireLock(lock) {
+    try { return fs.openSync(lock, 'wx', 0o600) }
+    catch (error) {
+      if (error.code !== 'EEXIST') throw error
+    }
+    // A lock is only removed by the finally below. A worker killed mid-update
+    // would otherwise wedge the task forever: every later approval, claim,
+    // progress, completion or recovery would conflict with no way back. Treat
+    // a lock older than the staleness window as abandoned and reclaim it.
+    let heldFor = 0
+    try { heldFor = this.now().getTime() - fs.statSync(lock).mtimeMs }
+    catch (error) { if (error.code === 'ENOENT') return this.acquireLock(lock); throw error }
+    if (heldFor < this.lockStaleMs) throw new OrchestrationConflictError('Task is being updated; reload before retrying.')
+    fs.rmSync(lock, { force: true })
+    try { return fs.openSync(lock, 'wx', 0o600) }
+    catch (error) {
+      if (error.code === 'EEXIST') throw new OrchestrationConflictError('Task is being updated; reload before retrying.')
+      throw error
+    }
+  }
+  /**
+   * System-only. Every other read refuses to cross a tenant boundary, which is
+   * correct for request handlers but leaves the dispatcher unable to find work.
+   * This returns just enough to claim a task -- never objective, context, or
+   * result -- and each returned scope is fed straight back into the normal
+   * scope-checked methods, so the authorization boundary still does the work.
+   */
+  pendingTaskRefs() {
+    const refs = []
+    for (const name of fs.readdirSync(this.directory)) {
+      if (!name.endsWith('.json')) continue
+      let record
+      try { record = this.readRaw(name.slice(0, -5)) }
+      catch { continue }
+      if (!record || record.state !== 'queued') continue
+      refs.push({
+        id: record.id,
+        version: record.version,
+        profile: record.profile,
+        attempt: record.attempt,
+        createdAt: record.createdAt,
+        scope: { account: record.account, workspaceScope: record.workspaceScope },
+      })
+    }
+    return refs.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+  }
+  /** System-only. Expired leases across every tenant, for the recovery pass. */
+  expiredLeaseRefs() {
+    const now = this.now().getTime()
+    const refs = []
+    for (const name of fs.readdirSync(this.directory)) {
+      if (!name.endsWith('.json')) continue
+      let record
+      try { record = this.readRaw(name.slice(0, -5)) }
+      catch { continue }
+      if (!record || record.state !== 'running') continue
+      if (Date.parse(record.lease?.expiresAt ?? '') > now) continue
+      refs.push({ id: record.id, version: record.version, scope: { account: record.account, workspaceScope: record.workspaceScope } })
+    }
+    return refs
+  }
+  renewLease(scope, taskId, expectedVersion, workerId, leaseMs) {
+    return this.update(scope, taskId, expectedVersion, (record) => {
+      if (record.state !== 'running') throw new OrchestrationConflictError('Only running tasks hold a lease.')
+      if (record.lease?.workerId !== workerId) throw new OrchestrationConflictError('Lease is held by another worker.')
+      record.lease = { workerId, expiresAt: new Date(this.now().getTime() + leaseMs).toISOString() }
+      return record
+    }, 'lease:renewed')
+  }
+  fail(scope, taskId, expectedVersion, failure) {
+    return this.update(scope, taskId, expectedVersion, (record) => {
+      if (record.state !== 'running') throw new OrchestrationConflictError('Only running tasks can fail.')
+      record.state = 'failed'
+      record.lease = null
+      record.result = { summary: failure.summary, evidence: failure.evidence ?? [], artifacts: [], verification: { state: 'failed' }, contextUpdates: [], retryable: Boolean(failure.retryable) }
+      return record
+    }, 'failed')
+  }
+  requeue(scope, taskId, expectedVersion, reason) {
+    return this.update(scope, taskId, expectedVersion, (record) => {
+      if (record.state !== 'running') throw new OrchestrationConflictError('Only running tasks can be requeued.')
+      record.state = 'queued'
+      record.lease = null
+      record.progress = { summary: reason, percent: null, at: this.now().toISOString() }
+      return record
+    }, 'requeued')
+  }
   update(scope, taskId, expectedVersion, mutate, eventType) {
     const lock = `${this.file(taskId)}.lock`
     let descriptor
-    try { descriptor = fs.openSync(lock, 'wx', 0o600) }
-    catch (error) { if (error.code === 'EEXIST') throw new OrchestrationConflictError('Task is being updated; reload before retrying.'); throw error }
+    descriptor = this.acquireLock(lock)
     try {
       const record = this.get(scope, taskId)
       if (!record) return null
