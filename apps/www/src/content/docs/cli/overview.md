@@ -1,17 +1,19 @@
 ---
-title: CLI
-description: Use the Bapx CLI to configure, develop, exercise, inspect, and build an application.
-lastReviewedAt: 2026-06-22
+title: Maintainer CLI
+description: Internal repository tooling for bapX maintainers; not an installable customer product.
+lastReviewedAt: 2026-08-20
 ---
 
-Install `@bapX/cli` as a development dependency, then invoke `bapX` through your package manager:
+The bapX CLI is internal build, operations, map, development, and maintenance tooling for this repository. It is not an external customer workflow and must not be installed as part of hosted-product onboarding.
+
+Maintainers use it from a trusted repository checkout after installing the workspace dependencies and building the CLI package:
 
 ```bash
-npm install --save-dev @bapX/cli
-npx bapX dev
+npm run build --workspace @bapX/cli
+node packages/cli/dist/bapX.js --help
 ```
 
-The CLI requires Node.js `>=22.19.0`. Cloudflare development and deployment also require `wrangler` as a development dependency.
+The command examples below assume that a maintainer has built and linked the workspace package inside an isolated development environment. They are not customer onboarding commands. The CLI requires Node.js `>=22.19.0`; Cloudflare maintenance also requires the repository's Wrangler dependency.
 
 ## Develop locally
 
@@ -56,14 +58,14 @@ A build packages the discovered application for its runtime target. It does not 
 
 ## Command reference
 
-| Command                              | Description                                                                     |
-| ------------------------------------ | ------------------------------------------------------------------------------- |
-| [`bapX init`](/docs/cli/init/)       | Create an initial `bapX.config.ts`.                                             |
-| [`bapX dev`](/docs/cli/dev/)         | Serve and watch the local application.                                          |
-| [`bapX run`](/docs/cli/run/)         | Execute one agent prompt or workflow invocation, then exit.                     |
-| [`bapX build`](/docs/cli/build/)     | Create deployable application artifacts.                                        |
-| [`bapX add`](/docs/cli/add/)         | Fetch sandbox, channel, or database installation blueprints for a coding agent. |
-| [`bapX update`](/docs/cli/update/)   | Fetch a current blueprint so a coding agent can apply its newer upgrade guides. |
-| [`bapX docs`](/docs/cli/docs/)       | List, read, and search the bundled Bapx documentation.                          |
-| [`bapX okf`](/docs/cli/okf/)         | Index and query OKF Markdown knowledge inside one authorized workspace root.     |
-| [`bapX browse`](/docs/cli/browse/)   | Drive a real isolated browser session through the wrapped agent-browser CLI.     |
+| Command                            | Description                                                                     |
+| ---------------------------------- | ------------------------------------------------------------------------------- |
+| [`bapX init`](/docs/cli/init/)     | Create an initial `bapX.config.ts`.                                             |
+| [`bapX dev`](/docs/cli/dev/)       | Serve and watch the local application.                                          |
+| [`bapX run`](/docs/cli/run/)       | Execute one agent prompt or workflow invocation, then exit.                     |
+| [`bapX build`](/docs/cli/build/)   | Create deployable application artifacts.                                        |
+| [`bapX add`](/docs/cli/add/)       | Fetch sandbox, channel, or database installation blueprints for a coding agent. |
+| [`bapX update`](/docs/cli/update/) | Fetch a current blueprint so a coding agent can apply its newer upgrade guides. |
+| [`bapX docs`](/docs/cli/docs/)     | List, read, and search the bundled Bapx documentation.                          |
+| [`bapX okf`](/docs/cli/okf/)       | Index and query OKF Markdown knowledge inside one authorized workspace root.    |
+| [`bapX browse`](/docs/cli/browse/) | Drive a real isolated browser session through the wrapped agent-browser CLI.    |

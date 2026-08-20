@@ -8,7 +8,7 @@ import "../styles/global.css";
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Contact | bapX</title>
-    <meta name="description" content="Get in touch with the bapX team." />
+    <meta name="description" content="Contact bapX or continue a scoped MediaHub enterprise-services conversation." />
     <meta name="theme-color" content="#0a0a0a" />
     <link rel="canonical" href="https://bapx.in/contact/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=bapx-20260711" />
@@ -40,14 +40,22 @@ import "../styles/global.css";
     </nav>
 
     <main class="page-section page-header" style="max-width: 680px; margin: 0 auto;">
-      <span class="mono-label">Contact</span>
-      <h1 class="display-xl" style="margin-top: 1.75rem;">Get in Touch</h1>
-      <p class="body-lg" style="margin-top: 1.5rem; max-width: 560px;">Have a project in mind, interested in using bapX, or just want to say hello? Reach out below.</p>
+      <span id="contact-label" class="mono-label">Contact</span>
+      <h1 id="contact-heading" class="display-xl" style="margin-top: 1.75rem;">Get in touch.</h1>
+      <p id="contact-intro" class="body-lg" style="margin-top: 1.5rem; max-width: 620px;">Have a project in mind, interested in bapX, or want to discuss a direct MediaHub engagement? Reach out below.</p>
+
+      <section id="contact-scope" class="contact-scope-summary" aria-label="Selected MediaHub scope" hidden>
+        <div><span>Primary outcome</span><strong data-scope-value="service"></strong></div>
+        <div><span>Current systems</span><strong data-scope-value="systems"></strong></div>
+        <div><span>Timeline</span><strong data-scope-value="timeline"></strong></div>
+        <a id="contact-scope-email" href="mailto:hello@bapx.in" class="bapx-button bapx-button-accent">Email this brief</a>
+        <a href="https://mediahub.bapx.in/#scope">Change selections</a>
+      </section>
 
       <div class="card-grid-2" style="margin-top: 3.375rem; max-width: 560px;">
         <div class="card">
           <h2 class="display-md">Email</h2>
-          <p class="body-sm" style="margin-top: .75rem;"><a href="mailto:hello@bapx.in" style="color: var(--ink);">hello@bapx.in</a></p>
+          <p class="body-sm" style="margin-top: .75rem;"><a id="contact-email" href="mailto:hello@bapx.in" style="color: var(--ink);">hello@bapx.in</a></p>
         </div>
         <div class="card">
           <h2 class="display-md">X / Twitter</h2>
@@ -62,9 +70,30 @@ import "../styles/global.css";
 
     <footer class="page-footer">
       <div class="section-inner">
-        <span>bapX — Marketing operations, built into agents.</span>
+        <span>bapX — The operating system for people and agents.</span>
         <span>&copy; {new Date().getFullYear()}</span>
       </div>
     </footer>
+    <script is:inline>
+      const params = new URLSearchParams(window.location.search);
+      const scope = {
+        service: params.get('service')?.trim() || '',
+        systems: params.get('systems')?.trim() || '',
+        timeline: params.get('timeline')?.trim() || '',
+      };
+      if (scope.service && scope.systems && scope.timeline) {
+        document.querySelector('#contact-label').textContent = 'MediaHub scope';
+        document.querySelector('#contact-heading').textContent = 'Continue the scoped conversation.';
+        document.querySelector('#contact-intro').textContent = 'Your selections are ready to include in an email to the bapX MediaHub team. Add the operating workflow, people, integrations, constraints, and production outcome before sending.';
+        Object.entries(scope).forEach(([key, value]) => {
+          document.querySelector(`[data-scope-value="${key}"]`).textContent = value;
+        });
+        const body = `Primary outcome: ${scope.service}\nCurrent systems: ${scope.systems}\nTimeline: ${scope.timeline}\n\nPlease add the workflow, users, integrations, constraints, and production outcome.`;
+        const mailto = `mailto:hello@bapx.in?subject=${encodeURIComponent(`MediaHub scope: ${scope.service}`)}&body=${encodeURIComponent(body)}`;
+        document.querySelector('#contact-scope-email').href = mailto;
+        document.querySelector('#contact-email').href = mailto;
+        document.querySelector('#contact-scope').hidden = false;
+      }
+    </script>
   </body>
 </html>

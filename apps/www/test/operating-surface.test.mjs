@@ -14,6 +14,7 @@ describe('resolveOperatingSurface()', () => {
 			label: 'Agents',
 			projectScope: 'your business workspace',
 			showAdminPullRequests: false,
+			showMediaHub: false,
 		});
 	});
 
@@ -25,6 +26,7 @@ describe('resolveOperatingSurface()', () => {
 			label: 'Admin',
 			projectScope: 'projects in /root/bapx.in',
 			showAdminPullRequests: true,
+			showMediaHub: true,
 		});
 	});
 });
