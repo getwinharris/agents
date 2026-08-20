@@ -33,7 +33,10 @@ test('password routes are same-origin gated and body-capped', () => {
 });
 
 test('passwords are salted scrypt and never leave the store', () => {
-	assert.match(store, /crypto\.scryptSync/);
+	// scrypt must run off the event loop: a synchronous derivation on the login
+	// path lets an unauthenticated caller stall the shared apps-www process.
+	assert.match(store, /crypto\.scrypt\(/);
+	assert.doesNotMatch(store, /crypto\.scryptSync/);
 	assert.match(store, /crypto\.randomBytes\(16\)/);
 	assert.match(store, /timingSafeEqual/);
 	// Every account read that can reach a response must strip the credential.

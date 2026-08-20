@@ -64,8 +64,11 @@ export function createApiKeyStore({ workspaceRoot }) {
 
 	function load() {
 		const stored = readJson(keysFile, { schemaVersion: SCHEMA_VERSION, keys: [] });
+		// A well-formed file with an unexpected shape is corruption or a rollback,
+		// not first-run state. Returning empty here would reject every existing
+		// record and let the next write persist the empty-derived collection.
 		if (stored.schemaVersion !== SCHEMA_VERSION || !Array.isArray(stored.keys)) {
-			return { schemaVersion: SCHEMA_VERSION, keys: [] };
+			throw new Error('API key storage has an unsupported schema');
 		}
 		return stored;
 	}

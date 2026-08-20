@@ -183,18 +183,32 @@ function readAdminHandoffs(file) {
 // scrypt with a per-account salt — a plain hash is brute-forceable against a
 // leaked collection, and the account file is the same file that holds email
 // addresses. Verification is constant-time.
-function hashPassword(password) {
+// scrypt is deliberately expensive, which is the point for an attacker holding
+// the file and a problem on the request path: apps-www runs one event loop for
+// the gateway and every web surface, so a synchronous derivation lets any
+// unauthenticated caller stall the whole process by posting login attempts —
+// including for addresses that do not exist. Run it off-loop.
+function scrypt(password, salt, length) {
+	return new Promise((resolve, reject) => {
+		crypto.scrypt(String(password), salt, length, (error, derived) => {
+			if (error) reject(error);
+			else resolve(derived);
+		});
+	});
+}
+
+async function hashPassword(password) {
 	const salt = crypto.randomBytes(16);
-	const derived = crypto.scryptSync(String(password), salt, 64);
+	const derived = await scrypt(password, salt, 64);
 	return { algorithm: 'scrypt', salt: salt.toString('base64'), hash: derived.toString('base64') };
 }
 
-function verifyPassword(password, record) {
+async function verifyPassword(password, record) {
 	if (!record || record.algorithm !== 'scrypt') return false;
 	try {
 		const salt = Buffer.from(record.salt, 'base64');
 		const expected = Buffer.from(record.hash, 'base64');
-		const derived = crypto.scryptSync(String(password), salt, expected.length);
+		const derived = await scrypt(password, salt, expected.length);
 		return crypto.timingSafeEqual(derived, expected);
 	} catch {
 		return false;
@@ -315,7 +329,7 @@ export function createPlatformStore({ workspaceRoot }) {
 				email: cleanEmail,
 				primaryBusinessSlug: 'workspace',
 				providers: [],
-				passwordHash: hashPassword(cleanPassword),
+				passwordHash: await hashPassword(cleanPassword),
 				createdAt: now,
 				updatedAt: now,
 			};
@@ -333,7 +347,7 @@ export function createPlatformStore({ workspaceRoot }) {
 			const stored = readJson(accountsFile, { schemaVersion: 2, accounts: [] });
 			const account = stored.accounts.find((item) => item.email === cleanEmail);
 			const record = account?.passwordHash ?? { algorithm: 'scrypt', salt: crypto.randomBytes(16).toString('base64'), hash: crypto.randomBytes(64).toString('base64') };
-			const ok = verifyPassword(password, record);
+			const ok = await verifyPassword(password, record);
 			if (!account || !ok) throw new Error('That email address and password do not match an account.');
 			return { account: { ...account, passwordHash: undefined } };
 		},

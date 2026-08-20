@@ -817,7 +817,16 @@ async function handleApiKeyAdmin(req, res, urlPath, host) {
 		return true;
 	}
 	if (req.method === 'POST' && urlPath === '/api/platform/api-keys') {
-		const payload = await parseBody(req).catch(() => ({}));
+		// Bounded like the gateway and connector routes: a valid session must not
+		// be enough to exhaust the shared process with one long-lived body.
+		let payload;
+		try {
+			payload = JSON.parse((await readRawBody(req, 64 * 1024)).toString('utf8') || '{}');
+		} catch (error) {
+			const tooLarge = error?.name === 'PayloadTooLargeError';
+			jsonResponse(res, tooLarge ? 413 : 400, { error: tooLarge ? 'payload_too_large' : 'invalid_request' });
+			return true;
+		}
 		const { secret, key } = apiKeyStore.issue(account.id, payload.name);
 		jsonResponse(res, 201, { key, secret });
 		return true;
@@ -837,12 +846,24 @@ http.createServer(async (req, res) => {
 	const urlPath = req.url?.split('?')[0] ?? '';
 	if (host === 'api.bapx.in') { await handleApiGateway(req, res, urlPath); return; }
 	if (urlPath.startsWith('/api/platform/connections')) {
-		const handled = await handleConnectorAPI(req, res, urlPath, host);
-		if (handled) return;
+		// The stores now throw on unreadable or corrupt collections rather than
+		// silently reporting "empty". Without a boundary here that rejection
+		// escapes the async request listener, which Node neither awaits nor
+		// catches, and takes down apps-www for every surface.
+		try {
+			if (await handleConnectorAPI(req, res, urlPath, host)) return;
+		} catch {
+			jsonResponse(res, 503, { error: 'connector_storage_unavailable' });
+			return;
+		}
 	}
 	if (urlPath.startsWith('/api/platform/api-keys')) {
-		const handled = await handleApiKeyAdmin(req, res, urlPath, host);
-		if (handled) return;
+		try {
+			if (await handleApiKeyAdmin(req, res, urlPath, host)) return;
+		} catch {
+			jsonResponse(res, 503, { error: 'api_key_storage_unavailable' });
+			return;
+		}
 	}
 	if (host === 'docs.bapx.in' && urlPath === '/') { res.writeHead(302, { Location: 'https://docs.bapx.in/getting-started/quickstart/' }); res.end(); return; }
 	if (urlPath.startsWith('/api/auth/')) {

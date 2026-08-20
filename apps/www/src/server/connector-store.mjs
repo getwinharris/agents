@@ -116,8 +116,11 @@ export function createConnectorStore({ workspaceRoot }) {
 
 	function load() {
 		const stored = readJson(file, { schemaVersion: SCHEMA_VERSION, connections: [] });
+		// A well-formed file with an unexpected shape is corruption or a rollback,
+		// not first-run state. Returning empty here would reject every existing
+		// record and let the next write persist the empty-derived collection.
 		if (stored.schemaVersion !== SCHEMA_VERSION || !Array.isArray(stored.connections)) {
-			return { schemaVersion: SCHEMA_VERSION, connections: [] };
+			throw new Error('Connector storage has an unsupported schema');
 		}
 		return stored;
 	}
