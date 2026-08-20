@@ -678,6 +678,18 @@ async function handleApiGateway(req, res, urlPath) {
 	await proxyToApiPlane(req, res, { origin: apiPlaneOrigin, planeToken: apiPlaneToken, urlPath: forwardTarget, body });
 }
 
+// decodeURIComponent throws URIError on a malformed escape such as a bare '%'.
+// These handlers run inside an async request listener that Node neither awaits
+// nor catches, so an escaping rejection can terminate the shared apps-www
+// process. Decode defensively and treat undecodable ids as not found.
+function decodeIdentifier(value) {
+	try {
+		return decodeURIComponent(value);
+	} catch {
+		return null;
+	}
+}
+
 // The session cookie is scoped Domain=.bapx.in so it is shared with every
 // subdomain, including customer-hosted project subdomains. A page there is
 // same-site with Platform, so a plain HTML form POST carries the victim's
@@ -731,7 +743,8 @@ async function handleConnectorAPI(req, res, urlPath, host) {
 	}
 
 	if (req.method === 'DELETE' && urlPath.startsWith('/api/platform/connections/')) {
-		const id = decodeURIComponent(urlPath.slice('/api/platform/connections/'.length));
+		const id = decodeIdentifier(urlPath.slice('/api/platform/connections/'.length));
+		if (id === null) { jsonResponse(res, 404, { error: 'not_found' }); return true; }
 		jsonResponse(res, connectorStore.disconnect(account.id, id) ? 200 : 404, { disconnected: id });
 		return true;
 	}
@@ -755,7 +768,8 @@ async function handleApiKeyAdmin(req, res, urlPath, host) {
 		return true;
 	}
 	if (req.method === 'DELETE' && urlPath.startsWith('/api/platform/api-keys/')) {
-		const id = decodeURIComponent(urlPath.slice('/api/platform/api-keys/'.length));
+		const id = decodeIdentifier(urlPath.slice('/api/platform/api-keys/'.length));
+		if (id === null) { jsonResponse(res, 404, { error: 'not_found' }); return true; }
 		jsonResponse(res, apiKeyStore.revoke(account.id, id) ? 200 : 404, { revoked: id });
 		return true;
 	}

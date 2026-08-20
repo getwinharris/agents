@@ -14,10 +14,21 @@ const SCHEMA_VERSION = 1;
 const ALGORITHM = 'aes-256-gcm';
 
 function readJson(file, fallback) {
+	let raw;
 	try {
-		return JSON.parse(fs.readFileSync(file, 'utf8'));
+		raw = fs.readFileSync(file, 'utf8');
+	} catch (error) {
+		// Only a genuinely missing file may initialise an empty collection. Any
+		// other failure treated as "no connections" would let the next connect()
+		// persist an empty-derived collection, permanently deleting every other
+		// customer's encrypted connector record.
+		if (error?.code === 'ENOENT') return fallback;
+		throw new Error(`Connector storage is unreadable (${error?.code || 'unknown'})`);
+	}
+	try {
+		return JSON.parse(raw);
 	} catch {
-		return fallback;
+		throw new Error('Connector storage is corrupt');
 	}
 }
 

@@ -144,8 +144,22 @@ export function bearerToken(req) {
 // The caller's Authorization header is deliberately NOT forwarded: the bapX key
 // authenticates the customer to us, and carries no meaning to the plane. The
 // plane is reached with its own credential.
+// Endpoints a customer key may reach. An allowlist rather than a prefix test:
+// the plane is single-tenant, so anything outside /v1 is operator surface.
+const ALLOWED_PLANE_PATHS = new Set(['/v1/models', '/v1/chat/completions']);
+
 export async function proxyToApiPlane(req, res, { origin, planeToken, urlPath, body }) {
 	const target = new URL(urlPath, origin);
+
+	// Check the NORMALIZED pathname, not the raw string. `new URL()` resolves
+	// dot segments, so `/v1/%2e%2e/dashboard` passes a naive `/v1/` prefix test
+	// and then normalizes to `/dashboard` — reaching the plane's single-tenant
+	// dashboard with the plane's own token attached.
+	if (!ALLOWED_PLANE_PATHS.has(target.pathname)) {
+		res.writeHead(404, { 'content-type': 'application/json' });
+		res.end(JSON.stringify({ error: { message: 'Unknown endpoint', type: 'not_found' } }));
+		return;
+	}
 	const headers = { 'content-type': req.headers['content-type'] || 'application/json' };
 	if (req.headers.accept) headers.accept = req.headers.accept;
 	if (planeToken) headers.authorization = `Bearer ${planeToken}`;
