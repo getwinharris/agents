@@ -1,49 +1,44 @@
 ---
 title: Why bapX?
-description: Ten years of marketing and branding operations, packaged as hosted agents for your business.
+description: One operating system for people, projects, and specialist agents, with explicit live and planned boundaries.
 ---
 
-**bapX** packages 10+ years of marketing and branding operations into hosted agents. Platform is the account and settings control plane; Agents and Admin are the operating workspaces where people, projects, brand assets, documents, provider credentials, connectors, agents, automations, and the central bapX agent work together inside one OKF workspace.
+**bapX** is an operating system for people and agents. It combines a GitHub-backed workspace boundary, an authenticated customer operating surface, a central main-agent runtime, and a public TypeScript framework for agents and workflows.
 
-## What bapX solves
+## What is live today
 
-Teams building with agent frameworks face the same problems:
-- Setting up runtimes and infrastructure
-- Managing API keys and secrets
-- Building UIs for agent interaction
-- Handling team permissions and access
-- Connecting agents to Slack, GitHub, email, etc.
-- Monitoring agent activity and debugging failures
+- **Public product and documentation** — The landing, pricing, ecosystem, documentation, research, release, and MediaHub routes are served from one versioned web release.
+- **GitHub-backed identity** — A verified GitHub identity creates or resumes the account and user-level OKF workspace. Repository authorization remains a separate GitHub App permission flow.
+- **Customer operating surface** — `agents.bapx.in` is authentication-gated and uses the shared operating shell, central main-agent transport, and customer-scoped workspace routes.
+- **bapX Admin** — `admin.bapx.in` is entitlement-gated and applies the same operating model with wider bapX workspace authority. Confirmed public-repository import is implemented.
+- **Developer framework** — Code-defined agents, workflows, tools, skills, channels, persistence, Node.js and Cloudflare targets, the runtime API, and SDK have public documentation.
+- **Enterprise delivery** — [MediaHub](https://mediahub.bapx.in) offers direct, custom-quote forward-deployed engineering for AI/data/CRM/ERP, commerce, growth, and managed production outcomes.
 
-bapX eliminates all of this. Your agents run in our cloud, connected to your tools, accessible to your team — from day one.
+## What remains incomplete
 
-## Platform features
+Platform currently supplies authentication and the control-plane information architecture. Self-service provider credential management, connector setup, API-key management, MCP client management, billing checkout, quota enforcement, team-role administration, arbitrary hosted-agent creation, and one-click project hosting are not yet complete public workflows.
 
-- **bapX agent cockpit** — Start work from one central agent that coordinates specialist agents, repository/project context, browser/search tools, automations, and human handoffs.
-- **Managed agents** — Create, deploy, and run agents from your browser. Hosted customers do not need a CLI or DevOps setup; developers and coding agents can use the public CLI/build/API docs for supported implementation work.
-- **Team collaboration** — Invite team members, assign roles, share agents across your organisation.
-- **Channels** — Connect agents to Slack, GitHub, Linear, email, Discord, and more with one click.
-- **MCP Gateway** — Give your agents access to external tools and services through the Model Context Protocol at `api.bapx.in/mcp`.
-- **Workflows** — Define structured automations that run alongside your autonomous agents.
-- **Usage & billing** — ₹500/month includes 5 GB storage, hosted search, browser sessions, hosted agents/workflows, Node.js project subdomains, TTS, and STT. Additional storage is ₹100/GB/month up to 100 GB; bring your own AI-provider tokens and connector credentials. There is no free bapX plan.
-- **Observability and quality** — Monitor agent activity, review conversation logs, trace failures with OpenTelemetry and Sentry, and protect behavior with Braintrust and Vitest evals.
+The shared `api.bapx.in` API and MCP gateway is also not served today. The framework API documentation describes APIs exposed by applications that developers build and deploy; it does not advertise a live shared bapX gateway.
 
-## For marketing and branding operations
+## Where bapX is focused
 
-bapX starts with the work its operating team already knows deeply:
+bapX begins with operating work its team already understands deeply:
 
-- **Brand operations** — Research, strategy, guidelines, assets, and consistency checks
-- **Campaign operations** — Planning, production, channel coordination, and reporting
-- **Content and media** — Briefs, calendars, production workflows, publishing, and measurement
-- **Business delivery** — Projects, approvals, client collaboration, product work, and operational reporting
+- Brand, campaign, content, and media operations
+- Product, engineering, support, and business delivery
+- Projects, approvals, evidence, and human-agent coordination
+- Enterprise integrations that require embedded builders rather than advisory reports
 
-## Platform principles
+## Product principles
 
-1. **Managed, not self-hosted** — Your agents run in our cloud. We handle scaling, uptime, and infrastructure.
-2. **Team-first** — Agents are shared resources in your workspace, not scripts on your laptop.
-3. **Connected** — Agents integrate with the tools your team already uses — Slack, GitHub, email, and more.
-4. **Transparent** — You own your data, your API keys, and your model choices. No lock-in.
+1. **Evidence before availability** — A capability is shipped only after merge, deployment, and live verification.
+2. **Scoped workspaces** — Customer work remains inside the authorized user, business, and project boundary.
+3. **Bring your own credentials** — Provider and connector credentials belong to the customer or business scope; bapX does not promise pooled third-party quotas.
+4. **One operating model** — Agents and Admin use the same people, project, agent, automation, and evidence concepts with different authority.
+5. **Clear commercial boundaries** — The Agents subscription and direct MediaHub enterprise engagements are separate offers.
 
-## Get started
+## Pricing
 
-[Sign up for a workspace](https://platform.bapx.in) and deploy your first agent in minutes — no code required.
+The India-first Agents offer is ₹500/month with 5 GB storage, hosted search, browser sessions, hosted agents/workflows, TTS, STT, and Node.js project subdomains included when project hosting is enabled. Self-service subdomain publishing is not currently available. Additional storage is ₹100/GB/month up to 100 GB. There is no free bapX plan. Automated billing and quota controls remain incomplete until they are deployed and verified.
+
+Review [Product surfaces and availability](/docs/introduction/product-surfaces/) before depending on a specific hosted workflow, or open the [Development overview](/docs/reference/development/) to build with the framework today.

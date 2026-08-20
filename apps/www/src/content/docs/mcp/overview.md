@@ -1,13 +1,13 @@
 ---
 title: MCP Gateway
-description: Connect agents through the Model Context Protocol gateway at api.bapx.in/mcp.
+description: Planned customer gateway and the current application-owned Model Context Protocol boundary.
 ---
 
-The planned bapX MCP gateway at `api.bapx.in/mcp` provides authenticated access to approved agents, tools, resources, prompts, and workspace context through the open Model Context Protocol.
+The planned bapX MCP gateway is intended to provide authenticated access to approved agents, tools, resources, prompts, and workspace context through the open Model Context Protocol. `api.bapx.in/mcp` is not served today and returns HTTP 404.
 
-MCP is the standard bridge that lets AI applications connect to external systems as tools and context instead of copying private data into prompts. bapX uses that model so Codex, ChatGPT, Claude, GitHub-connected agents, and other MCP clients can manage a business workspace only through scoped, auditable capabilities.
+MCP is the standard bridge that lets AI applications connect to external systems as tools and context instead of copying private data into prompts. The planned bapX shared gateway would use that model so approved clients can manage a business workspace only through scoped, auditable capabilities. Application-owned MCP servers can apply the same boundary today without implying that the shared gateway is live.
 
-## What bapX should expose
+## Planned shared gateway
 
 - Workspace and project resources derived from OKF files, docs, and `map.mmd`.
 - Tools for approved project, connector, agent, automation, billing, and observability operations.
@@ -16,7 +16,9 @@ MCP is the standard bridge that lets AI applications connect to external systems
 
 ## Current status
 
-The public gateway endpoint and full client-management flow are planned until the authenticated MCP server, access policy, connector approval boundary, and browser-validated Platform controls are implemented. Existing docs and catalog entries must not imply unaudited production MCP mutations are already available.
+The public gateway endpoint and full client-management flow remain planned until the authenticated MCP server, access policy, connector approval boundary, and browser-validated Platform controls are implemented. Existing docs and catalog entries must not imply unaudited production MCP mutations are already available.
+
+Developers may still implement an MCP server inside their own application or project boundary. That application-owned server is separate from the unserved shared bapX gateway.
 
 ## Security boundary
 
