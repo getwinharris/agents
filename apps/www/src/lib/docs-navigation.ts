@@ -47,6 +47,29 @@ const allDocsSections: DocsSection[] = [
 		landingSlug: 'sdk/overview',
 		groups: [
 			{
+				title: 'Build with Bapx',
+				items: [
+					{ title: 'Agents', slug: 'guide/building-agents' },
+					{ title: 'Workflows', slug: 'guide/workflows' },
+					{ title: 'Actions', slug: 'guide/actions' },
+					{ title: 'Tools', slug: 'guide/tools' },
+					{ title: 'Skills', slug: 'guide/skills' },
+					{ title: 'Subagents', slug: 'guide/subagents' },
+					{ title: 'Models', slug: 'guide/models' },
+					{ title: 'Routing', slug: 'guide/routing' },
+					{ title: 'Persistence', slug: 'guide/database' },
+					{ title: 'Sandboxes', slug: 'guide/sandboxes' },
+					{ title: 'Schedules', slug: 'guide/schedules' },
+					{ title: 'Channels', slug: 'guide/channels' },
+					{ title: 'React', slug: 'guide/react' },
+					{ title: 'Observability', slug: 'guide/observability' },
+					{ title: 'Evals', slug: 'guide/evals' },
+					{ title: 'Project layout', slug: 'guide/project-layout' },
+					{ title: 'Node.js target', slug: 'guide/targets/node' },
+					{ title: 'Cloudflare target', slug: 'guide/targets/cloudflare' },
+				],
+			},
+			{
 				title: 'Runtime API',
 				items: [
 					{ title: 'Agents', slug: 'api/agent-api' },

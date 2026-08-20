@@ -15,7 +15,7 @@ The public `root-sandbox/` name is the customer-facing boundary. Server storage 
 
 | Capability                                              | Status                                                                                                                    |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| GitHub signup, login, shared device session, and logout | Implemented. bapX stores no password.                                                                                     |
+| GitHub signup, login, shared device session, and logout | Partial. The flows work and bapX stores no password; the completion gate still requires rate limiting and final checks.   |
 | User workspace and first business creation              | Implemented when a verified GitHub identity signs in for the first time.                                                  |
 | Platform page                                           | Live information architecture. The static shell performs a client-side session check and redirects unsigned users.        |
 | Customer Agents surface                                 | Live and authentication-gated, with the shared shell, central main-agent transport, and customer-scoped workspace routes. |
