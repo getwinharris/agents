@@ -178,6 +178,43 @@ function readAdminHandoffs(file) {
 	}
 }
 
+// Password credentials.
+//
+// scrypt with a per-account salt — a plain hash is brute-forceable against a
+// leaked collection, and the account file is the same file that holds email
+// addresses. Verification is constant-time.
+function hashPassword(password) {
+	const salt = crypto.randomBytes(16);
+	const derived = crypto.scryptSync(String(password), salt, 64);
+	return { algorithm: 'scrypt', salt: salt.toString('base64'), hash: derived.toString('base64') };
+}
+
+function verifyPassword(password, record) {
+	if (!record || record.algorithm !== 'scrypt') return false;
+	try {
+		const salt = Buffer.from(record.salt, 'base64');
+		const expected = Buffer.from(record.hash, 'base64');
+		const derived = crypto.scryptSync(String(password), salt, expected.length);
+		return crypto.timingSafeEqual(derived, expected);
+	} catch {
+		return false;
+	}
+}
+
+// Derive a workspace username from an email local part, since a password
+// account has no GitHub login to borrow. Collisions get a numeric suffix rather
+// than failing signup on a name the user never chose.
+function usernameFromEmail(email, taken) {
+	const base = String(email).split('@')[0].toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '').slice(0, 32) || 'user';
+	let candidate = validSlug(base) ? base : `user-${base}`.slice(0, 39);
+	let suffix = 1;
+	while (taken.has(candidate)) {
+		suffix += 1;
+		candidate = `${base.slice(0, 30)}-${suffix}`;
+	}
+	return candidate;
+}
+
 export function createPlatformStore({ workspaceRoot }) {
 	const platformRoot = path.join(workspaceRoot, 'data', 'platform');
 	const accountsFile = path.join(platformRoot, 'collections', 'accounts.json');
@@ -242,6 +279,54 @@ export function createPlatformStore({ workspaceRoot }) {
 			return { account, business, created: true };
 		},
 
+		// Email + password registration. GitHub remains available and can be linked
+		// later, but it is no longer required to hold a bapX account.
+		async registerWithPassword({ email, password, name }) {
+			const cleanEmail = String(email ?? '').trim().toLowerCase();
+			const cleanPassword = String(password ?? '');
+			if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new Error('Enter a valid email address');
+			if (cleanPassword.length < 12) throw new Error('Use a password of at least 12 characters');
+			if (cleanPassword.length > 512) throw new Error('That password is too long');
+
+			const stored = readJson(accountsFile, { schemaVersion: 2, accounts: [] });
+			const accounts = { schemaVersion: 2, accounts: stored.accounts };
+			if (accounts.accounts.some((item) => item.email === cleanEmail)) {
+				throw new Error('An account already exists for that email address. Sign in instead.');
+			}
+			const taken = new Set(accounts.accounts.map((item) => item.username));
+			const username = usernameFromEmail(cleanEmail, taken);
+			const now = new Date().toISOString();
+			const displayName = String(name ?? '').trim().slice(0, 64) || username;
+			const account = {
+				id: crypto.randomUUID(),
+				username,
+				name: displayName,
+				email: cleanEmail,
+				primaryBusinessSlug: 'workspace',
+				providers: [],
+				passwordHash: hashPassword(cleanPassword),
+				createdAt: now,
+				updatedAt: now,
+			};
+			const business = { id: crypto.randomUUID(), name: `${displayName} Workspace`, slug: 'workspace', owner: username, website: null, socialLinks: {}, createdAt: now, updatedAt: now };
+			ensureUserWorkspace(workspaceRoot, account, business);
+			accounts.accounts.push(account);
+			writeJson(accountsFile, accounts);
+			return { account: { ...account, passwordHash: undefined }, business, created: true };
+		},
+
+		// Always runs the same work for a missing account as for a wrong password,
+		// so response timing does not reveal which emails are registered.
+		async loginWithPassword({ email, password }) {
+			const cleanEmail = String(email ?? '').trim().toLowerCase();
+			const stored = readJson(accountsFile, { schemaVersion: 2, accounts: [] });
+			const account = stored.accounts.find((item) => item.email === cleanEmail);
+			const record = account?.passwordHash ?? { algorithm: 'scrypt', salt: crypto.randomBytes(16).toString('base64'), hash: crypto.randomBytes(64).toString('base64') };
+			const ok = verifyPassword(password, record);
+			if (!account || !ok) throw new Error('That email address and password do not match an account.');
+			return { account: { ...account, passwordHash: undefined } };
+		},
+
 		createSession(accountId) {
 			const sessions = readJson(sessionsFile, { schemaVersion: 2, sessions: [] });
 			const session = { token: crypto.randomBytes(32).toString('base64url'), accountId, createdAt: new Date().toISOString() };
@@ -257,7 +342,10 @@ export function createPlatformStore({ workspaceRoot }) {
 			if (!session) return null;
 			const account = readJson(accountsFile, { accounts: [] }).accounts.find((item) => item.id === session.accountId);
 			if (!account) return null;
-			return account;
+			// Never hand the credential material back out. /api/auth/session
+			// serialises whatever this returns straight to the browser.
+			const { passwordHash: _passwordHash, ...safe } = account;
+			return safe;
 		},
 
 		deleteSession(token) {

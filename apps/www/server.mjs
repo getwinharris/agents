@@ -391,6 +391,36 @@ async function handleAuthAPI(req, res, urlPath, host) {
 		}
 		return true;
 	}
+	if (req.method === 'POST' && (urlPath === '/api/auth/password/register' || urlPath === '/api/auth/password/login')) {
+		// Same-origin only: these set a session cookie shared across .bapx.in.
+		const origin = req.headers.origin;
+		let sameOrigin = false;
+		try {
+			sameOrigin = Boolean(origin) && new URL(origin).protocol === 'https:' && new URL(origin).host === host;
+		} catch {
+			sameOrigin = false;
+		}
+		if (!sameOrigin) { jsonResponse(res, 403, { error: 'cross_origin_forbidden' }); return true; }
+		let payload;
+		try {
+			payload = parseBodyBuffer(await readRawBody(req, 16 * 1024), req.headers['content-type'] || '');
+		} catch {
+			jsonResponse(res, 400, { error: 'Invalid request' });
+			return true;
+		}
+		try {
+			const register = urlPath.endsWith('/register');
+			const { account } = register
+				? await platformStore.registerWithPassword(payload)
+				: await platformStore.loginWithPassword(payload);
+			setSessionCookie(res, platformStore.createSession(account.id).token, host);
+			const returnTo = safeReturnTo(String(payload.returnTo || ''));
+			jsonResponse(res, register ? 201 : 200, { redirect: returnTo || 'https://platform.bapx.in/' });
+		} catch (error) {
+			jsonResponse(res, 400, { error: error.message });
+		}
+		return true;
+	}
 	if (req.method === 'POST' && urlPath === '/api/auth/logout') {
 		for (const token of getCookieValues(req, 'bapx_session')) platformStore.deleteSession(token);
 		clearSessionCookie(res, host);

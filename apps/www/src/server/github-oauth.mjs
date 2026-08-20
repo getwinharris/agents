@@ -53,6 +53,7 @@ function githubAppManifest() {
 		request_oauth_on_install: true,
 		public: false,
 		default_permissions: {
+			email: 'read',
 			metadata: 'read',
 			administration: 'write',
 			contents: 'write',
@@ -108,9 +109,30 @@ export async function githubIdentity(code) {
 	if (!code || !credentials.clientId || !credentials.clientSecret) throw new Error('GitHub login is not configured');
 	const token = await json('https://github.com/login/oauth/access_token', { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: credentials.clientId, client_secret: credentials.clientSecret, code, redirect_uri: callbackUrl }) });
 	const authorized = { ...headers, Authorization: `Bearer ${token.access_token}` };
-	const [user, emails] = await Promise.all([json('https://api.github.com/user', { headers: authorized }), json('https://api.github.com/user/emails', { headers: authorized })]);
-	const email = emails.find((item) => item.primary && item.verified)?.email || emails.find((item) => item.verified)?.email;
-	if (!email) throw new Error('GitHub must provide a verified email address');
+	const user = await json('https://api.github.com/user', { headers: authorized });
+	// A GitHub App can only read /user/emails when the `email` account permission
+	// is granted. Treat a permission failure as "no list available" rather than
+	// failing the whole sign-in.
+	let emails = [];
+	let emailsError = null;
+	try {
+		emails = await json('https://api.github.com/user/emails', { headers: authorized });
+		if (!Array.isArray(emails)) emails = [];
+	} catch (error) {
+		emailsError = error;
+	}
+	const email =
+		emails.find((item) => item.primary && item.verified)?.email ||
+		emails.find((item) => item.verified)?.email ||
+		(typeof user.email === 'string' && user.email.includes('@') ? user.email : '');
+	if (!email) {
+		if (emailsError) {
+			throw new Error(
+				'bapX could not read your GitHub email address. The bapX GitHub App needs the "Email addresses" account permission — an administrator must approve it, then sign in again.',
+			);
+		}
+		throw new Error('GitHub must provide a verified email address');
+	}
 	return { id: String(user.id), login: user.login, name: user.name || user.login, email };
 }
 
