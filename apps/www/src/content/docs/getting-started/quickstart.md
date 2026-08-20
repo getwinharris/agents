@@ -40,13 +40,13 @@ Self-service creation of arbitrary hosted agents, provider selection, connector 
 
 The public framework supports code-defined agents, workflows, tools, skills, channels, persistence, Node.js builds, and Cloudflare builds. Start with:
 
-1. [Development overview](/docs/reference/development/)
-2. [CLI overview](/docs/cli/overview/)
-3. [Building agents](/docs/guide/building-agents/)
-4. [Runtime Agent API](/docs/api/agent-api/)
-5. [SDK overview](/docs/sdk/overview/)
+1. [Building agents](/docs/guide/building-agents/)
+2. [Runtime Agent API](/docs/api/agent-api/)
+3. [SDK overview](/docs/sdk/overview/)
+4. [Node.js deployment](/docs/ecosystem/deploy/node/)
+5. [Cloudflare deployment](/docs/ecosystem/deploy/cloudflare/)
 
-Framework deployment targets are documented developer contracts. They do not create an instant `agents.bapx.in/workspace/<name>` hosted route.
+Framework deployment targets are documented developer contracts. They do not create an instant `agents.bapx.in/workspace/<name>` hosted route. The repository's bapX CLI is internal maintainer tooling and is not an installable customer product.
 
 ## Check availability before planning
 

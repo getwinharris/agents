@@ -11,7 +11,7 @@ description: One operating system for people, projects, and specialist agents, w
 - **GitHub-backed identity** — A verified GitHub identity creates or resumes the account and user-level OKF workspace. Repository authorization remains a separate GitHub App permission flow.
 - **Customer operating surface** — `agents.bapx.in` is authentication-gated and uses the shared operating shell, central main-agent transport, and customer-scoped workspace routes.
 - **bapX Admin** — `admin.bapx.in` is entitlement-gated and applies the same operating model with wider bapX workspace authority. Confirmed public-repository import is implemented.
-- **Developer framework** — Code-defined agents, workflows, tools, skills, channels, persistence, Node.js and Cloudflare targets, the CLI, runtime API, and SDK have public documentation.
+- **Developer framework** — Code-defined agents, workflows, tools, skills, channels, persistence, Node.js and Cloudflare targets, the runtime API, and SDK have public documentation.
 - **Enterprise delivery** — [MediaHub](https://mediahub.bapx.in) offers direct, custom-quote forward-deployed engineering for AI/data/CRM/ERP, commerce, growth, and managed production outcomes.
 
 ## What remains incomplete

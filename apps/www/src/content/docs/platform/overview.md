@@ -17,7 +17,7 @@ The public `root-sandbox/` name is the customer-facing boundary. Server storage 
 | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | GitHub signup, login, shared device session, and logout | Implemented. bapX stores no password.                                                                                     |
 | User workspace and first business creation              | Implemented when a verified GitHub identity signs in for the first time.                                                  |
-| Platform page                                           | Live, authentication-gated information architecture. Account identity is loaded from the current session.                 |
+| Platform page                                           | Live information architecture. The static shell performs a client-side session check and redirects unsigned users.        |
 | Customer Agents surface                                 | Live and authentication-gated, with the shared shell, central main-agent transport, and customer-scoped workspace routes. |
 | Admin repository import                                 | Implemented for confirmed public GitHub repositories; Admin entitlement is required.                                      |
 | Billing checkout and quota enforcement                  | Planned. Razorpay is the intended INR payment owner.                                                                      |

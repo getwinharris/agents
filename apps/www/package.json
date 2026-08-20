@@ -5,10 +5,11 @@
 	"private": true,
 	"scripts": {
 		"dev": "astro dev",
-		"build": "astro build && npm run build --workspace bapX-admin",
+		"build": "astro build && npm run validate:docs-output && npm run build --workspace bapX-admin",
 		"deploy": "npm run build && npx wrangler deploy",
 		"preview": "astro preview",
 		"test:server": "node --test \"test/*.test.mjs\"",
+		"validate:docs-output": "node scripts/validate-docs-output.mjs",
 		"astro": "astro"
 	},
 	"dependencies": {

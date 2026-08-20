@@ -44,39 +44,8 @@ const allDocsSections: DocsSection[] = [
 	{
 		key: 'developers',
 		title: 'Developers',
-		landingSlug: 'reference/development',
+		landingSlug: 'sdk/overview',
 		groups: [
-			{
-				title: 'Reference',
-				items: [
-					{ title: 'Development overview', slug: 'reference/development' },
-					{ title: 'Configuration', slug: 'reference/configuration' },
-					{ title: 'Contributing', slug: 'reference/contributing' },
-					{ title: 'Source ownership', slug: 'reference/source-ownership' },
-					{ title: 'Platform auth', slug: 'reference/platform-auth' },
-					{ title: 'Shipping workflow', slug: 'reference/shipping' },
-					{
-						title: 'Changelog',
-						href: 'https://github.com/getwinharris/agents/blob/main/CHANGELOG.md',
-					},
-				],
-			},
-			{
-				title: 'CLI',
-				items: [
-					{ title: 'Overview', slug: 'cli/overview' },
-					{ title: 'Add', slug: 'cli/add' },
-					{ title: 'Browse', slug: 'cli/browse' },
-					{ title: 'Build', slug: 'cli/build' },
-					{ title: 'Dev', slug: 'cli/dev' },
-					{ title: 'Docs', slug: 'cli/docs' },
-					{ title: 'Init', slug: 'cli/init' },
-					{ title: 'Map', slug: 'cli/map' },
-					{ title: 'OKF', slug: 'cli/okf' },
-					{ title: 'Run', slug: 'cli/run' },
-					{ title: 'Update', slug: 'cli/update' },
-				],
-			},
 			{
 				title: 'Runtime API',
 				items: [
@@ -102,6 +71,19 @@ const allDocsSections: DocsSection[] = [
 					{ title: 'Runs', slug: 'sdk/runs' },
 					{ title: 'Events', slug: 'sdk/events' },
 					{ title: 'Errors', slug: 'sdk/errors' },
+				],
+			},
+			{
+				title: 'Maintainers',
+				items: [
+					{ title: 'Contributing', slug: 'reference/contributing' },
+					{ title: 'Source ownership', slug: 'reference/source-ownership' },
+					{ title: 'Platform auth', slug: 'reference/platform-auth' },
+					{ title: 'Shipping workflow', slug: 'reference/shipping' },
+					{
+						title: 'Changelog',
+						href: 'https://github.com/getwinharris/agents/blob/main/CHANGELOG.md',
+					},
 				],
 			},
 		],

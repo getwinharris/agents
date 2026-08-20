@@ -25,7 +25,7 @@ Agents are TypeScript modules, not records created by a hosted dashboard. Start 
 | Stage       | Supported behavior                                                                            |
 | ----------- | --------------------------------------------------------------------------------------------- |
 | **Define**  | Author the agent, model, instructions, tools, skills, and subagents in source.                |
-| **Build**   | Use the bapX CLI to create a Node.js or Cloudflare deployment artifact.                       |
+| **Build**   | Use the supported application build workflow for the selected deployment target.              |
 | **Deploy**  | Deploy the generated artifact through an application-owned hosting target and route.          |
 | **Connect** | Add code-backed channels, APIs, SDK clients, or MCP servers supported by that application.    |
 | **Observe** | Use the runtime event, conversation, persistence, tracing, and application logging contracts. |
