@@ -62,6 +62,7 @@ const allDocsSections: DocsSection[] = [
 					{ title: 'Tools', slug: 'guide/tools' },
 					{ title: 'Skills', slug: 'guide/skills' },
 					{ title: 'Subagents', slug: 'guide/subagents' },
+					{ title: 'Delegated tasks', slug: 'guide/delegated-tasks' },
 					{ title: 'Models', slug: 'guide/models' },
 					{ title: 'Routing', slug: 'guide/routing' },
 					{ title: 'Persistence', slug: 'guide/database' },

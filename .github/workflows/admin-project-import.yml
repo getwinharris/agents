@@ -44,6 +44,14 @@ jobs:
       - name: Run apps-www server contracts
         run: npm run test:server --workspace apps-www
 
+      # The orchestration loop is what makes a submitted task actually run.
+      # It had no CI coverage at all, so a regression here would ship silently.
+      - name: Run agents-runtime orchestration contracts
+        run: npm run test --workspace bapX-agents-runtime
+
+      - name: Type-check agents-runtime
+        run: npm run check:types --workspace bapX-agents-runtime
+
       - name: Build apps-www and Admin
         run: |
           set +e

@@ -1,5 +1,5 @@
 flowchart TD
-  root["workspace"]
+  root["agents-loop"]
   n_apps["apps"]
   root --> n_apps
   n_apps_agents_runtime["apps/agents-runtime"]
@@ -130,8 +130,6 @@ flowchart TD
   root --> n_skills
   n_scripts["scripts"]
   root --> n_scripts
-  n_bapX[".bapX"]
-  root --> n_bapX
   n_agents[".agents"]
   root --> n_agents
   n_github[".github"]
