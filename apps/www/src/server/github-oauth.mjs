@@ -53,6 +53,7 @@ function githubAppManifest() {
 		request_oauth_on_install: true,
 		public: false,
 		default_permissions: {
+			email: 'read',
 			metadata: 'read',
 			administration: 'write',
 			contents: 'write',
@@ -103,14 +104,37 @@ async function json(url, options, fetchImpl = globalThis.fetch) {
 	return data;
 }
 
-export async function githubIdentity(code) {
+export const GITHUB_EMAIL_PERMISSION_ERROR =
+	'bapX could not read your GitHub email address. The bapX GitHub App needs the "Email addresses" account permission — an administrator must approve it in the App settings, then sign in again.';
+
+export async function githubIdentity(code, { fetchImpl = globalThis.fetch } = {}) {
 	const credentials = githubAppCredentials();
 	if (!code || !credentials.clientId || !credentials.clientSecret) throw new Error('GitHub login is not configured');
-	const token = await json('https://github.com/login/oauth/access_token', { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: credentials.clientId, client_secret: credentials.clientSecret, code, redirect_uri: callbackUrl }) });
+	const token = await json('https://github.com/login/oauth/access_token', { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: credentials.clientId, client_secret: credentials.clientSecret, code, redirect_uri: callbackUrl }) }, fetchImpl);
 	const authorized = { ...headers, Authorization: `Bearer ${token.access_token}` };
-	const [user, emails] = await Promise.all([json('https://api.github.com/user', { headers: authorized }), json('https://api.github.com/user/emails', { headers: authorized })]);
-	const email = emails.find((item) => item.primary && item.verified)?.email || emails.find((item) => item.verified)?.email;
-	if (!email) throw new Error('GitHub must provide a verified email address');
+	const user = await json('https://api.github.com/user', { headers: authorized }, fetchImpl);
+	// bapX authenticates through a GitHub *App*, and an App reads /user/emails
+	// only when the `email` account permission is granted -- the `user:email`
+	// OAuth scope does not cover it. Before this, /user/emails sat inside a
+	// Promise.all with /user, so a 403 "Resource not accessible by integration"
+	// rejected the whole sign-in and no one could create an account.
+	let emails = [];
+	let emailsError = null;
+	try {
+		const listed = await json('https://api.github.com/user/emails', { headers: authorized }, fetchImpl);
+		if (Array.isArray(listed)) emails = listed;
+	} catch (error) {
+		emailsError = error;
+	}
+	const email =
+		emails.find((item) => item.primary && item.verified)?.email ||
+		emails.find((item) => item.verified)?.email ||
+		(typeof user.email === 'string' && user.email.includes('@') ? user.email : '');
+	if (!email) {
+		// Name the actual cause and the fix. "GitHub must provide a verified
+		// email address" told the customer nothing they could act on.
+		throw new Error(emailsError ? GITHUB_EMAIL_PERMISSION_ERROR : 'GitHub must provide a verified email address');
+	}
 	return { id: String(user.id), login: user.login, name: user.name || user.login, email };
 }
 

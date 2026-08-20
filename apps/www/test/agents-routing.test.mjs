@@ -194,6 +194,7 @@ describe('Agents host routing', () => {
 		assert.equal(manifest.request_oauth_on_install, true);
 		assert.equal(manifest.hook_attributes.url, 'https://bapx.in/api/channels/github/webhook');
 		assert.deepEqual(manifest.default_permissions, {
+			email: 'read',
 			metadata: 'read',
 			administration: 'write',
 			contents: 'write',
