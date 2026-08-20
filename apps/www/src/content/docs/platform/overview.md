@@ -35,7 +35,7 @@ Repository authorization is a separate GitHub App permission flow. Signing in do
 
 ## Pricing boundary
 
-The India-first offer is **₹500 per month** with **5 GB** of storage, hosted search, browser sessions, hosted agents and workflows, Node.js project subdomains, TTS, and STT. Additional storage is **₹100 per GB per month** up to **100 GB**. Customers bring their own AI-provider and connector credentials. Automated checkout, quota enforcement, and generalized one-click project hosting remain incomplete until deployed and verified.
+The India-first offer is **₹500 per month** with **5 GB** of storage, hosted search, browser sessions, hosted agents and workflows, TTS, STT, and Node.js project subdomains when project hosting is enabled. Self-service subdomain publishing is not currently available. Additional storage is **₹100 per GB per month** up to **100 GB**. Customers bring their own AI-provider and connector credentials. Automated checkout, quota enforcement, and generalized one-click project hosting remain incomplete until deployed and verified.
 
 ## Intended Platform ownership
 

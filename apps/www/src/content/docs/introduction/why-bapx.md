@@ -39,6 +39,6 @@ bapX begins with operating work its team already understands deeply:
 
 ## Pricing
 
-The India-first Agents offer is ₹500/month with 5 GB storage, hosted search, browser sessions, hosted agents/workflows, Node.js project subdomains, TTS, and STT included. Additional storage is ₹100/GB/month up to 100 GB. There is no free bapX plan. Automated billing and quota controls remain incomplete until they are deployed and verified.
+The India-first Agents offer is ₹500/month with 5 GB storage, hosted search, browser sessions, hosted agents/workflows, TTS, STT, and Node.js project subdomains included when project hosting is enabled. Self-service subdomain publishing is not currently available. Additional storage is ₹100/GB/month up to 100 GB. There is no free bapX plan. Automated billing and quota controls remain incomplete until they are deployed and verified.
 
 Review [Product surfaces and availability](/docs/introduction/product-surfaces/) before depending on a specific hosted workflow, or open the [Development overview](/docs/reference/development/) to build with the framework today.

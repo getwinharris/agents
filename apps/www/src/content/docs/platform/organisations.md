@@ -3,13 +3,13 @@ title: Organisations
 description: How bapX scopes people, projects, Admin, and Agents.
 ---
 
-A bapX account owns a user-level OKF workspace. Organisations live under that user, and projects live under the selected organisation:
+A bapX account owns a user-level OKF workspace. The canonical customer workspace calls the next scope a **business**. Platform may use an Organisation label for membership around that business, but it does not add another directory level:
 
 ```text
-root-sandbox/<username>/<organisation-slug>/projects/<project-slug>/
+root-sandbox/<username>/<business-slug>/projects/<project-slug>/
 ```
 
-`admin.bapx.in` and `agents.bapx.in` use the same operating model. Admin has bapX-wide authority over `/root/bapx.in`; Agents has customer organisation authority. The shared shell and central main-agent transport are implemented. Team invitations, role management, self-service agent creation, connector setup, and MCP client management are planned public controls rather than completed organisation workflows.
+`admin.bapx.in` and `agents.bapx.in` use the same operating model. Admin has bapX-wide authority over `/root/bapx.in`; Agents has authority only within the authenticated customer's business and project boundary. The shared shell and central main-agent transport are implemented. Team invitations, role management, self-service agent creation, connector setup, and MCP client management are planned public controls rather than completed business workflows.
 
 `platform.bapx.in` owns account, subscription, connector, API-key, MCP, and observability configuration. The current page is an authentication-gated information architecture; most of those controls are not interactive yet. Platform is not a separate workspace surface.
 
