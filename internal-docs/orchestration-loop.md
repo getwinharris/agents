@@ -65,12 +65,22 @@ what makes a dead worker's *record* writable again.
 
 ## What is not done
 
-- **The executor's runtime path is not exercised against a live model.** The
-  dispatch-and-poll runner is covered by tests with a stubbed runtime;
-  end-to-end specialist execution needs a provider credential
-  (`BAPX_CREDENTIAL_ENCRYPTION_KEY` plus a connected provider) which
-  production does not yet have. Until then a task fails with an actionable
-  cause rather than hanging.
+- **No model-backed specialist runner is wired.** Production uses
+  `createUnconfiguredSpecialistRunner()`: a task is accepted, is durable, and
+  then fails immediately with a cause an operator can act on.
+
+  This is deliberate, and the reason matters. `dispatch()` is fire-and-forget
+  for agents, and its `DispatchReceipt.dispatchId` is explicitly documented as
+  *not* a workflow `runId`, so `getRun(dispatchId)` never resolves. A runner
+  built on that pairing would claim the task, report "Dispatched to the
+  specialist", and then poll until the timeout — recreating silent
+  non-execution with extra steps. The type checker caught this before it
+  shipped; it is why `resolveRunId` is a required argument with no default.
+
+  `createPollingSpecialistRunner` is ready for the case where a dispatch does
+  map to a followable run (workflows do). Wiring a real specialist needs that
+  mapping plus a provider credential (`BAPX_CREDENTIAL_ENCRYPTION_KEY` and a
+  connected provider), which production does not have yet.
 - **No cross-node coordination.** Single volume, single writer per task.
 - **No priority or fairness.** Strictly oldest-first across all tenants, so one
   tenant submitting heavily delays others. Fine at current volume; revisit

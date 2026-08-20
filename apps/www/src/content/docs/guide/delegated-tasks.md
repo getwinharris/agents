@@ -96,6 +96,15 @@ wired to a model yet`.
 That is deliberate. A task that reports progress and quietly does nothing is
 worse than one that tells you it cannot run.
 
+## Current limits
+
+Task submission, durability, approval, recovery and reporting are live. **Model-backed
+specialist execution is not connected yet**: a submitted task is accepted and
+durable, then fails with `Specialist execution is not wired to a model yet`.
+
+That is intentional. A task that reports progress and quietly does nothing is
+worse than one that tells you it cannot run.
+
 ## See also
 
 - [Subagents](/docs/guide/subagents/) — defining specialist profiles

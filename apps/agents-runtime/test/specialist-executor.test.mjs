@@ -5,7 +5,7 @@ import path from 'node:path'
 import test from 'node:test'
 import { FileOrchestrationStore } from '../src/orchestration-store.mjs'
 import { createOrchestrationWorker } from '../src/orchestration-worker.mjs'
-import { createSpecialistExecutor, createRuntimeSpecialistRunner } from '../src/specialist-executor.mjs'
+import { createPollingSpecialistRunner, createSpecialistExecutor, createUnconfiguredSpecialistRunner } from '../src/specialist-executor.mjs'
 
 const scope = { account: 'acme', workspaceScope: 'users/acme/main' }
 
@@ -78,14 +78,14 @@ test('an unconfigured runtime fails the task with an actionable cause', async (t
   const worker = createOrchestrationWorker({
     store,
     execute: createSpecialistExecutor({
-      runSpecialist: createRuntimeSpecialistRunner({ dispatch: undefined, getRun: undefined, agent: {} }),
+      runSpecialist: createUnconfiguredSpecialistRunner(),
     }),
   })
   await worker.runOnce()
 
   const final = store.get(scope, task.id)
   assert.equal(final.state, 'failed')
-  assert.match(final.result.summary, /runtime is not configured/i)
+  assert.match(final.result.summary, /not wired to a model yet/i)
   assert.equal(final.attempt, 1, 'a permanent misconfiguration must not burn retries')
 })
 
@@ -96,9 +96,10 @@ test('the runtime runner polls a dispatched run to completion', async (t) => {
   const worker = createOrchestrationWorker({
     store,
     execute: createSpecialistExecutor({
-      runSpecialist: createRuntimeSpecialistRunner({
+      runSpecialist: createPollingSpecialistRunner({
         agent: {},
         pollMs: 1,
+        resolveRunId: (receipt) => receipt.runId,
         dispatch: async () => ({ runId: 'run-1' }),
         getRun: async (runId) => {
           assert.equal(runId, 'run-1')
@@ -125,9 +126,10 @@ test('a failed specialist run surfaces the runtime error', async (t) => {
     store,
     maxAttempts: 1,
     execute: createSpecialistExecutor({
-      runSpecialist: createRuntimeSpecialistRunner({
+      runSpecialist: createPollingSpecialistRunner({
         agent: {},
         pollMs: 1,
+        resolveRunId: (receipt) => receipt.runId,
         dispatch: async () => ({ runId: 'run-2' }),
         getRun: async () => ({ status: 'failed', error: 'model provider rejected the request' }),
       }),
@@ -136,4 +138,30 @@ test('a failed specialist run surfaces the runtime error', async (t) => {
   await worker.runOnce()
 
   assert.match(store.get(scope, task.id).result.summary, /model provider rejected/)
+})
+
+test('a runner refuses to guess how a dispatch maps to a run', () => {
+	// dispatchId is documented as *not* a runId. Defaulting would produce a
+	// poll loop against an id that never resolves -- work that looks alive and
+	// silently times out.
+	assert.throws(() => createPollingSpecialistRunner({ agent: {}, dispatch: async () => ({}), getRun: async () => null }), TypeError)
+})
+
+test('a dispatch receipt with no followable run fails fast', async (t) => {
+	const store = freshStore(t)
+	const task = store.create(scope, { sessionId: 's', profile: 'research', objective: 'x' })
+	const worker = createOrchestrationWorker({
+		store,
+		maxAttempts: 1,
+		execute: createSpecialistExecutor({
+			runSpecialist: createPollingSpecialistRunner({
+				agent: {},
+				resolveRunId: (receipt) => receipt.runId,
+				dispatch: async () => ({ dispatchId: 'not-a-run-id' }),
+				getRun: async () => null,
+			}),
+		}),
+	})
+	await worker.runOnce()
+	assert.match(store.get(scope, task.id).result.summary, /no run id to follow/i)
 })

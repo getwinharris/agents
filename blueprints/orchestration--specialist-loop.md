@@ -37,12 +37,14 @@ expose the submit tool.
 
 ```js
 import { createOrchestrationWorker } from './orchestration-worker.mjs'
-import { createRuntimeSpecialistRunner, createSpecialistExecutor } from './specialist-executor.mjs'
+import { createPollingSpecialistRunner, createSpecialistExecutor } from './specialist-executor.mjs'
 
 export const worker = createOrchestrationWorker({
   store: new FileOrchestrationStore({ directory: process.env.BAPX_ORCHESTRATION_DIR }),
   execute: createSpecialistExecutor({
-    runSpecialist: createRuntimeSpecialistRunner({ dispatch, getRun, agent: mainAgent }),
+    runSpecialist: createPollingSpecialistRunner({
+      dispatch, getRun, agent, resolveRunId: (receipt) => receipt.runId,
+    }),
   }),
   onError: (cause) => console.error('[bapX] orchestration worker:', cause),
 })
@@ -50,6 +52,12 @@ worker.start()
 ```
 
 Start it from the bapX server entry. `dispatch()` throws outside one.
+
+**`resolveRunId` has no default, deliberately.** `dispatch()` returns a
+`DispatchReceipt` whose `dispatchId` is documented as *not* a workflow
+`runId`. Defaulting to `receipt.runId` builds a poll loop against an id that
+never resolves: work that reports progress and then silently times out. State
+the mapping, or use `createUnconfiguredSpecialistRunner()` and fail honestly.
 
 ## Rules this loop must keep
 

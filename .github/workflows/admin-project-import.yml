@@ -39,7 +39,7 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Build shared runtime packages
-        run: npm run build --workspace @bapX/runtime --workspace @bapX/sdk --workspace @bapX/react
+        run: npm run build --workspace @bapX/runtime --workspace @bapX/sdk --workspace @bapX/react --workspace @bapX/cli
 
       - name: Run apps-www server contracts
         run: npm run test:server --workspace apps-www
