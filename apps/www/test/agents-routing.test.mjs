@@ -214,12 +214,27 @@ describe('Agents host routing', () => {
 		assert.deepEqual(runtimeRequests.at(-1), { method: 'GET', url: '/api/orchestration/tasks', body: '' });
 	});
 
+	it('refuses a device flow started from another origin', async () => {
+		// The session cookie is scoped .bapx.in, so a page on a customer-hosted
+		// project subdomain carries it and a simple credentialed POST needs no
+		// preflight. Without this guard such a page could start device flows as
+		// the victim, each beginning provider polling in the runtime.
+		const response = await request(port, {
+			host: 'platform.bapx.in',
+			method: 'POST',
+			pathname: '/api/platform/connectors/openai-codex/device',
+			headers: { cookie, 'content-type': 'application/json', origin: 'https://evil-customer.app.bapx.in' },
+			body: '{}',
+		});
+		assert.equal(response.status, 403);
+	});
+
 	it('starts the workspace-scoped OpenAI connector from Platform without an API-key payload', async () => {
 		const response = await request(port, {
 			host: 'platform.bapx.in',
 			method: 'POST',
 			pathname: '/api/platform/connectors/openai-codex/device',
-			headers: { cookie, 'content-type': 'application/json' },
+			headers: { cookie, 'content-type': 'application/json', origin: 'https://platform.bapx.in' },
 			body: '{}',
 		});
 		assert.equal(response.status, 202);

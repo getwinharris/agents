@@ -873,6 +873,12 @@ http.createServer(async (req, res) => {
 	const sessionAccount = getSessionAccount(req);
 	if (prefix === '/platform' && urlPath.startsWith('/api/platform/connectors/openai-codex/')) {
 		if (!sessionAccount) { jsonResponse(res, 401, { error: 'Sign in to manage connectors.' }); return; }
+		// Missed when the sibling connector routes were protected. A page on a
+		// customer-controlled subdomain carries the shared .bapx.in cookie, and a
+		// simple credentialed POST needs no preflight — enough to start device
+		// flows as the victim, each of which begins provider polling and occupies
+		// an entry in the runtime's process-wide flow map.
+		if (!isPlatformMutationAllowed(req, host)) { jsonResponse(res, 403, { error: 'cross_origin_forbidden' }); return; }
 		const upstreamPath = urlPath.replace('/api/platform/connectors/openai-codex', '/api/orchestration/provider-auth/openai-codex');
 		await proxyAgentAPI(req, res, sessionAccount, upstreamPath); return;
 	}

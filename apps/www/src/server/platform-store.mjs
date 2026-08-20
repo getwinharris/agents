@@ -353,21 +353,23 @@ export function createPlatformStore({ workspaceRoot }) {
 			const accounts = readJson(accountsFile, { schemaVersion: 2, accounts: [] });
 			const existing = accounts.accounts.find((item) => item.providers?.some((provider) => provider.name === 'github' && provider.id === providerId));
 			if (existing) return { account: publicAccount(existing), business: null, created: false };
+			// Never attach a GitHub identity to an existing account on an email
+			// match alone, however the address was obtained.
+			//
+			// Registration does not verify the address, so anyone can register
+			// victim@example.com with a password of their choosing. Auto-linking
+			// meant the victim's later GitHub sign-in joined THAT account, leaving
+			// the attacker's password working alongside it — both parties holding
+			// the same workspace. A verified GitHub address does not prove the
+			// pre-existing account was ever the same person.
+			//
+			// Linking stays possible, but only from an authenticated session, so
+			// control of the existing account is proven first.
 			const emailAccount = accounts.accounts.find((item) => item.email === email);
-			if (emailAccount && profile.emailVerified === false) {
-				// Attaching a GitHub identity to an existing account grants full
-				// access to it. A match on an address GitHub never confirmed as
-				// verified is not proof of ownership, and the existing account may
-				// be a password account belonging to someone else.
-				throw new Error(
-					'bapX could not confirm that GitHub verified this email address, and an account already uses it. Sign in to that account first, then link GitHub from Platform.',
-				);
-			}
 			if (emailAccount) {
-				if (emailAccount.providers?.some((provider) => provider.name === 'github')) throw new Error('GitHub identity conflicts with an existing account');
-				emailAccount.providers = [...(emailAccount.providers || []), { name: 'github', id: providerId, login: username }];
-				writeJson(accountsFile, accounts);
-				return { account: publicAccount(emailAccount), business: null, created: false };
+				throw new Error(
+					'An account already uses that email address. Sign in to it first, then link GitHub from Platform.',
+				);
 			}
 			if (accounts.accounts.some((item) => item.username === username)) throw new Error('GitHub username conflicts with an existing account');
 			const now = new Date().toISOString();

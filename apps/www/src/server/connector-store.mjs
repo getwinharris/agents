@@ -50,11 +50,16 @@ function writeJson(file, value) {
 function encryptionKey() {
 	const raw = process.env.BAPX_CREDENTIAL_ENCRYPTION_KEY || '';
 	if (!raw) return null;
-	// Require a 32-byte hex key. Hashing an arbitrary passphrase once with
-	// SHA-256 inherits the passphrase's entropy, so a weak operator secret stays
-	// brute-forceable against the ciphertext.
-	if (!/^[0-9a-f]{64}$/i.test(raw)) return null;
-	return Buffer.from(raw, 'hex');
+	// One variable configures two services: apps-www (here) and agents-runtime,
+	// which decodes it as base64. Accepting only hex meant no single value could
+	// satisfy both — a hex key decodes to 48 bytes there, and a base64 key was
+	// rejected here — so one of the two features was always broken in production.
+	//
+	// Accept either encoding, but still require a real 32-byte key. Hashing an
+	// arbitrary passphrase would inherit the passphrase's entropy and leave a
+	// weak operator secret brute-forceable against the ciphertext.
+	const key = /^[0-9a-f]{64}$/i.test(raw) ? Buffer.from(raw, 'hex') : Buffer.from(raw, 'base64');
+	return key.length === 32 ? key : null;
 }
 
 function encrypt(plaintext) {

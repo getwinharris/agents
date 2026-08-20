@@ -143,28 +143,33 @@ test('no caller-visible account carries credential material', async (t) => {
 	const session = store.createSession(registered.account.id);
 	assert.equal(store.getSessionAccount(session.token)?.passwordHash, undefined);
 
-	const linked = await store.loginWithGitHub({ id: '5150', login: 'dave', name: 'Dave', email: 'dave@example.com' });
-	assert.equal(linked.account.passwordHash, undefined);
+	// A separate GitHub identity — auto-linking by email match is deliberately
+	// refused, so this uses its own address.
+	const viaGitHub = await store.loginWithGitHub({ id: '5150', login: 'gitdave', name: 'Git Dave', email: 'gitdave@example.com', emailVerified: true });
+	assert.equal(viaGitHub.account.passwordHash, undefined);
 });
 
-test('an unverified GitHub email cannot attach to an existing account', async (t) => {
-	// GET /user returns the public profile email, which GitHub does not guarantee
-	// is verified. Attaching a GitHub identity to an existing account grants full
-	// access to it, so a match on an unconfirmed address must be refused — the
-	// existing account may be a password account belonging to someone else.
+test('a GitHub sign-in never joins an existing account by email match', async (t) => {
+	// Registration does not verify the address, so anyone can pre-register
+	// someone else's email with a password of their choosing. Auto-linking meant
+	// the real owner's later GitHub sign-in joined THAT account, leaving the
+	// attacker's password working alongside it — both holding one workspace.
+	// A verified GitHub address does not prove the pre-existing account was ever
+	// the same person, so linking must require proving control of it.
 	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-platform-'));
 	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
 	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
 	const store = createPlatformStore({ workspaceRoot: root });
 
-	await store.registerWithPassword({ email: 'victim@example.com', password: 'correct-horse-battery', name: 'Victim' });
+	await store.registerWithPassword({ email: 'victim@example.com', password: 'attacker-chosen-pw!', name: 'Not Victim' });
 
+	// Even a genuinely verified GitHub address must not join it.
 	await assert.rejects(
-		() => store.loginWithGitHub({ id: '666', login: 'attacker', name: 'A', email: 'victim@example.com', emailVerified: false }),
-		/could not confirm that GitHub verified/,
+		() => store.loginWithGitHub({ id: '1001', login: 'victim', name: 'Victim', email: 'victim@example.com', emailVerified: true }),
+		/already uses that email address/,
 	);
 
-	// A confirmed-verified address still links normally.
-	const linked = await store.loginWithGitHub({ id: '777', login: 'victim', name: 'V', email: 'victim@example.com', emailVerified: true });
-	assert.ok(linked.account.providers.some((provider) => provider.name === 'github'));
+	// An unrelated GitHub signup is unaffected.
+	const fresh = await store.loginWithGitHub({ id: '2002', login: 'newuser', name: 'New', email: 'new@example.com', emailVerified: true });
+	assert.equal(fresh.created, true);
 });
