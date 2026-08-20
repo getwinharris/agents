@@ -6,18 +6,55 @@ import { execFileSync } from 'node:child_process';
 const ADMIN_HANDOFF_TTL_MS = 60_000;
 const MAX_DATE_MS = 8_640_000_000_000_000;
 
+export class PlatformStorageError extends Error {
+	constructor(file, cause) {
+		super(`Platform storage at ${path.basename(file)} is unreadable`);
+		this.name = 'PlatformStorageError';
+		this.cause = cause;
+	}
+}
+
+// This is the whole customer database. Every read used to swallow *any*
+// failure and return the empty fallback, so one truncated accounts.json read
+// as "no accounts" -- and the next write persisted that, erasing everyone.
+// Only a genuinely absent file may fall back; anything else is corruption and
+// must stop the request instead of becoming a destructive write.
 function readJson(file, fallback) {
+	let raw;
 	try {
-		return JSON.parse(fs.readFileSync(file, 'utf8'));
-	} catch {
-		return fallback;
+		raw = fs.readFileSync(file, 'utf8');
+	} catch (error) {
+		if (error?.code === 'ENOENT') return fallback;
+		throw new PlatformStorageError(file, error);
+	}
+	try {
+		return JSON.parse(raw);
+	} catch (error) {
+		throw new PlatformStorageError(file, error);
 	}
 }
 
 function writeJson(file, value) {
 	fs.mkdirSync(path.dirname(file), { recursive: true });
+	// Keep the last good copy. A rename is atomic, but it is still the only
+	// copy -- a bad value written through this path would otherwise be
+	// unrecoverable.
+	try {
+		fs.copyFileSync(file, `${file}.bak`);
+	} catch (error) {
+		if (error?.code !== 'ENOENT') throw new PlatformStorageError(file, error);
+	}
 	const temporary = `${file}.${process.pid}.tmp`;
-	fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 });
+	// fsync before the rename: without it the rename can land while the
+	// contents are still only in the page cache, so a host crash leaves an
+	// empty or partial file where the accounts used to be.
+	const handle = fs.openSync(temporary, 'w', 0o600);
+	try {
+		fs.writeFileSync(handle, `${JSON.stringify(value, null, 2)}\n`);
+		fs.fsyncSync(handle);
+	} finally {
+		fs.closeSync(handle);
+	}
 	fs.renameSync(temporary, file);
 }
 
