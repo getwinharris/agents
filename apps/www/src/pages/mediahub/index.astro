@@ -1,14 +1,35 @@
 ---
 import "../../styles/global.css";
 
+const serviceTracks = [
+  ["01", "Forward-deployed engineering", "Embedded builders accountable for production delivery."],
+  ["02", "Enterprise AI + data", "AI CRM, ERP, knowledge systems, enterprise data, and OKF."],
+  ["03", "Commerce systems", "Ecommerce, operations, integrations, and automation."],
+  ["04", "Growth infrastructure", "SMM, influencer, funnels, ads, and measurement."],
+] as const;
+
+const fdeTraits = [
+  ["Not consulting", "Production code, not a slide deck."],
+  ["Not staff augmentation", "An accountable delivery unit, not generic capacity."],
+  ["Active builders", "Integrations, applications, data pipelines, and operations."],
+  ["Field feedback", "Real constraints flow back into the platform and delivery system."],
+] as const;
+
+const deliveryStages = [
+  ["01", "Discover", "Map workflows, data, constraints, and success criteria."],
+  ["02", "Embed", "Work inside the client environment with clear access boundaries."],
+  ["03", "Build", "Ship production increments, integrations, and operational evidence."],
+  ["04", "Operate", "Measure, improve, document, and hand over."],
+] as const;
+
 const clients = [
-  { slug: "gut-conference", name: "GUT Conference", category: "Web product", summary: "Web product development and management tailored for conference operations.", links: [{ label: "Website", href: "https://gutconference.online/" }] },
-  { slug: "sri-panchami-spiritual", name: "Sri Panchami Spiritual", category: "Web product", summary: "Web product development and management tailored for a spiritual service brand.", links: [{ label: "Website", href: "https://sripanchamispiritual.com/" }] },
-  { slug: "nebo-lifestyle-clinic", name: "NEBO Lifestyle Clinic", category: "Web and social", summary: "Full business conversion online funnel, website, and social media management.", links: [{ label: "Website", href: "https://nebowellness.com/" }, { label: "Instagram", href: "https://www.instagram.com/nebolifestyleclinic/" }, { label: "Facebook", href: "https://www.facebook.com/nebolifestyleclinic" }] },
-  { slug: "flexi-feet", name: "Flexi Feet", category: "Web and social", summary: "Website and social media management for business presence and customer acquisition.", links: [{ label: "Website", href: "https://flexifeet.net/" }, { label: "Instagram", href: "https://www.instagram.com/flexifeetmalaysia/" }, { label: "Facebook", href: "https://www.facebook.com/flexifeetmalaysia" }] },
-  { slug: "indian-bariatrics", name: "Indian Bariatrics", category: "Web and social", summary: "Website and social media management for healthcare education and patient reach.", links: [{ label: "Website", href: "https://indianbariatrics.com/" }, { label: "Facebook", href: "https://www.facebook.com/FightObesityAndDiabetes/" }, { label: "YouTube", href: "https://www.youtube.com/@Bariatricdoctor" }] },
-  { slug: "happy-feet-erode", name: "Happy Feet Erode", category: "Social only", summary: "Social media content and management without a website build.", links: [{ label: "Instagram", href: "https://www.instagram.com/happyfeeterode/" }, { label: "Facebook", href: "https://www.facebook.com/happyfeeterode/" }, { label: "YouTube", href: "https://www.youtube.com/@happyfeeterode" }] },
-];
+  ["gut-conference", "GUT Conference", "Conference web product and operations"],
+  ["sri-panchami-spiritual", "Sri Panchami Spiritual", "Service brand web product"],
+  ["nebo-lifestyle-clinic", "NEBO Lifestyle Clinic", "Conversion funnel, web, and social"],
+  ["flexi-feet", "Flexi Feet", "Customer acquisition and social operations"],
+  ["indian-bariatrics", "Indian Bariatrics", "Healthcare education and patient reach"],
+  ["happy-feet-erode", "Happy Feet Erode", "Managed social media presence"],
+] as const;
 ---
 
 <!doctype html>
@@ -16,112 +37,150 @@ const clients = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Media Hub | bapX</title>
-    <meta name="description" content="Client portfolio, web services, social media, ads, SEO, and business automation." />
+    <title>Forward-deployed engineering and enterprise systems | bapX MediaHub</title>
+    <meta name="description" content="Direct custom-quote delivery for forward-deployed engineering, enterprise AI and data, commerce systems, and growth infrastructure." />
     <link rel="canonical" href="https://mediahub.bapx.in/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=bapx-20260711" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   </head>
-  <body>
-    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
+  <body class="mediahub-page">
+    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/90 backdrop-blur-sm">
       <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         <div class="flex h-full items-center gap-8">
-          <a href="/" class="brand-lockup">
-            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
-            <span>MediaHub</span>
+          <a href="/" class="brand-lockup" aria-label="bapX MediaHub home">
+            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" /><span>MediaHub</span>
           </a>
           <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
-            <a href="/">Home</a>
-            <a href="https://docs.bapx.in/getting-started/quickstart/">Docs</a>
-            <a href="https://blogs.bapx.in/">Blog</a>
-            <a href="/platform/">Platform</a>
-            <a href="/mediahub/" class="active">Media Hub</a>
+            <a href="#services">Services</a><a href="#fde">FDE</a><a href="#work">Work</a><a href="#process">Process</a>
           </div>
         </div>
         <div class="flex items-center gap-3">
-          <a href="https://agents.bapx.in/" class="bapx-pill">Agents</a>
-          <a href="/login/" class="bapx-pill bapx-pill-primary">Sign in</a>
+          <a href="#scope" class="bapx-pill bapx-pill-primary landing-desktop-action">Discuss your system</a>
+          <button class="landing-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mediahub-mobile-menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          </button>
         </div>
+      </div>
+      <div id="mediahub-mobile-menu" class="landing-mobile-menu" hidden>
+        <a href="#services">Services</a><a href="#fde">FDE</a><a href="#work">Work</a><a href="#process">Process</a><a href="#scope">Discuss your system</a>
       </div>
     </nav>
 
     <main>
-      <section class="page-section page-header">
-        <div class="section-inner">
-          <span class="mono-label">mediahub.bapx.in</span>
-          <h1 class="display-xl" style="margin-top: 1.75rem; max-width: 1060px;">
-            Client services, projects, and business presence managed around each client
-          </h1>
-          <p class="body-lg" style="margin-top: 1.875rem; max-width: 830px;">
-            bapX Media Hub covers websites, ecommerce, funnels, social media, ads, SEO, content, campaigns, automations, and custom business systems based on the client's actual market and workflow.
-          </p>
-          <div class="hero-actions">
-            <a href="/contact/" class="bapx-pill bapx-pill-primary">Discuss Media Hub</a>
-            <a href="#clients" class="bapx-pill">View clients</a>
+      <section class="mediahub-hero">
+        <div class="section-inner mediahub-hero-grid">
+          <div>
+            <h1>Embedded engineering for the systems your business actually runs.</h1>
+            <p>Forward-deployed engineers design, build, integrate, and operate custom software inside your real workflows—from enterprise AI and data to commerce and growth.</p>
+            <div class="hero-actions">
+              <a href="#scope" class="bapx-button bapx-button-accent">Discuss your system</a>
+              <a href="#services" class="bapx-button">Explore services</a>
+            </div>
+            <p class="engagement-boundary">Direct enterprise engagement · Custom quote · Separate from agents.bapx.in</p>
+          </div>
+          <div class="systems-field" aria-label="Systems, data, workflows, automation, and growth converge into one production delivery system">
+            <svg viewBox="0 0 620 410" role="img" aria-hidden="true">
+              <defs><linearGradient id="flow" x1="0" x2="1"><stop offset="0" stop-color="#4d4f55"/><stop offset=".55" stop-color="#8851d9"/><stop offset="1" stop-color="#b16be4"/></linearGradient></defs>
+              <g fill="none" stroke="url(#flow)" stroke-width="1.5" opacity=".78">
+                <path d="M22 60C180 60 215 205 310 205S405 74 548 74"/><path d="M22 120C176 120 216 205 310 205S408 132 548 132"/>
+                <path d="M22 180C176 180 216 205 310 205S408 190 548 190"/><path d="M22 240C176 240 216 205 310 205S408 248 548 248"/>
+                <path d="M22 300C180 300 215 205 310 205S405 306 548 306"/><path d="M22 350C180 350 215 205 310 205S405 364 548 364"/>
+              </g>
+              <g fill="#8851d9"><circle cx="310" cy="205" r="6"/><circle cx="22" cy="60" r="4"/><circle cx="22" cy="120" r="4"/><circle cx="22" cy="180" r="4"/><circle cx="22" cy="240" r="4"/><circle cx="22" cy="300" r="4"/><circle cx="22" cy="350" r="4"/></g>
+              <g fill="#dadbdf" font-family="JetBrains Mono, monospace" font-size="13"><text x="565" y="79">SYSTEMS</text><text x="565" y="137">DATA</text><text x="565" y="195">WORKFLOWS</text><text x="565" y="253">AUTOMATION</text><text x="565" y="311">GROWTH</text><text x="565" y="369">OPERATIONS</text></g>
+            </svg>
           </div>
         </div>
       </section>
 
-      <section class="page-section mediahub-services">
-        <div style="align-self: center;">
-          <span class="mono-label">Services</span>
-          <h2 class="display-lg" style="margin-top: .5rem;">
-            bapX Media Hub builds around the business, not a fixed package shelf
-          </h2>
-          <p class="body-lg" style="margin-top: 1.5rem;">We work across WordPress, WooCommerce, Shopify, custom apps, web solutions, automations, ML/AI workflows, social media management, influencer campaigns, professional ads, regular media presence, SEO, and Meta or Google promotions.</p>
-          <div class="pill-links">
-            <a href="https://www.instagram.com/bapxmediahub/" target="_blank" rel="noopener noreferrer">Instagram</a>
-            <a href="https://www.facebook.com/bapxmediahub/" target="_blank" rel="noopener noreferrer">Facebook</a>
-            <a href="https://x.com/bapx_ai" target="_blank" rel="noopener noreferrer">X</a>
-          </div>
-        </div>
-        <div class="media-board">
-          <div class="media-card large">
-            <span class="mono-label">Clients</span>
-            <strong>Custom plans for shops, companies, influencers, professionals, and teams.</strong>
-          </div>
-          <div class="media-card">
-            <span class="mono-label">Web and commerce</span>
-            <strong>WordPress, WooCommerce, Shopify, custom apps, and business websites.</strong>
-          </div>
-          <div class="media-card">
-            <span class="mono-label">Growth</span>
-            <strong>SMM, influencer work, ads, SEO, Meta, Google, and regular presence.</strong>
+      <section id="services" class="mediahub-band service-selection">
+        <div class="section-inner">
+          <h2>Choose the outcome, not a package.</h2>
+          <div class="service-rail">
+            {serviceTracks.map(([step, title, body]) => (
+              <a href="#scope" data-service={title}><span>{step}</span><h3>{title}</h3><p>{body}</p><em aria-hidden="true">→</em></a>
+            ))}
           </div>
         </div>
       </section>
 
-      <section id="clients" class="page-section" style="border-top: 1px solid var(--hairline);">
+      <section id="fde" class="mediahub-band fde-section">
         <div class="section-inner">
-          <div class="section-heading">
-            <h2 class="display-lg">Selected Media Hub clients and projects</h2>
-            <p class="body-lg">These are a few examples from a larger portfolio of business management services tailored around each client's market, sales process, team, and audience.</p>
-          </div>
-          <div class="client-grid">
-            {clients.map((client) => (
-              <article class="client-card">
-                <span class="mono-label">{client.category}</span>
-                <h3 class="display-md"><a href={"/mediahub/clients/" + client.slug + "/"}>{client.name}</a></h3>
-                <p class="body-sm">{client.summary}</p>
-                <div class="client-links">
-                  {client.links.map((link) => (
-                    <a href={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>
-                  ))}
-                </div>
+          <h2>Forward-deployed means we build with you.</h2>
+          <div class="fde-comparison">
+            {fdeTraits.map(([title, body], index) => (
+              <article>
+                <span class={`fde-icon fde-icon-${index + 1}`} aria-hidden="true">
+                  {index === 0 ? <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11"/><path d="M8 24 24 8"/></svg> : null}
+                  {index === 1 ? <svg viewBox="0 0 32 32"><circle cx="11" cy="11" r="5"/><circle cx="22" cy="12" r="4"/><path d="M3 27c0-6 3-9 8-9s8 3 8 9M18 19c5 0 8 3 8 8"/></svg> : null}
+                  {index === 2 ? <svg viewBox="0 0 32 32"><path d="m11 7-8 9 8 9M21 7l8 9-8 9M18 4l-5 24"/></svg> : null}
+                  {index === 3 ? <svg viewBox="0 0 32 32"><path d="M5 10h20l-5-5M27 22H7l5 5"/></svg> : null}
+                </span>
+                <h3>{title}</h3><p>{body}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
+
+      <section id="process" class="mediahub-band delivery-section">
+        <div class="section-inner">
+          <h2>From operating problem to production system.</h2>
+          <div class="delivery-rail">
+            {deliveryStages.map(([step, title, body]) => (
+              <article><span>{step}</span><h3>{title}</h3><p>{body}</p></article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="work" class="mediahub-band work-section">
+        <div class="section-inner">
+          <div class="work-heading"><h2>Selected work</h2><p>Existing client engagements across web products, conversion, content, and managed business presence.</p></div>
+          <div class="work-list">
+            {clients.map(([slug, name, summary]) => (
+              <a href={`/mediahub/clients/${slug}/`}><strong>{name}</strong><span>{summary}</span><em aria-hidden="true">↗</em></a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="scope" class="mediahub-band scope-section">
+        <div class="section-inner scope-panel">
+          <div><h2>Bring us the workflow that cannot stay manual.</h2><p>Tell us what must integrate, who operates it, and what a production outcome looks like. We will scope the engagement and infrastructure in a custom quote.</p></div>
+          <form action="/contact/" method="get" class="scope-form">
+            <label><span>Primary outcome</span><select name="service" required><option value="">Choose an outcome</option><option value="Forward-deployed engineering">Forward-deployed engineering</option><option value="Enterprise AI and data">Enterprise AI and data</option><option value="Commerce systems">Commerce systems</option><option value="Growth infrastructure">Growth infrastructure</option></select></label>
+            <label><span>Current systems</span><select name="systems" required><option value="">Choose your system mix</option><option value="CRM, ERP, or enterprise data">CRM, ERP, or enterprise data</option><option value="Commerce and operations">Commerce and operations</option><option value="Web, content, or growth">Web, content, or growth</option><option value="Multiple connected systems">Multiple connected systems</option></select></label>
+            <label><span>Timeline</span><select name="timeline" required><option value="">Choose a timeline</option><option value="Immediate discovery">Immediate discovery</option><option value="Within 30 days">Within 30 days</option><option value="This quarter">This quarter</option><option value="Exploring scope">Exploring scope</option></select></label>
+            <button type="submit" class="bapx-button bapx-button-accent">Start a scoped conversation</button>
+          </form>
+          <p class="scope-boundary">Direct enterprise engagement. No self-service Agents subscription required.</p>
+        </div>
+      </section>
     </main>
 
-    <footer class="page-footer">
-      <div class="section-inner">
-        <span>bapX Media Hub</span>
-        <span>&copy; {new Date().getFullYear()}</span>
-      </div>
-    </footer>
+    <footer class="page-footer"><div class="section-inner"><span>bapX MediaHub · Direct enterprise delivery</span><span>&copy; {new Date().getFullYear()}</span></div></footer>
+    <script is:inline>
+      const menuToggle = document.querySelector('.landing-menu-toggle');
+      const mobileMenu = document.querySelector('#mediahub-mobile-menu');
+      const setMenuOpen = (open) => {
+        mobileMenu.hidden = !open;
+        menuToggle.setAttribute('aria-expanded', String(open));
+        menuToggle.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+      };
+      menuToggle.addEventListener('click', () => setMenuOpen(menuToggle.getAttribute('aria-expanded') !== 'true'));
+      mobileMenu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenuOpen(false)));
+      document.querySelectorAll('[data-service]').forEach((link) => link.addEventListener('click', () => {
+        const select = document.querySelector('select[name="service"]');
+        const value = link.dataset.service;
+        const option = Array.from(select.options).find((item) => item.value === value || item.value === value.replace('+', 'and'));
+        if (option) select.value = option.value;
+      }));
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') { setMenuOpen(false); menuToggle.focus(); }
+      });
+    </script>
   </body>
 </html>

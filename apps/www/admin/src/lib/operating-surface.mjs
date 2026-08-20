@@ -5,6 +5,7 @@ export function resolveOperatingSurface(hostname) {
       label: 'Agents',
       projectScope: 'your business workspace',
       showAdminPullRequests: false,
+      showMediaHub: false,
     }
   }
 
@@ -13,6 +14,7 @@ export function resolveOperatingSurface(hostname) {
     label: 'Admin',
     projectScope: 'projects in /root/bapx.in',
     showAdminPullRequests: true,
+    showMediaHub: true,
   }
 }
 

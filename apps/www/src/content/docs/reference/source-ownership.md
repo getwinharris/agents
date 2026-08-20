@@ -12,6 +12,7 @@ bapX uses one tracked web source for public surfaces and one OKF workspace model
 | `bapx.in` | `apps/www/src/pages/` | Public landing, product, login, pricing, and marketing pages |
 | `docs.bapx.in` | `apps/www/src/content/docs/` and `apps/www/src/pages/docs/` | Public customer, developer, CLI, API, MCP, OKF, and ecosystem documentation |
 | `blogs.bapx.in` | `apps/www/src/content/blogs/` | Public announcements, releases, research, and tutorials |
+| `mediahub.bapx.in` | `apps/www/src/pages/mediahub/` | Direct-client, custom-quote forward-deployed engineering (FDE), enterprise AI/data, commerce, growth, and portfolio funnel; separate from the Agents subscription |
 | `platform.bapx.in` | `apps/www/src/pages/platform/` plus platform server APIs | Account, billing, connector, API key, MCP, and observability control plane |
 | `admin.bapx.in` | `apps/www/admin/` plus shared workspace APIs | bapX-wide business operating surface |
 | `agents.bapx.in` | shared Admin/Agents operating model | Customer business operating surface |

@@ -10,10 +10,11 @@ const styles = fs.readFileSync(new URL('../src/styles/bapx.css', import.meta.url
 const server = fs.readFileSync(new URL('../server.mjs', import.meta.url), 'utf8');
 
 test('Media Hub services use a responsive owning class instead of an inline fixed grid', () => {
-	assert.match(mediaHubPage, /class="page-section mediahub-services"/);
+	assert.match(mediaHubPage, /class="mediahub-band service-selection"/);
+	assert.match(mediaHubPage, /class="service-rail"/);
 	assert.doesNotMatch(mediaHubPage, /grid-template-columns:\s*minmax\(300px/);
-	assert.match(styles, /\.mediahub-services\s*\{[^}]*grid-template-columns:/s);
-	assert.match(styles, /@media\s*\(max-width:\s*640px\)[\s\S]*\.mediahub-services\s*\{[^}]*grid-template-columns:\s*1fr/s);
+	assert.match(styles, /\.service-rail\s*\{[^}]*grid-template-columns:\s*repeat\(4,/s);
+	assert.match(styles, /@media\s*\(max-width:\s*720px\)[\s\S]*\.service-rail,[\s\S]*grid-template-columns:\s*1fr/s);
 });
 
 test('the Node host router emits an HTTP redirect for the docs root', () => {

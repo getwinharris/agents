@@ -3,6 +3,7 @@ export interface OperatingSurface {
   label: 'Admin' | 'Agents'
   projectScope: string
   showAdminPullRequests: boolean
+  showMediaHub: boolean
 }
 
 export function resolveOperatingSurface(hostname: string): OperatingSurface
