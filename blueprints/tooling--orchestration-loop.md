@@ -1,7 +1,8 @@
 ---
 {
-  "kind": "orchestration",
-  "version": 1
+  "kind": "tooling",
+  "version": 1,
+  "website": "https://docs.bapx.in/guide/delegated-tasks/"
 }
 ---
 
@@ -104,3 +105,9 @@ npm run test --workspace bapX-agents-runtime
 
 The suite must prove a submitted task reaches `succeeded`, that a dead
 worker's task is recovered, and that one tenant cannot read another's task.
+
+## Upgrade Guide
+
+### Version 1 — 2026-08-20
+
+Initial version.
