@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { type ParseArgsOptionsConfig, parseArgs as parseNodeArgs } from 'node:util';
-import type { ConversationStreamChunk, BapxEvent } from '@bapX/sdk';
+import type { BapxEvent, ConversationStreamChunk } from '@bapX/sdk';
 import { determineAgent } from '@vercel/detect-agent';
 import MiniSearch from 'minisearch';
 import pc from 'picocolors';
@@ -107,7 +107,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  bapX update <kind> <name|url> [--print]\n' +
 			'  bapX docs  [read <path> | search <query>]\n' +
 			'  bapX okf   [index|query] --root <path> [query]\n' +
-			'  bapX browse [verify <url> | -- <agent-browser args...>] [--root <path>] [--session <name>] [--namespace <name>]\n' +
+			'  bapX browse [verify <url> | -- <browser args...>] [--engine <agentbrowser|vercel>] [--root <path>] [--session <name>] [--namespace <name>]\n' +
 			'  bapX map   [--root <path>] [--check] [--profile <user-workspace|business-workspace|user-project|demo-project>]\n' +
 			'\n' +
 			'Commands:\n' +
@@ -119,7 +119,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  update Fetch an updated blueprint implementation guide for an AI coding agent to follow.\n' +
 			'  docs   Browse the Bapx docs. No args lists pages; `read` prints a page as markdown; `search` prints JSON results.\n' +
 			'  okf    Index or query OKF Markdown knowledge inside one authorized workspace root.\n' +
-			'  browse Run the pinned agent-browser CLI through a bapX-scoped isolated browser session.\n' +
+			'  browse Run AgentBrowser, or the explicit Vercel fallback, through a bapX-scoped isolated browser session.\n' +
 			'  map    Generate or validate the project root map.mmd from the real directory layout.\n' +
 			'\n' +
 			'Flags:\n' +
@@ -137,6 +137,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  --profile <name>     (bapX map) Also validate required bapX workspace/project files.\n' +
 			'  --session <name>     (bapX browse) Browser session name. Default: derived from root/user/business/project/actor.\n' +
 			'  --namespace <name>   (bapX browse) Browser daemon/state namespace. Default: derived from root/user/business/project.\n' +
+			'  --engine <name>      (bapX browse) agentbrowser (default) or vercel (Linux-compatible fallback).\n' +
 			'\n' +
 			'Examples:\n' +
 			'  bapX dev --target node\n' +
@@ -159,8 +160,9 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  bapX okf index --root ./my-business\n' +
 			'  bapX okf query --root ./my-business "billing connector"\n' +
 			'  bapX browse verify https://bapx.in/\n' +
-			'  bapX browse --session admin-smoke -- open https://admin.bapx.in/\n' +
-			'  bapX browse -- snapshot -i\n' +
+			'  bapX browse --engine vercel verify https://bapx.in/\n' +
+			'  bapX browse --engine agentbrowser -- nodejs\n' +
+			'  bapX browse --engine vercel --session admin-smoke -- open https://admin.bapx.in/\n' +
 			'  bapX map --root ./my-app\n' +
 			'  bapX map --root ./my-business --check --profile business-workspace\n' +
 			'  bapX map --root ./my-business/projects/my-app --check --profile user-project\n' +
@@ -270,6 +272,7 @@ interface MapArgs {
 interface BrowseArgs {
 	command: 'browse';
 	action: 'passthrough' | 'verify';
+	engine: 'agentbrowser' | 'vercel';
 	/** Explicit --root value, or undefined to default to cwd. Absolute when set. */
 	explicitRoot: string | undefined;
 	session: string | undefined;
@@ -652,7 +655,7 @@ function parseMapArgs(rest: string[]): MapArgs {
 }
 
 function parseBrowseArgs(rest: string[]): BrowseArgs {
-	const values: { root?: string; session?: string; namespace?: string } = {};
+	const values: { root?: string; session?: string; namespace?: string; engine?: string } = {};
 	const positionals: string[] = [];
 
 	for (let index = 0; index < rest.length; index += 1) {
@@ -661,16 +664,22 @@ function parseBrowseArgs(rest: string[]): BrowseArgs {
 			positionals.push(...rest.slice(index + 1));
 			break;
 		}
-		if (token === '--root' || token === '--session' || token === '--namespace') {
+		if (token === '--root' || token === '--session' || token === '--namespace' || token === '--engine') {
 			const value = rest[index + 1];
 			if (!value) fail(`Missing value for ${token}`);
 			if (token === '--root') values.root = value;
 			else if (token === '--session') values.session = value;
-			else values.namespace = value;
+			else if (token === '--namespace') values.namespace = value;
+			else values.engine = value;
 			index += 1;
 			continue;
 		}
 		positionals.push(token ?? '');
+	}
+
+	const engine = values.engine ?? 'agentbrowser';
+	if (engine !== 'agentbrowser' && engine !== 'vercel') {
+		fail(`Invalid browser engine: "${engine}". Supported engines: agentbrowser, vercel`);
 	}
 
 	if (positionals[0] === 'verify') {
@@ -682,6 +691,7 @@ function parseBrowseArgs(rest: string[]): BrowseArgs {
 		return {
 			command: 'browse',
 			action: 'verify',
+			engine,
 			explicitRoot: values.root ? path.resolve(values.root) : undefined,
 			session: values.session,
 			namespace: values.namespace,
@@ -693,6 +703,7 @@ function parseBrowseArgs(rest: string[]): BrowseArgs {
 	return {
 		command: 'browse',
 		action: 'passthrough',
+		engine,
 		explicitRoot: values.root ? path.resolve(values.root) : undefined,
 		session: values.session,
 		namespace: values.namespace,
@@ -2046,6 +2057,14 @@ function resolveAgentBrowserBin(root: string): string {
 	return 'agent-browser';
 }
 
+function resolveEgoBrowserBin(root: string): string {
+	const fromRoot = findUpBin(root, 'ego-browser');
+	if (fromRoot) return fromRoot;
+	const fromCli = findUpBin(cliDirectory, 'ego-browser');
+	if (fromCli) return fromCli;
+	return 'ego-browser';
+}
+
 function runAgentBrowser(root: string, args: string[], options: { session: string; namespace: string }): number {
 	const bin = resolveAgentBrowserBin(root);
 	const result = spawnSync(bin, ['--session', options.session, '--namespace', options.namespace, ...args], {
@@ -2065,6 +2084,36 @@ function runAgentBrowser(root: string, args: string[], options: { session: strin
 	return result.status ?? 1;
 }
 
+function runEgoBrowser(
+	root: string,
+	args: string[],
+	options: { session: string; namespace: string; input?: string },
+): number {
+	const bin = resolveEgoBrowserBin(root);
+	const profileDir = path.join(root, '.agents', 'browser', 'profiles', options.namespace, options.session);
+	fs.mkdirSync(profileDir, { recursive: true, mode: 0o700 });
+	fs.chmodSync(profileDir, 0o700);
+	const result = spawnSync(bin, args, {
+		cwd: root,
+		stdio: options.input === undefined ? 'inherit' : ['pipe', 'inherit', 'inherit'],
+		input: options.input,
+		env: {
+			...process.env,
+			BAPX_BROWSER_SESSION: options.session,
+			BAPX_BROWSER_NAMESPACE: options.namespace,
+			EGO_BROWSER_PROFILE_DIR: profileDir,
+		},
+	});
+	if (result.error) {
+		const platformNote =
+			process.platform === 'darwin'
+				? 'Install the bapXai/AgentBrowser app and its ego-browser command.'
+				: 'Build and link bapXai/AgentBrowser, and install Chrome or Chromium. Use `--engine vercel` only as an explicit fallback.';
+		fail(`[bapX] AgentBrowser is not available. ${platformNote}\n${result.error.message}`);
+	}
+	return result.status ?? 1;
+}
+
 function browserEvidencePath(root: string, url: string): string {
 	const hostname = (() => {
 		try {
@@ -2079,6 +2128,33 @@ function browserEvidencePath(root: string, url: string): string {
 	return path.join(evidenceDir, `${stamp}-${sanitizeBrowserScope(hostname)}.png`);
 }
 
+function agentBrowserVerificationScript(options: {
+	session: string;
+	url: string;
+	screenshot: string;
+}): string {
+	const session = JSON.stringify(options.session);
+	const url = JSON.stringify(options.url);
+	const screenshot = JSON.stringify(options.screenshot);
+	return `const task = await taskSpaces.new(${session} + '-verify-' + Date.now());
+try {
+  const tab = await browser.openOrReuseTab(${url}, { wait: true, timeout: 30000, settle: 250 });
+  await cdp('Runtime.enable');
+  await cdp('Log.enable');
+  await page.reload({ waitUntil: 'load', timeout: 30000 });
+  const info = await page.info();
+  const bodyTextLength = await page.evaluate('document.body.innerText.trim().length');
+  if (!bodyTextLength) throw new Error('AgentBrowser loaded a blank page');
+  const snapshot = await page.snapshot();
+  const screenshotPath = await page.screenshot({ path: ${screenshot}, fullPage: true });
+  const browserErrors = page.drainEvents().filter((event) => event.method === 'Runtime.exceptionThrown' || (event.method === 'Log.entryAdded' && event.params?.entry?.level === 'error'));
+  console.log(JSON.stringify({ engine: 'agentbrowser', taskId: task.id, tab, info, bodyTextLength, snapshotLength: snapshot.length, browserErrorCount: browserErrors.length, browserErrors, screenshotPath }));
+} finally {
+  await taskSpaces.complete(task.id, { keep: false });
+}
+`;
+}
+
 function browseCommand(args: BrowseArgs): void {
 	const root = browserRoot(args);
 	const session = args.session ? sanitizeBrowserScope(args.session) : defaultBrowserSession(root);
@@ -2087,15 +2163,33 @@ function browseCommand(args: BrowseArgs): void {
 	if (args.action === 'passthrough') {
 		if (args.args.length === 0) {
 			console.error(
-				'Missing agent-browser command.\n\nUsage:\n  bapX browse verify <url>\n  bapX browse -- <agent-browser args...>\n\nExample:\n  bapX browse -- open https://bapx.in/',
+				'Missing browser command.\n\nUsage:\n  bapX browse verify <url>\n  bapX browse --engine agentbrowser -- nodejs\n  bapX browse --engine vercel -- <agent-browser args...>',
 			);
 			process.exit(1);
 		}
-		process.exit(runAgentBrowser(root, args.args, { session, namespace }));
+		const code =
+			args.engine === 'agentbrowser'
+				? runEgoBrowser(root, args.args, { session, namespace })
+				: runAgentBrowser(root, args.args, { session, namespace });
+		process.exit(code);
 	}
 
 	const url = args.url ?? '';
 	const screenshot = browserEvidencePath(root, url);
+	if (args.engine === 'agentbrowser') {
+		const code = runEgoBrowser(root, ['nodejs'], {
+			session,
+			namespace,
+			input: agentBrowserVerificationScript({ session, url, screenshot }),
+		});
+		if (code !== 0) process.exit(code);
+		success(`browser verified ${url}`);
+		note('engine agentbrowser');
+		note(`session ${session}`);
+		note(`namespace ${namespace}`);
+		note(`screenshot ${screenshot}`);
+		return;
+	}
 	const commands = [
 		['open', url],
 		['wait', '--load', 'networkidle'],
@@ -2115,6 +2209,7 @@ function browseCommand(args: BrowseArgs): void {
 	runAgentBrowser(root, ['close'], { session, namespace });
 	if (failed) process.exit(1);
 	success(`browser verified ${url}`);
+	note('engine vercel');
 	note(`session ${session}`);
 	note(`namespace ${namespace}`);
 	note(`screenshot ${screenshot}`);
