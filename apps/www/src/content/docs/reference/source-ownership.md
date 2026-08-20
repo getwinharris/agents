@@ -7,16 +7,16 @@ bapX uses one tracked web source for public surfaces and one OKF workspace model
 
 ## Public surfaces
 
-| Surface | Owning source | Purpose |
-| --- | --- | --- |
-| `bapx.in` | `apps/www/src/pages/` | Public landing, product, login, pricing, and marketing pages |
-| `docs.bapx.in` | `apps/www/src/content/docs/` and `apps/www/src/pages/docs/` | Public customer, developer, CLI, API, MCP, OKF, and ecosystem documentation |
-| `blogs.bapx.in` | `apps/www/src/content/blogs/` | Public announcements, releases, research, and tutorials |
-| `mediahub.bapx.in` | `apps/www/src/pages/mediahub/` | Direct-client, custom-quote forward-deployed engineering (FDE), enterprise AI/data, commerce, growth, and portfolio funnel; separate from the Agents subscription |
-| `platform.bapx.in` | `apps/www/src/pages/platform/` plus platform server APIs | Account, billing, connector, API key, MCP, and observability control plane |
-| `admin.bapx.in` | `apps/www/admin/` plus shared workspace APIs | bapX-wide business operating surface |
-| `agents.bapx.in` | shared Admin/Agents operating model | Customer business operating surface |
-| `api.bapx.in` | runtime/API/MCP gateway code | Programmatic API and MCP gateway |
+| Surface            | Owning source                                               | Purpose                                                                                                                                                           |
+| ------------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bapx.in`          | `apps/www/src/pages/`                                       | Public landing, product, login, pricing, and marketing pages                                                                                                      |
+| `docs.bapx.in`     | `apps/www/src/content/docs/` and `apps/www/src/pages/docs/` | Public customer, developer, CLI, API, MCP, OKF, and ecosystem documentation                                                                                       |
+| `blogs.bapx.in`    | `apps/www/src/content/blogs/`                               | Public announcements, releases, research, and tutorials                                                                                                           |
+| `mediahub.bapx.in` | `apps/www/src/pages/mediahub/`                              | Direct-client, custom-quote forward-deployed engineering (FDE), enterprise AI/data, commerce, growth, and portfolio funnel; separate from the Agents subscription |
+| `platform.bapx.in` | `apps/www/src/pages/platform/` plus platform server APIs    | GitHub-backed account/session entry and control-plane information architecture; most management controls remain planned                                           |
+| `admin.bapx.in`    | `apps/www/admin/` plus shared workspace APIs                | bapX-wide business operating surface                                                                                                                              |
+| `agents.bapx.in`   | shared Admin/Agents operating model                         | Customer business operating surface                                                                                                                               |
+| `api.bapx.in`      | planned runtime/API/MCP gateway code                        | Not served; planned programmatic API and MCP gateway whose current public routes return 404                                                                       |
 
 ## Repository areas
 
@@ -42,3 +42,5 @@ Every user workspace is a git repository. Public docs use `root-sandbox/` as the
 - Business execution, agents, automations, projects, team work, and coordination belong in Agents/Admin.
 - Supported developer commands belong in the CLI and public docs.
 - Private host mechanics and incident procedures stay in internal docs.
+
+See [Product surfaces and availability](/docs/introduction/product-surfaces/) for the customer-facing live and planned boundary. Framework API pages describe application-owned runtime APIs; they do not make `api.bapx.in` a live shared service.

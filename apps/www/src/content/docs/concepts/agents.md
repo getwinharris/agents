@@ -1,53 +1,50 @@
 ---
 title: What is an agent?
-description: How bapX agents work — autonomous AI agents running in the cloud for your business and team.
-lastReviewedAt: 2026-07-09
+description: The code-defined Bapx agent contract and the current hosted bapX product boundary.
+lastReviewedAt: 2026-08-20
 ---
 
-A **bapX agent** is an AI agent running in the cloud, configured to perform tasks for your business or team. Each agent has a model, instructions, tools, and channels — all managed from your workspace dashboard.
+A **Bapx agent** is a code-defined runtime resource with a model, instructions, tools, skills, optional subagents, and an application-owned route. A deployed Bapx application can expose agent instances through its Node.js or Cloudflare runtime.
 
-## How agents work
+The hosted bapX product currently exposes one central main-agent transport inside the authentication-gated Agents surface. It does not yet provide dashboard creation and instant hosting for arbitrary customer-defined agents.
 
-Every bapX agent is built from four components:
+## Framework agent contract
 
-1. **A model** — The LLM that powers your agent (Claude, GPT, Gemini, etc.). Choose from any supported provider.
-2. **Instructions** — What your agent does. Written in plain language: "Handle customer support for Acme Corp. Process refunds, answer product questions, escalate when stuck."
-3. **Tools** — What your agent can access. MCP servers, APIs, databases, file systems, or custom integrations.
-4. **Channels** — How your team and other agents interact with the agent. Slack, GitHub, email, Discord, MCP tools, or A2A handoffs.
+Every agent definition can combine:
 
-Configure all four from your workspace — no code required.
+1. **Model** — A provider/model specifier supplied by the application or operation.
+2. **Instructions** — The agent's role and operating constraints.
+3. **Tools and skills** — Project-owned capabilities available to the agent.
+4. **Subagents** — Named specialist profiles used for delegated work.
+5. **Persistence and runtime** — Application-selected storage, Node.js or Cloudflare target, and authored routing.
 
-## Agent lifecycle
+Agents are TypeScript modules, not records created by a hosted dashboard. Start with [Building agents](/docs/guide/building-agents/) and the [Agent API](/docs/api/agent-api/).
 
-| Stage | What happens |
-|---|---|
-| **Create** | Define name, model, instructions in your workspace dashboard |
-| **Deploy** | Agent goes live instantly at `agents.bapx.in/workspace/<name>/` |
-| **Connect** | Add channels (Slack, GitHub, email) so your team can use it |
-| **Monitor** | View activity logs, conversation history, and usage metrics |
-| **Iterate** | Update instructions, swap models, add tools — changes apply immediately |
+## Developer lifecycle
 
-## Team agents vs. personal agents
+| Stage       | Supported behavior                                                                            |
+| ----------- | --------------------------------------------------------------------------------------------- |
+| **Define**  | Author the agent, model, instructions, tools, skills, and subagents in source.                |
+| **Build**   | Use the bapX CLI to create a Node.js or Cloudflare deployment artifact.                       |
+| **Deploy**  | Deploy the generated artifact through an application-owned hosting target and route.          |
+| **Connect** | Add code-backed channels, APIs, SDK clients, or MCP servers supported by that application.    |
+| **Observe** | Use the runtime event, conversation, persistence, tracing, and application logging contracts. |
 
-bapX agents are team resources, not personal scripts:
+There is no supported instant `agents.bapx.in/workspace/<name>` deployment route.
 
-- **Workspace-scoped** — Agents belong to your workspace, accessible to all team members with the right role
-- **Role-based access** — Admins control who can create, edit, or view agents
-- **Shared channels** — Multiple team members can interact with the same agent through shared channels (e.g., a Slack channel)
-- **Audit logging** — Every agent action is logged and visible to your team
+## Hosted bapX boundary
 
-## When to use agents
+The live `agents.bapx.in` route provides the shared operating shell, an authenticated main-agent gateway, and customer-scoped workspace APIs. The following remain planned public product workflows:
 
-bapX agents work best for ongoing, operational tasks:
+- Creating arbitrary agent definitions from the browser
+- Selecting and storing model-provider credentials in Platform
+- Assigning workspace team roles
+- Enabling connectors with one click
+- Publishing project-specific hosted subdomains
+- Managing shared API/MCP clients through `api.bapx.in`
 
-- Customer support triage and response
-- Engineering issue management and code review
-- Data processing and report generation
-- Project management and task coordination
-- Sales lead qualification and follow-up
+See [Product surfaces and availability](/docs/introduction/product-surfaces/) for the current deployment boundary.
 
-## Next steps
+## Good agent workloads
 
-- [Create your first agent](/docs/getting-started/quickstart/) in minutes
-- [Connect channels](/docs/guide/channels/) to your agents
-- [Explore the platform](/docs/platform/overview/) for billing, teams, provider keys, MCP, and A2A access
+Agents are useful when an application can give them a clear scope, tools, review boundary, and evidence contract—for example support triage, engineering issue work, data processing, project coordination, or sales qualification. High-impact mutations should remain behind application authorization and explicit approval.

@@ -14,6 +14,7 @@
 
 ### Fixes & Other Changes
 
+- Public docs now separate deployed, authentication-gated, partial, and planned bapX capabilities; remove false dashboard agent-creation, instant-hosting, team-role, connector, and live shared API/MCP claims; document MediaHub/FDE as a separate custom-quote service; and expose the existing CLI, runtime API, SDK, and reference pages through a Developers navigation section (#121).
 - Reworked the bapX landing around one concise operating-system promise and a readable workspace preview, replacing the crowded decorative agent console and repetitive card stack with open operating, surface, integration, and pricing rails. MediaHub is now a direct-client enterprise funnel for forward-deployed engineering, AI/data/CRM/ERP, commerce, and growth engagements, with delivery stages, selected work, scoped contact handoff, and an Admin-only navigation link that is not exposed to customer Agents.
 - Generated agent/browser working state now uses `.agents` paths instead of legacy `.bapX` or `.bapx` paths: browser profiles live under `.agents/browser/profiles`, browser CLI evidence under `.agents/browser/evidence`, packaged skill virtual resources under `/.agents/packaged-skills`, and Cloudflare Vite scratch under `.agents/build/vite`.
 - Production `agents.bapx.in` now points the authenticated web gateway at the reachable private agents runtime origin in the VPS Docker topology, restoring central bapX agent message submission after the live 503 runtime-proxy failure.

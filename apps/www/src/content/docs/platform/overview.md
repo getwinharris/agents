@@ -1,39 +1,59 @@
 ---
 title: Platform Overview
-description: Manage your bapX account settings, billing, API keys, connectors, MCP configuration, and observability.
+description: Current and planned account, billing, connector, API, MCP, and observability ownership in Platform.
 ---
 
-`platform.bapx.in` is the account, billing, connector, API, MCP, and observability control plane for bapX. It is not a second operating workspace. Every account owns a user-level OKF workspace. Businesses live under that user, and newly created or imported repositories always live as projects inside a business:
+`platform.bapx.in` is the account and configuration boundary for bapX. It is not a second operating workspace. Every account owns a user-level OKF workspace; businesses live under that user, and projects live inside a business:
 
 ```text
 root-sandbox/<username>/<business-slug>/projects/<project-slug>/
 ```
 
-The public `root-sandbox/` name is the customer-facing workspace boundary. The server-owned storage path remains internal and is not part of the public product contract.
+The public `root-sandbox/` name is the customer-facing boundary. Server storage paths are private implementation details.
 
-Creating an account uses a verified GitHub identity and creates the user workspace and its first business. bapX does not store a password. The device session is shared across the production bapX subdomains and continues until explicit logout, subject to browser cookie retention. Repository authorization remains a separate GitHub App permission flow.
+## Current production state
 
-The India-first subscription costs **₹500 per month** and includes **5 GB** of storage, hosted search, browser sessions, hosted agents and workflows, Node.js project subdomains, TTS, and STT. Additional storage costs **₹100 per GB per month** up to **100 GB**. Customers bring their own AI-provider and connector credentials.
+| Capability                                              | Status                                                                                                                    |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| GitHub signup, login, shared device session, and logout | Implemented. bapX stores no password.                                                                                     |
+| User workspace and first business creation              | Implemented when a verified GitHub identity signs in for the first time.                                                  |
+| Platform page                                           | Live, authentication-gated information architecture. Account identity is loaded from the current session.                 |
+| Customer Agents surface                                 | Live and authentication-gated, with the shared shell, central main-agent transport, and customer-scoped workspace routes. |
+| Admin repository import                                 | Implemented for confirmed public GitHub repositories; Admin entitlement is required.                                      |
+| Billing checkout and quota enforcement                  | Planned. Razorpay is the intended INR payment owner.                                                                      |
+| Provider and connector credential management            | Planned public controls. Customers bring their own credentials.                                                           |
+| API-key, MCP-client, and observability management       | Planned public controls.                                                                                                  |
+| Shared `api.bapx.in` API/MCP gateway                    | Not served; current routes return 404.                                                                                    |
 
-### Sections
+Static Platform navigation labels describe ownership, not completed workflows. A section is not available merely because it appears in the sidebar.
 
-- **Account**: Profile, authentication, sessions, and user-level workspace ownership
-- **Billing and storage**: Razorpay subscription state, included storage, additional storage, and quota limits
-- **Connectors**: Business-owned external service credentials, including Razorpay for payments
-- **API keys and MCP**: Programmatic access to approved bapX gateways and MCP servers
-- **Observability and quality**: Sentry, OpenTelemetry, Braintrust, Vitest evals, agent activity, connector health, and project activity
-- **Workspace routing**: Business and project destinations used by Agents/Admin
+## Identity and repository authorization
 
-Platform manages ownership and configuration. `agents.bapx.in` operates the selected business and project; `admin.bapx.in` uses the same operating model with bapX-wide authority over `/root/bapx.in`.
+Current signup uses a verified GitHub identity and creates or resumes the user account, workspace, and first business. The production `bapx_session` is shared across bapX subdomains and continues until logout, subject to browser cookie retention.
 
-Opening `admin.bapx.in` uses the shared GitHub-backed bapX session, then exchanges a single-use short-lived handoff before granting Admin authority. The server revalidates the configured GitHub provider-ID entitlement before serving the Admin workspace; customer accounts without that entitlement cannot use bapX-wide Admin authority.
+Repository authorization is a separate GitHub App permission flow. Signing in does not authorize every repository.
 
-### Repository import
+## Pricing boundary
 
-The Admin Projects surface resolves a GitHub repository through the configured GitHub App before enabling destination editing or import confirmation. It displays GitHub's canonical repository identity, visibility, and default branch, and suggests the non-overwriting Admin destination before mutation. Public repositories can then continue through the existing confirmed import operation. Private repository metadata may be displayed when authorized, but private cloning is not yet enabled and remains disabled in the Admin UI.
+The India-first offer is **₹500 per month** with **5 GB** of storage, hosted search, browser sessions, hosted agents and workflows, Node.js project subdomains, TTS, and STT. Additional storage is **₹100 per GB per month** up to **100 GB**. Customers bring their own AI-provider and connector credentials. Automated checkout, quota enforcement, and generalized one-click project hosting remain incomplete until deployed and verified.
 
-Changing the repository input invalidates the previous resolution and confirmation. A repository must be resolved again before it can be imported, preventing an earlier response from enabling import for a newer input.
+## Intended Platform ownership
 
-### Agents workspace
+- Account identity, sessions, and user-level workspace ownership
+- Subscription, storage quota, and billing state
+- Business-owned provider and connector credentials
+- API keys and MCP client configuration
+- Observability and quality integrations
+- Business and project destinations used by Agents/Admin
 
-Opening `agents.bapx.in` requires the same GitHub-backed bapX session. After sign-in, the customer operating surface uses the business main-agent conversation and limits workspace file operations to that account's `root-sandbox/<username>/` workspace boundary. The initial hosted main agent streams a connection check, reasoning, and a scoped workspace-status tool result; selecting and storing customer AI-provider credentials remains a Platform-owned configuration step.
+Platform owns configuration. `agents.bapx.in` owns customer operations; `admin.bapx.in` uses the same operating model with bapX-wide authority.
+
+## Admin and Agents
+
+Opening Admin uses the shared GitHub-backed session, exchanges a single-use short-lived handoff, and revalidates the configured provider-ID entitlement before serving the Admin workspace.
+
+The Admin Projects surface resolves a GitHub repository through the configured GitHub App, shows GitHub's canonical identity, visibility, and default branch, and requires an explicit non-overwriting destination confirmation. Public repository import is implemented. Private cloning remains disabled.
+
+Opening Agents requires a signed-in bapX session. The current surface uses the business main-agent conversation and limits workspace routes to the authenticated customer boundary. Public provider selection and credential storage remain Platform work rather than a completed Agents control.
+
+See [Product surfaces and availability](/docs/introduction/product-surfaces/) for every domain's live boundary.

@@ -15,7 +15,7 @@ const { groups, currentSlug, sectionTitle, sections = docsSections, baseUrl } = 
 ---
 
 <div id="mobile-docs-menu" class="fixed inset-x-0 top-[var(--docs-header-height)] bottom-0 z-10 hidden overflow-y-auto bg-[var(--canvas)] px-4 py-4 docs-desktop:hidden" data-mobile-menu aria-hidden="true">
-	<nav class="mb-4 flex gap-4 border-b border-docs-border pb-3" aria-label="Documentation sections">
+	<nav class="mb-4 flex flex-wrap gap-x-4 gap-y-2 border-b border-docs-border pb-3" aria-label="Documentation sections">
 		{sections.map((section) => <DocsSectionLink section={section} active={section.title === sectionTitle} mobile baseUrl={baseUrl} />)}
 	</nav>
 	<DocsSidebar groups={groups} currentSlug={currentSlug} mobile />

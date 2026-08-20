@@ -9,6 +9,8 @@ A bapX account owns a user-level OKF workspace. Organisations live under that us
 root-sandbox/<username>/<organisation-slug>/projects/<project-slug>/
 ```
 
-`admin.bapx.in` and `agents.bapx.in` use the same operating model: people, agents, automations, projects, MCPs, tools, artifacts, audit, and the central bapX agent chat. Admin has bapX-wide authority over `/root/bapx.in`; Agents has customer organisation authority.
+`admin.bapx.in` and `agents.bapx.in` use the same operating model. Admin has bapX-wide authority over `/root/bapx.in`; Agents has customer organisation authority. The shared shell and central main-agent transport are implemented. Team invitations, role management, self-service agent creation, connector setup, and MCP client management are planned public controls rather than completed organisation workflows.
 
-`platform.bapx.in` configures the account, subscription, connectors, API keys, MCP access, and observability. It is not a separate workspace surface.
+`platform.bapx.in` owns account, subscription, connector, API-key, MCP, and observability configuration. The current page is an authentication-gated information architecture; most of those controls are not interactive yet. Platform is not a separate workspace surface.
+
+See [Product surfaces and availability](/docs/introduction/product-surfaces/) for the verified deployment boundary.

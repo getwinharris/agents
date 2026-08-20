@@ -1,61 +1,53 @@
 ---
 title: Getting Started
-description: Create your paid bapX account, business workspace, and first hosted agent project.
-lastReviewedAt: 2026-07-11
+description: Sign in to the current bapX surfaces and choose the hosted-product or developer path.
+lastReviewedAt: 2026-08-20
 ---
 
-**bapX** turns 10+ years of marketing and branding operations into hosted agents that work inside your business and project structure. Platform manages account settings, billing, connectors, API keys, MCP configuration, and observability; Agents and Admin are the operating workspaces where the bapX agent coordinates specialist agents, automations, projects, and human work.
+bapX provides a GitHub-backed account boundary, customer and Admin operating surfaces, a hosted main-agent runtime, and a public TypeScript framework. Some Platform navigation describes the intended control plane before its management controls are interactive, so start with the path that is available today.
 
-## Prerequisites
+## Before you start
 
-- **A paid bapX account** — [Sign up](https://platform.bapx.in). The India-first subscription is ₹500/month with 5 GB included, hosted search, browser sessions, hosted agents/workflows, Node.js project subdomains, TTS, and STT. Additional storage is ₹100/GB/month up to 100 GB.
-- **An LLM provider key** — Connect your preferred model provider (Anthropic, OpenAI, Google, etc.) in your workspace settings.
-- **Team members** (optional) — Invite your team to collaborate on agents and workflows.
+- **GitHub identity** — Current bapX signup and login use GitHub OAuth. bapX does not offer password or Google sign-in.
+- **Workspace access** — The India-first offer is ₹500/month with 5 GB included. Automated Razorpay checkout and quota enforcement are not yet documented as live self-service controls.
+- **Provider credentials** — Customers bring their own model-provider credentials. The public Platform flow for selecting and storing those credentials is not yet complete.
 
-## Quick Start
+## Hosted product path
 
-### 1. Create your workspace
+### 1. Sign in
 
-Go to [platform.bapx.in](https://platform.bapx.in) and sign up. Platform creates your account, user-level OKF workspace, and first business. Public docs describe the workspace boundary as `root-sandbox/<username>/<business-slug>/projects/<project-slug>/`. Importing a repository does not bypass the OKF structure.
+Open [Platform](https://platform.bapx.in) and continue with GitHub. A verified identity creates or resumes the user account, user-level OKF workspace, and first business. Public documentation names the customer boundary as:
 
-### 2. Open the bapX agent workspace
-
-Open `agents.bapx.in` for your business workspace. The central **bapX agent** is the primary command surface: it routes work to specialist agents, tools, repository operations, browser/search capabilities, and automations through the existing bapX harness.
-
-From the agent workspace, start a task or create a project agent. Give it a name, choose the model/provider you have connected, and write its instructions:
-
-```yaml
-name: customer-support
-model: anthropic/claude-sonnet-4-6
-instructions: |
-  You are a customer support agent for Acme Corp.
-  Handle refunds, account issues, and product questions.
-  Escalate to human agents when you can't resolve.
+```text
+root-sandbox/<username>/<business-slug>/projects/<project-slug>/
 ```
 
-Project applications may use a hosted Node.js subdomain such as `<projectname>.app.bapx.in` after the project name is set and the hosting operation is implemented for that project.
+Repository authorization is a separate GitHub App permission flow. Signing in does not grant bapX access to every repository.
 
-### 3. Connect channels
+### 2. Open the customer operating surface
 
-Plug your agent into the tools your team already uses:
+Open [Agents](https://agents.bapx.in). The current authenticated surface provides the shared operating shell and central bapX main-agent transport inside the signed-in customer's workspace boundary.
 
-- **Slack** — Let your team tag the agent in channels
-- **GitHub** — Auto-triage issues and PRs
-- **Email** — Handle customer tickets via Resend
-- **MCP / A2A** — Agent-to-agent and tool access through the Model Context Protocol gateway
+Self-service creation of arbitrary hosted agents, provider selection, connector setup, team invitations, role management, and one-click project subdomains are not yet public workflows. Do not rely on placeholder Platform navigation for those operations.
 
-Configure channels from Platform settings, then use them from Agents/Admin inside the selected business/project scope.
+### 3. Use the appropriate delivery path
 
-### 4. Invite your team
+- For a customer workspace or hosted-agent onboarding request, contact the bapX team while the remaining Platform controls are completed.
+- For an exclusive enterprise implementation, use [MediaHub](https://mediahub.bapx.in). MediaHub provides direct, custom-quote forward-deployed engineering and is separate from the Agents subscription.
+- For framework development, continue with the developer path below.
 
-Add team members to your workspace. Assign roles:
+## Developer path
 
-- **Admin** — Full access to billing, settings, all agents
-- **Developer** — Create and edit agents, manage channels
-- **Viewer** — Monitor agent activity, view logs
+The public framework supports code-defined agents, workflows, tools, skills, channels, persistence, Node.js builds, and Cloudflare builds. Start with:
 
-## Next Steps
+1. [Development overview](/docs/reference/development/)
+2. [CLI overview](/docs/cli/overview/)
+3. [Building agents](/docs/guide/building-agents/)
+4. [Runtime Agent API](/docs/api/agent-api/)
+5. [SDK overview](/docs/sdk/overview/)
 
-- [Agent concepts](/docs/concepts/agents/) — How bapX agents work
-- [Platform guide](/docs/platform/overview/) — Manage billing, API keys, and organisations
-- [MCP Gateway](/docs/mcp/overview/) — Connect agents to external tools
+Framework deployment targets are documented developer contracts. They do not create an instant `agents.bapx.in/workspace/<name>` hosted route.
+
+## Check availability before planning
+
+See [Product surfaces and availability](/docs/introduction/product-surfaces/) for the live, partial, auth-gated, and planned boundaries of every bapX domain.
