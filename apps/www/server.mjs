@@ -668,14 +668,27 @@ async function handleApiGateway(req, res, urlPath) {
 			body = await readRawBody(req);
 		} catch (error) {
 			const tooLarge = error?.name === 'PayloadTooLargeError';
+			// Signal no keep-alive so the half-read body does not corrupt the next
+			// request on this connection, without destroying the socket before the
+			// status has flushed.
+			if (tooLarge) res.shouldKeepAlive = false;
 			jsonResponse(res, tooLarge ? 413 : 400, {
 				error: { message: tooLarge ? `Request body exceeds ${MAX_API_BODY_BYTES} bytes` : 'Could not read request body', type: 'invalid_request_error' },
 			});
-			if (tooLarge) req.destroy();
 			return;
 		}
 	}
 	await proxyToApiPlane(req, res, { origin: apiPlaneOrigin, planeToken: apiPlaneToken, urlPath: forwardTarget, body });
+}
+
+// Parses an already-buffered body, so a size limit can be enforced while
+// reading instead of after the whole payload is in memory.
+function parseBodyBuffer(buffer, contentType) {
+	const text = buffer.toString('utf8');
+	if (contentType.includes('application/x-www-form-urlencoded')) {
+		return Object.fromEntries(new URLSearchParams(text));
+	}
+	return text ? JSON.parse(text) : {};
 }
 
 // decodeURIComponent throws URIError on a malformed escape such as a bare '%'.
@@ -727,7 +740,19 @@ async function handleConnectorAPI(req, res, urlPath, host) {
 	}
 
 	if (req.method === 'POST' && urlPath === '/api/platform/connections') {
-		const payload = await parseBody(req).catch(() => ({}));
+		// A connector payload is a slug and a credential. Cap it well below the
+		// gateway limit so an authenticated caller cannot buffer an unbounded body.
+		let payload;
+		try {
+			const raw = await readRawBody(req, 64 * 1024);
+			payload = parseBodyBuffer(raw, req.headers['content-type'] || '');
+		} catch (error) {
+			const tooLarge = error?.name === 'PayloadTooLargeError';
+			jsonResponse(res, tooLarge ? 413 : 400, {
+				error: tooLarge ? 'Connector payload is too large' : 'Invalid request body',
+			});
+			return true;
+		}
 		try {
 			const connection = connectorStore.connect(account.id, businessSlug, {
 				slug: payload.slug,

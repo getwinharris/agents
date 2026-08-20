@@ -11,6 +11,11 @@ import path from 'node:path';
 // and only for the business that owns it.
 
 const SCHEMA_VERSION = 1;
+
+function normalizeSlug(value) {
+	const clean = String(value || '').trim().toLowerCase();
+	return /^[a-z0-9][a-z0-9-]{0,63}$/.test(clean) ? clean : '';
+}
 const ALGORITHM = 'aes-256-gcm';
 
 function readJson(file, fallback) {
@@ -45,8 +50,11 @@ function writeJson(file, value) {
 function encryptionKey() {
 	const raw = process.env.BAPX_CREDENTIAL_ENCRYPTION_KEY || '';
 	if (!raw) return null;
-	const key = /^[0-9a-f]{64}$/i.test(raw) ? Buffer.from(raw, 'hex') : crypto.createHash('sha256').update(raw).digest();
-	return key.length === 32 ? key : null;
+	// Require a 32-byte hex key. Hashing an arbitrary passphrase once with
+	// SHA-256 inherits the passphrase's entropy, so a weak operator secret stays
+	// brute-forceable against the ciphertext.
+	if (!/^[0-9a-f]{64}$/i.test(raw)) return null;
+	return Buffer.from(raw, 'hex');
 }
 
 function encrypt(plaintext) {
@@ -120,8 +128,9 @@ export function createConnectorStore({ workspaceRoot }) {
 		},
 
 		list(accountId, businessSlug) {
+			const scope = normalizeSlug(businessSlug);
 			return load()
-				.connections.filter((item) => item.accountId === accountId && (!businessSlug || item.businessSlug === businessSlug))
+				.connections.filter((item) => item.accountId === accountId && (!scope || item.businessSlug === scope))
 				.map(publicView);
 		},
 
@@ -129,6 +138,8 @@ export function createConnectorStore({ workspaceRoot }) {
 		// creating a duplicate — a customer rotating a key should not end up with
 		// two connections where one silently keeps working.
 		connect(accountId, businessSlug, { slug, name, category, credential }) {
+			const cleanBusiness = normalizeSlug(businessSlug);
+			if (!cleanBusiness) throw new Error('Business is invalid');
 			const cleanSlug = String(slug || '').trim().toLowerCase();
 			if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(cleanSlug)) throw new Error('Connector is invalid');
 			const secret = String(credential || '').trim();
@@ -138,7 +149,7 @@ export function createConnectorStore({ workspaceRoot }) {
 			const stored = load();
 			const now = new Date().toISOString();
 			const existing = stored.connections.find(
-				(item) => item.accountId === accountId && item.businessSlug === businessSlug && item.slug === cleanSlug,
+				(item) => item.accountId === accountId && item.businessSlug === cleanBusiness && item.slug === cleanSlug,
 			);
 			const secretRecord = encrypt(secret);
 			// Show enough to recognise which credential is stored, never enough to use it.
@@ -153,7 +164,7 @@ export function createConnectorStore({ workspaceRoot }) {
 			const connection = {
 				id: crypto.randomUUID(),
 				accountId,
-				businessSlug,
+				businessSlug: cleanBusiness,
 				slug: cleanSlug,
 				name: String(name || cleanSlug).slice(0, 64),
 				category: String(category || 'channels').slice(0, 32),
@@ -181,14 +192,17 @@ export function createConnectorStore({ workspaceRoot }) {
 		// a connection can never be resolved across a tenant boundary.
 		resolveCredential(accountId, businessSlug, slug) {
 			const stored = load();
+			const scope = normalizeSlug(businessSlug);
 			const connection = stored.connections.find(
-				(item) =>
-					item.accountId === accountId && item.businessSlug === businessSlug && item.slug === String(slug || '').toLowerCase(),
+				(item) => item.accountId === accountId && item.businessSlug === scope && item.slug === String(slug || '').toLowerCase(),
 			);
-			if (!connection) return null;
+			if (!connection?.secret) return null;
+			// Decrypt first: stamping lastUsedAt before decrypting records a
+			// successful resolution that never returned a credential.
+			const plaintext = decrypt(connection.secret);
 			connection.lastUsedAt = new Date().toISOString();
 			writeJson(file, stored);
-			return decrypt(connection.secret);
+			return plaintext;
 		},
 	};
 }
