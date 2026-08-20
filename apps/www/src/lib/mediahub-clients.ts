@@ -1,7 +1,7 @@
 export type MediaHubClientLink = {
   label: string;
   href: string;
-  kind: "website" | "repository" | "social";
+  kind: "website" | "social";
 };
 
 export type MediaHubSocialExample = {
@@ -21,7 +21,6 @@ export type MediaHubClient = {
   operating: string;
   logo: string;
   logoAlt: string;
-  logoSource: string;
   links: readonly MediaHubClientLink[];
   social?: {
     narrative: string;
@@ -43,13 +42,11 @@ export const mediahubClients = [
       "A first-party reel gallery that carries selected Instagram education into the website",
       "Google sign-in and a Gemini support agent grounded in CMS registration and certificate data",
     ],
-    operating: "The live site leads with Dr. Praveen Jacob's clinical positioning, then connects visitors to consultations, events, public references, a curated reel library, and account-aware support. The source repository keeps event and content operations editable through a compact owner CMS. Planned reminder and notification jobs are intentionally not presented here as delivered.",
+    operating: "The live site leads with Dr. Praveen Jacob's clinical positioning, then connects visitors to consultations, events, public references, a curated reel library, and account-aware support. A compact owner CMS keeps event and content operations editable. Planned reminder and notification jobs are intentionally not presented here as delivered.",
     logo: "/brand/mediahub/gut-conference.png",
     logoAlt: "GUT Conference logo",
-    logoSource: "https://github.com/getwinharris/GutConference-phpCMS/blob/main/assets/images/media/gutconference-logo.png",
     links: [
       { label: "Live website", href: "https://gutconference.online/", kind: "website" },
-      { label: "Source repository", href: "https://github.com/getwinharris/GutConference-phpCMS", kind: "repository" },
       { label: "Instagram", href: "https://www.instagram.com/the.gut.expert/?hl=en", kind: "social" },
       { label: "LinkedIn", href: "https://www.linkedin.com/in/dr-praveen-jacob-61b350341/", kind: "social" },
       { label: "YouTube", href: "https://www.youtube.com/channel/UC0UAYYxQETPP6KJcCTHgP7w", kind: "social" },
@@ -79,10 +76,8 @@ export const mediahubClients = [
     operating: "The live product uses server-rendered PHP with hosted MySQL, so the catalogue and business records stay editable without a frontend build pipeline. Customer journeys cover discovery, consultation, purchase, account history, and support.",
     logo: "/brand/mediahub/sri-panchami-spiritual.jpeg",
     logoAlt: "Sri Panchami Spiritual logo",
-    logoSource: "https://github.com/bapxmediahub/bapXphpAiBackend/blob/main/assets/images/logo-small.jpeg",
     links: [
       { label: "Live website", href: "https://sripanchamispiritual.com/", kind: "website" },
-      { label: "Source repository", href: "https://github.com/bapxmediahub/bapXphpAiBackend", kind: "repository" },
     ],
   },
   {
@@ -101,10 +96,8 @@ export const mediahubClients = [
     operating: "The live PHP/MySQL application combines public education and healthcare content with commerce and account workflows. A single admin surface owns the records and media used across those customer journeys.",
     logo: "/brand/mediahub/auraedu.svg",
     logoAlt: "AuraEdu brand mark",
-    logoSource: "https://github.com/getwinharris/auraedu/blob/main/assets/images/auraedu-favicon.svg",
     links: [
       { label: "Live website", href: "https://auraedu.co.in/", kind: "website" },
-      { label: "Source repository", href: "https://github.com/getwinharris/auraedu", kind: "repository" },
     ],
   },
   {
@@ -123,7 +116,6 @@ export const mediahubClients = [
     operating: "The website remains the conversion and service-reference layer while social content handles recurring education and audience prompts. Public video examples cover metabolic questions and engagement-led self-check content rather than generic promotional filler.",
     logo: "/brand/mediahub/nebo-lifestyle-clinic.png",
     logoAlt: "NEBO Lifestyle Clinic logo",
-    logoSource: "https://nebowellness.com/",
     links: [
       { label: "Live website", href: "https://nebowellness.com/", kind: "website" },
       { label: "Instagram", href: "https://www.instagram.com/nebolifestyleclinic/", kind: "social" },
@@ -154,10 +146,8 @@ export const mediahubClients = [
     operating: "Website content moves from condition education and 3D assessment to an appointment request, while the owner CMS handles bookings, articles, media, and the social-video collection. The public site reuses managed short-form video as Flexi Stories and exposes support, ticket, bug-report, and feature-request actions.",
     logo: "/brand/mediahub/flexi-feet.png",
     logoAlt: "Flexi Feet logo",
-    logoSource: "https://github.com/getwinharris/flexi-php-cms/blob/main/assets/images/flexi-feet-logo.png",
     links: [
       { label: "Live website", href: "https://flexifeet.net/", kind: "website" },
-      { label: "Source repository", href: "https://github.com/getwinharris/flexi-php-cms", kind: "repository" },
       { label: "Instagram", href: "https://www.instagram.com/flexifeetmalaysia/", kind: "social" },
       { label: "Facebook", href: "https://www.facebook.com/flexifeetmalaysia", kind: "social" },
       { label: "YouTube", href: "https://www.youtube.com/@flexifeetmalaysia", kind: "social" },
@@ -187,7 +177,6 @@ export const mediahubClients = [
     operating: "The remotely data-backed live site acts as a durable patient-reference and appointment layer: treatment choices, team profiles, BMI assessment, success stories, and booking remain available in production. Linked social channels add current educational videos and patient experiences.",
     logo: "/brand/mediahub/indian-bariatrics.png",
     logoAlt: "Indian Bariatrics logo",
-    logoSource: "https://indianbariatrics.com/",
     links: [
       { label: "Live website", href: "https://indianbariatrics.com/", kind: "website" },
       { label: "Instagram", href: "https://www.instagram.com/bariatric_doctor/", kind: "social" },
@@ -218,7 +207,6 @@ export const mediahubClients = [
     operating: "The content moves between accessible technology explainers and condition-specific education. Public examples cover personalised 3D scanning and transmetatarsal amputation, showing a useful specialist-content approach instead of repetitive sales posts.",
     logo: "/brand/mediahub/happy-feet-erode.jpg",
     logoAlt: "Happy Feet Foot Care Centre logo",
-    logoSource: "https://www.youtube.com/@happyfeeterode",
     links: [
       { label: "Instagram", href: "https://www.instagram.com/happyfeeterode/", kind: "social" },
       { label: "Facebook", href: "https://www.facebook.com/happyfeeterode/", kind: "social" },
