@@ -13,10 +13,21 @@ const KEY_PREFIX = 'bapx_sk_';
 const SCHEMA_VERSION = 1;
 
 function readJson(file, fallback) {
+	let raw;
 	try {
-		return JSON.parse(fs.readFileSync(file, 'utf8'));
+		raw = fs.readFileSync(file, 'utf8');
+	} catch (error) {
+		// A missing file is the legitimate first-run case. Anything else — EACCES,
+		// EIO, a truncated read — must not be mistaken for "no keys": that would
+		// fail every customer's key and let the next write overwrite the
+		// collection with an empty one.
+		if (error?.code === 'ENOENT') return fallback;
+		throw new Error(`API key storage is unreadable (${error?.code || 'unknown'})`);
+	}
+	try {
+		return JSON.parse(raw);
 	} catch {
-		return fallback;
+		throw new Error('API key storage is corrupt');
 	}
 }
 
@@ -139,31 +150,58 @@ export async function proxyToApiPlane(req, res, { origin, planeToken, urlPath, b
 	if (req.headers.accept) headers.accept = req.headers.accept;
 	if (planeToken) headers.authorization = `Bearer ${planeToken}`;
 
+	// Cancel upstream when the client goes away. Without this a cancelled
+	// streaming completion keeps generating provider tokens the caller is billed
+	// for and nobody receives.
+	const controller = new AbortController();
+	const abort = () => controller.abort();
+	res.on('close', abort);
+
 	let upstream;
 	try {
 		upstream = await fetch(target, {
 			method: req.method,
 			headers,
 			body: req.method === 'GET' || req.method === 'HEAD' ? undefined : body,
+			signal: controller.signal,
 		});
 	} catch {
-		res.writeHead(502, { 'content-type': 'application/json' });
-		res.end(JSON.stringify({ error: { message: 'API plane is unavailable', type: 'upstream_unavailable' } }));
+		res.removeListener('close', abort);
+		if (!res.headersSent) {
+			res.writeHead(502, { 'content-type': 'application/json' });
+			res.end(JSON.stringify({ error: { message: 'API plane is unavailable', type: 'upstream_unavailable' } }));
+		}
 		return;
 	}
 
 	const responseHeaders = { 'content-type': upstream.headers.get('content-type') || 'application/json' };
 	res.writeHead(upstream.status, responseHeaders);
 	if (!upstream.body) {
+		res.removeListener('close', abort);
 		res.end();
 		return;
 	}
+
 	// Streamed so token-by-token SSE responses are not buffered into one chunk.
+	// The read loop must stay inside try/catch: a mid-stream upstream reset
+	// rejects here, and this runs from an async request listener with no
+	// rejection handler above it.
 	const reader = upstream.body.getReader();
-	for (;;) {
-		const { done, value } = await reader.read();
-		if (done) break;
-		res.write(Buffer.from(value));
+	try {
+		for (;;) {
+			const { done, value } = await reader.read();
+			if (done) break;
+			if (!res.write(Buffer.from(value))) {
+				await new Promise((resolve) => res.once('drain', resolve));
+			}
+		}
+		res.end();
+	} catch {
+		// Headers are already sent, so the status cannot be changed. Destroy the
+		// socket to signal truncation rather than ending a partial body cleanly,
+		// which a client would read as a complete response.
+		res.destroy();
+	} finally {
+		res.removeListener('close', abort);
 	}
-	res.end();
 }

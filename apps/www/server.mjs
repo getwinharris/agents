@@ -593,10 +593,44 @@ async function handleAdminAPI(req, res, urlPath) {
 	return false;
 }
 
-function readRawBody(req) {
+// OpenAI-compatible payloads do not need to be arbitrarily large, and this runs
+// on a public endpoint: without a ceiling, one key holder can buffer an
+// unbounded or never-ending chunked body and exhaust the process for everyone.
+const MAX_API_BODY_BYTES = parseInt(process.env.BAPX_API_MAX_BODY_BYTES || '', 10) || 10 * 1024 * 1024;
+
+class PayloadTooLargeError extends Error {
+	constructor() {
+		super('Request body is too large');
+		this.name = 'PayloadTooLargeError';
+	}
+}
+
+function readRawBody(req, limit = MAX_API_BODY_BYTES) {
 	return new Promise((resolve, reject) => {
+		const declared = parseInt(req.headers['content-length'] || '', 10);
+		if (Number.isFinite(declared) && declared > limit) {
+			reject(new PayloadTooLargeError());
+			return;
+		}
 		const chunks = [];
-		req.on('data', (chunk) => chunks.push(chunk));
+		let size = 0;
+		let rejected = false;
+		req.on('data', (chunk) => {
+			if (rejected) return;
+			size += chunk.length;
+			// Stop accumulating as soon as the ceiling is crossed rather than after
+			// the body finishes — a chunked upload declares no length. Pause instead
+			// of destroying: destroying here kills the socket before the 413 can be
+			// written, which the client sees as a connection reset with no status.
+			if (size > limit) {
+				rejected = true;
+				chunks.length = 0;
+				req.pause();
+				reject(new PayloadTooLargeError());
+				return;
+			}
+			chunks.push(chunk);
+		});
 		req.on('end', () => resolve(Buffer.concat(chunks)));
 		req.on('error', reject);
 	});
@@ -611,13 +645,34 @@ async function handleApiGateway(req, res, urlPath) {
 		jsonResponse(res, 404, { error: { message: 'Unknown endpoint', type: 'not_found' } });
 		return;
 	}
-	const identity = apiKeyStore.verify(bearerToken(req));
+	// verify() now throws rather than silently reporting "no keys" when the
+	// collection is unreadable or corrupt. Surface that as 503 — the caller's key
+	// may well be valid; we cannot tell.
+	let identity;
+	try {
+		identity = apiKeyStore.verify(bearerToken(req));
+	} catch {
+		jsonResponse(res, 503, { error: { message: 'API key storage is unavailable', type: 'service_unavailable' } });
+		return;
+	}
 	if (!identity) {
 		res.writeHead(401, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'WWW-Authenticate': 'Bearer' });
 		res.end(JSON.stringify({ error: { message: 'Invalid bapX API key', type: 'invalid_request_error' } }));
 		return;
 	}
-	const body = req.method === 'GET' || req.method === 'HEAD' ? undefined : await readRawBody(req);
+	let body;
+	if (req.method !== 'GET' && req.method !== 'HEAD') {
+		try {
+			body = await readRawBody(req);
+		} catch (error) {
+			const tooLarge = error?.name === 'PayloadTooLargeError';
+			jsonResponse(res, tooLarge ? 413 : 400, {
+				error: { message: tooLarge ? `Request body exceeds ${MAX_API_BODY_BYTES} bytes` : 'Could not read request body', type: 'invalid_request_error' },
+			});
+			if (tooLarge) req.destroy();
+			return;
+		}
+	}
 	await proxyToApiPlane(req, res, { origin: apiPlaneOrigin, planeToken: apiPlaneToken, urlPath, body });
 }
 
