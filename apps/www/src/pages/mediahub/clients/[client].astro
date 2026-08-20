@@ -1,19 +1,12 @@
 ---
 import "../../../styles/global.css";
+import { mediahubClients, type MediaHubClient } from "../../../lib/mediahub-clients";
 
 export function getStaticPaths() {
-  const clients = [
-    { slug: "gut-conference", name: "GUT Conference", category: "Web product", summary: "Web product development and management tailored for conference operations.", links: [{ label: "Website", href: "https://gutconference.online/" }] },
-    { slug: "sri-panchami-spiritual", name: "Sri Panchami Spiritual", category: "Web product", summary: "Web product development and management tailored for a spiritual service brand.", links: [{ label: "Website", href: "https://sripanchamispiritual.com/" }] },
-    { slug: "nebo-lifestyle-clinic", name: "NEBO Lifestyle Clinic", category: "Web and social", summary: "Full business conversion online funnel, website, and social media management.", links: [{ label: "Website", href: "https://nebowellness.com/" }, { label: "Instagram", href: "https://www.instagram.com/nebolifestyleclinic/" }, { label: "Facebook", href: "https://www.facebook.com/nebolifestyleclinic" }, { label: "YouTube", href: "https://www.youtube.com/@nebolifestyleclinic" }] },
-    { slug: "flexi-feet", name: "Flexi Feet", category: "Web and social", summary: "Website and social media management for business presence and customer acquisition.", links: [{ label: "Website", href: "https://flexifeet.net/" }, { label: "Instagram", href: "https://www.instagram.com/flexifeetmalaysia/" }, { label: "Facebook", href: "https://www.facebook.com/flexifeetmalaysia" }, { label: "YouTube", href: "https://www.youtube.com/@flexifeetmalaysia" }, { label: "TikTok", href: "https://www.tiktok.com/@flexifeetmalaysia" }] },
-    { slug: "indian-bariatrics", name: "Indian Bariatrics", category: "Web and social", summary: "Website and social media management for healthcare education and patient reach.", links: [{ label: "Website", href: "https://indianbariatrics.com/" }, { label: "Facebook", href: "https://www.facebook.com/FightObesityAndDiabetes/" }, { label: "YouTube", href: "https://www.youtube.com/@Bariatricdoctor" }, { label: "Instagram", href: "https://www.instagram.com/bariatric_doctor/" }] },
-    { slug: "happy-feet-erode", name: "Happy Feet Erode", category: "Social only", summary: "Social media content and management without a website build.", links: [{ label: "Instagram", href: "https://www.instagram.com/happyfeeterode/" }, { label: "Facebook", href: "https://www.facebook.com/happyfeeterode/" }, { label: "YouTube", href: "https://www.youtube.com/@happyfeeterode" }] },
-  ];
-  return clients.map((c) => ({ params: { client: c.slug }, props: c }));
+  return mediahubClients.map((client) => ({ params: { client: client.slug }, props: client }));
 }
 
-const { name, category, summary, links } = Astro.props;
+const client = Astro.props as MediaHubClient;
 ---
 
 <!doctype html>
@@ -21,59 +14,95 @@ const { name, category, summary, links } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{name} | bapX Media Hub</title>
-    <meta name="description" content={summary} />
-    <link rel="canonical" href={"https://mediahub.bapx.in/clients/" + Astro.params.client + "/"} />
+    <title>{client.name} client work | bapX MediaHub</title>
+    <meta name="description" content={client.summary} />
+    <link rel="canonical" href={`https://mediahub.bapx.in/clients/${client.slug}/`} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=bapx-20260711" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   </head>
-  <body>
-    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/80 backdrop-blur-sm">
+  <body class="mediahub-page">
+    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/90 backdrop-blur-sm">
       <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         <div class="flex h-full items-center gap-8">
-          <a href="/" class="brand-lockup">
-            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" />
-            <span>MediaHub</span>
+          <a href="../../" class="brand-lockup" aria-label="bapX MediaHub home">
+            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" /><span>MediaHub</span>
           </a>
           <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
-            <a href="/">Home</a>
-            <a href="https://docs.bapx.in/getting-started/quickstart/">Docs</a>
-            <a href="/mediahub/" class="active">Media Hub</a>
-            <a href="https://blogs.bapx.in/">Blog</a>
-            <a href="/products/">Products</a>
-            <a href="/contact/">Contact</a>
+            <a href="../../#services">Services</a><a href="../../#fde">FDE</a><a href="../../#work" class="active">Work</a><a href="../../#process">Process</a>
           </div>
         </div>
-        <div class="flex items-center gap-3">
-          <a href="https://agents.bapx.in/" class="bapx-pill">Agents</a>
-          <a href="/login/" class="bapx-pill bapx-pill-primary">Sign in</a>
-        </div>
+        <a href="../../#work" class="bapx-pill">All client work</a>
       </div>
     </nav>
 
-    <main class="page-section page-header" style="max-width: 800px; margin: 0 auto;">
-      <a href="/mediahub/" class="bapx-pill" style="margin-bottom: 2rem;">&larr; Back to Media Hub</a>
-      <span class="mono-label">{category}</span>
-      <h1 class="display-xl" style="margin-top: .5rem;">{name}</h1>
-      <p class="body-lg" style="margin-top: 1.5rem;">{summary}</p>
-
-      <div style="margin-top: 3.375rem; border-top: 1px solid var(--hairline); padding-top: 2rem;">
-        <h2 class="display-md">Links</h2>
-        <div class="pill-links">
-          {links.map((link) => (
-            <a href={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>
-          ))}
+    <main class="client-work-page">
+      <section class="client-work-hero">
+        <div class="section-inner client-work-hero-grid">
+          <div class="client-work-logo">
+            <img src={client.logo} alt={client.logoAlt} referrerpolicy="no-referrer" />
+          </div>
+          <div>
+            <span class="mono-label">{client.category}</span>
+            <h1>{client.name}</h1>
+            <p>{client.summary}</p>
+            <div class="client-work-links">
+              {client.links.map((link) => (
+                <a href={link.href} target="_blank" rel="noopener noreferrer" data-kind={link.kind}>{link.label}<span aria-hidden="true">↗</span></a>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <section class="client-case-band">
+        <div class="section-inner">
+          <div class="client-case-intro">
+            <h2>{client.narrative}</h2>
+            <div><span>Customer context</span><p>{client.challenge}</p></div>
+          </div>
+          <div class="client-delivery-grid">
+            <div>
+              <span>Delivered and maintained</span>
+              <ul>
+                {client.shipped.map((item) => <li>{item}</li>)}
+              </ul>
+            </div>
+            <div>
+              <span>How we maintain it</span>
+              <p>{client.operating}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {client.social ? (
+        <section class="client-case-band client-social-section">
+          <div class="section-inner">
+            <div class="client-social-heading">
+              <h2>Social work connected to the customer journey.</h2>
+              <p>{client.social.narrative}</p>
+            </div>
+            <div class="social-example-list">
+              {client.social.examples.map((example) => (
+                <a href={example.href} target="_blank" rel="noopener noreferrer">
+                  <span>{example.label}</span><strong>{example.title}</strong><em aria-hidden="true">↗</em>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <section class="client-evidence-band">
+        <div class="section-inner client-evidence-row">
+          <div><span class="mono-label">Evidence boundary</span><p>This narrative is limited to the live customer surface, supplied public source repositories, linked customer channels, and the maintenance scope confirmed by bapX MediaHub.</p></div>
+          <a href={client.logoSource} target="_blank" rel="noopener noreferrer">Brand asset source <span aria-hidden="true">↗</span></a>
+        </div>
+      </section>
     </main>
 
-    <footer class="page-footer">
-      <div class="section-inner">
-        <span>bapX Media Hub</span>
-        <span>&copy; {new Date().getFullYear()}</span>
-      </div>
-    </footer>
+    <footer class="page-footer"><div class="section-inner"><span>bapX MediaHub · Active client portfolio</span><span>&copy; {new Date().getFullYear()}</span></div></footer>
   </body>
 </html>

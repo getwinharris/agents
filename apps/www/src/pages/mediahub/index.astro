@@ -1,5 +1,6 @@
 ---
 import "../../styles/global.css";
+import { mediahubClients } from "../../lib/mediahub-clients";
 
 const serviceTracks = [
   ["01", "Forward-deployed engineering", "Embedded builders accountable for production delivery."],
@@ -22,14 +23,6 @@ const deliveryStages = [
   ["04", "Operate", "Measure, improve, document, and hand over."],
 ] as const;
 
-const clients = [
-  ["gut-conference", "GUT Conference", "Conference web product and operations"],
-  ["sri-panchami-spiritual", "Sri Panchami Spiritual", "Service brand web product"],
-  ["nebo-lifestyle-clinic", "NEBO Lifestyle Clinic", "Conversion funnel, web, and social"],
-  ["flexi-feet", "Flexi Feet", "Customer acquisition and social operations"],
-  ["indian-bariatrics", "Indian Bariatrics", "Healthcare education and patient reach"],
-  ["happy-feet-erode", "Happy Feet Erode", "Managed social media presence"],
-] as const;
 ---
 
 <!doctype html>
@@ -138,10 +131,15 @@ const clients = [
 
       <section id="work" class="mediahub-band work-section">
         <div class="section-inner">
-          <div class="work-heading"><h2>Selected work</h2><p>Existing client engagements across web products, conversion, content, and managed business presence.</p></div>
+          <div class="work-heading"><h2>Active client portfolio</h2><p>Verified customer products and channels we have delivered and continue to maintain across web, commerce, booking, content, support, and social operations.</p></div>
           <div class="work-list">
-            {clients.map(([slug, name, summary]) => (
-              <a href={`/mediahub/clients/${slug}/`}><strong>{name}</strong><span>{summary}</span><em aria-hidden="true">↗</em></a>
+            {mediahubClients.map((client) => (
+              <a href={`clients/${client.slug}/`} aria-label={`View ${client.name} client work`}>
+                <span class="work-mark"><img src={client.logo} alt="" loading="lazy" referrerpolicy="no-referrer" /></span>
+                <span class="work-client"><strong>{client.name}</strong><small>{client.category}</small></span>
+                <span class="work-summary">{client.summary}</span>
+                <em aria-hidden="true">↗</em>
+              </a>
             ))}
           </div>
         </div>
