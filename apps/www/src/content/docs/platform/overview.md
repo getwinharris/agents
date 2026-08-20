@@ -11,7 +11,7 @@ root-sandbox/<username>/<business-slug>/projects/<project-slug>/
 
 The public `root-sandbox/` name is the customer-facing workspace boundary. The server-owned storage path remains internal and is not part of the public product contract.
 
-Creating an account uses a verified GitHub identity and creates the user workspace and its first business. bapX does not store a password. The device session is shared across the production bapX subdomains and continues until explicit logout, subject to browser cookie retention. Repository authorization remains a separate GitHub App permission flow.
+Creating an account uses either an email and password or a verified GitHub identity, and creates the user workspace and its first business. A password account stores only a salted scrypt derivation of the password, never the password itself. The device session is shared across the production bapX subdomains and continues until explicit logout, subject to browser cookie retention. Repository authorization remains a separate GitHub App permission flow.
 
 The India-first subscription costs **₹500 per month** and includes **5 GB** of storage, hosted search, browser sessions, hosted agents and workflows, Node.js project subdomains, TTS, and STT. Additional storage costs **₹100 per GB per month** up to **100 GB**. Customers bring their own AI-provider and connector credentials.
 
