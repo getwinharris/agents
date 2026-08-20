@@ -114,3 +114,35 @@ test('device sessions persist until explicit logout', async (t) => {
 	assert.equal(store.deleteSession(session.token), true);
 	assert.equal(store.getSessionAccount(session.token), null);
 });
+
+test('a GitHub signup does not erase password credentials', async (t) => {
+	// Regression: loginWithGitHub read the collection with passwordHash stripped
+	// and wrote that back, permanently destroying the credential of every
+	// password account in the file — including accounts unrelated to the signup.
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-platform-'));
+	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
+	const store = createPlatformStore({ workspaceRoot: root });
+	await store.registerWithPassword({ email: 'alice@example.com', password: 'correct-horse-battery', name: 'Alice' });
+
+	await store.loginWithGitHub({ id: '4242', login: 'bob', name: 'Bob', email: 'bob@example.com' });
+	await store.loginWithGitHub({ id: '4243', login: 'carol', name: 'Carol', email: 'carol@example.com' });
+
+	const signedIn = await store.loginWithPassword({ email: 'alice@example.com', password: 'correct-horse-battery' });
+	assert.ok(signedIn, 'password login must survive unrelated GitHub signups');
+});
+
+test('no caller-visible account carries credential material', async (t) => {
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-platform-'));
+	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
+	const store = createPlatformStore({ workspaceRoot: root });
+	const registered = await store.registerWithPassword({ email: 'dave@example.com', password: 'correct-horse-battery', name: 'Dave' });
+	assert.equal(registered.account.passwordHash, undefined);
+
+	const session = store.createSession(registered.account.id);
+	assert.equal(store.getSessionAccount(session.token)?.passwordHash, undefined);
+
+	const linked = await store.loginWithGitHub({ id: '5150', login: 'dave', name: 'Dave', email: 'dave@example.com' });
+	assert.equal(linked.account.passwordHash, undefined);
+});

@@ -215,6 +215,13 @@ function usernameFromEmail(email, taken) {
 	return candidate;
 }
 
+// Credential material never leaves the store. Every account returned to a
+// caller goes through here.
+function publicAccount(account) {
+	const { passwordHash: _passwordHash, ...safe } = account;
+	return safe;
+}
+
 export function createPlatformStore({ workspaceRoot }) {
 	const platformRoot = path.join(workspaceRoot, 'data', 'platform');
 	const accountsFile = path.join(platformRoot, 'collections', 'accounts.json');
@@ -257,16 +264,20 @@ export function createPlatformStore({ workspaceRoot }) {
 			const username = String(profile.login ?? '').trim().toLowerCase();
 			const email = String(profile.email ?? '').trim().toLowerCase();
 			if (!providerId || !validSlug(username) || !email.includes('@')) throw new Error('GitHub returned an invalid identity');
-			const stored = readJson(accountsFile, { schemaVersion: 2, accounts: [] });
-			const accounts = { schemaVersion: 2, accounts: stored.accounts.map(({ passwordHash: _, ...account }) => account) };
+			// Read the collection AS STORED. Stripping passwordHash here and then
+			// writing the result back erased the credential of every password
+			// account in the file on any GitHub signup — silent, permanent, and
+			// affecting accounts unrelated to the one signing in. Hashes stay in
+			// storage; they are stripped only from what is returned to a caller.
+			const accounts = readJson(accountsFile, { schemaVersion: 2, accounts: [] });
 			const existing = accounts.accounts.find((item) => item.providers?.some((provider) => provider.name === 'github' && provider.id === providerId));
-			if (existing) return { account: existing, business: null, created: false };
+			if (existing) return { account: publicAccount(existing), business: null, created: false };
 			const emailAccount = accounts.accounts.find((item) => item.email === email);
 			if (emailAccount) {
 				if (emailAccount.providers?.some((provider) => provider.name === 'github')) throw new Error('GitHub identity conflicts with an existing account');
 				emailAccount.providers = [...(emailAccount.providers || []), { name: 'github', id: providerId, login: username }];
 				writeJson(accountsFile, accounts);
-				return { account: emailAccount, business: null, created: false };
+				return { account: publicAccount(emailAccount), business: null, created: false };
 			}
 			if (accounts.accounts.some((item) => item.username === username)) throw new Error('GitHub username conflicts with an existing account');
 			const now = new Date().toISOString();
