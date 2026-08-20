@@ -166,10 +166,44 @@ test('a GitHub sign-in never joins an existing account by email match', async (t
 	// Even a genuinely verified GitHub address must not join it.
 	await assert.rejects(
 		() => store.loginWithGitHub({ id: '1001', login: 'victim', name: 'Victim', email: 'victim@example.com', emailVerified: true }),
-		/already uses that email address/,
+		/already uses that email address[\s\S]*not available yet/,
 	);
 
 	// An unrelated GitHub signup is unaffected.
 	const fresh = await store.loginWithGitHub({ id: '2002', login: 'newuser', name: 'New', email: 'new@example.com', emailVerified: true });
 	assert.equal(fresh.created, true);
+});
+
+test('every accepted email yields a username that resolves to a workspace', async (t) => {
+	// The username becomes the workspace directory. Consecutive punctuation and
+	// truncation could previously produce a slug validSlug rejects, and
+	// registration still returned a session — the account looked fine while every
+	// later workspace request failed.
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-platform-'));
+	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
+	const store = createPlatformStore({ workspaceRoot: root });
+
+	const awkward = ['first..last', 'a.-.b', '..lead', '---', `${'x'.repeat(31)}-`, 'ok.name'];
+	for (const [index, local] of awkward.entries()) {
+		const registered = await store.registerWithPassword({
+			email: `${local}@example${index}.com`,
+			password: 'correct-horse-battery',
+			name: 'T',
+		});
+		assert.doesNotThrow(
+			() => customerBusinessWorkspaceRoot(root, registered.account),
+			`username ${JSON.stringify(registered.account.username)} from ${local}@ must resolve to a workspace`,
+		);
+	}
+
+	// Collisions must also stay valid, not just the first derivation.
+	for (let attempt = 0; attempt < 3; attempt += 1) {
+		const registered = await store.registerWithPassword({
+			email: `first..last@collide${attempt}.com`,
+			password: 'correct-horse-battery',
+			name: 'T',
+		});
+		assert.doesNotThrow(() => customerBusinessWorkspaceRoot(root, registered.account));
+	}
 });

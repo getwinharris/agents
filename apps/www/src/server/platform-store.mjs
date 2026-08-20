@@ -255,14 +255,34 @@ async function verifyPassword(password, record) {
 // Derive a workspace username from an email local part, since a password
 // account has no GitHub login to borrow. Collisions get a numeric suffix rather
 // than failing signup on a name the user never chose.
+// The result becomes the account's workspace directory, so it must satisfy
+// validSlug. Consecutive punctuation (first..last@) collapsed to repeated
+// hyphens, and truncation could leave a trailing one — neither is a valid slug,
+// and prefixing `user-` does not repair either. Registration still succeeded and
+// returned a session, so the account looked fine while every later workspace
+// request failed. Normalize fully, then verify before returning.
+function slugify(value) {
+	return String(value)
+		.toLowerCase()
+		.replace(/[^a-z0-9-]/g, '-')
+		.replace(/-{2,}/g, '-')
+		.replace(/^-+|-+$/g, '')
+		.slice(0, 32)
+		.replace(/-+$/, '');
+}
+
 function usernameFromEmail(email, taken) {
-	const base = String(email).split('@')[0].toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '').slice(0, 32) || 'user';
-	let candidate = validSlug(base) ? base : `user-${base}`.slice(0, 39);
+	const base = slugify(String(email).split('@')[0]) || 'user';
+	let candidate = validSlug(base) ? base : `user-${base}`;
+	if (!validSlug(candidate)) candidate = 'user';
+	const stem = validSlug(base) ? base : 'user';
 	let suffix = 1;
 	while (taken.has(candidate)) {
 		suffix += 1;
-		candidate = `${base.slice(0, 30)}-${suffix}`;
+		candidate = `${stem.slice(0, 30).replace(/-+$/, '')}-${suffix}`;
 	}
+	// A username that cannot become a workspace path must never be persisted.
+	if (!validSlug(candidate)) throw new Error('Could not derive a valid workspace name from that email address');
 	return candidate;
 }
 
@@ -367,8 +387,11 @@ export function createPlatformStore({ workspaceRoot }) {
 			// control of the existing account is proven first.
 			const emailAccount = accounts.accounts.find((item) => item.email === email);
 			if (emailAccount) {
+				// Do not advertise a recovery path that does not exist. Authenticated
+				// GitHub linking is not implemented, so the only thing this user can
+				// actually do today is sign in with the password on that account.
 				throw new Error(
-					'An account already uses that email address. Sign in to it first, then link GitHub from Platform.',
+					'An account already uses that email address. Sign in with your email and password instead — connecting GitHub to an existing account is not available yet.',
 				);
 			}
 			if (accounts.accounts.some((item) => item.username === username)) throw new Error('GitHub username conflicts with an existing account');
