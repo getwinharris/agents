@@ -146,3 +146,25 @@ test('no caller-visible account carries credential material', async (t) => {
 	const linked = await store.loginWithGitHub({ id: '5150', login: 'dave', name: 'Dave', email: 'dave@example.com' });
 	assert.equal(linked.account.passwordHash, undefined);
 });
+
+test('an unverified GitHub email cannot attach to an existing account', async (t) => {
+	// GET /user returns the public profile email, which GitHub does not guarantee
+	// is verified. Attaching a GitHub identity to an existing account grants full
+	// access to it, so a match on an unconfirmed address must be refused — the
+	// existing account may be a password account belonging to someone else.
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-platform-'));
+	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
+	const store = createPlatformStore({ workspaceRoot: root });
+
+	await store.registerWithPassword({ email: 'victim@example.com', password: 'correct-horse-battery', name: 'Victim' });
+
+	await assert.rejects(
+		() => store.loginWithGitHub({ id: '666', login: 'attacker', name: 'A', email: 'victim@example.com', emailVerified: false }),
+		/could not confirm that GitHub verified/,
+	);
+
+	// A confirmed-verified address still links normally.
+	const linked = await store.loginWithGitHub({ id: '777', login: 'victim', name: 'V', email: 'victim@example.com', emailVerified: true });
+	assert.ok(linked.account.providers.some((provider) => provider.name === 'github'));
+});

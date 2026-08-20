@@ -354,6 +354,15 @@ export function createPlatformStore({ workspaceRoot }) {
 			const existing = accounts.accounts.find((item) => item.providers?.some((provider) => provider.name === 'github' && provider.id === providerId));
 			if (existing) return { account: publicAccount(existing), business: null, created: false };
 			const emailAccount = accounts.accounts.find((item) => item.email === email);
+			if (emailAccount && profile.emailVerified === false) {
+				// Attaching a GitHub identity to an existing account grants full
+				// access to it. A match on an address GitHub never confirmed as
+				// verified is not proof of ownership, and the existing account may
+				// be a password account belonging to someone else.
+				throw new Error(
+					'bapX could not confirm that GitHub verified this email address, and an account already uses it. Sign in to that account first, then link GitHub from Platform.',
+				);
+			}
 			if (emailAccount) {
 				if (emailAccount.providers?.some((provider) => provider.name === 'github')) throw new Error('GitHub identity conflicts with an existing account');
 				emailAccount.providers = [...(emailAccount.providers || []), { name: 'github', id: providerId, login: username }];

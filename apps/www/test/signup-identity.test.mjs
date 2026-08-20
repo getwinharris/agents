@@ -50,7 +50,7 @@ test('sign-in succeeds from the verified email list', async (t) => {
 			emails: [{ email: 'listed@example.com', primary: true, verified: true }],
 		}),
 	});
-	assert.deepEqual(identity, { id: '7', login: 'octo', name: 'Octo', email: 'listed@example.com' });
+	assert.deepEqual(identity, { id: '7', login: 'octo', name: 'Octo', email: 'listed@example.com', emailVerified: true });
 });
 
 test('sign-in survives a GitHub App that cannot read /user/emails', async (t) => {
@@ -128,4 +128,20 @@ test('writes keep the previous good copy', async (t) => {
 	// Second construction rewrites the same file and must leave a .bak behind.
 	createPlatformStore({ workspaceRoot: root });
 	assert.ok(fs.existsSync(`${schemaFile}.bak`), 'a rewrite must preserve the prior copy');
+});
+
+test('a profile-email fallback is reported as unverified', async (t) => {
+	// GET /user returns the public profile email and GitHub does not guarantee it
+	// is verified. The fallback keeps sign-in working without the App's `email`
+	// permission, but callers must be able to tell the two apart — the store
+	// refuses to attach an identity to an existing account on an unverified one.
+	const { githubIdentity } = await loadOAuth(t);
+	const identity = await githubIdentity('code', {
+		fetchImpl: githubStub({
+			user: { id: 9, login: 'octo', name: 'Octo', email: 'profile@example.com' },
+			emailsStatus: 403,
+		}),
+	});
+	assert.equal(identity.email, 'profile@example.com');
+	assert.equal(identity.emailVerified, false, 'a profile-email fallback must not claim verification');
 });
