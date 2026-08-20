@@ -23,7 +23,7 @@ const productSurfaces = [
   ["Admin", "The bapX operating surface with whole-system authority.", "https://admin.bapx.in/"],
 ] as const;
 
-const integrationNames = new Set(["GitHub", "Slack", "Linear", "Sentry", "Shopify", "Razorpay"]);
+const integrationNames = new Set(["GitHub", "Slack", "Linear", "Sentry", "Shopify"]);
 const razorpay = channels.find((item) => item.name === "Razorpay");
 const featuredIntegrations = [
   ...homepageEcosystemItems.filter((item) => integrationNames.has(item.name)),
