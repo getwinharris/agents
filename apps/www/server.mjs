@@ -641,6 +641,8 @@ function readRawBody(req, limit = MAX_API_BODY_BYTES) {
 // Only /v1/* is exposed. The plane's dashboard, admin and auth surfaces are
 // single-tenant and must never be reachable from here.
 async function handleApiGateway(req, res, urlPath) {
+	// Guard on the path only, forward the full target including the query.
+	const forwardTarget = req.url ?? urlPath;
 	if (!urlPath.startsWith('/v1/')) {
 		jsonResponse(res, 404, { error: { message: 'Unknown endpoint', type: 'not_found' } });
 		return;
@@ -673,15 +675,34 @@ async function handleApiGateway(req, res, urlPath) {
 			return;
 		}
 	}
-	await proxyToApiPlane(req, res, { origin: apiPlaneOrigin, planeToken: apiPlaneToken, urlPath, body });
+	await proxyToApiPlane(req, res, { origin: apiPlaneOrigin, planeToken: apiPlaneToken, urlPath: forwardTarget, body });
+}
+
+// The session cookie is scoped Domain=.bapx.in so it is shared with every
+// subdomain, including customer-hosted project subdomains. A page there is
+// same-site with Platform, so a plain HTML form POST carries the victim's
+// session. Mutations must therefore verify the exact Origin, as the Admin
+// routes already do. A missing Origin is rejected: browsers send it on every
+// cross-origin write, so absence means this is not a browser form we trust.
+function isPlatformMutationAllowed(req, host) {
+	if (req.method === 'GET' || req.method === 'HEAD') return true;
+	const origin = req.headers.origin;
+	if (!origin) return false;
+	try {
+		const parsed = new URL(origin);
+		return parsed.protocol === 'https:' && parsed.host === host;
+	} catch {
+		return false;
+	}
 }
 
 // Business connector connections, for the Platform UI and Agents.
 //
 // Credentials go in and never come back out: every response here is metadata.
-async function handleConnectorAPI(req, res, urlPath) {
+async function handleConnectorAPI(req, res, urlPath, host) {
 	const account = getSessionAccount(req);
 	if (!account) { jsonResponse(res, 401, { error: 'authentication_required' }); return true; }
+	if (!isPlatformMutationAllowed(req, host)) { jsonResponse(res, 403, { error: 'cross_origin_forbidden' }); return true; }
 	const businessSlug = account.primaryBusinessSlug || 'workspace';
 
 	if (req.method === 'GET' && urlPath === '/api/platform/connections') {
@@ -719,9 +740,10 @@ async function handleConnectorAPI(req, res, urlPath) {
 }
 
 // Session-authenticated key management for the Platform UI.
-async function handleApiKeyAdmin(req, res, urlPath) {
+async function handleApiKeyAdmin(req, res, urlPath, host) {
 	const account = getSessionAccount(req);
 	if (!account) { jsonResponse(res, 401, { error: 'authentication_required' }); return true; }
+	if (!isPlatformMutationAllowed(req, host)) { jsonResponse(res, 403, { error: 'cross_origin_forbidden' }); return true; }
 	if (req.method === 'GET' && urlPath === '/api/platform/api-keys') {
 		jsonResponse(res, 200, { keys: apiKeyStore.list(account.id) });
 		return true;
@@ -746,11 +768,11 @@ http.createServer(async (req, res) => {
 	const urlPath = req.url?.split('?')[0] ?? '';
 	if (host === 'api.bapx.in') { await handleApiGateway(req, res, urlPath); return; }
 	if (urlPath.startsWith('/api/platform/connections')) {
-		const handled = await handleConnectorAPI(req, res, urlPath);
+		const handled = await handleConnectorAPI(req, res, urlPath, host);
 		if (handled) return;
 	}
 	if (urlPath.startsWith('/api/platform/api-keys')) {
-		const handled = await handleApiKeyAdmin(req, res, urlPath);
+		const handled = await handleApiKeyAdmin(req, res, urlPath, host);
 		if (handled) return;
 	}
 	if (host === 'docs.bapx.in' && urlPath === '/') { res.writeHead(302, { Location: 'https://docs.bapx.in/getting-started/quickstart/' }); res.end(); return; }
