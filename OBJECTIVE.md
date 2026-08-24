@@ -157,10 +157,16 @@ Every capability follows this path:
 
 ## Current delivery decision
 
-The active objective is the API plane at `platform.bapx.in` and `api.bapx.in`:
-deploy `bapXai/api` as published, brand it through its own settings rather than
-by editing it, and issue per-business API keys in front of it under strict BYOK.
-Tracked in [Issue #103](https://github.com/getwinharris/agents/issues/103) and
-[PR #111](https://github.com/getwinharris/agents/pull/111).
+The active objective remains the Admin-first vertical slice stated above, with
+its shipping contract. Nothing below reorders it.
 
-The prior objective is [Discussion #34](https://github.com/getwinharris/agents/discussions/34) and [Issue #35](https://github.com/getwinharris/agents/issues/35): resolve GitHub repository URLs and import repositories into organization-owned projects through Admin with structured telemetry. GitHub signup, the full repository profile UI, the packaged browser, and Agents promotion remain later gated stages.
+API-plane work at `platform.bapx.in` and `api.bapx.in` — deploy `bapXai/api` as
+published, brand it through its own settings rather than by editing it, and issue
+per-business API keys under strict BYOK — is a concurrent track, not a
+replacement. Tracked in [Issue #103](https://github.com/getwinharris/agents/issues/103)
+and [PR #111](https://github.com/getwinharris/agents/pull/111). An earlier edit of
+this section called it "the active objective", which contradicted the contract at
+the top of this file; agents treat this document as canonical, so that wording
+could have diverted every subsequent run away from the stated deadline.
+
+The Admin-first objective is [Discussion #34](https://github.com/getwinharris/agents/discussions/34) and [Issue #35](https://github.com/getwinharris/agents/issues/35): resolve GitHub repository URLs and import repositories into organization-owned projects through Admin with structured telemetry. GitHub signup, the full repository profile UI, the packaged browser, and Agents promotion remain later gated stages.

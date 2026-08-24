@@ -156,8 +156,18 @@ export function createConnectorStore({ workspaceRoot }) {
 
 			const stored = load();
 			const now = new Date().toISOString();
+			// The catalogue is not slug-unique: `cloudflare` exists under both
+			// `deploy` and `sandboxes`. Keying identity on slug alone meant
+			// connecting the sandbox after the host silently replaced the host's
+			// credential while keeping its name and category, and the UI showed
+			// both cards connected against one record.
+			const cleanCategory = String(category || 'channels').slice(0, 32);
 			const existing = stored.connections.find(
-				(item) => item.accountId === accountId && item.businessSlug === cleanBusiness && item.slug === cleanSlug,
+				(item) =>
+					item.accountId === accountId &&
+					item.businessSlug === cleanBusiness &&
+					item.slug === cleanSlug &&
+					item.category === cleanCategory,
 			);
 			const secretRecord = encrypt(secret);
 			// Show enough to recognise which credential is stored, never enough to use it.
@@ -175,7 +185,7 @@ export function createConnectorStore({ workspaceRoot }) {
 				businessSlug: cleanBusiness,
 				slug: cleanSlug,
 				name: String(name || cleanSlug).slice(0, 64),
-				category: String(category || 'channels').slice(0, 32),
+				category: cleanCategory,
 				status: 'connected',
 				hint,
 				secret: secretRecord,
@@ -198,12 +208,16 @@ export function createConnectorStore({ workspaceRoot }) {
 
 		// The only path that returns plaintext. Scoped to one account + business so
 		// a connection can never be resolved across a tenant boundary.
-		resolveCredential(accountId, businessSlug, slug) {
+		resolveCredential(accountId, businessSlug, slug, category) {
 			const stored = load();
 			const scope = normalizeSlug(businessSlug);
-			const connection = stored.connections.find(
-				(item) => item.accountId === accountId && item.businessSlug === scope && item.slug === String(slug || '').toLowerCase(),
+			// Callers that know the category get an exact match; callers that do not
+			// still resolve when the slug is unambiguous for that business.
+			const wanted = String(slug || '').toLowerCase();
+			const matches = stored.connections.filter(
+				(item) => item.accountId === accountId && item.businessSlug === scope && item.slug === wanted,
 			);
+			const connection = matches.length === 1 ? matches[0] : matches.find((item) => item.category === category);
 			if (!connection?.secret) return null;
 			// Decrypt first: stamping lastUsedAt before decrypting records a
 			// successful resolution that never returned a credential.

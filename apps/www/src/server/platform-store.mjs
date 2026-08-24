@@ -413,10 +413,21 @@ export function createPlatformStore({ workspaceRoot }) {
 		// Email + password registration. GitHub remains available and can be linked
 		// later, but it is no longer required to hold a bapX account.
 		async registerWithPassword(input) {
-			return withAccountLock(() => this._registerWithPassword(input));
+			// Derive the hash BEFORE taking the lock. Holding the sole account
+			// mutation queue across a deliberately slow KDF let an unauthenticated
+			// client submit distinct emails faster than scrypt completes, building
+			// an unbounded backlog and starving every GitHub login — which shares
+			// this queue. Validation is repeated inside the lock against a fresh
+			// read, so nothing is decided on the pre-lock snapshot.
+			// Cheap rejects first: never spend a KDF on input that cannot be accepted.
+			const candidate = String(input?.password ?? '');
+			if (candidate.length < 12) throw new Error('Use a password of at least 12 characters');
+			if (candidate.length > 512) throw new Error('That password is too long');
+			const passwordHash = await hashPassword(candidate);
+			return withAccountLock(() => this._registerWithPassword(input, passwordHash));
 		},
 
-		async _registerWithPassword({ email, password, name }) {
+		async _registerWithPassword({ email, password, name }, passwordHash) {
 			const cleanEmail = String(email ?? '').trim().toLowerCase();
 			const cleanPassword = String(password ?? '');
 			if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new Error('Enter a valid email address');
@@ -439,7 +450,7 @@ export function createPlatformStore({ workspaceRoot }) {
 				email: cleanEmail,
 				primaryBusinessSlug: 'workspace',
 				providers: [],
-				passwordHash: await hashPassword(cleanPassword),
+				passwordHash,
 				createdAt: now,
 				updatedAt: now,
 			};

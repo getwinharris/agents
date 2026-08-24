@@ -50,8 +50,7 @@ Create `<source-dir>/tooling/hostinger.ts`:
 // bapX-blueprint: tooling/hostinger@1
 import { connectMcpServer } from '@bapX/runtime';
 
-export const hostinger = await connectMcpServer({
-  name: 'hostinger',
+export const hostinger = await connectMcpServer('hostinger', {
   transport: 'streamable-http',
   url: process.env.HOSTINGER_MCP_URL!,
   headers: {
