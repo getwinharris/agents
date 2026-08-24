@@ -723,6 +723,14 @@ async function handleApiGateway(req, res, urlPath) {
 
 // Parses an already-buffered body, so a size limit can be enforced while
 // reading instead of after the whole payload is in memory.
+// `null` and `"text"` are valid JSON, so parsing succeeds and the caller's
+// property read then throws a TypeError. That escaped into the storage-failure
+// guard and answered 503, reporting a client mistake as an outage and making a
+// real storage fault indistinguishable from a bad request.
+function isPlainObject(value) {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function parseBodyBuffer(buffer, contentType) {
 	const text = buffer.toString('utf8');
 	if (contentType.includes('application/x-www-form-urlencoded')) {
@@ -786,6 +794,7 @@ async function handleConnectorAPI(req, res, urlPath, host) {
 		try {
 			const raw = await readRawBody(req, 64 * 1024);
 			payload = parseBodyBuffer(raw, req.headers['content-type'] || '');
+			if (!isPlainObject(payload)) throw new TypeError('Body must be an object');
 		} catch (error) {
 			const tooLarge = error?.name === 'PayloadTooLargeError';
 			jsonResponse(res, tooLarge ? 413 : 400, {
@@ -832,6 +841,7 @@ async function handleApiKeyAdmin(req, res, urlPath, host) {
 		let payload;
 		try {
 			payload = JSON.parse((await readRawBody(req, 64 * 1024)).toString('utf8') || '{}');
+			if (!isPlainObject(payload)) throw new TypeError('Body must be an object');
 		} catch (error) {
 			const tooLarge = error?.name === 'PayloadTooLargeError';
 			jsonResponse(res, tooLarge ? 413 : 400, { error: tooLarge ? 'payload_too_large' : 'invalid_request' });

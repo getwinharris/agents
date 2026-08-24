@@ -138,15 +138,15 @@ test('no caller-visible account carries credential material', async (t) => {
 	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
 	const store = createPlatformStore({ workspaceRoot: root });
 	const registered = await store.registerWithPassword({ email: 'dave@example.com', password: 'correct-horse-battery', name: 'Dave' });
-	assert.equal(registered.account.passwordHash, undefined);
+	assert.equal('passwordHash' in registered.account, false);
 
 	const session = store.createSession(registered.account.id);
-	assert.equal(store.getSessionAccount(session.token)?.passwordHash, undefined);
+	assert.equal('passwordHash' in store.getSessionAccount(session.token), false);
 
 	// A separate GitHub identity — auto-linking by email match is deliberately
 	// refused, so this uses its own address.
 	const viaGitHub = await store.loginWithGitHub({ id: '5150', login: 'gitdave', name: 'Git Dave', email: 'gitdave@example.com', emailVerified: true });
-	assert.equal(viaGitHub.account.passwordHash, undefined);
+	assert.equal('passwordHash' in viaGitHub.account, false);
 });
 
 test('a GitHub sign-in never joins an existing account by email match', async (t) => {

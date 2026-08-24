@@ -390,8 +390,13 @@ export function createPlatformStore({ workspaceRoot }) {
 				// Do not advertise a recovery path that does not exist. Authenticated
 				// GitHub linking is not implemented, so the only thing this user can
 				// actually do today is sign in with the password on that account.
+				// Branch on what the matched account can actually do. A GitHub-created
+				// account has no password, so telling its owner to sign in with one
+				// sends them to a credential that does not exist.
 				throw new Error(
-					'An account already uses that email address. Sign in with your email and password instead — connecting GitHub to an existing account is not available yet.',
+					emailAccount.passwordHash
+						? 'An account already uses that email address. Sign in with your email and password instead — connecting GitHub to an existing account is not available yet.'
+						: 'An account already uses that email address. Sign in with the GitHub identity it was created with.',
 				);
 			}
 			if (accounts.accounts.some((item) => item.username === username)) throw new Error('GitHub username conflicts with an existing account');
@@ -442,7 +447,7 @@ export function createPlatformStore({ workspaceRoot }) {
 			ensureUserWorkspace(workspaceRoot, account, business);
 			accounts.accounts.push(account);
 			writeJson(accountsFile, accounts);
-			return { account: { ...account, passwordHash: undefined }, business, created: true };
+			return { account: publicAccount(account), business, created: true };
 		},
 
 		// Always runs the same work for a missing account as for a wrong password,
@@ -454,7 +459,7 @@ export function createPlatformStore({ workspaceRoot }) {
 			const record = account?.passwordHash ?? { algorithm: 'scrypt', salt: crypto.randomBytes(16).toString('base64'), hash: crypto.randomBytes(64).toString('base64') };
 			const ok = await verifyPassword(password, record);
 			if (!account || !ok) throw new Error('That email address and password do not match an account.');
-			return { account: { ...account, passwordHash: undefined } };
+			return { account: publicAccount(account) };
 		},
 
 		createSession(accountId) {

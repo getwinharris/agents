@@ -139,7 +139,9 @@ test('a profile-email fallback is reported as unverified', async (t) => {
 	const identity = await githubIdentity('code', {
 		fetchImpl: githubStub({
 			user: { id: 9, login: 'octo', name: 'Octo', email: 'profile@example.com' },
-			emailsStatus: 403,
+			// The stub takes `emails`, not a status. 'forbidden' is the
+			// permission-denied path this test is actually about.
+			emails: 'forbidden',
 		}),
 	});
 	assert.equal(identity.email, 'profile@example.com');

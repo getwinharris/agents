@@ -197,8 +197,12 @@ export class FileOrchestrationStore {
   update(scope, taskId, expectedVersion, mutate, eventType) {
     const lock = `${this.file(taskId)}.lock`
     const descriptor = this.acquireLock(lock)
-    fs.writeFileSync(descriptor, JSON.stringify({ pid: process.pid, at: this.now().toISOString() }))
     try {
+      // Inside the try: if this throws, the finally below still closes the
+      // descriptor and removes the lock. Outside it, a storage failure leaked
+      // the descriptor and left the lock until stale recovery, and repeated
+      // failures would exhaust file descriptors while blocking every update.
+      fs.writeFileSync(descriptor, JSON.stringify({ pid: process.pid, at: this.now().toISOString() }))
       const record = this.get(scope, taskId)
       if (!record) return null
       if (record.version !== expectedVersion) throw new OrchestrationConflictError('Task version changed; reload before updating.')
