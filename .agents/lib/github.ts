@@ -12,7 +12,7 @@
 	 * security note in `.agents/workflows/pr-redirect.ts`.
  */
 
-const REPO = process.env.GITHUB_REPOSITORY ?? 'withastro/bapX';
+const REPO = process.env.GITHUB_REPOSITORY ?? 'getwinharris/agents';
 
 function requireBotToken(): string {
 	const token = process.env.FREDKBOT_GITHUB_TOKEN;

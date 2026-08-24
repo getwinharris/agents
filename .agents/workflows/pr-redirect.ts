@@ -118,7 +118,7 @@ async function fetchPullRequest(session: BapxSession, prNumber: number): Promise
 	};
 	const headOwner = raw.headRepositoryOwner.login;
 	const headName = raw.headRepository.name;
-	const baseRepo = process.env.GITHUB_REPOSITORY ?? 'withastro/bapX';
+	const baseRepo = process.env.GITHUB_REPOSITORY ?? 'getwinharris/agents';
 	const diffStat = raw.files
 		.slice(0, 25)
 		.map((f) => `- \`${f.path}\` (+${f.additions} / -${f.deletions})`)

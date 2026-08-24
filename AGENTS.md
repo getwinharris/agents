@@ -2,11 +2,11 @@
 
 ## Scope
 
-This repository is the bapX agent harness for `agents.bapx.in`. It owns the primary agent
-harness and `@bapX/agent` package (forked from Bapx):
+This repository is the bapX agent harness for `agents.bapx.in`. It owns the agent harness
+and runtime as `@bapX/runtime`, and bapX operations tooling as `@bapX/cli`:
 
 - **Product surface**: `agents.bapx.in`
-- **Primary package**: `@bapX/agent`
+- **Primary package**: `@bapX/runtime`
 - **GitHub source**: `getwinharris/agents`
 - **Gateway**: `api.bapx.in/mcp`
 - **Pricing**: ₹500/month includes 5 GB workspace storage, hosted agents/workflows, hosted search, browser sessions, Node.js project subdomains, TTS, and STT; additional storage is ₹100/GB/month up to 100 GB. Customers bring their own AI-provider and connector credentials.
@@ -28,8 +28,17 @@ use skills (search, deploy, browser), and collaborate via built-in team features
 
 ## Framework
 
-The underlying framework (forked from Bapx) compiles agent and workflow projects
-into deployable server artifacts.
+The underlying framework compiles agent and workflow projects into deployable server
+artifacts.
+
+bapX is an independent product. `getwinharris/agents` is its source of truth, `packages/runtime/`
+owns the runtime, and `packages/cli/` owns CLI operations. Parts of the implementation carry
+historical code lineage from Flue, and the Apache-2.0 `LICENSE` and any required attribution
+must stay intact. That lineage is historical only: bapX does not track a Flue upstream and does
+not synchronize architecture, releases, package ownership, roadmap, or product behavior from it.
+Some inherited identifiers (for example the reserved `FLUE_*` environment variables and Cloudflare
+binding names) remain in use as implementation details; document them as they are and do not
+describe them as an upstream dependency.
 
 ## Terminology
 
