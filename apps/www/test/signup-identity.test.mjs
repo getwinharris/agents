@@ -145,3 +145,22 @@ test('a profile-email fallback is reported as unverified', async (t) => {
 	assert.equal(identity.email, 'profile@example.com');
 	assert.equal(identity.emailVerified, false, 'a profile-email fallback must not claim verification');
 });
+
+test('key storage failure is a throw, so sign-in must not depend on it', async (t) => {
+	// The GitHub callback provisions a default API key. That call previously ran
+	// BEFORE the session cookie was set, so an unusable key collection threw and
+	// locked every GitHub user out of an account they had just proven they own.
+	// This pins the hazard: these calls do throw, so the callback must create the
+	// session first and treat provisioning as best-effort.
+	const { createApiKeyStore } = await import('../src/server/api-gateway.mjs');
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-keys-'));
+	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+
+	const store = createApiKeyStore({ workspaceRoot: root });
+	const keysFile = path.join(root, 'data', 'platform', 'collections', 'api-keys.json');
+	fs.mkdirSync(path.dirname(keysFile), { recursive: true });
+	fs.writeFileSync(keysFile, '{ this is not valid json');
+
+	assert.throws(() => store.hasEverIssued('any-account'), /corrupt/i);
+	assert.throws(() => store.issue('any-account', 'Default key'), /corrupt/i);
+});
