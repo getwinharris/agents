@@ -27,9 +27,6 @@ function assertScope(scope) {
 }
 function scoped(task, scope) { return task.account === scope.account && task.workspaceScope === scope.workspaceScope }
 
-// A lock older than this whose owner is gone is treated as abandoned.
-const LOCK_STALE_MS = 60_000
-
 function processAlive(pid) {
   try {
     // Signal 0 performs the permission and existence check without delivering.
@@ -44,9 +41,10 @@ export class OrchestrationConflictError extends Error {}
 export class OrchestrationAuthorizationError extends Error {}
 
 export class FileOrchestrationStore {
-  constructor({ directory, now = () => new Date() }) {
+  constructor({ directory, now = () => new Date(), lockStaleMs = 60_000 }) {
     this.directory = directory
     this.now = now
+    this.lockStaleMs = lockStaleMs
     fs.mkdirSync(directory, { recursive: true, mode: 0o700 })
   }
   file(taskId) { return path.join(this.directory, `${taskId}.json`) }
@@ -116,9 +114,9 @@ export class FileOrchestrationStore {
       catch (error) { if (error.code === 'ENOENT') return this.acquireLock(lock); throw error }
     }
     const ownerAlive = Number.isInteger(held?.pid) && (held.pid === process.pid || processAlive(held.pid))
-    // Only reclaim when the holder is gone AND the lock is older than the stale
-    // window. A live holder must still conflict.
-    if (ownerAlive || !(age >= LOCK_STALE_MS)) {
+    // Reclaim only when the holder is gone AND the lock is past the configured
+    // stale window. A live holder must still conflict, however old the lock is.
+    if (ownerAlive || !(age >= this.lockStaleMs)) {
       throw new OrchestrationConflictError('Task is being updated; reload before retrying.')
     }
     fs.rmSync(lock, { force: true })
@@ -128,6 +126,73 @@ export class FileOrchestrationStore {
       if (error.code === 'EEXIST') throw new OrchestrationConflictError('Task is being updated; reload before retrying.')
       throw error
     }
+  }
+  /**
+   * System-only. Every other read refuses to cross a tenant boundary, which is
+   * correct for request handlers but leaves the dispatcher unable to find work.
+   * This returns just enough to claim a task -- never objective, context, or
+   * result -- and each returned scope is fed straight back into the normal
+   * scope-checked methods, so the authorization boundary still does the work.
+   */
+  pendingTaskRefs() {
+    const refs = []
+    for (const name of fs.readdirSync(this.directory)) {
+      if (!name.endsWith('.json')) continue
+      let record
+      try { record = this.readRaw(name.slice(0, -5)) }
+      catch { continue }
+      if (!record || record.state !== 'queued') continue
+      refs.push({
+        id: record.id,
+        version: record.version,
+        profile: record.profile,
+        attempt: record.attempt,
+        createdAt: record.createdAt,
+        scope: { account: record.account, workspaceScope: record.workspaceScope },
+      })
+    }
+    return refs.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+  }
+  /** System-only. Expired leases across every tenant, for the recovery pass. */
+  expiredLeaseRefs() {
+    const now = this.now().getTime()
+    const refs = []
+    for (const name of fs.readdirSync(this.directory)) {
+      if (!name.endsWith('.json')) continue
+      let record
+      try { record = this.readRaw(name.slice(0, -5)) }
+      catch { continue }
+      if (!record || record.state !== 'running') continue
+      if (Date.parse(record.lease?.expiresAt ?? '') > now) continue
+      refs.push({ id: record.id, version: record.version, scope: { account: record.account, workspaceScope: record.workspaceScope } })
+    }
+    return refs
+  }
+  renewLease(scope, taskId, expectedVersion, workerId, leaseMs) {
+    return this.update(scope, taskId, expectedVersion, (record) => {
+      if (record.state !== 'running') throw new OrchestrationConflictError('Only running tasks hold a lease.')
+      if (record.lease?.workerId !== workerId) throw new OrchestrationConflictError('Lease is held by another worker.')
+      record.lease = { workerId, expiresAt: new Date(this.now().getTime() + leaseMs).toISOString() }
+      return record
+    }, 'lease:renewed')
+  }
+  fail(scope, taskId, expectedVersion, failure) {
+    return this.update(scope, taskId, expectedVersion, (record) => {
+      if (record.state !== 'running') throw new OrchestrationConflictError('Only running tasks can fail.')
+      record.state = 'failed'
+      record.lease = null
+      record.result = { summary: failure.summary, evidence: failure.evidence ?? [], artifacts: [], verification: { state: 'failed' }, contextUpdates: [], retryable: Boolean(failure.retryable) }
+      return record
+    }, 'failed')
+  }
+  requeue(scope, taskId, expectedVersion, reason) {
+    return this.update(scope, taskId, expectedVersion, (record) => {
+      if (record.state !== 'running') throw new OrchestrationConflictError('Only running tasks can be requeued.')
+      record.state = 'queued'
+      record.lease = null
+      record.progress = { summary: reason, percent: null, at: this.now().toISOString() }
+      return record
+    }, 'requeued')
   }
   update(scope, taskId, expectedVersion, mutate, eventType) {
     const lock = `${this.file(taskId)}.lock`

@@ -39,10 +39,18 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Build shared runtime packages
-        run: npm run build --workspace @bapX/runtime --workspace @bapX/sdk --workspace @bapX/react
+        run: npm run build --workspace @bapX/runtime --workspace @bapX/sdk --workspace @bapX/react --workspace @bapX/cli
 
       - name: Run apps-www server contracts
         run: npm run test:server --workspace apps-www
+
+      # The orchestration loop is what makes a submitted task actually run.
+      # It had no CI coverage at all, so a regression here would ship silently.
+      - name: Run agents-runtime orchestration contracts
+        run: npm run test --workspace bapX-agents-runtime
+
+      - name: Type-check agents-runtime
+        run: npm run check:types --workspace bapX-agents-runtime
 
       - name: Build apps-www and Admin
         run: |
