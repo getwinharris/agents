@@ -1,0 +1,9 @@
+title: ".agents/skills/channel-conformance"
+description: "OKF folder index for .agents/skills/channel-conformance."
+type: folder-index
+children:
+  - path: "SKILL.md"
+    title: "SKILL.md"
+    description: "Research, implement, review, and validate one first-party Bapx HTTP channel across its package, example, channel blueprint, documentation, Node runtime, Cloudflare Workers runtime, and publish artifact. Use when adding a provider channel, expanding an existing channel's verified HTTP surface, auditing channel conformance, or evaluating whether a provider is eligible for the stateless webhook model."
+  - path: "references/"
+    title: "references"

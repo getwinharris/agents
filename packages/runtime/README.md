@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "bapX — The Agent Harness Framework"
+description: "Not another SDK. Build autonomous agents and powerful AI workflows with bapX's programmable TypeScript harness."
+---
 # bapX — The Agent Harness Framework
 
 Not another SDK. Build autonomous agents and powerful AI workflows with bapX's programmable TypeScript harness.

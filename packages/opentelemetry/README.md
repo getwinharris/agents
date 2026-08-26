@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "OpenTelemetry for Bapx"
+description: "@bapX/opentelemetry projects Bapx runtime observations into the OpenTelemetry GenAI semantic conventions pinned at commit 4c8addb53718b544134be47e256237026fe88875."
+---
 # OpenTelemetry for Bapx
 
 `@bapX/opentelemetry` projects Bapx runtime observations into the OpenTelemetry GenAI semantic conventions pinned at commit `4c8addb53718b544134be47e256237026fe88875`.

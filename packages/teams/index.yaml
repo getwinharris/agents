@@ -1,0 +1,7 @@
+title: "packages/teams"
+description: "OKF folder index for packages/teams."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/teams"
+    description: "Authenticated Microsoft Teams Bot Connector activity ingress for Bapx"

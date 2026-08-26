@@ -1,0 +1,7 @@
+title: "packages/postgres"
+description: "OKF folder index for packages/postgres."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/postgres"
+    description: "Postgres-backed durable persistence for Bapx applications on the Node.js target."

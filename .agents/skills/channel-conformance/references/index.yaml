@@ -1,0 +1,7 @@
+title: ".agents/skills/channel-conformance/references"
+description: "OKF folder index for .agents/skills/channel-conformance/references."
+type: folder-index
+children:
+  - path: "audit-matrix.md"
+    title: "Channel Audit Matrix"
+    description: "Use this matrix as evidence guidance, not a demand for identical provider"

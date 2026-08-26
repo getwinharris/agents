@@ -1,0 +1,7 @@
+title: ".agents/skills/stitch-manage-design-system"
+description: "OKF folder index for .agents/skills/stitch-manage-design-system."
+type: folder-index
+children:
+  - path: "SKILL.md"
+    title: "SKILL.md"
+    description: "Manage design systems in Stitch using MCP tools. Includes retrieval of assets, creating/updating design systems in Stitch, and applying them to screens."

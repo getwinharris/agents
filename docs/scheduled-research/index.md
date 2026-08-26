@@ -1,3 +1,8 @@
+---
+type: "Document"
+title: "Scheduled Research"
+description: "This directory is the repository-owned location for source-grounded research maintained by approved recurring workflows."
+---
 # Scheduled Research
 
 This directory is the repository-owned location for source-grounded research maintained by approved recurring workflows.

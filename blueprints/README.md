@@ -1,3 +1,8 @@
+---
+type: "Blueprint"
+title: "Bapx Blueprints"
+description: "This directory contains the source-of-truth Markdown implementation guides returned by bapX add and bapX update. Both commands return the same complete guide for the selected bl…"
+---
 # Bapx Blueprints
 
 This directory contains the source-of-truth Markdown implementation guides returned by `bapX add` and `bapX update`. Both commands return the same complete guide for the selected blueprint; the guide must work for adding a new integration and updating an existing one without conditional show/hide instructions. Blueprints are served at `https://bapx.in/cli/blueprints/<slug>.md`.

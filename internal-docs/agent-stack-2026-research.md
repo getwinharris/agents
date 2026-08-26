@@ -1,3 +1,8 @@
+---
+type: "Internal Doc"
+title: "Agent stack 2026 — what bapX should take, and what it should not"
+description: "Status: research and recommendations. Written 2026-08-13."
+---
 # Agent stack 2026 — what bapX should take, and what it should not
 
 Status: **research and recommendations.** Written 2026-08-13.

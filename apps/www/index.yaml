@@ -1,0 +1,7 @@
+title: "apps/www"
+description: "OKF folder index for apps/www."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "Astro Starter Kit: Minimal"
+    description: "npm create astro@latest -- --template minimal"

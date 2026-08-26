@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/discord"
+description: "Verified Discord HTTP interactions ingress for Bapx applications."
+---
 # `@bapX/discord`
 
 Verified Discord HTTP interactions ingress for Bapx applications.

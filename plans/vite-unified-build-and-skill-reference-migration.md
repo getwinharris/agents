@@ -1,3 +1,8 @@
+---
+type: "Plan"
+title: "Unified Vite Build Graph and SkillReference Migration Plan"
+description: "This document is the implementation plan for migrating Flue from its existing split build/imported-skill architecture to a single, clean architecture centered on Vite as the aut…"
+---
 # Unified Vite Build Graph and `SkillReference` Migration Plan
 
 ## Purpose

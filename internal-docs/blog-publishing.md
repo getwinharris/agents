@@ -1,3 +1,8 @@
+---
+type: "Internal Doc"
+title: "Blog publishing contract"
+description: "blogs.bapx.in is the public release, research, tutorial, announcement, and SEO publishing surface. It is not internal technical documentation and must not duplicate internal-docs/."
+---
 # Blog publishing contract
 
 `blogs.bapx.in` is the public release, research, tutorial, announcement, and SEO publishing surface. It is not internal technical documentation and must not duplicate `internal-docs/`.

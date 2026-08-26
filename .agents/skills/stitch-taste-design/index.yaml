@@ -1,0 +1,7 @@
+title: ".agents/skills/stitch-taste-design"
+description: "OKF folder index for .agents/skills/stitch-taste-design."
+type: folder-index
+children:
+  - path: "SKILL.md"
+    title: "SKILL.md"
+    description: "Semantic Design System Skill for Google Stitch. Generates agent-friendly DESIGN.md files that enforce premium, anti-generic UI standards — strict typography, calibrated color, asymmetric layouts, perpetual micro-motion, and hardware-accelerated performance."

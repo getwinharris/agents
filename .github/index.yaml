@@ -1,0 +1,9 @@
+title: ".github"
+description: "OKF folder index for .github."
+type: folder-index
+children:
+  - path: "pull_request_template.md"
+    title: "Pull Request Template"
+    description: "Issue or discussion:"
+  - path: "ISSUE_TEMPLATE/"
+    title: "ISSUE_TEMPLATE"

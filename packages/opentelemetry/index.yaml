@@ -1,0 +1,7 @@
+title: "packages/opentelemetry"
+description: "OKF folder index for packages/opentelemetry."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "OpenTelemetry for Bapx"
+    description: "@bapX/opentelemetry projects Bapx runtime observations into the OpenTelemetry GenAI semantic conventions pinned at commit 4c8addb53718b544134be47e256237026fe88875."

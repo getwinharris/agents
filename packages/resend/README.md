@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/resend"
+description: "Verified Resend webhook ingress for Bapx."
+---
 # `@bapX/resend`
 
 Verified Resend webhook ingress for Bapx.

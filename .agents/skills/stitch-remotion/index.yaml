@@ -1,0 +1,7 @@
+title: ".agents/skills/stitch-remotion"
+description: "OKF folder index for .agents/skills/stitch-remotion."
+type: folder-index
+children:
+  - path: "SKILL.md"
+    title: "SKILL.md"
+    description: "Generate walkthrough videos from Stitch projects using Remotion with smooth transitions, zooming, and text overlays"

@@ -1,0 +1,7 @@
+title: "packages/runtime"
+description: "OKF folder index for packages/runtime."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "bapX — The Agent Harness Framework"
+    description: "Not another SDK. Build autonomous agents and powerful AI workflows with bapX's programmable TypeScript harness."

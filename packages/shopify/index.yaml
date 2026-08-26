@@ -1,0 +1,7 @@
+title: "packages/shopify"
+description: "OKF folder index for packages/shopify."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/shopify"
+    description: "Verified Shopify JSON webhook ingress for Bapx."

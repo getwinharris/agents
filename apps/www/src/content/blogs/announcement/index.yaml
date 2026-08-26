@@ -1,0 +1,7 @@
+title: "apps/www/src/content/blogs/announcement"
+description: "OKF folder index for apps/www/src/content/blogs/announcement."
+type: folder-index
+children:
+  - path: "bapX-1-0-beta.md"
+    title: "'bapX 1.0 Beta'"
+    description: "'bapX 1.0 Beta is here: the open framework for building agents without lock-in.'"

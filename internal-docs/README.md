@@ -1,3 +1,8 @@
+---
+type: "Internal Doc"
+title: "bapX internal documentation"
+description: "This directory is the canonical implementation and operations reference for agents and maintainers working on the getwinharris/agents repository. It is not published on docs.bap…"
+---
 # bapX internal documentation
 
 This directory is the canonical implementation and operations reference for agents and maintainers working on the `getwinharris/agents` repository. It is not published on `docs.bapx.in`.

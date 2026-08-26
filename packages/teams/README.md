@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/teams"
+description: "Authenticated Microsoft Teams Bot Connector activity ingress for Bapx"
+---
 # `@bapX/teams`
 
 Authenticated Microsoft Teams Bot Connector activity ingress for Bapx

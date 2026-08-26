@@ -1,0 +1,7 @@
+title: "apps/www/src/content/docs/customer-ecosystem"
+description: "OKF folder index for apps/www/src/content/docs/customer-ecosystem."
+type: folder-index
+children:
+  - path: "overview.md"
+    title: "Ecosystem"
+    description: "Connect your bapX business workspace through MCPs, business connectors, APIs, repositories, and communication channels."

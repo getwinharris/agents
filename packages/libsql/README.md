@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/libsql"
+description: "libSQL / Turso durable persistence for Bapx applications on the Node.js target."
+---
 # `@bapX/libsql`
 
 libSQL / Turso durable persistence for Bapx applications on the Node.js target.

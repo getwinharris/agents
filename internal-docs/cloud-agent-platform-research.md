@@ -1,3 +1,8 @@
+---
+type: "Internal Doc"
+title: "How cloud agent platforms do connectors, sandboxes, and deployment"
+description: "Status: research. Written 2026-08-13. Cloud-hosted platforms only — no local/desktop agents."
+---
 # How cloud agent platforms do connectors, sandboxes, and deployment
 
 Status: **research.** Written 2026-08-13. Cloud-hosted platforms only — no local/desktop agents.

@@ -1,0 +1,6 @@
+title: ".github/ISSUE_TEMPLATE"
+description: "OKF folder index for .github/ISSUE_TEMPLATE."
+type: folder-index
+children:
+  - path: "01-bug-report.md"
+    title: "01-bug-report.md"

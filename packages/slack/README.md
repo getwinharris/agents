@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/slack"
+description: "Verified Slack Events API, interactivity, and slash-command ingress for Bapx"
+---
 # `@bapX/slack`
 
 Verified Slack Events API, interactivity, and slash-command ingress for Bapx

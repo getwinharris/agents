@@ -1,0 +1,7 @@
+title: ".agents/skills/bapX"
+description: "OKF folder index for .agents/skills/bapX."
+type: folder-index
+children:
+  - path: "SKILL.md"
+    title: "SKILL.md"
+    description: "Use when building, debugging, reviewing, or documenting Bapx agents, workflows, channels, skills, tools, sandboxes, targets, routing, persistence, observability, or CLI usage; routes coding agents to version-matched Bapx documentation through the CLI."

@@ -1,0 +1,7 @@
+title: ".agents/skills/release"
+description: "OKF folder index for .agents/skills/release."
+type: folder-index
+children:
+  - path: "SKILL.md"
+    title: "SKILL.md"
+    description: "Release public npm packages from this repository. Use ONLY when the user explicitly asks to release and supplies patch, minor, major, or an explicit version number."

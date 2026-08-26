@@ -1,3 +1,8 @@
+---
+type: "Internal Doc"
+title: "Billing and plan structure — how comparable platforms split free from paid"
+description: "Status: research. Written 2026-08-26."
+---
 # Billing and plan structure — how comparable platforms split free from paid
 
 Status: **research.** Written 2026-08-26.

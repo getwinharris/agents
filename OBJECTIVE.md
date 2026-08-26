@@ -1,3 +1,8 @@
+---
+type: "Plan"
+title: "bapX Product Objective"
+description: "bapX is a hosted, organization-scoped operating system for people and agents. A user signs in, creates or joins an organization, creates or imports projects inside that organiza…"
+---
 # bapX Product Objective
 
 ## Objective

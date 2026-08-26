@@ -1,0 +1,7 @@
+title: ".agents/skills/stitch-loop"
+description: "OKF folder index for .agents/skills/stitch-loop."
+type: folder-index
+children:
+  - path: "SKILL.md"
+    title: "SKILL.md"
+    description: "Teaches agents to iteratively build websites using Stitch with an autonomous baton-passing loop pattern"

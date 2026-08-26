@@ -1,0 +1,7 @@
+title: "demo/docs"
+description: "OKF folder index for demo/docs."
+type: folder-index
+children:
+  - path: "index.md"
+    title: "bapX Demo Project"
+    description: "A brief introduction to the canonical bapX demo files."

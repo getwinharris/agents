@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "Astro Starter Kit: Minimal"
+description: "npm create astro@latest -- --template minimal"
+---
 # Astro Starter Kit: Minimal
 
 ```sh

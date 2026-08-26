@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/intercom"
+description: "Verified Intercom webhook ingress for Bapx channels."
+---
 # `@bapX/intercom`
 
 Verified Intercom webhook ingress for Bapx channels.

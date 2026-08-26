@@ -1,3 +1,8 @@
+---
+type: "Internal Doc"
+title: "OKF query CLI implementation"
+description: "bapX okf is the repository-owned command surface for making OKF Markdown knowledge queryable without replacing the authored corpus."
+---
 # OKF query CLI implementation
 
 `bapX okf` is the repository-owned command surface for making OKF Markdown knowledge queryable without replacing the authored corpus.

@@ -1,3 +1,8 @@
+---
+type: "Repository Process"
+title: "Pull Request Template"
+description: "Issue or discussion:"
+---
 ## Scope
 
 Issue or discussion:

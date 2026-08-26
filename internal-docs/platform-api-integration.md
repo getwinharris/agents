@@ -1,3 +1,8 @@
+---
+type: "Internal Doc"
+title: "platform.bapx.in — API integration assessment"
+description: "Status: assessment complete; API plane deployed internally, gateway not built."
+---
 # platform.bapx.in — API integration assessment
 
 Status: **assessment complete; API plane deployed internally, gateway not built.**

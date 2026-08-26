@@ -1,0 +1,7 @@
+title: ".agents/skills/api-reference-writer"
+description: "OKF folder index for .agents/skills/api-reference-writer."
+type: folder-index
+children:
+  - path: "SKILL.md"
+    title: "SKILL.md"
+    description: "Creates and rewrites Bapx API reference documentation from package-visible TypeScript exports and audited source-adjacent JSDoc. Use when authoring concise reference pages under apps/docs/src/content/docs/api/ or reference pages such as reference/configuration.md. Do not use for narrative guides, tutorials, or automated maintenance checks."

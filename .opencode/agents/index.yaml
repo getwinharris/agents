@@ -1,0 +1,7 @@
+title: ".opencode/agents"
+description: "OKF folder index for .opencode/agents."
+type: folder-index
+children:
+  - path: "simplifier.md"
+    title: "simplifier.md"
+    description: "Simplifies fast-evolving code while planning or implementing changes. Use for refactors, architectural cleanup, feature work near accumulated complexity, removing obsolete behavior, and finding smaller designs."

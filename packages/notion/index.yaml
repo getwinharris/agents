@@ -1,0 +1,7 @@
+title: "packages/notion"
+description: "OKF folder index for packages/notion."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/notion"
+    description: "Verified Notion webhook ingress for Bapx."

@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/linear"
+description: "Verified Linear webhook ingress for Bapx applications."
+---
 # `@bapX/linear`
 
 Verified Linear webhook ingress for Bapx applications.

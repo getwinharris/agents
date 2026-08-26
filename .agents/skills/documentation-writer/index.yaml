@@ -1,0 +1,9 @@
+title: ".agents/skills/documentation-writer"
+description: "OKF folder index for .agents/skills/documentation-writer."
+type: folder-index
+children:
+  - path: "SKILL.md"
+    title: "SKILL.md"
+    description: "'Bapx documentation editor. Use when reorganizing, rewriting, reviewing, or approving docs pages and navigation; turns rough or AI-generated documentation into scoped, accurate, human-editorialized content through a collaborative outline-and-draft workflow informed by Diátaxis.'"
+  - path: "references/"
+    title: "references"

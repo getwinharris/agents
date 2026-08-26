@@ -1,3 +1,8 @@
+---
+type: "Internal Doc"
+title: "Orchestration loop — host mechanics"
+description: "Customer-facing behavior is apps/www/src/content/docs/guide/delegated-tasks.md."
+---
 # Orchestration loop — host mechanics
 
 Customer-facing behavior is `apps/www/src/content/docs/guide/delegated-tasks.md`.

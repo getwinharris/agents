@@ -1,0 +1,7 @@
+title: "packages/mongodb"
+description: "OKF folder index for packages/mongodb."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/mongodb"
+    description: "MongoDB persistence for Bapx Node-target projects. It requires a replica set, Atlas deployment, or transaction-capable sharded cluster; standalone MongoDB is rejected before sch…"

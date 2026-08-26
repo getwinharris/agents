@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/shopify"
+description: "Verified Shopify JSON webhook ingress for Bapx."
+---
 # `@bapX/shopify`
 
 Verified Shopify JSON webhook ingress for Bapx.

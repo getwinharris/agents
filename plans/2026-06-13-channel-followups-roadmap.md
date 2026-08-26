@@ -1,3 +1,8 @@
+---
+type: "Plan"
+title: "Channel Follow-Ups Roadmap"
+description: "The original ten-provider first-party channel plan and the seven eligible"
+---
 # Channel Follow-Ups Roadmap
 
 ## Status

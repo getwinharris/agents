@@ -1,0 +1,7 @@
+title: ".agents/skills/stitch-shadcn-ui"
+description: "OKF folder index for .agents/skills/stitch-shadcn-ui."
+type: folder-index
+children:
+  - path: "SKILL.md"
+    title: "SKILL.md"
+    description: "Expert guidance for integrating and building applications with shadcn/ui components, including component discovery, installation, customization, and best practices."

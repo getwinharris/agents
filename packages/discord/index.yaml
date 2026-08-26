@@ -1,0 +1,7 @@
+title: "packages/discord"
+description: "OKF folder index for packages/discord."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/discord"
+    description: "Verified Discord HTTP interactions ingress for Bapx applications."

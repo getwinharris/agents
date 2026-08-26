@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/postgres"
+description: "Postgres-backed durable persistence for Bapx applications on the Node.js target."
+---
 # `@bapX/postgres`
 
 Postgres-backed durable persistence for Bapx applications on the Node.js target.

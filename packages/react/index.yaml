@@ -1,0 +1,7 @@
+title: "packages/react"
+description: "OKF folder index for packages/react."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/react"
+    description: "React hooks for live Bapx agent conversations and workflow runs. @bapX/react manages UI state; @bapX/sdk handles HTTP and Durable Streams transport."

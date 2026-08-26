@@ -1,3 +1,8 @@
+---
+type: "Plan"
+title: "Channel Portfolio Next Steps"
+description: "The 17 first-party HTTP channel packages are implemented and have passed the"
+---
 # Channel Portfolio Next Steps
 
 ## Status

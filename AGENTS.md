@@ -1,3 +1,8 @@
+---
+type: "Contract"
+title: "agents Repository Instructions"
+description: "This repository is the bapX agent harness for agents.bapx.in. It owns the agent harness"
+---
 # agents Repository Instructions
 
 ## Scope

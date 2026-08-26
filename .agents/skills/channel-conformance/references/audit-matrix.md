@@ -1,3 +1,8 @@
+---
+type: "Repository Process"
+title: "Channel Audit Matrix"
+description: "Use this matrix as evidence guidance, not a demand for identical provider"
+---
 # Channel Audit Matrix
 
 Use this matrix as evidence guidance, not a demand for identical provider

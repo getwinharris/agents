@@ -1,0 +1,7 @@
+title: "apps/www/src/content/docs/getting-started"
+description: "OKF folder index for apps/www/src/content/docs/getting-started."
+type: folder-index
+children:
+  - path: "quickstart.md"
+    title: "Getting Started"
+    description: "Sign in to the current bapX surfaces and choose the hosted-product or developer path."

@@ -1,0 +1,7 @@
+title: "packages/salesforce-marketing-cloud"
+description: "OKF folder index for packages/salesforce-marketing-cloud."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/salesforce"
+    description: "Verified Salesforce Marketing Cloud Engagement Event Notification Service"

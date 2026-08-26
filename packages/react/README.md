@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/react"
+description: "React hooks for live Bapx agent conversations and workflow runs. @bapX/react manages UI state; @bapX/sdk handles HTTP and Durable Streams transport."
+---
 # `@bapX/react`
 
 React hooks for live Bapx agent conversations and workflow runs. `@bapX/react` manages UI state; `@bapX/sdk` handles HTTP and Durable Streams transport.

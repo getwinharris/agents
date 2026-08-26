@@ -1,3 +1,8 @@
+---
+type: "Plan"
+title: "Project-Owned Channel SDKs and Tools"
+description: "This plan starts from the completed implementation recorded in"
+---
 # Project-Owned Channel SDKs and Tools
 
 ## Status and relationship to prior work

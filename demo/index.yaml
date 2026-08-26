@@ -1,0 +1,12 @@
+title: "demo"
+description: "OKF folder index for demo."
+type: folder-index
+children:
+  - path: "OKF.md"
+    title: "Open Knowledge Format (OKF)"
+    description: "Version 0.1 — Draft"
+  - path: "README.md"
+    title: "Bapx Demo Chat"
+    description: "A standalone Vite + React single-page chat client that connects to any running"
+  - path: "docs/"
+    title: "docs"

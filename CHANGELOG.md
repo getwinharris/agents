@@ -1,3 +1,8 @@
+---
+type: "Changelog"
+title: "Changelog"
+description: "This pre-1.0 release reworks how an agent's conversation is durably recorded and communicated to clients, replacing the beta session-store model with one append-only canonical s…"
+---
 # Changelog
 
 ## Unreleased

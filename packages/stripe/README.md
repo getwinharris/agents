@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/stripe"
+description: "Verified Stripe webhook ingress for Bapx."
+---
 # `@bapX/stripe`
 
 Verified Stripe webhook ingress for Bapx.

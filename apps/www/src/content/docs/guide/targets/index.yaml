@@ -1,0 +1,10 @@
+title: "apps/www/src/content/docs/guide/targets"
+description: "OKF folder index for apps/www/src/content/docs/guide/targets."
+type: folder-index
+children:
+  - path: "cloudflare.md"
+    title: "Cloudflare"
+    description: "Understand the Cloudflare-specific runtime behavior and APIs for Bapx applications."
+  - path: "node.md"
+    title: "Node.js"
+    description: "Understand the Node.js-specific runtime behavior and APIs for Bapx applications."

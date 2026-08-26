@@ -1,0 +1,7 @@
+title: "packages/mysql"
+description: "OKF folder index for packages/mysql."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/mysql"
+    description: "MySQL 8 and InnoDB durable persistence for Bapx applications on the Node.js"

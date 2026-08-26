@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/mysql"
+description: "MySQL 8 and InnoDB durable persistence for Bapx applications on the Node.js"
+---
 # `@bapX/mysql`
 
 MySQL 8 and InnoDB durable persistence for Bapx applications on the Node.js

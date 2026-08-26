@@ -1,3 +1,8 @@
+---
+type: "Internal Doc"
+title: "Internal technical ecosystem"
+description: "This is the internal entry point for bapX agents and team members building and operating the product. Public, supported CLI/build/API/SDK/runtime/developer contracts are publish…"
+---
 # Internal technical ecosystem
 
 This is the internal entry point for bapX agents and team members building and operating the product. Public, supported CLI/build/API/SDK/runtime/developer contracts are published on `docs.bapx.in`; this file explains source ownership, capability status, and private operational boundaries that must not be confused with customer-ready behavior.

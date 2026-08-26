@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/google-chat"
+description: "Authenticated Google Chat interaction and Workspace Event ingress for Bapx"
+---
 # `@bapX/google-chat`
 
 Authenticated Google Chat interaction and Workspace Event ingress for Bapx

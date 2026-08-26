@@ -1,3 +1,8 @@
+---
+type: "Internal Doc"
+title: "Agent team architecture — competitive research"
+description: "Status: research, not a commitment. Written 2026-08-13."
+---
 # Agent team architecture — competitive research
 
 Status: **research, not a commitment.** Written 2026-08-13.

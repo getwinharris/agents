@@ -1,3 +1,8 @@
+---
+type: "Internal Doc"
+title: "GitHub identity for bapX — one App, brokered credentials, no per-user app"
+description: "Status: design. Written 2026-08-26."
+---
 # GitHub identity for bapX — one App, brokered credentials, no per-user app
 
 Status: **design.** Written 2026-08-26.

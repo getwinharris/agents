@@ -1,3 +1,8 @@
+---
+type: "Readme"
+title: "Bapx Demo Chat"
+description: "A standalone Vite + React single-page chat client that connects to any running"
+---
 # Bapx Demo Chat
 
 A standalone **Vite + React** single-page chat client that connects to **any running

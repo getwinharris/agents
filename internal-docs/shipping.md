@@ -1,3 +1,8 @@
+---
+type: "Internal Doc"
+title: "Code-to-docs shipping workflow"
+description: "Documentation updates happen with the code that changes behavior. They are required before commit, pull request, merge, or shipping."
+---
 # Code-to-docs shipping workflow
 
 Documentation updates happen with the code that changes behavior. They are required before commit, pull request, merge, or shipping.

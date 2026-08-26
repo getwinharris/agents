@@ -1,0 +1,7 @@
+title: "packages/libsql"
+description: "OKF folder index for packages/libsql."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/libsql"
+    description: "libSQL / Turso durable persistence for Bapx applications on the Node.js target."

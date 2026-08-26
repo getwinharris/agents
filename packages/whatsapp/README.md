@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/whatsapp"
+description: "Verified WhatsApp Business Cloud webhook ingress for Bapx channels."
+---
 # @bapX/whatsapp
 
 Verified WhatsApp Business Cloud webhook ingress for Bapx channels.

@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/redis"
+description: "Persistent Redis and Valkey storage for Bapx applications on the Node.js target."
+---
 # `@bapX/redis`
 
 Persistent Redis and Valkey storage for Bapx applications on the Node.js target.

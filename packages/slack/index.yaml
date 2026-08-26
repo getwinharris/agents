@@ -1,0 +1,7 @@
+title: "packages/slack"
+description: "OKF folder index for packages/slack."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/slack"
+    description: "Verified Slack Events API, interactivity, and slash-command ingress for Bapx"

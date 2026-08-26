@@ -1,0 +1,7 @@
+title: "packages/redis"
+description: "OKF folder index for packages/redis."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/redis"
+    description: "Persistent Redis and Valkey storage for Bapx applications on the Node.js target."

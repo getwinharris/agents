@@ -1,3 +1,8 @@
+---
+type: "Internal Doc"
+title: "Admin operating surface"
+description: "admin.bapx.in is the bapX business operating surface. Its workspace root is /root/bapx.in. It uses the same operating model that customers receive at agents.bapx.in, with bapX-w…"
+---
 # Admin operating surface
 
 ## Product role

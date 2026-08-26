@@ -1,0 +1,10 @@
+title: "docs/scheduled-research"
+description: "OKF folder index for docs/scheduled-research."
+type: folder-index
+children:
+  - path: "index.md"
+    title: "Scheduled Research"
+    description: "This directory is the repository-owned location for source-grounded research maintained by approved recurring workflows."
+  - path: "product-docs-standards.md"
+    title: "Product documentation standards comparison"
+    description: "This record compares the current bapX documentation/product surface with the user-requested references: ReadMe, Multica, the Model Context Protocol documentation, and the local …"

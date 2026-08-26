@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/zendesk"
+description: "Verified Zendesk event-subscription webhook ingress for Bapx."
+---
 # `@bapX/zendesk`
 
 Verified Zendesk event-subscription webhook ingress for Bapx.

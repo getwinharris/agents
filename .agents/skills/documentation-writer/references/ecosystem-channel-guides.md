@@ -1,3 +1,8 @@
+---
+type: "Repository Process"
+title: "Ecosystem Channel Guide Pattern"
+description: "Use this pattern when writing or revising"
+---
 # Ecosystem Channel Guide Pattern
 
 Use this pattern when writing or revising

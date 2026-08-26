@@ -1,0 +1,7 @@
+title: "packages/whatsapp"
+description: "OKF folder index for packages/whatsapp."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/whatsapp"
+    description: "Verified WhatsApp Business Cloud webhook ingress for Bapx channels."

@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/github"
+description: "Verified GitHub webhook ingress for Bapx applications."
+---
 # `@bapX/github`
 
 Verified GitHub webhook ingress for Bapx applications.

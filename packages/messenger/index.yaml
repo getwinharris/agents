@@ -1,0 +1,7 @@
+title: "packages/messenger"
+description: "OKF folder index for packages/messenger."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/messenger"
+    description: "Verified Facebook Messenger Page ingress for Bapx channels."

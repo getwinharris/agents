@@ -1,0 +1,10 @@
+title: "apps/www/src/content/docs/okf"
+description: "OKF folder index for apps/www/src/content/docs/okf."
+type: folder-index
+children:
+  - path: "overview.md"
+    title: "Open Knowledge Format"
+    description: "OKF is a plain-text knowledge format for humans and AI agents."
+  - path: "workspace-maps.md"
+    title: "Workspace Maps"
+    description: "How bapX stores generated map.mmd files for user, business, and project workspaces."

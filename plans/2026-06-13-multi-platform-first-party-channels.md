@@ -1,3 +1,8 @@
+---
+type: "Plan"
+title: "Multi-Platform First-Party Channels"
+description: "This plan starts from the implemented channel model recorded in"
+---
 # Multi-Platform First-Party Channels
 
 ## Status and relationship to prior work

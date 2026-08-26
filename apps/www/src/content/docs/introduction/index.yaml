@@ -1,0 +1,10 @@
+title: "apps/www/src/content/docs/introduction"
+description: "OKF folder index for apps/www/src/content/docs/introduction."
+type: folder-index
+children:
+  - path: "product-surfaces.md"
+    title: "Product surfaces and availability"
+    description: "What each bapX domain owns, what is live today, and what remains planned."
+  - path: "why-bapx.md"
+    title: "Why bapX?"
+    description: "One operating system for people, projects, and specialist agents, with explicit live and planned boundaries."

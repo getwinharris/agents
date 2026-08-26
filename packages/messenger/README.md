@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/messenger"
+description: "Verified Facebook Messenger Page ingress for Bapx channels."
+---
 # @bapX/messenger
 
 Verified Facebook Messenger Page ingress for Bapx channels.

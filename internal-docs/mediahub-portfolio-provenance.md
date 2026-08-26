@@ -1,3 +1,8 @@
+---
+type: "Internal Doc"
+title: "MediaHub portfolio provenance"
+description: "This restricted maintainer record documents the public customer-owned brand assets"
+---
 # MediaHub portfolio provenance
 
 This restricted maintainer record documents the public customer-owned brand assets

@@ -1,0 +1,7 @@
+title: "packages/intercom"
+description: "OKF folder index for packages/intercom."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/intercom"
+    description: "Verified Intercom webhook ingress for Bapx channels."

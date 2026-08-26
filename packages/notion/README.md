@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/notion"
+description: "Verified Notion webhook ingress for Bapx."
+---
 # `@bapX/notion`
 
 Verified Notion webhook ingress for Bapx.

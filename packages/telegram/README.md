@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/telegram"
+description: "Verified Telegram Bot API webhook ingress for Bapx channels."
+---
 # @bapX/telegram
 
 Verified Telegram Bot API webhook ingress for Bapx channels.

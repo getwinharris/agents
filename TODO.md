@@ -1,3 +1,8 @@
+---
+type: "Plan"
+title: "bapX Product Delivery TODO"
+description: "This file tracks product orchestration in dependency order. A checked item means the behavior is implemented, tested, documented, reviewed, deployed to its stated surface, and b…"
+---
 # bapX Product Delivery TODO
 
 This file tracks product orchestration in dependency order. A checked item means the behavior is implemented, tested, documented, reviewed, deployed to its stated surface, and browser-validated when user-visible. Planning or static navigation does not count as shipped.

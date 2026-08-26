@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/mongodb"
+description: "MongoDB persistence for Bapx Node-target projects. It requires a replica set, Atlas deployment, or transaction-capable sharded cluster; standalone MongoDB is rejected before sch…"
+---
 # `@bapX/mongodb`
 
 MongoDB persistence for Bapx Node-target projects. It requires a replica set, Atlas deployment, or transaction-capable sharded cluster; standalone MongoDB is rejected before schema stamping.

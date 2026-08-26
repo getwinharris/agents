@@ -1,3 +1,8 @@
+---
+type: "Document"
+title: "Open Knowledge Format (OKF)"
+description: "Version 0.1 — Draft"
+---
 # Open Knowledge Format (OKF)
 
 **Version 0.1 — Draft**

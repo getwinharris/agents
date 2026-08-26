@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/twilio"
+description: "Verified Twilio Programmable Messaging ingress for Bapx channels."
+---
 # @bapX/twilio
 
 Verified Twilio Programmable Messaging ingress for Bapx channels.

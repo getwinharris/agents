@@ -1,3 +1,8 @@
+---
+type: "Document"
+title: "Product documentation standards comparison"
+description: "This record compares the current bapX documentation/product surface with the user-requested references: ReadMe, Multica, the Model Context Protocol documentation, and the local …"
+---
 # Product documentation standards comparison
 
 ## Scope

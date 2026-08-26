@@ -1,3 +1,8 @@
+---
+type: "Contract"
+title: "Contributing to Bapx"
+description: "We are partly using this project to explore what the software develompent lifecycle (SDL) will look like in the future. AI coding agents are disrupting decades of cultural norms…"
+---
 # Contributing to Bapx
 
 We are partly using this project to explore what the software develompent lifecycle (SDL) will look like in the future. AI coding agents are disrupting decades of cultural norms around how software is built. "Drive-by AI slop PRs" can just as easily come from an external OSS contributor or a coworker. Instead of trying to preserve the old ways, this project is a leap into one vision (made up of many experiments) of the future.

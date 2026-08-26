@@ -1,0 +1,7 @@
+title: "packages/resend"
+description: "OKF folder index for packages/resend."
+type: folder-index
+children:
+  - path: "README.md"
+    title: "@bapX/resend"
+    description: "Verified Resend webhook ingress for Bapx."

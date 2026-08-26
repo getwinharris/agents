@@ -1,3 +1,8 @@
+---
+type: "Package Doc"
+title: "@bapX/salesforce"
+description: "Verified Salesforce Marketing Cloud Engagement Event Notification Service"
+---
 # `@bapX/salesforce`
 
 Verified Salesforce Marketing Cloud Engagement Event Notification Service

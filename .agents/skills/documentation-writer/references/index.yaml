@@ -1,0 +1,7 @@
+title: ".agents/skills/documentation-writer/references"
+description: "OKF folder index for .agents/skills/documentation-writer/references."
+type: folder-index
+children:
+  - path: "ecosystem-channel-guides.md"
+    title: "Ecosystem Channel Guide Pattern"
+    description: "Use this pattern when writing or revising"

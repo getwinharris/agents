@@ -1,3 +1,8 @@
+---
+type: "Internal Doc"
+title: "Platform and authentication implementation"
+description: "Do not add another authentication service, database application, dashboard root, or frontend for this foundation. Extend these owners until the documented architecture changes."
+---
 # Platform and authentication implementation
 
 ## Ownership

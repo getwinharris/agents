@@ -1,0 +1,10 @@
+title: "apps/www/src/content/docs/concepts"
+description: "OKF folder index for apps/www/src/content/docs/concepts."
+type: folder-index
+children:
+  - path: "agents.md"
+    title: "What is an agent?"
+    description: "The code-defined Bapx agent contract and the current hosted bapX product boundary."
+  - path: "durable-execution.md"
+    title: "Durable Agents"
+    description: "Understand how Bapx agents and workflows handle server restarts, interrupted connections, and other disruptions."
