@@ -11,6 +11,7 @@ import { resolveGitHubRepositoryReference } from './src/server/github-repository
 import { resolveAuthorizedGitHubRepository } from './src/server/github-repository-metadata.mjs';
 import { createGitHubInstallationAuthorizationProvider } from './src/server/github-installation-authorization.mjs';
 import { bearerToken, createApiKeyStore, proxyToApiPlane } from './src/server/api-gateway.mjs';
+import { handleMcpMessage, isAllowedMcpOrigin, negotiateProtocolVersion, MAX_MCP_BODY_BYTES, MCP_ERRORS } from './src/server/mcp-gateway.mjs';
 import { createConnectorStore } from './src/server/connector-store.mjs';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -680,11 +681,98 @@ function readRawBody(req, limit = MAX_API_BODY_BYTES) {
 //
 // Only /v1/* is exposed. The plane's dashboard, admin and auth surfaces are
 // single-tenant and must never be reachable from here.
+// MCP endpoint — Streamable HTTP, stateless. One path serving POST and GET, as
+// the transport spec requires.
+async function handleMcpEndpoint(req, res) {
+	// The transport spec makes Origin validation a MUST: without it a web page
+	// could drive this endpoint through a victim's browser.
+	if (!isAllowedMcpOrigin(req.headers.origin)) {
+		jsonResponse(res, 403, { error: { message: 'Origin not allowed', type: 'forbidden' } });
+		return;
+	}
+
+	const negotiated = negotiateProtocolVersion(req.headers['mcp-protocol-version']);
+	if (!negotiated.ok) {
+		jsonResponse(res, 400, { error: { message: `Unsupported MCP-Protocol-Version: ${negotiated.version}`, type: 'invalid_request_error' } });
+		return;
+	}
+
+	// No server-initiated stream, so GET is answered with 405 exactly as the
+	// spec provides for. DELETE is session teardown, which a stateless server
+	// has nothing to do about.
+	if (req.method === 'GET' || req.method === 'DELETE') {
+		res.writeHead(405, { 'Content-Type': 'application/json', Allow: 'POST' });
+		res.end(JSON.stringify({ error: { message: 'This MCP endpoint does not offer a server-initiated stream', type: 'method_not_allowed' } }));
+		return;
+	}
+	if (req.method !== 'POST') {
+		res.writeHead(405, { 'Content-Type': 'application/json', Allow: 'POST' });
+		res.end(JSON.stringify({ error: { message: 'Use POST', type: 'method_not_allowed' } }));
+		return;
+	}
+
+	let identity;
+	try {
+		identity = apiKeyStore.verify(bearerToken(req));
+	} catch {
+		jsonResponse(res, 503, { error: { message: 'API key storage is unavailable', type: 'service_unavailable' } });
+		return;
+	}
+	if (!identity) {
+		res.writeHead(401, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'WWW-Authenticate': 'Bearer' });
+		res.end(JSON.stringify({ error: { message: 'Invalid bapX API key', type: 'invalid_request_error' } }));
+		return;
+	}
+
+	let raw;
+	try {
+		raw = await readRawBody(req, MAX_MCP_BODY_BYTES);
+	} catch (error) {
+		const tooLarge = error?.name === 'PayloadTooLargeError';
+		if (tooLarge) res.shouldKeepAlive = false;
+		jsonResponse(res, tooLarge ? 413 : 400, { error: { message: tooLarge ? 'Request body is too large' : 'Could not read request body', type: 'invalid_request_error' } });
+		return;
+	}
+
+	let message;
+	try {
+		message = JSON.parse(raw.toString('utf8') || 'null');
+	} catch {
+		res.writeHead(400, { 'Content-Type': 'application/json' });
+		res.end(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: MCP_ERRORS.PARSE_ERROR, message: 'Invalid JSON' } }));
+		return;
+	}
+
+	const context = { origin: apiPlaneOrigin, planeToken: apiPlaneToken, accountId: identity.accountId };
+
+	// A batch is an array of messages; answer with the array of responses, and
+	// with 202 when every member was a notification.
+	if (Array.isArray(message)) {
+		const responses = [];
+		for (const entry of message) {
+			const response = await handleMcpMessage(entry, context);
+			if (response) responses.push(response);
+		}
+		if (!responses.length) { res.writeHead(202); res.end(); return; }
+		jsonResponse(res, 200, responses);
+		return;
+	}
+
+	const response = await handleMcpMessage(message, context);
+	// Notifications and responses get 202 with no body, per the transport spec.
+	if (!response) { res.writeHead(202); res.end(); return; }
+	jsonResponse(res, 200, response);
+}
+
 async function handleApiGateway(req, res, urlPath) {
 	// Guard on the path only, forward the full target including the query.
 	const forwardTarget = req.url ?? urlPath;
-	if (!urlPath.startsWith('/v1/')) {
+	if (urlPath !== '/mcp' && !urlPath.startsWith('/v1/')) {
 		jsonResponse(res, 404, { error: { message: 'Unknown endpoint', type: 'not_found' } });
+		return;
+	}
+	if (urlPath === '/mcp') {
+		await handleMcpEndpoint(req, res);
 		return;
 	}
 	// verify() now throws rather than silently reporting "no keys" when the
