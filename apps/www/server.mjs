@@ -757,6 +757,23 @@ function decodeIdentifier(value) {
 // session. Mutations must therefore verify the exact Origin, as the Admin
 // routes already do. A missing Origin is rejected: browsers send it on every
 // cross-origin write, so absence means this is not a browser form we trust.
+// Hostnames whose pages are allowed to reach the Platform APIs.
+//
+// isPlatformMutationAllowed() compares Origin against the request's OWN Host, so
+// it establishes same-origin, not "on Platform". The session cookie is scoped
+// Domain=.bapx.in and is therefore carried by every bapX hostname, including a
+// customer's hosted project subdomain. Dispatching these handlers on URL path
+// alone let script on such a hostname call them same-origin — its Origin matches
+// its own Host, so the mutation guard passed — and issue or read a plaintext API
+// key, or replace connector credentials, as the victim. GET was worse: the guard
+// exempts it outright, so listing keys needed no Origin at all.
+//
+// Only hostnames that serve the Platform UI and run no customer code belong
+// here. bapx.in and www.bapx.in are included because the root host also serves
+// /platform/ (verified: https://bapx.in/platform/ returns 200), so restricting
+// to platform.bapx.in alone would break the UI reached that way.
+const PLATFORM_API_HOSTS = new Set(['platform.bapx.in', 'bapx.in', 'www.bapx.in']);
+
 function isPlatformMutationAllowed(req, host) {
 	if (req.method === 'GET' || req.method === 'HEAD') return true;
 	const origin = req.headers.origin;
@@ -865,7 +882,7 @@ http.createServer(async (req, res) => {
 	const prefix = HOST_PREFIX[host] ?? '';
 	const urlPath = req.url?.split('?')[0] ?? '';
 	if (host === 'api.bapx.in') { await handleApiGateway(req, res, urlPath); return; }
-	if (urlPath.startsWith('/api/platform/connections')) {
+	if (PLATFORM_API_HOSTS.has(host) && urlPath.startsWith('/api/platform/connections')) {
 		// The stores now throw on unreadable or corrupt collections rather than
 		// silently reporting "empty". Without a boundary here that rejection
 		// escapes the async request listener, which Node neither awaits nor
@@ -877,7 +894,7 @@ http.createServer(async (req, res) => {
 			return;
 		}
 	}
-	if (urlPath.startsWith('/api/platform/api-keys')) {
+	if (PLATFORM_API_HOSTS.has(host) && urlPath.startsWith('/api/platform/api-keys')) {
 		try {
 			if (await handleApiKeyAdmin(req, res, urlPath, host)) return;
 		} catch {
