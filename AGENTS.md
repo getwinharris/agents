@@ -216,6 +216,57 @@ Do not create disconnected tools. New repo operations belong in one of:
 
 If a temporary script is unavoidable during investigation, remove it or promote it into the owning command surface before finishing.
 
+## Quality Bars
+
+This contract already gates whether work is **true**: reproduce before claiming,
+evidence over assertion, deployed to its stated surface. It does not gate whether
+work is **good**. A dead button and an ugly, slow, second-rate page both pass
+every check above.
+
+When a change is judged on quality rather than correctness — customer-facing UI,
+public copy, docs a customer reads, agent output quality, performance — set a bar
+and compare against it.
+
+### A bar must be named, fetchable, and comparable
+
+- **Named.** A specific artifact, not a category. "Stripe's pricing page" is a
+  bar. "Best-in-class SaaS sites" is not.
+- **Fetchable.** The reviewer can actually obtain it — screenshot the live page,
+  read the published piece, run the binary, open the repo. If it cannot be
+  obtained, the comparison will be invented.
+- **Comparable.** Both can sit side by side and someone can pick one. If you
+  cannot picture the A/B, it is not a bar.
+
+Where a measurable half exists — page count, load time, token cost, pass rate,
+benchmark score — name it alongside the reference. Taste plus a number beats
+taste alone.
+
+### How the comparison is run
+
+1. **The builder does not judge its own work.** The reviewer is a separate agent
+   with fresh context that does not know how hard the builder tried. This is the
+   same rule as the Verifier role: a worker's self-report is not evidence.
+2. **Compare blind.** Strip labels and bylines before judging. A reviewer that
+   knows which artifact is ours will find reasons to prefer it.
+3. **Binary verdict, not a score.** Ask which is better, A or B, and what the
+   single biggest remaining gap is. Scores out of ten drift upward every round
+   and stop discriminating.
+4. **Exit on winning, not on a round count.** The loop ends when the reviewer
+   picks ours blind, or when a human stops it. "Three rounds then ship" is how
+   mediocre work gets approved on schedule.
+
+### Where this does and does not apply
+
+Use a bar for quality judgments. Do not use one for correctness — a security
+boundary, a data-loss risk, or a broken build is decided by evidence, not by
+comparison, and no reference makes an exploitable bug acceptable.
+
+Note the tension with the rest of this contract: the prescriptive rules here
+exist because agents repeatedly broke things by improvising. A quality loop works
+in the opposite direction — every extra instruction is one fewer decision the
+reviewer makes with its own judgment. Keep the bar and the exit condition strict,
+and leave decomposition, structure, and approach to the agents doing the work.
+
 ## Release Readiness
 
 Release work requires an explicit `patch`, `minor`, `major`, or exact version from the user. Treat `v1.1` as exact version `1.1.0`.
