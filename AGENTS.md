@@ -243,11 +243,14 @@ For UI changes:
    the pinned `agent-browser` through a bapX-scoped isolated session, prints the
    accessibility tree, and writes a screenshot under
    `.agents/browser/evidence/`. That screenshot path is the evidence to cite.
-   If it reports `agent-browser is not available`, install it rather than
-   downgrading to curl — `npm install agent-browser@<pinned> --no-save
-   --legacy-peer-deps` works around the pre-existing peer conflict in
-   `examples/`. A missing browser binary is a blocker to fix, never a reason to
-   report UI work as verified by HTTP status alone.
+   If it reports `agent-browser is not available`, run **`npm ci`** — it installs
+   the pinned dependency correctly from the lockfile. Do **not** use
+   `npm install --legacy-peer-deps` to work around the peer conflict in
+   `examples/`: it re-resolves the whole tree, and doing so has already broken
+   the `apps/www` build twice — removing the nested `cookie@2.0.1` Astro needs
+   (`Named export 'parseCookie' not found`) and introducing a duplicate `shiki`
+   that breaks the admin `tsc -b`. A missing browser binary is a blocker to fix,
+   never a reason to report UI work as verified by HTTP status alone.
 3. Use an external browser-control MCP or Playwright only as fallback, or for
    repeatable regression checks.
 4. Verify desktop and mobile-relevant layout, navigation, sign-in/sign-up flows, visible copy, and click behavior.
