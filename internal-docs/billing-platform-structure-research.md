@@ -175,6 +175,29 @@ Two constraints make this harder than a delete button:
 Tracked as #147, which the ladder now depends on: selling storage that only ever
 fills, with no way to empty it, is not a shippable paid product.
 
+**The remedy is a Library, not an erasure flow.** Manus and Perplexity both solve
+this as content management rather than data deletion:
+
+- **Manus** exposes six resource groups — Tasks, Projects, Files, Webhooks,
+  Skills, Agents — with tasks permanently deletable by id. Two choices transfer
+  directly. First, ephemeral and durable are separated and only durable is
+  manageable: task sandboxes are wiped when the task ends, and deleting files
+  *inside* one is deliberately unsupported. Second, **quota is paired with
+  auto-expiry** — a 10 GB account quota alongside uploaded files auto-deleting
+  after 48 hours. That pairing is what stops a quota from being one-directional,
+  and it is the direct answer to the monotonic-growth problem above: transient
+  artefacts should expire on their own, so only what the customer chose to keep
+  counts against the rung.
+- **Perplexity** renamed Spaces to Projects (2026-07-30) — one place holding a
+  shared persistent file system plus a "Brain" carrying memory between tasks. The
+  warning is a help article that exists only to explain how deleting Perplexity
+  Tasks differs from deleting Computer scheduled tasks: two object types, two
+  deletion paths, enough confusion to need documenting. One deletion path per
+  object type, all reachable from one surface.
+
+Account closure and DPDP erasure remain necessary, but they are the secondary
+half of #147. The half that unblocks a paying customer is the Library.
+
 ## 7. Sources
 
 Retrieved 2026-08-26 unless noted.
@@ -188,6 +211,8 @@ Retrieved 2026-08-26 unless noted.
 - [Subscriptions](https://razorpay.com/docs/payments/subscriptions/) — Razorpay (vendor primary)
 - [Update a subscription](https://razorpay.com/docs/payments/subscriptions/update/) — Razorpay (vendor primary)
 - [Subscriptions webhook events](https://razorpay.com/docs/webhooks/payloads/subscriptions/) — Razorpay (vendor primary)
+- [Manus API v2 — delete task](https://open.manus.im/docs/api-reference/delete-task) and [deleting documents from disk space](https://help.manus.im/en/articles/11712020-how-can-i-delete-documents-from-disk-space) — Manus (vendor primary)
+- [Spaces are now Projects](https://www.perplexity.ai/hub/blog/spaces-are-now-projects) and [Perplexity Projects](https://www.perplexity.ai/hub/products/projects) — Perplexity (vendor primary)
 - [Data Principal rights under India's DPDP Act](https://www.privacyengine.io/blog/data-principal-rights-dpdp-act/) — PrivacyEngine (secondary)
 - [DPDP Act 2023, Section 12](https://www.dpdpa.com/dpdpa2023/chapter-3/section12.html) and [DPDP Rules 2025, Rule 8](https://www.dpdpa.com/dpdparules/rule8.html) — retrieved 2026-08-26
 
