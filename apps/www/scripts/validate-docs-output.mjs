@@ -47,4 +47,22 @@ assert.doesNotMatch(quickstart, /Add team members to your workspace/i);
 assert.match(maintainerCli, /internal[\s\S]{0,400}not an external customer workflow/i);
 assert.doesNotMatch(maintainerCli, /npm install --save-dev @bapX\/cli/);
 
-console.log(`validated rendered documentation: ${developerRoutes.length} Developers links resolve`);
+// There is no scoped "agent" package. The runtime ships as `@bapX/runtime` and CLI operations
+// as `@bapX/cli`; guard against the invented package name returning to public documentation.
+const inventedPackage = /@bapx\/agent/i;
+const renderedDocs = fs
+	.readdirSync(docsRoot, { recursive: true })
+	.filter((entry) => typeof entry === 'string' && entry.endsWith('.html'));
+for (const entry of renderedDocs) {
+	assert.doesNotMatch(
+		fs.readFileSync(path.join(docsRoot, entry), 'utf8'),
+		inventedPackage,
+		`Rendered documentation references a nonexistent scoped agent package: ${entry}. ` +
+			'Use @bapX/runtime for the harness and runtime, or @bapX/cli for operations tooling.',
+	);
+}
+
+console.log(
+	`validated rendered documentation: ${developerRoutes.length} Developers links resolve, ` +
+		`${renderedDocs.length} rendered pages free of the invented agent package name`,
+);
