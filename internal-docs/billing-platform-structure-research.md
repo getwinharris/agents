@@ -144,6 +144,37 @@ supports.
    rewritten on every issuance and scanned on every verification is both a
    tenancy smell and the throughput ceiling for the free tier.
 
+## 6a. Decisions taken, 2026-08-26
+
+**Storage ladder: flat ₹100/GB at every rung.** 5 GB ₹500 · 20 GB ₹2,000 ·
+50 GB ₹5,000 · 100 GB ₹10,000. No volume discount, contrary to §4's Perplexity
+precedent and to the taper this document initially favoured.
+
+The owner's reasoning overrides the comparison, and it is worth recording because
+it inverts the usual argument: the target is ~1,000 SMB businesses, and
+**accumulated agent memory and scaffolding growing over time is the business**.
+A customer climbing the ladder is the product working. A taper would discount
+precisely the growth the product exists to produce. Flat pricing also keeps the
+already-published `₹100/GB up to 100 GB` line true, so no pricing copy changes.
+
+**Consequence not in the original analysis: monotonic growth needs an exit.**
+If every workspace grows forever and #144 correctly refuses to delete anything at
+the quota boundary, a customer who fills 5 GB is blocked from writing with no
+self-service remedy. Nothing in the product deletes workspace data today — only
+credentials can be revoked.
+
+Two constraints make this harder than a delete button:
+
+- Workspaces are git-initialised at provisioning (`platform-store.mjs:172`), so
+  removing a file leaves it recoverable in history.
+- India's DPDP Act 2023 defines erasure as permanent deletion **plus inability to
+  reconstruct**, and explicitly refuses "disproportionate effort" as a defence
+  where the difficulty is self-inflicted by poor data management. Shared
+  credential collections and history-retaining workspaces are that.
+
+Tracked as #147, which the ladder now depends on: selling storage that only ever
+fills, with no way to empty it, is not a shippable paid product.
+
 ## 7. Sources
 
 Retrieved 2026-08-26 unless noted.
@@ -157,6 +188,8 @@ Retrieved 2026-08-26 unless noted.
 - [Subscriptions](https://razorpay.com/docs/payments/subscriptions/) — Razorpay (vendor primary)
 - [Update a subscription](https://razorpay.com/docs/payments/subscriptions/update/) — Razorpay (vendor primary)
 - [Subscriptions webhook events](https://razorpay.com/docs/webhooks/payloads/subscriptions/) — Razorpay (vendor primary)
+- [Data Principal rights under India's DPDP Act](https://www.privacyengine.io/blog/data-principal-rights-dpdp-act/) — PrivacyEngine (secondary)
+- [DPDP Act 2023, Section 12](https://www.dpdpa.com/dpdpa2023/chapter-3/section12.html) and [DPDP Rules 2025, Rule 8](https://www.dpdpa.com/dpdparules/rule8.html) — retrieved 2026-08-26
 
 Vendor pricing pages were not directly reachable from this host for MiniMax and
 Perplexity; those figures come from secondary summaries and carry their retrieval
