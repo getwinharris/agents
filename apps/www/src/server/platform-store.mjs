@@ -169,7 +169,47 @@ function ensureUserWorkspace(workspaceRoot, account, business) {
 			socialLinks: { type: 'object', additionalProperties: { type: 'string' } },
 		},
 	});
-	execFileSync('git', ['init', '--quiet'], { cwd: userRoot });
+	initTenantRepository(userRoot, account);
+}
+
+// Environment for every git command run against a customer workspace.
+//
+// Git reads /etc/gitconfig, then the global config at $HOME/.gitconfig, before
+// the repository's own config. On this host the operator's global config carries
+// `credential.https://github.com.helper=!/usr/bin/gh auth git-credential` plus
+// the operator's user.name and user.email — so a customer workspace inherits a
+// working credential helper for the OPERATOR's GitHub account. A push from a
+// customer's workspace would authenticate and be authored as the operator.
+//
+// Repo-local config alone cannot fix this: a helper configured globally still
+// runs. The inheritance itself has to be cut off.
+export function tenantGitEnv(extra = {}) {
+	return {
+		...process.env,
+		// No global or system config is consulted at all.
+		GIT_CONFIG_GLOBAL: '/dev/null',
+		GIT_CONFIG_SYSTEM: '/dev/null',
+		GIT_CONFIG_NOSYSTEM: '1',
+		// Never let git prompt or fall back to an ambient askpass/helper.
+		GIT_TERMINAL_PROMPT: '0',
+		GIT_ASKPASS: '',
+		SSH_ASKPASS: '',
+		...extra,
+	};
+}
+
+// Initialise a workspace repository that carries its own identity and refuses
+// inherited credentials, so it cannot act as the operator.
+export function initTenantRepository(userRoot, account) {
+	const env = tenantGitEnv();
+	const run = (args) => execFileSync('git', args, { cwd: userRoot, env, stdio: 'ignore' });
+	run(['init', '--quiet']);
+	// Belt and braces: even if a future caller forgets the env above, the repo's
+	// own config wins over the global one for these keys. An empty helper value
+	// resets the inherited helper list rather than appending to it.
+	run(['config', 'credential.helper', '']);
+	run(['config', 'user.name', String(account?.username || 'bapx-user')]);
+	run(['config', 'user.email', `${String(account?.username || 'user')}@users.noreply.bapx.in`]);
 }
 
 function hashOpaqueToken(token) {

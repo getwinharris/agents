@@ -4,6 +4,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { resolveGitHubRepositoryReference } from './github-repository.mjs';
+import { tenantGitEnv } from './platform-store.mjs';
 
 const PROJECT_SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9._-]{0,98}[a-z0-9])?$/;
 const RESERVATION_STALE_AFTER_MS = 10 * 60 * 1000;
@@ -23,7 +24,11 @@ function fail(code, message, status) {
 
 function defaultRunGit(args) {
 	return new Promise((resolve) => {
-		const child = spawn('git', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+		// Never inherit the operator's global git config. It carries a credential
+		// helper for the operator's GitHub account, so a clone of a customer's
+		// repository would authenticate as the operator and could reach private
+		// repositories the customer has no right to.
+		const child = spawn('git', args, { stdio: ['ignore', 'pipe', 'pipe'], env: tenantGitEnv() });
 		let stdout = '';
 		let stderr = '';
 		let settled = false;
