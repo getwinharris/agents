@@ -27,6 +27,16 @@ function assertScope(scope) {
 }
 function scoped(task, scope) { return task.account === scope.account && task.workspaceScope === scope.workspaceScope }
 
+function processAlive(pid) {
+  try {
+    // Signal 0 performs the permission and existence check without delivering.
+    process.kill(pid, 0)
+    return true
+  } catch (error) {
+    return error.code === 'EPERM'
+  }
+}
+
 export class OrchestrationConflictError extends Error {}
 export class OrchestrationAuthorizationError extends Error {}
 
@@ -78,22 +88,41 @@ export class FileOrchestrationStore {
     return fs.readdirSync(this.directory).filter((name) => name.endsWith('.json')).map((name) => this.readRaw(name.slice(0, -5)))
       .filter((record) => record && scoped(record, scope)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(clone)
   }
+  // A lock file only ever removed by this process's finally block survives a
+  // crash or a kill. Every later approval, cancellation, claim, progress update,
+  // completion, or lease recovery for that task then conflicts forever, which
+  // defeats the durable store's whole point and needs an operator to clear by
+  // hand. Record ownership and age, and reclaim a demonstrably stale lock.
   acquireLock(lock) {
-    try { return fs.openSync(lock, 'wx', 0o600) }
-    catch (error) {
+    try {
+      return fs.openSync(lock, 'wx', 0o600)
+    } catch (error) {
       if (error.code !== 'EEXIST') throw error
     }
-    // A lock is only removed by the finally below. A worker killed mid-update
-    // would otherwise wedge the task forever: every later approval, claim,
-    // progress, completion or recovery would conflict with no way back. Treat
-    // a lock older than the staleness window as abandoned and reclaim it.
-    let heldFor = 0
-    try { heldFor = this.now().getTime() - fs.statSync(lock).mtimeMs }
-    catch (error) { if (error.code === 'ENOENT') return this.acquireLock(lock); throw error }
-    if (heldFor < this.lockStaleMs) throw new OrchestrationConflictError('Task is being updated; reload before retrying.')
+    let held
+    try { held = JSON.parse(fs.readFileSync(lock, 'utf8')) }
+    catch { held = null }
+    // A crash between creating the lock and writing its metadata leaves an empty
+    // or partial file. Treating that as "unknown age" wedged the task forever,
+    // which is the exact failure this reclaim exists to prevent. Fall back to the
+    // file's own mtime, which is always present.
+    let age
+    if (held?.at) {
+      age = this.now().getTime() - Date.parse(held.at)
+    } else {
+      try { age = this.now().getTime() - fs.statSync(lock).mtimeMs }
+      catch (error) { if (error.code === 'ENOENT') return this.acquireLock(lock); throw error }
+    }
+    const ownerAlive = Number.isInteger(held?.pid) && (held.pid === process.pid || processAlive(held.pid))
+    // Reclaim only when the holder is gone AND the lock is past the configured
+    // stale window. A live holder must still conflict, however old the lock is.
+    if (ownerAlive || !(age >= this.lockStaleMs)) {
+      throw new OrchestrationConflictError('Task is being updated; reload before retrying.')
+    }
     fs.rmSync(lock, { force: true })
-    try { return fs.openSync(lock, 'wx', 0o600) }
-    catch (error) {
+    try {
+      return fs.openSync(lock, 'wx', 0o600)
+    } catch (error) {
       if (error.code === 'EEXIST') throw new OrchestrationConflictError('Task is being updated; reload before retrying.')
       throw error
     }
@@ -167,9 +196,13 @@ export class FileOrchestrationStore {
   }
   update(scope, taskId, expectedVersion, mutate, eventType) {
     const lock = `${this.file(taskId)}.lock`
-    let descriptor
-    descriptor = this.acquireLock(lock)
+    const descriptor = this.acquireLock(lock)
     try {
+      // Inside the try: if this throws, the finally below still closes the
+      // descriptor and removes the lock. Outside it, a storage failure leaked
+      // the descriptor and left the lock until stale recovery, and repeated
+      // failures would exhaust file descriptors while blocking every update.
+      fs.writeFileSync(descriptor, JSON.stringify({ pid: process.pid, at: this.now().toISOString() }))
       const record = this.get(scope, taskId)
       if (!record) return null
       if (record.version !== expectedVersion) throw new OrchestrationConflictError('Task version changed; reload before updating.')
@@ -192,6 +225,13 @@ export class FileOrchestrationStore {
     }, `state:${state}`)
   }
   approve(scope, taskId, expectedVersion, decision, actor) {
+    // Anything other than the two valid decisions was previously persisted
+    // verbatim and treated as a cancellation, so a missing field or a typo like
+    // 'approvd' permanently cancelled the task while returning success to the
+    // caller. Reject it before the record is touched.
+    if (decision !== 'approved' && decision !== 'rejected') {
+      throw new TypeError("Approval decision must be 'approved' or 'rejected'.")
+    }
     return this.update(scope, taskId, expectedVersion, (record) => {
       if (record.state !== 'waiting_approval' || record.approval.state !== 'pending') throw new OrchestrationConflictError('Task is not awaiting approval.')
       record.approval = { state: decision, actor, at: this.now().toISOString() }

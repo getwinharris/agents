@@ -214,12 +214,41 @@ describe('Agents host routing', () => {
 		assert.deepEqual(runtimeRequests.at(-1), { method: 'GET', url: '/api/orchestration/tasks', body: '' });
 	});
 
-	it('starts the workspace-scoped OpenAI connector from Platform without an API-key payload', async () => {
+	it('refuses a device flow with no Origin header', async () => {
+		// Browsers always send Origin on a cross-origin write, so absence is not
+		// same-origin. Without this case, a change that treated a missing Origin
+		// as trusted would still pass the suite.
 		const response = await request(port, {
 			host: 'platform.bapx.in',
 			method: 'POST',
 			pathname: '/api/platform/connectors/openai-codex/device',
 			headers: { cookie, 'content-type': 'application/json' },
+			body: '{}',
+		});
+		assert.equal(response.status, 403);
+	});
+
+	it('refuses a device flow started from another origin', async () => {
+		// The session cookie is scoped .bapx.in, so a page on a customer-hosted
+		// project subdomain carries it and a simple credentialed POST needs no
+		// preflight. Without this guard such a page could start device flows as
+		// the victim, each beginning provider polling in the runtime.
+		const response = await request(port, {
+			host: 'platform.bapx.in',
+			method: 'POST',
+			pathname: '/api/platform/connectors/openai-codex/device',
+			headers: { cookie, 'content-type': 'application/json', origin: 'https://evil-customer.app.bapx.in' },
+			body: '{}',
+		});
+		assert.equal(response.status, 403);
+	});
+
+	it('starts the workspace-scoped OpenAI connector from Platform without an API-key payload', async () => {
+		const response = await request(port, {
+			host: 'platform.bapx.in',
+			method: 'POST',
+			pathname: '/api/platform/connectors/openai-codex/device',
+			headers: { cookie, 'content-type': 'application/json', origin: 'https://platform.bapx.in' },
 			body: '{}',
 		});
 		assert.equal(response.status, 202);

@@ -215,6 +215,106 @@ function readAdminHandoffs(file) {
 	}
 }
 
+// Password credentials.
+//
+// scrypt with a per-account salt — a plain hash is brute-forceable against a
+// leaked collection, and the account file is the same file that holds email
+// addresses. Verification is constant-time.
+// scrypt is deliberately expensive, which is the point for an attacker holding
+// the file and a problem on the request path: apps-www runs one event loop for
+// the gateway and every web surface, so a synchronous derivation lets any
+// unauthenticated caller stall the whole process by posting login attempts —
+// including for addresses that do not exist. Run it off-loop.
+function scrypt(password, salt, length) {
+	return new Promise((resolve, reject) => {
+		crypto.scrypt(String(password), salt, length, (error, derived) => {
+			if (error) reject(error);
+			else resolve(derived);
+		});
+	});
+}
+
+async function hashPassword(password) {
+	const salt = crypto.randomBytes(16);
+	const derived = await scrypt(password, salt, 64);
+	return { algorithm: 'scrypt', salt: salt.toString('base64'), hash: derived.toString('base64') };
+}
+
+async function verifyPassword(password, record) {
+	if (!record || record.algorithm !== 'scrypt') return false;
+	try {
+		const salt = Buffer.from(record.salt, 'base64');
+		const expected = Buffer.from(record.hash, 'base64');
+		const derived = await scrypt(password, salt, expected.length);
+		return crypto.timingSafeEqual(derived, expected);
+	} catch {
+		return false;
+	}
+}
+
+// Derive a workspace username from an email local part, since a password
+// account has no GitHub login to borrow. Collisions get a numeric suffix rather
+// than failing signup on a name the user never chose.
+// The result becomes the account's workspace directory, so it must satisfy
+// validSlug. Consecutive punctuation (first..last@) collapsed to repeated
+// hyphens, and truncation could leave a trailing one — neither is a valid slug,
+// and prefixing `user-` does not repair either. Registration still succeeded and
+// returned a session, so the account looked fine while every later workspace
+// request failed. Normalize fully, then verify before returning.
+function slugify(value) {
+	return String(value)
+		.toLowerCase()
+		.replace(/[^a-z0-9-]/g, '-')
+		.replace(/-{2,}/g, '-')
+		.replace(/^-+|-+$/g, '')
+		.slice(0, 32)
+		.replace(/-+$/, '');
+}
+
+function usernameFromEmail(email, taken) {
+	const base = slugify(String(email).split('@')[0]) || 'user';
+	let candidate = validSlug(base) ? base : `user-${base}`;
+	if (!validSlug(candidate)) candidate = 'user';
+	const stem = validSlug(base) ? base : 'user';
+	let suffix = 1;
+	while (taken.has(candidate)) {
+		suffix += 1;
+		candidate = `${stem.slice(0, 30).replace(/-+$/, '')}-${suffix}`;
+	}
+	// A username that cannot become a workspace path must never be persisted.
+	if (!validSlug(candidate)) throw new Error('Could not derive a valid workspace name from that email address');
+	return candidate;
+}
+
+// Account mutations are read-modify-write against one JSON collection, and
+// registration now awaits scrypt between the read and the write. Two concurrent
+// registrations would otherwise both append to stale snapshots, the later write
+// would replace the file with only its own copy, and the losing account would
+// vanish despite having returned success — leaving an orphaned workspace and a
+// session pointing at an account that no longer exists.
+//
+// Serialize every account mutation through one promise chain. This is a single
+// process writing a single file; a queue is sufficient and keeps the failure
+// mode obvious. A durable store would use a transaction instead.
+let accountMutationQueue = Promise.resolve();
+
+function withAccountLock(operation) {
+	const result = accountMutationQueue.then(operation, operation);
+	// Keep the chain alive regardless of outcome so one failure cannot wedge it.
+	accountMutationQueue = result.then(
+		() => undefined,
+		() => undefined,
+	);
+	return result;
+}
+
+// Credential material never leaves the store. Every account returned to a
+// caller goes through here.
+function publicAccount(account) {
+	const { passwordHash: _passwordHash, ...safe } = account;
+	return safe;
+}
+
 export function createPlatformStore({ workspaceRoot }) {
 	const platformRoot = path.join(workspaceRoot, 'data', 'platform');
 	const accountsFile = path.join(platformRoot, 'collections', 'accounts.json');
@@ -252,21 +352,52 @@ export function createPlatformStore({ workspaceRoot }) {
 	});
 
 	return {
+		// Must share the same queue as password registration. A password
+		// registration awaiting scrypt holds a stale snapshot; a GitHub signup
+		// completing in that window is overwritten when the password write lands,
+		// and its account, workspace and session are orphaned.
 		async loginWithGitHub(profile) {
+			return withAccountLock(() => this._loginWithGitHub(profile));
+		},
+
+		async _loginWithGitHub(profile) {
 			const providerId = String(profile.id ?? '');
 			const username = String(profile.login ?? '').trim().toLowerCase();
 			const email = String(profile.email ?? '').trim().toLowerCase();
 			if (!providerId || !validSlug(username) || !email.includes('@')) throw new Error('GitHub returned an invalid identity');
-			const stored = readJson(accountsFile, { schemaVersion: 2, accounts: [] });
-			const accounts = { schemaVersion: 2, accounts: stored.accounts.map(({ passwordHash: _, ...account }) => account) };
+			// Read the collection AS STORED. Stripping passwordHash here and then
+			// writing the result back erased the credential of every password
+			// account in the file on any GitHub signup — silent, permanent, and
+			// affecting accounts unrelated to the one signing in. Hashes stay in
+			// storage; they are stripped only from what is returned to a caller.
+			const accounts = readJson(accountsFile, { schemaVersion: 2, accounts: [] });
 			const existing = accounts.accounts.find((item) => item.providers?.some((provider) => provider.name === 'github' && provider.id === providerId));
-			if (existing) return { account: existing, business: null, created: false };
+			if (existing) return { account: publicAccount(existing), business: null, created: false };
+			// Never attach a GitHub identity to an existing account on an email
+			// match alone, however the address was obtained.
+			//
+			// Registration does not verify the address, so anyone can register
+			// victim@example.com with a password of their choosing. Auto-linking
+			// meant the victim's later GitHub sign-in joined THAT account, leaving
+			// the attacker's password working alongside it — both parties holding
+			// the same workspace. A verified GitHub address does not prove the
+			// pre-existing account was ever the same person.
+			//
+			// Linking stays possible, but only from an authenticated session, so
+			// control of the existing account is proven first.
 			const emailAccount = accounts.accounts.find((item) => item.email === email);
 			if (emailAccount) {
-				if (emailAccount.providers?.some((provider) => provider.name === 'github')) throw new Error('GitHub identity conflicts with an existing account');
-				emailAccount.providers = [...(emailAccount.providers || []), { name: 'github', id: providerId, login: username }];
-				writeJson(accountsFile, accounts);
-				return { account: emailAccount, business: null, created: false };
+				// Do not advertise a recovery path that does not exist. Authenticated
+				// GitHub linking is not implemented, so the only thing this user can
+				// actually do today is sign in with the password on that account.
+				// Branch on what the matched account can actually do. A GitHub-created
+				// account has no password, so telling its owner to sign in with one
+				// sends them to a credential that does not exist.
+				throw new Error(
+					emailAccount.passwordHash
+						? 'An account already uses that email address. Sign in with your email and password instead — connecting GitHub to an existing account is not available yet.'
+						: 'An account already uses that email address. Sign in with the GitHub identity it was created with.',
+				);
 			}
 			if (accounts.accounts.some((item) => item.username === username)) throw new Error('GitHub username conflicts with an existing account');
 			const now = new Date().toISOString();
@@ -277,6 +408,69 @@ export function createPlatformStore({ workspaceRoot }) {
 			accounts.accounts.push(account);
 			writeJson(accountsFile, accounts);
 			return { account, business, created: true };
+		},
+
+		// Email + password registration. GitHub remains available and can be linked
+		// later, but it is no longer required to hold a bapX account.
+		async registerWithPassword(input) {
+			// Derive the hash BEFORE taking the lock. Holding the sole account
+			// mutation queue across a deliberately slow KDF let an unauthenticated
+			// client submit distinct emails faster than scrypt completes, building
+			// an unbounded backlog and starving every GitHub login — which shares
+			// this queue. Validation is repeated inside the lock against a fresh
+			// read, so nothing is decided on the pre-lock snapshot.
+			// Cheap rejects first: never spend a KDF on input that cannot be accepted.
+			const candidate = String(input?.password ?? '');
+			if (candidate.length < 12) throw new Error('Use a password of at least 12 characters');
+			if (candidate.length > 512) throw new Error('That password is too long');
+			const passwordHash = await hashPassword(candidate);
+			return withAccountLock(() => this._registerWithPassword(input, passwordHash));
+		},
+
+		async _registerWithPassword({ email, password, name }, passwordHash) {
+			const cleanEmail = String(email ?? '').trim().toLowerCase();
+			const cleanPassword = String(password ?? '');
+			if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new Error('Enter a valid email address');
+			if (cleanPassword.length < 12) throw new Error('Use a password of at least 12 characters');
+			if (cleanPassword.length > 512) throw new Error('That password is too long');
+
+			const stored = readJson(accountsFile, { schemaVersion: 2, accounts: [] });
+			const accounts = { schemaVersion: 2, accounts: stored.accounts };
+			if (accounts.accounts.some((item) => item.email === cleanEmail)) {
+				throw new Error('An account already exists for that email address. Sign in instead.');
+			}
+			const taken = new Set(accounts.accounts.map((item) => item.username));
+			const username = usernameFromEmail(cleanEmail, taken);
+			const now = new Date().toISOString();
+			const displayName = String(name ?? '').trim().slice(0, 64) || username;
+			const account = {
+				id: crypto.randomUUID(),
+				username,
+				name: displayName,
+				email: cleanEmail,
+				primaryBusinessSlug: 'workspace',
+				providers: [],
+				passwordHash,
+				createdAt: now,
+				updatedAt: now,
+			};
+			const business = { id: crypto.randomUUID(), name: `${displayName} Workspace`, slug: 'workspace', owner: username, website: null, socialLinks: {}, createdAt: now, updatedAt: now };
+			ensureUserWorkspace(workspaceRoot, account, business);
+			accounts.accounts.push(account);
+			writeJson(accountsFile, accounts);
+			return { account: publicAccount(account), business, created: true };
+		},
+
+		// Always runs the same work for a missing account as for a wrong password,
+		// so response timing does not reveal which emails are registered.
+		async loginWithPassword({ email, password }) {
+			const cleanEmail = String(email ?? '').trim().toLowerCase();
+			const stored = readJson(accountsFile, { schemaVersion: 2, accounts: [] });
+			const account = stored.accounts.find((item) => item.email === cleanEmail);
+			const record = account?.passwordHash ?? { algorithm: 'scrypt', salt: crypto.randomBytes(16).toString('base64'), hash: crypto.randomBytes(64).toString('base64') };
+			const ok = await verifyPassword(password, record);
+			if (!account || !ok) throw new Error('That email address and password do not match an account.');
+			return { account: publicAccount(account) };
 		},
 
 		createSession(accountId) {
@@ -294,7 +488,10 @@ export function createPlatformStore({ workspaceRoot }) {
 			if (!session) return null;
 			const account = readJson(accountsFile, { accounts: [] }).accounts.find((item) => item.id === session.accountId);
 			if (!account) return null;
-			return account;
+			// Never hand the credential material back out. /api/auth/session
+			// serialises whatever this returns straight to the browser.
+			const { passwordHash: _passwordHash, ...safe } = account;
+			return safe;
 		},
 
 		deleteSession(token) {

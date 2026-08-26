@@ -10,6 +10,8 @@ import { GitHubProjectImportError, importPublicGitHubProject, listGitHubProjects
 import { resolveGitHubRepositoryReference } from './src/server/github-repository.mjs';
 import { resolveAuthorizedGitHubRepository } from './src/server/github-repository-metadata.mjs';
 import { createGitHubInstallationAuthorizationProvider } from './src/server/github-installation-authorization.mjs';
+import { bearerToken, createApiKeyStore, proxyToApiPlane } from './src/server/api-gateway.mjs';
+import { createConnectorStore } from './src/server/connector-store.mjs';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(dirname, 'dist');
@@ -21,6 +23,10 @@ const githubCliBootstrapFile = process.env.BAPX_GITHUB_CLI_BOOTSTRAP_FILE || pat
 const platformStore = createPlatformStore({ workspaceRoot });
 const adminAuthorization = parseAdminGithubUserIds(process.env.BAPX_ADMIN_GITHUB_USER_IDS);
 const agentsRuntimeOrigin = new URL(process.env.AGENTS_RUNTIME_ORIGIN || 'http://127.0.0.1:3003');
+const apiKeyStore = createApiKeyStore({ workspaceRoot });
+const connectorStore = createConnectorStore({ workspaceRoot });
+const apiPlaneOrigin = process.env.BAPX_API_PLANE_ORIGIN || 'http://127.0.0.1:20130';
+const apiPlaneToken = process.env.BAPX_API_PLANE_TOKEN || '';
 let githubInstallationTokenProvider;
 
 const HOST_PREFIX = {
@@ -372,11 +378,56 @@ async function handleAuthAPI(req, res, urlPath, host) {
 			const url = new URL(req.url, 'https://bapx.in');
 			if (!url.searchParams.get('state') || url.searchParams.get('state') !== getCookie(req, 'bapx_oauth_state')) throw new Error('GitHub login state is invalid or expired');
 			const { account } = await platformStore.loginWithGitHub(await githubIdentity(url.searchParams.get('code')));
+			// Authenticate first. Key provisioning is a convenience and must never
+			// stand between a verified identity and their session: this previously
+			// ran before the cookie was set, so a corrupt or unreadable key
+			// collection threw here and locked every GitHub user out of an account
+			// they had just proven they own.
 			setSessionCookie(res, platformStore.createSession(account.id).token, host);
+			// Every account gets a default API key on first sign-in so Agents works
+			// immediately. Issued once — a returning user keeps the key they have,
+			// and a user who deliberately revoked all keys does not get a new one
+			// silently minted behind their back.
+			try {
+				if (!apiKeyStore.hasEverIssued(account.id)) apiKeyStore.issue(account.id, 'Default key');
+			} catch (error) {
+				// Sign-in still succeeds; the customer can mint a key from Platform.
+				console.error('[bapx:auth] default API key provisioning failed', error);
+			}
 			const returnTo = safeReturnTo(decodeURIComponent(getCookie(req, 'bapx_oauth_return_to') || ''));
 			redirect(res, returnTo || 'https://platform.bapx.in/');
 		} catch (error) {
 			redirect(res, `/login/?error=${encodeURIComponent(error.message)}`);
+		}
+		return true;
+	}
+	if (req.method === 'POST' && (urlPath === '/api/auth/password/register' || urlPath === '/api/auth/password/login')) {
+		// Same-origin only: these set a session cookie shared across .bapx.in.
+		const origin = req.headers.origin;
+		let sameOrigin = false;
+		try {
+			sameOrigin = Boolean(origin) && new URL(origin).protocol === 'https:' && new URL(origin).host === host;
+		} catch {
+			sameOrigin = false;
+		}
+		if (!sameOrigin) { jsonResponse(res, 403, { error: 'cross_origin_forbidden' }); return true; }
+		let payload;
+		try {
+			payload = parseBodyBuffer(await readRawBody(req, 16 * 1024), req.headers['content-type'] || '');
+		} catch {
+			jsonResponse(res, 400, { error: 'Invalid request' });
+			return true;
+		}
+		try {
+			const register = urlPath.endsWith('/register');
+			const { account } = register
+				? await platformStore.registerWithPassword(payload)
+				: await platformStore.loginWithPassword(payload);
+			setSessionCookie(res, platformStore.createSession(account.id).token, host);
+			const returnTo = safeReturnTo(String(payload.returnTo || ''));
+			jsonResponse(res, register ? 201 : 200, { redirect: returnTo || 'https://platform.bapx.in/' });
+		} catch (error) {
+			jsonResponse(res, 400, { error: error.message });
 		}
 		return true;
 	}
@@ -582,10 +633,275 @@ async function handleAdminAPI(req, res, urlPath) {
 	return false;
 }
 
+// OpenAI-compatible payloads do not need to be arbitrarily large, and this runs
+// on a public endpoint: without a ceiling, one key holder can buffer an
+// unbounded or never-ending chunked body and exhaust the process for everyone.
+const MAX_API_BODY_BYTES = parseInt(process.env.BAPX_API_MAX_BODY_BYTES || '', 10) || 10 * 1024 * 1024;
+
+class PayloadTooLargeError extends Error {
+	constructor() {
+		super('Request body is too large');
+		this.name = 'PayloadTooLargeError';
+	}
+}
+
+function readRawBody(req, limit = MAX_API_BODY_BYTES) {
+	return new Promise((resolve, reject) => {
+		const declared = parseInt(req.headers['content-length'] || '', 10);
+		if (Number.isFinite(declared) && declared > limit) {
+			reject(new PayloadTooLargeError());
+			return;
+		}
+		const chunks = [];
+		let size = 0;
+		let rejected = false;
+		req.on('data', (chunk) => {
+			if (rejected) return;
+			size += chunk.length;
+			// Stop accumulating as soon as the ceiling is crossed rather than after
+			// the body finishes — a chunked upload declares no length. Pause instead
+			// of destroying: destroying here kills the socket before the 413 can be
+			// written, which the client sees as a connection reset with no status.
+			if (size > limit) {
+				rejected = true;
+				chunks.length = 0;
+				req.pause();
+				reject(new PayloadTooLargeError());
+				return;
+			}
+			chunks.push(chunk);
+		});
+		req.on('end', () => resolve(Buffer.concat(chunks)));
+		req.on('error', reject);
+	});
+}
+
+// api.bapx.in — the customer-facing gateway.
+//
+// Only /v1/* is exposed. The plane's dashboard, admin and auth surfaces are
+// single-tenant and must never be reachable from here.
+async function handleApiGateway(req, res, urlPath) {
+	// Guard on the path only, forward the full target including the query.
+	const forwardTarget = req.url ?? urlPath;
+	if (!urlPath.startsWith('/v1/')) {
+		jsonResponse(res, 404, { error: { message: 'Unknown endpoint', type: 'not_found' } });
+		return;
+	}
+	// verify() now throws rather than silently reporting "no keys" when the
+	// collection is unreadable or corrupt. Surface that as 503 — the caller's key
+	// may well be valid; we cannot tell.
+	let identity;
+	try {
+		identity = apiKeyStore.verify(bearerToken(req));
+	} catch {
+		jsonResponse(res, 503, { error: { message: 'API key storage is unavailable', type: 'service_unavailable' } });
+		return;
+	}
+	if (!identity) {
+		res.writeHead(401, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'WWW-Authenticate': 'Bearer' });
+		res.end(JSON.stringify({ error: { message: 'Invalid bapX API key', type: 'invalid_request_error' } }));
+		return;
+	}
+	let body;
+	if (req.method !== 'GET' && req.method !== 'HEAD') {
+		try {
+			body = await readRawBody(req);
+		} catch (error) {
+			const tooLarge = error?.name === 'PayloadTooLargeError';
+			// Signal no keep-alive so the half-read body does not corrupt the next
+			// request on this connection, without destroying the socket before the
+			// status has flushed.
+			if (tooLarge) res.shouldKeepAlive = false;
+			jsonResponse(res, tooLarge ? 413 : 400, {
+				error: { message: tooLarge ? `Request body exceeds ${MAX_API_BODY_BYTES} bytes` : 'Could not read request body', type: 'invalid_request_error' },
+			});
+			return;
+		}
+	}
+	await proxyToApiPlane(req, res, { origin: apiPlaneOrigin, planeToken: apiPlaneToken, urlPath: forwardTarget, body });
+}
+
+// Parses an already-buffered body, so a size limit can be enforced while
+// reading instead of after the whole payload is in memory.
+// `null` and `"text"` are valid JSON, so parsing succeeds and the caller's
+// property read then throws a TypeError. That escaped into the storage-failure
+// guard and answered 503, reporting a client mistake as an outage and making a
+// real storage fault indistinguishable from a bad request.
+function isPlainObject(value) {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function parseBodyBuffer(buffer, contentType) {
+	const text = buffer.toString('utf8');
+	if (contentType.includes('application/x-www-form-urlencoded')) {
+		return Object.fromEntries(new URLSearchParams(text));
+	}
+	return text ? JSON.parse(text) : {};
+}
+
+// decodeURIComponent throws URIError on a malformed escape such as a bare '%'.
+// These handlers run inside an async request listener that Node neither awaits
+// nor catches, so an escaping rejection can terminate the shared apps-www
+// process. Decode defensively and treat undecodable ids as not found.
+function decodeIdentifier(value) {
+	try {
+		return decodeURIComponent(value);
+	} catch {
+		return null;
+	}
+}
+
+// The session cookie is scoped Domain=.bapx.in so it is shared with every
+// subdomain, including customer-hosted project subdomains. A page there is
+// same-site with Platform, so a plain HTML form POST carries the victim's
+// session. Mutations must therefore verify the exact Origin, as the Admin
+// routes already do. A missing Origin is rejected: browsers send it on every
+// cross-origin write, so absence means this is not a browser form we trust.
+// Hostnames whose pages are allowed to reach the Platform APIs.
+//
+// isPlatformMutationAllowed() compares Origin against the request's OWN Host, so
+// it establishes same-origin, not "on Platform". The session cookie is scoped
+// Domain=.bapx.in and is therefore carried by every bapX hostname, including a
+// customer's hosted project subdomain. Dispatching these handlers on URL path
+// alone let script on such a hostname call them same-origin — its Origin matches
+// its own Host, so the mutation guard passed — and issue or read a plaintext API
+// key, or replace connector credentials, as the victim. GET was worse: the guard
+// exempts it outright, so listing keys needed no Origin at all.
+//
+// Only hostnames that serve the Platform UI and run no customer code belong
+// here. bapx.in and www.bapx.in are included because the root host also serves
+// /platform/ (verified: https://bapx.in/platform/ returns 200), so restricting
+// to platform.bapx.in alone would break the UI reached that way.
+const PLATFORM_API_HOSTS = new Set(['platform.bapx.in', 'bapx.in', 'www.bapx.in']);
+
+function isPlatformMutationAllowed(req, host) {
+	if (req.method === 'GET' || req.method === 'HEAD') return true;
+	const origin = req.headers.origin;
+	if (!origin) return false;
+	try {
+		const parsed = new URL(origin);
+		return parsed.protocol === 'https:' && parsed.host === host;
+	} catch {
+		return false;
+	}
+}
+
+// Business connector connections, for the Platform UI and Agents.
+//
+// Credentials go in and never come back out: every response here is metadata.
+async function handleConnectorAPI(req, res, urlPath, host) {
+	const account = getSessionAccount(req);
+	if (!account) { jsonResponse(res, 401, { error: 'authentication_required' }); return true; }
+	if (!isPlatformMutationAllowed(req, host)) { jsonResponse(res, 403, { error: 'cross_origin_forbidden' }); return true; }
+	const businessSlug = account.primaryBusinessSlug || 'workspace';
+
+	if (req.method === 'GET' && urlPath === '/api/platform/connections') {
+		jsonResponse(res, 200, {
+			configured: connectorStore.configured(),
+			businessSlug,
+			connections: connectorStore.list(account.id, businessSlug),
+		});
+		return true;
+	}
+
+	if (req.method === 'POST' && urlPath === '/api/platform/connections') {
+		// A connector payload is a slug and a credential. Cap it well below the
+		// gateway limit so an authenticated caller cannot buffer an unbounded body.
+		let payload;
+		try {
+			const raw = await readRawBody(req, 64 * 1024);
+			payload = parseBodyBuffer(raw, req.headers['content-type'] || '');
+			if (!isPlainObject(payload)) throw new TypeError('Body must be an object');
+		} catch (error) {
+			const tooLarge = error?.name === 'PayloadTooLargeError';
+			jsonResponse(res, tooLarge ? 413 : 400, {
+				error: tooLarge ? 'Connector payload is too large' : 'Invalid request body',
+			});
+			return true;
+		}
+		try {
+			const connection = connectorStore.connect(account.id, businessSlug, {
+				slug: payload.slug,
+				name: payload.name,
+				category: payload.category,
+				credential: payload.credential,
+			});
+			jsonResponse(res, 201, { connection });
+		} catch (error) {
+			jsonResponse(res, 400, { error: error.message });
+		}
+		return true;
+	}
+
+	if (req.method === 'DELETE' && urlPath.startsWith('/api/platform/connections/')) {
+		const id = decodeIdentifier(urlPath.slice('/api/platform/connections/'.length));
+		if (id === null) { jsonResponse(res, 404, { error: 'not_found' }); return true; }
+		jsonResponse(res, connectorStore.disconnect(account.id, id) ? 200 : 404, { disconnected: id });
+		return true;
+	}
+
+	return false;
+}
+
+// Session-authenticated key management for the Platform UI.
+async function handleApiKeyAdmin(req, res, urlPath, host) {
+	const account = getSessionAccount(req);
+	if (!account) { jsonResponse(res, 401, { error: 'authentication_required' }); return true; }
+	if (!isPlatformMutationAllowed(req, host)) { jsonResponse(res, 403, { error: 'cross_origin_forbidden' }); return true; }
+	if (req.method === 'GET' && urlPath === '/api/platform/api-keys') {
+		jsonResponse(res, 200, { keys: apiKeyStore.list(account.id) });
+		return true;
+	}
+	if (req.method === 'POST' && urlPath === '/api/platform/api-keys') {
+		// Bounded like the gateway and connector routes: a valid session must not
+		// be enough to exhaust the shared process with one long-lived body.
+		let payload;
+		try {
+			payload = JSON.parse((await readRawBody(req, 64 * 1024)).toString('utf8') || '{}');
+			if (!isPlainObject(payload)) throw new TypeError('Body must be an object');
+		} catch (error) {
+			const tooLarge = error?.name === 'PayloadTooLargeError';
+			jsonResponse(res, tooLarge ? 413 : 400, { error: tooLarge ? 'payload_too_large' : 'invalid_request' });
+			return true;
+		}
+		const { secret, key } = apiKeyStore.issue(account.id, payload.name);
+		jsonResponse(res, 201, { key, secret });
+		return true;
+	}
+	if (req.method === 'DELETE' && urlPath.startsWith('/api/platform/api-keys/')) {
+		const id = decodeIdentifier(urlPath.slice('/api/platform/api-keys/'.length));
+		if (id === null) { jsonResponse(res, 404, { error: 'not_found' }); return true; }
+		jsonResponse(res, apiKeyStore.revoke(account.id, id) ? 200 : 404, { revoked: id });
+		return true;
+	}
+	return false;
+}
+
 http.createServer(async (req, res) => {
 	const host = req.headers.host?.toLowerCase().replace(/:\d+$/, '') ?? 'bapx.in';
 	const prefix = HOST_PREFIX[host] ?? '';
 	const urlPath = req.url?.split('?')[0] ?? '';
+	if (host === 'api.bapx.in') { await handleApiGateway(req, res, urlPath); return; }
+	if (PLATFORM_API_HOSTS.has(host) && urlPath.startsWith('/api/platform/connections')) {
+		// The stores now throw on unreadable or corrupt collections rather than
+		// silently reporting "empty". Without a boundary here that rejection
+		// escapes the async request listener, which Node neither awaits nor
+		// catches, and takes down apps-www for every surface.
+		try {
+			if (await handleConnectorAPI(req, res, urlPath, host)) return;
+		} catch {
+			jsonResponse(res, 503, { error: 'connector_storage_unavailable' });
+			return;
+		}
+	}
+	if (PLATFORM_API_HOSTS.has(host) && urlPath.startsWith('/api/platform/api-keys')) {
+		try {
+			if (await handleApiKeyAdmin(req, res, urlPath, host)) return;
+		} catch {
+			jsonResponse(res, 503, { error: 'api_key_storage_unavailable' });
+			return;
+		}
+	}
 	if (host === 'docs.bapx.in' && urlPath === '/') { res.writeHead(302, { Location: 'https://docs.bapx.in/getting-started/quickstart/' }); res.end(); return; }
 	if (urlPath.startsWith('/api/auth/')) {
 		const handled = await handleAuthAPI(req, res, urlPath, host);
@@ -594,6 +910,12 @@ http.createServer(async (req, res) => {
 	const sessionAccount = getSessionAccount(req);
 	if (prefix === '/platform' && urlPath.startsWith('/api/platform/connectors/openai-codex/')) {
 		if (!sessionAccount) { jsonResponse(res, 401, { error: 'Sign in to manage connectors.' }); return; }
+		// Missed when the sibling connector routes were protected. A page on a
+		// customer-controlled subdomain carries the shared .bapx.in cookie, and a
+		// simple credentialed POST needs no preflight — enough to start device
+		// flows as the victim, each of which begins provider polling and occupies
+		// an entry in the runtime's process-wide flow map.
+		if (!isPlatformMutationAllowed(req, host)) { jsonResponse(res, 403, { error: 'cross_origin_forbidden' }); return; }
 		const upstreamPath = urlPath.replace('/api/platform/connectors/openai-codex', '/api/orchestration/provider-auth/openai-codex');
 		await proxyAgentAPI(req, res, sessionAccount, upstreamPath); return;
 	}
@@ -624,6 +946,14 @@ http.createServer(async (req, res) => {
 		await verifyWorkspaceRuntime(res, sessionAccount); return;
 	}
 	if (prefix === '/agents' && urlPath.startsWith('/api/orchestration/')) {
+		// Same-site is not same-origin. The session cookie is scoped .bapx.in, so a
+		// page on a hosted project subdomain carries it, and a text/plain fetch
+		// containing JSON needs no preflight. Without this check such a page could
+		// submit tasks as the victim, and approve or cancel known task ids.
+		if (!isPlatformMutationAllowed(req, host)) {
+			jsonResponse(res, 403, { error: 'cross_origin_forbidden' });
+			return;
+		}
 		await proxyAgentAPI(req, res, sessionAccount); return;
 	}
 	if (prefix === '/agents' && urlPath.startsWith('/api/ws/')) {

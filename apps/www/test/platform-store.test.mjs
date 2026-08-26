@@ -114,3 +114,96 @@ test('device sessions persist until explicit logout', async (t) => {
 	assert.equal(store.deleteSession(session.token), true);
 	assert.equal(store.getSessionAccount(session.token), null);
 });
+
+test('a GitHub signup does not erase password credentials', async (t) => {
+	// Regression: loginWithGitHub read the collection with passwordHash stripped
+	// and wrote that back, permanently destroying the credential of every
+	// password account in the file — including accounts unrelated to the signup.
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-platform-'));
+	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
+	const store = createPlatformStore({ workspaceRoot: root });
+	await store.registerWithPassword({ email: 'alice@example.com', password: 'correct-horse-battery', name: 'Alice' });
+
+	await store.loginWithGitHub({ id: '4242', login: 'bob', name: 'Bob', email: 'bob@example.com' });
+	await store.loginWithGitHub({ id: '4243', login: 'carol', name: 'Carol', email: 'carol@example.com' });
+
+	const signedIn = await store.loginWithPassword({ email: 'alice@example.com', password: 'correct-horse-battery' });
+	assert.ok(signedIn, 'password login must survive unrelated GitHub signups');
+});
+
+test('no caller-visible account carries credential material', async (t) => {
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-platform-'));
+	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
+	const store = createPlatformStore({ workspaceRoot: root });
+	const registered = await store.registerWithPassword({ email: 'dave@example.com', password: 'correct-horse-battery', name: 'Dave' });
+	assert.equal('passwordHash' in registered.account, false);
+
+	const session = store.createSession(registered.account.id);
+	assert.equal('passwordHash' in store.getSessionAccount(session.token), false);
+
+	// A separate GitHub identity — auto-linking by email match is deliberately
+	// refused, so this uses its own address.
+	const viaGitHub = await store.loginWithGitHub({ id: '5150', login: 'gitdave', name: 'Git Dave', email: 'gitdave@example.com', emailVerified: true });
+	assert.equal('passwordHash' in viaGitHub.account, false);
+});
+
+test('a GitHub sign-in never joins an existing account by email match', async (t) => {
+	// Registration does not verify the address, so anyone can pre-register
+	// someone else's email with a password of their choosing. Auto-linking meant
+	// the real owner's later GitHub sign-in joined THAT account, leaving the
+	// attacker's password working alongside it — both holding one workspace.
+	// A verified GitHub address does not prove the pre-existing account was ever
+	// the same person, so linking must require proving control of it.
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-platform-'));
+	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
+	const store = createPlatformStore({ workspaceRoot: root });
+
+	await store.registerWithPassword({ email: 'victim@example.com', password: 'attacker-chosen-pw!', name: 'Not Victim' });
+
+	// Even a genuinely verified GitHub address must not join it.
+	await assert.rejects(
+		() => store.loginWithGitHub({ id: '1001', login: 'victim', name: 'Victim', email: 'victim@example.com', emailVerified: true }),
+		/already uses that email address[\s\S]*not available yet/,
+	);
+
+	// An unrelated GitHub signup is unaffected.
+	const fresh = await store.loginWithGitHub({ id: '2002', login: 'newuser', name: 'New', email: 'new@example.com', emailVerified: true });
+	assert.equal(fresh.created, true);
+});
+
+test('every accepted email yields a username that resolves to a workspace', async (t) => {
+	// The username becomes the workspace directory. Consecutive punctuation and
+	// truncation could previously produce a slug validSlug rejects, and
+	// registration still returned a session — the account looked fine while every
+	// later workspace request failed.
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-platform-'));
+	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
+	const store = createPlatformStore({ workspaceRoot: root });
+
+	const awkward = ['first..last', 'a.-.b', '..lead', '---', `${'x'.repeat(31)}-`, 'ok.name'];
+	for (const [index, local] of awkward.entries()) {
+		const registered = await store.registerWithPassword({
+			email: `${local}@example${index}.com`,
+			password: 'correct-horse-battery',
+			name: 'T',
+		});
+		assert.doesNotThrow(
+			() => customerBusinessWorkspaceRoot(root, registered.account),
+			`username ${JSON.stringify(registered.account.username)} from ${local}@ must resolve to a workspace`,
+		);
+	}
+
+	// Collisions must also stay valid, not just the first derivation.
+	for (let attempt = 0; attempt < 3; attempt += 1) {
+		const registered = await store.registerWithPassword({
+			email: `first..last@collide${attempt}.com`,
+			password: 'correct-horse-battery',
+			name: 'T',
+		});
+		assert.doesNotThrow(() => customerBusinessWorkspaceRoot(root, registered.account));
+	}
+});

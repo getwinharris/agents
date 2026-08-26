@@ -11,12 +11,14 @@ root-sandbox/<username>/<business-slug>/projects/<project-slug>/
 
 The public `root-sandbox/` name is the customer-facing boundary. Server storage paths are private implementation details.
 
+Creating an account uses either an email and password or a verified GitHub identity, and creates the user workspace and its first business. A password account stores only a salted scrypt derivation of the password, never the password itself. The device session is shared across the production bapX subdomains and continues until explicit logout, subject to browser cookie retention. Repository authorization remains a separate GitHub App permission flow.
+
 ## Current production state
 
 | Capability                                              | Status                                                                                                                    |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| GitHub signup, login, shared device session, and logout | Partial. The flows work and bapX stores no password; the completion gate still requires rate limiting and final checks.   |
-| User workspace and first business creation              | Implemented when a verified GitHub identity signs in for the first time.                                                  |
+| Email/password and GitHub signup, login, shared device session, and logout | Partial. The flows work; GitHub stores no password and a password account stores only a salted scrypt derivation. The completion gate still requires rate limiting and final checks. |
+| User workspace and first business creation              | Implemented on first sign-in, for both a verified GitHub identity and a new password account.                             |
 | Platform page                                           | Live information architecture. The static shell performs a client-side session check and redirects unsigned users.        |
 | Customer Agents surface                                 | Live and authentication-gated, with the shared shell, central main-agent transport, and customer-scoped workspace routes. |
 | Admin repository import                                 | Implemented for confirmed public GitHub repositories; Admin entitlement is required.                                      |

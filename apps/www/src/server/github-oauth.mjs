@@ -126,16 +126,24 @@ export async function githubIdentity(code, { fetchImpl = globalThis.fetch } = {}
 	} catch (error) {
 		emailsError = error;
 	}
-	const email =
+	// GET /user returns the PUBLIC PROFILE email. GitHub does not guarantee it is
+	// verified — only /user/emails carries a `verified` flag. Keep the fallback so
+	// sign-in still works without the App's `email` permission, but tell the
+	// caller which kind of address this is: an unverified address must never be
+	// used to attach a GitHub identity to an account that already exists.
+	const verifiedEmail =
 		emails.find((item) => item.primary && item.verified)?.email ||
 		emails.find((item) => item.verified)?.email ||
-		(typeof user.email === 'string' && user.email.includes('@') ? user.email : '');
+		'';
+	const email =
+		verifiedEmail || (typeof user.email === 'string' && user.email.includes('@') ? user.email : '');
+	const emailVerified = Boolean(verifiedEmail);
 	if (!email) {
 		// Name the actual cause and the fix. "GitHub must provide a verified
 		// email address" told the customer nothing they could act on.
 		throw new Error(emailsError ? GITHUB_EMAIL_PERMISSION_ERROR : 'GitHub must provide a verified email address');
 	}
-	return { id: String(user.id), login: user.login, name: user.name || user.login, email };
+	return { id: String(user.id), login: user.login, name: user.name || user.login, email, emailVerified };
 }
 
 export async function exchangeGitHubAppManifestCode(code, { fetchImpl = globalThis.fetch } = {}) {

@@ -17,6 +17,99 @@ const beta = { account: 'beta-user', workspaceScope: 'users/beta-user/acme' }
 const submission = { sessionId: 'conversation-1', profile: 'research', objective: 'Gather bounded evidence.' }
 
 describe('FileOrchestrationStore', () => {
+  it('rejects an invalid approval decision instead of cancelling the task', () => {
+    const { store } = fixture()
+    const task = store.create(alpha, { ...submission, requiresApproval: true })
+    for (const decision of [undefined, '', 'approvd', 'yes', 'APPROVED']) {
+      assert.throws(() => store.approve(alpha, task.id, task.version, decision, 'owner'), TypeError)
+    }
+    // The task must still be approvable afterwards.
+    const approved = store.approve(alpha, task.id, task.version, 'approved', 'owner')
+    assert.equal(approved.state, 'queued')
+    assert.equal(approved.approval.state, 'approved')
+  })
+
+
+  it('reclaims a lock whose metadata write never completed', () => {
+    // A crash between creating the lock file and writing its ownership JSON
+    // leaves an empty or partial file. Without an mtime fallback there is no
+    // age to compare, and the task wedges forever — the exact failure the
+    // reclaim exists to prevent.
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-orchestration-'))
+    directories.push(directory)
+    const store = new FileOrchestrationStore({ directory })
+
+    for (const partial of ['', '{"pid":123', 'not json at all']) {
+      const task = store.create(alpha, submission)
+      const lock = path.join(directory, `${task.id}.json.lock`)
+      fs.writeFileSync(lock, partial)
+
+      // Fresh mtime: still an active holder.
+      assert.throws(() => store.transition(alpha, task.id, task.version, 'accepted'), OrchestrationConflictError)
+
+      // Backdated past the stale window: reclaimable on mtime alone.
+      const stale = new Date(Date.now() - 120_000)
+      fs.utimesSync(lock, stale, stale)
+      const moved = store.transition(alpha, task.id, task.version, 'accepted')
+      assert.equal(moved.state, 'accepted')
+      assert.equal(fs.existsSync(lock), false, `lock must be released for ${JSON.stringify(partial)}`)
+    }
+  })
+
+  it('reclaims a lock abandoned by a dead process but never one still held', () => {
+    // A lock is removed only by the owning process's finally block, so a crash
+    // mid-update would otherwise wedge the task forever: every later approval,
+    // claim, progress update, completion or lease recovery would conflict with
+    // no way back. Reclaim requires BOTH that the owner is gone and that the
+    // lock is stale, so a slow but live holder is never robbed.
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-orchestration-'))
+    directories.push(directory)
+    let clock = new Date('2026-07-29T12:00:00.000Z')
+    const store = new FileOrchestrationStore({ directory, now: () => clock })
+    const task = store.create(alpha, submission)
+    const lock = path.join(directory, `${task.id}.json.lock`)
+
+    // Live holder, lock claiming to be an hour old: must still conflict.
+    fs.writeFileSync(lock, JSON.stringify({ pid: process.pid, at: new Date('2026-07-29T11:00:00.000Z').toISOString() }))
+    assert.throws(() => store.transition(alpha, task.id, task.version, 'accepted'), OrchestrationConflictError)
+
+    // Dead holder, but inside the stale window: must still conflict.
+    fs.writeFileSync(lock, JSON.stringify({ pid: 0x7ffffffe, at: clock.toISOString() }))
+    assert.throws(() => store.transition(alpha, task.id, task.version, 'accepted'), OrchestrationConflictError)
+
+    // Dead holder, past the window: reclaim and let the update through.
+    clock = new Date('2026-07-29T12:05:00.000Z')
+    const moved = store.transition(alpha, task.id, task.version, 'accepted')
+    assert.equal(moved.state, 'accepted')
+    assert.equal(fs.existsSync(lock), false, 'the reclaimed lock must be released again')
+  })
+
+  it('rejects an invalid approval decision instead of cancelling the task', () => {
+    const { store } = fixture()
+    const task = store.create(alpha, { ...submission, requiresApproval: true })
+    for (const decision of [undefined, '', 'approvd', 'yes', 'APPROVED']) {
+      assert.throws(() => store.approve(alpha, task.id, task.version, decision, 'owner'), TypeError)
+    }
+    // The task must still be approvable afterwards.
+    const approved = store.approve(alpha, task.id, task.version, 'approved', 'owner')
+    assert.equal(approved.state, 'queued')
+    assert.equal(approved.approval.state, 'approved')
+  })
+
+
+  it('rejects an invalid approval decision instead of cancelling the task', () => {
+    const { store } = fixture()
+    const task = store.create(alpha, { ...submission, requiresApproval: true })
+    for (const decision of [undefined, '', 'approvd', 'yes', 'APPROVED']) {
+      assert.throws(() => store.approve(alpha, task.id, task.version, decision, 'owner'), TypeError)
+    }
+    // The task must still be approvable afterwards.
+    const approved = store.approve(alpha, task.id, task.version, 'approved', 'owner')
+    assert.equal(approved.state, 'queued')
+    assert.equal(approved.approval.state, 'approved')
+  })
+
+
   it('isolates records by trusted account and workspace when tenants share one store', () => {
     const { store } = fixture()
     const task = store.create(alpha, submission)

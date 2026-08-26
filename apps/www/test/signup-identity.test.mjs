@@ -50,7 +50,7 @@ test('sign-in succeeds from the verified email list', async (t) => {
 			emails: [{ email: 'listed@example.com', primary: true, verified: true }],
 		}),
 	});
-	assert.deepEqual(identity, { id: '7', login: 'octo', name: 'Octo', email: 'listed@example.com' });
+	assert.deepEqual(identity, { id: '7', login: 'octo', name: 'Octo', email: 'listed@example.com', emailVerified: true });
 });
 
 test('sign-in survives a GitHub App that cannot read /user/emails', async (t) => {
@@ -128,4 +128,41 @@ test('writes keep the previous good copy', async (t) => {
 	// Second construction rewrites the same file and must leave a .bak behind.
 	createPlatformStore({ workspaceRoot: root });
 	assert.ok(fs.existsSync(`${schemaFile}.bak`), 'a rewrite must preserve the prior copy');
+});
+
+test('a profile-email fallback is reported as unverified', async (t) => {
+	// GET /user returns the public profile email and GitHub does not guarantee it
+	// is verified. The fallback keeps sign-in working without the App's `email`
+	// permission, but callers must be able to tell the two apart — the store
+	// refuses to attach an identity to an existing account on an unverified one.
+	const { githubIdentity } = await loadOAuth(t);
+	const identity = await githubIdentity('code', {
+		fetchImpl: githubStub({
+			user: { id: 9, login: 'octo', name: 'Octo', email: 'profile@example.com' },
+			// The stub takes `emails`, not a status. 'forbidden' is the
+			// permission-denied path this test is actually about.
+			emails: 'forbidden',
+		}),
+	});
+	assert.equal(identity.email, 'profile@example.com');
+	assert.equal(identity.emailVerified, false, 'a profile-email fallback must not claim verification');
+});
+
+test('key storage failure is a throw, so sign-in must not depend on it', async (t) => {
+	// The GitHub callback provisions a default API key. That call previously ran
+	// BEFORE the session cookie was set, so an unusable key collection threw and
+	// locked every GitHub user out of an account they had just proven they own.
+	// This pins the hazard: these calls do throw, so the callback must create the
+	// session first and treat provisioning as best-effort.
+	const { createApiKeyStore } = await import('../src/server/api-gateway.mjs');
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-keys-'));
+	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+
+	const store = createApiKeyStore({ workspaceRoot: root });
+	const keysFile = path.join(root, 'data', 'platform', 'collections', 'api-keys.json');
+	fs.mkdirSync(path.dirname(keysFile), { recursive: true });
+	fs.writeFileSync(keysFile, '{ this is not valid json');
+
+	assert.throws(() => store.hasEverIssued('any-account'), /corrupt/i);
+	assert.throws(() => store.issue('any-account', 'Default key'), /corrupt/i);
 });

@@ -126,9 +126,7 @@ const formattedReviewedDate = lastReviewedAt?.toLocaleDateString('en-US', {
 									{
 										lastReviewedAt ? (
 												<span>Last updated <time datetime={reviewedDate} data-review-date title={formattedReviewedDate}>{formattedReviewedDate}</time></span>
-										) : (
-											<span>AI-generated, awaiting review</span>
-										)
+										) : null
 									}
 									{
 										markdownUrl && (
