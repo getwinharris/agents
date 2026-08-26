@@ -17,7 +17,7 @@ The public `root-sandbox/` name is the customer-facing boundary. Server storage 
 | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | GitHub signup, login, shared device session, and logout | Partial. The flows work and bapX stores no password; the completion gate still requires rate limiting and final checks.   |
 | User workspace and first business creation              | Implemented when a verified GitHub identity signs in for the first time.                                                  |
-| Platform page                                           | Live information architecture. The static shell performs a client-side session check and redirects unsigned users.        |
+| Platform page                                           | Live. Shows your account details and business connectors, performs a client-side session check, and redirects unsigned users. |
 | Customer Agents surface                                 | Live and authentication-gated, with the shared shell, central main-agent transport, and customer-scoped workspace routes. |
 | Admin repository import                                 | Implemented for confirmed public GitHub repositories; Admin entitlement is required.                                      |
 | Billing checkout and quota enforcement                  | Planned. Razorpay is the intended INR payment owner.                                                                      |
@@ -25,7 +25,7 @@ The public `root-sandbox/` name is the customer-facing boundary. Server storage 
 | API-key, MCP-client, and observability management       | Planned public controls.                                                                                                  |
 | Shared `api.bapx.in` API/MCP gateway                    | Not served; current routes return 404.                                                                                    |
 
-Static Platform navigation labels describe ownership, not completed workflows. A section is not available merely because it appears in the sidebar.
+Platform navigation names the areas Platform owns, not only the workflows that are finished. Areas without an implementation behind them are shown as disabled sidebar entries marked "Soon" — they are not links — and the "Not available yet" panel on the page states why each one is unavailable. Only Account and Connectors currently open a real section.
 
 ## Identity and repository authorization
 
