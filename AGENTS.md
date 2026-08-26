@@ -229,6 +229,32 @@ If a temporary script is unavoidable during investigation, remove it or promote 
 
 Release work requires an explicit `patch`, `minor`, `major`, or exact version from the user. Treat `v1.1` as exact version `1.1.0`.
 
+### When a version bump is warranted
+
+A version bump marks **substantive new capability**, not routine maintenance.
+
+- **Do not bump** for bug fixes, refactors, doc corrections, test additions, or
+  improvements to a feature that already shipped. Those land on the existing
+  version and are recorded under `Unreleased`.
+- **Do bump** when the release adds capability a customer can name and use that
+  the previous version did not have.
+
+Every bump must carry **concrete, proven results**. Before proposing one:
+
+1. The new capability is reachable on its stated surface, not only merged. A
+   feature that exists on `main` but is not deployed has not shipped.
+2. Its behaviour is demonstrated with evidence — a real request, a real
+   response, a passing test that would fail without it. An assertion that it
+   works is not evidence.
+3. No known open issue contradicts what the release claims. If the release notes
+   would say "customers can X" while an open issue says X is broken or absent,
+   the release is not ready.
+4. Pre-existing test failures are recorded with exact errors, and none of them
+   sit on the path the new capability depends on.
+
+A release that ships a version number ahead of working behaviour is worse than
+no release, because the changelog then becomes evidence that cannot be trusted.
+
 Before a v1.1.0 release can be tagged or published:
 
 1. Update `CHANGELOG.md` and docs for the product changes.
