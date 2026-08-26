@@ -146,9 +146,44 @@ Follow `CONTRIBUTING.md` for accepted contribution types and repository-specific
 4. Branch from the current worktree state without reverting unrelated user changes.
 5. Commit only after validation.
 6. Create a PR with validation evidence.
-7. Merge only when the task requires completing the change end-to-end and repo policy/credentials allow it.
+7. Merge, deploy, and verify live as one continuous run — see **Definition of Done** below.
 
 Do not create an issue for read-only diagnosis, trivial questions, or when the user explicitly declines issue tracking.
+
+## Definition of Done
+
+An issue is done when one continuous chain has been walked end to end:
+
+> **evidence → fix → tests → review → merge to main → deploy that merged commit
+> immediately → live browser/API verification → fix, or open the next evidenced
+> issue**
+
+This is a single unit of work, not a pipeline with waiting rooms between the
+stages. The agent that merges is the agent that deploys and the agent that
+verifies live. Handing a merged commit to a later release step is how work that
+already passed ends up sitting undeployed.
+
+**Main-to-live is not a gate, a milestone, or a release project.** It is the tail
+of every issue. Never park a passing change behind a separate deployment ticket,
+a batch, or a scheduled release window. Deploy the merged commit; do not wait for
+company, and do not wait for a version decision — a version bump is a naming
+event (see **Release Readiness**), never a precondition for shipping.
+
+**A release-tracking issue is an evidence checklist, never a queue.** An issue
+that exists to record what shipped may collect proof for work already merged and
+deployed. The moment such an issue starts holding a passed change back — "wait
+for the release issue", "batch it into the lineage work" — it has been misused.
+Close it or reduce it to a checklist; do not let it become a gate.
+
+**Live verification is part of done, not a follow-up.** Use the repository's own
+browser (`bapX browse verify <url>`, see **Browser and UI Validation**), and for
+API surfaces a real authenticated request. A healthy container, a green build, a
+merged PR, and a release directory are each necessary and none is proof the
+customer-visible behaviour works.
+
+**When live verification fails, the chain continues** — fix it in the same run,
+or open the next issue with the evidence just gathered. Reporting a failure and
+stopping is not done.
 
 ## Project Map
 
@@ -204,12 +239,23 @@ When writing new plans to disk, write them to `plans/` (gitignored intentionally
 For UI changes:
 
 1. Use the real served page, not only static code inspection.
-2. Prefer the in-app browser/browser-control workflow when available.
-3. Use Playwright only as fallback or for repeatable regression checks.
+2. **Use the repository's own browser first: `bapX browse verify <url>`.** It runs
+   the pinned `agent-browser` through a bapX-scoped isolated session, prints the
+   accessibility tree, and writes a screenshot under
+   `.agents/browser/evidence/`. That screenshot path is the evidence to cite.
+   If it reports `agent-browser is not available`, install it rather than
+   downgrading to curl — `npm install agent-browser@<pinned> --no-save
+   --legacy-peer-deps` works around the pre-existing peer conflict in
+   `examples/`. A missing browser binary is a blocker to fix, never a reason to
+   report UI work as verified by HTTP status alone.
+3. Use an external browser-control MCP or Playwright only as fallback, or for
+   repeatable regression checks.
 4. Verify desktop and mobile-relevant layout, navigation, sign-in/sign-up flows, visible copy, and click behavior.
 5. Capture or summarize the exact route, viewport, and visible result in the final/PR validation.
 
-Do not call UI work done when only the Astro build passed.
+Do not call UI work done when only the Astro build passed, and do not call live
+verification done on an HTTP status code alone. A 200 proves a route answers; it
+does not prove the page renders, the nav resolves, or the form submits.
 
 ## CLI and Tooling
 
