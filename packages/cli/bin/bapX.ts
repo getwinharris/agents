@@ -106,7 +106,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  bapX add   [<kind> <name|url>] [--print]\n' +
 			'  bapX update <kind> <name|url> [--print]\n' +
 			'  bapX docs  [read <path> | search <query>]\n' +
-			'  bapX okf   [index|query|normalize] --root <path> [query] [--write]\n' +
+			'  bapX okf   [index|query|normalize] --root <path> [query] [--check|--write]\n' +
 			'  bapX browse [verify <url> | -- <agent-browser args...>] [--root <path>] [--session <name>] [--namespace <name>]\n' +
 			'  bapX map   [--root <path>] [--check] [--profile <user-workspace|business-workspace|user-project|demo-project>]\n' +
 			'\n' +
@@ -543,7 +543,7 @@ function parseOkfArgs(rest: string[]): OkfArgs {
 		const label = action === undefined ? 'Missing' : `Unknown`;
 		const detail = action === undefined ? 'OKF action' : `\`bapX okf\` action: ${action}`;
 		console.error(
-			`${label} ${detail}.\n\nUsage:\n  bapX okf index --root <path> [--output <path>]\n  bapX okf query --root <path> <query>\n  bapX okf normalize --root <path> [--write]`,
+			`${label} ${detail}.\n\nUsage:\n  bapX okf index --root <path> [--output <path>]\n  bapX okf query --root <path> <query>\n  bapX okf normalize --root <path> [--check|--write]`,
 		);
 		process.exit(1);
 	}
@@ -555,9 +555,10 @@ function parseOkfArgs(rest: string[]): OkfArgs {
 			root: { type: 'string' },
 			output: { type: 'string' },
 			write: { type: 'boolean' },
+			check: { type: 'boolean' },
 		},
-		new Set(action === 'index' ? ['--root', '--output'] : action === 'normalize' ? ['--root', '--write'] : ['--root']),
-		new Set(['--root', '--output', '--write']),
+		new Set(action === 'index' ? ['--root', '--output'] : action === 'normalize' ? ['--root', '--write', '--check'] : ['--root']),
+		new Set(['--root', '--output', '--write', '--check']),
 	);
 	if (values.root === undefined) fail('Missing value for --root', true);
 
@@ -584,7 +585,10 @@ function parseOkfArgs(rest: string[]): OkfArgs {
 			action,
 			explicitRoot: pathFlag(values, 'root', 'Missing value for --root'),
 			explicitOutput: undefined,
-			write: values.write === true,
+			// `--check` is the explicit form of the default reporting mode, so
+			// documented guidance and muscle memory both work. `--write` wins if
+			// somebody passes both.
+			write: values.write === true && values.check !== true,
 			query: '',
 		};
 	}
@@ -2010,6 +2014,17 @@ function queryOkfIndex(root: string, concepts: OkfConcept[], query: string): voi
 // command, and AGENTS.md requires new automation to extend the owning surface.
 const OKF_SKIP = /^(node_modules|dist|\.git|examples|resource-git-for-extract)(\/|$)/;
 
+// Paths whose frontmatter is owned by another schema. These are still indexed,
+// but `type` is not imposed on them: SKILL.md carries the skill manifest
+// (name/description) that the harness loads, Astro content collections validate
+// against their own zod schema, and blueprints carry a JSON block. Adding an
+// OKF `type` to any of them changes a contract this tool does not own.
+const OKF_FOREIGN_FRONTMATTER =
+	/^(\.agents\/skills\/|apps\/www\/src\/content\/|blueprints\/|\.github\/ISSUE_TEMPLATE\/|\.opencode\/)/;
+
+// SKILL.md is a skill manifest wherever it lives, not only under .agents/skills.
+const OKF_FOREIGN_FILENAMES = new Set(['SKILL.md']);
+
 function okfTrackedMarkdown(root: string): string[] {
 	const listed = spawnSync('git', ['ls-files', '*.md'], { cwd: root, encoding: 'utf8' });
 	if (listed.status !== 0) fail('[bapX] okf normalize requires a git repository at --root');
@@ -2086,8 +2101,32 @@ function normalizeOkfTree(root: string, write: boolean): void {
 		const text = fs.readFileSync(absolute, 'utf8');
 		// A JSON frontmatter block (blueprints) already opens with the delimiter and
 		// must never be rewritten.
-		if (text.startsWith('---\n') || text.startsWith('---\r\n')) continue;
+		const delimited = text.startsWith('---\n') || text.startsWith('---\r\n');
+		const jsonFrontmatter = delimited && /^---\r?\n\s*\{/.test(text);
+		// A leading delimiter is not proof of a valid concept document. OKF §4.1
+		// requires `type`, so YAML frontmatter without it still needs normalizing —
+		// otherwise an index is written from incomplete metadata and both reporting
+		// and the write-and-diff lane pass.
+		if (jsonFrontmatter) continue;
+		if (delimited && (OKF_FOREIGN_FRONTMATTER.test(file) || OKF_FOREIGN_FILENAMES.has(path.basename(file)))) continue;
+		if (delimited && okfFrontmatterFields(absolute).type) continue;
 		missing.push(file);
+		// Rewriting means replacing the incomplete block, not prefixing a second one.
+		if (delimited && write) {
+			const end = text.indexOf('\n---', 4);
+			const existing = end === -1 ? {} : okfFrontmatterFields(absolute);
+			const body = end === -1 ? text : text.slice(text.indexOf('\n', end + 1) + 1);
+			const rebuilt = [
+				'---',
+				`type: ${okfScalar(okfDeriveType(file))}`,
+				`title: ${okfScalar(existing.title || okfDeriveTitle(body, file))}`,
+				...(existing.description ? [`description: ${okfScalar(existing.description)}`] : []),
+				'---',
+				'',
+			].join('\n');
+			fs.writeFileSync(absolute, rebuilt + body);
+			continue;
+		}
 		if (!write) continue;
 		const description = okfDeriveDescription(text);
 		const block = [
@@ -2134,15 +2173,31 @@ function normalizeOkfTree(root: string, write: boolean): void {
 		if (write) fs.writeFileSync(path.join(root, folder, 'index.yaml'), lines.join('\n'));
 	}
 
+	// A folder whose last Markdown file was deleted is absent from `folders`, so
+	// its generated index is never revisited and a write-and-diff lane sees no
+	// change. Sweep those out, but only ones this generator produced.
+	const orphaned: string[] = [];
+	for (const file of spawnSync('git', ['ls-files', '*index.yaml'], { cwd: root, encoding: 'utf8' }).stdout.split('\n')) {
+		if (!file || OKF_SKIP.test(file)) continue;
+		const folder = path.dirname(file);
+		if (folders.includes(folder)) continue;
+		const absolute = path.join(root, file);
+		if (!fs.existsSync(absolute)) continue;
+		if (!fs.readFileSync(absolute, 'utf8').includes('type: folder-index')) continue;
+		orphaned.push(file);
+		if (write) fs.rmSync(absolute);
+	}
+
 	const unindexed = folders.filter((folder) => !fs.existsSync(path.join(root, folder, 'index.yaml')));
 	if (write) {
-		console.log(`done okf normalize: frontmatter added to ${missing.length} file(s), ${folders.length} index.yaml written`);
+		console.log(`done okf normalize: frontmatter added to ${missing.length} file(s), ${folders.length} index.yaml written, ${orphaned.length} orphaned index removed`);
 		return;
 	}
-	console.log(`okf: ${files.length} tracked markdown file(s); ${missing.length} without frontmatter; ${unindexed.length} folder(s) missing index.yaml`);
+	console.log(`okf: ${files.length} tracked markdown file(s); ${missing.length} without a valid OKF type; ${unindexed.length} folder(s) missing index.yaml; ${orphaned.length} orphaned index.yaml`);
+	for (const file of orphaned.slice(0, 10)) console.log(`  orphaned index: ${file}`);
 	for (const file of missing.slice(0, 20)) console.log(`  missing frontmatter: ${file}`);
 	if (missing.length > 20) console.log(`  … and ${missing.length - 20} more`);
-	if (missing.length || unindexed.length) process.exit(1);
+	if (missing.length || unindexed.length || orphaned.length) process.exit(1);
 }
 
 function okfCommand(args: OkfArgs): void {

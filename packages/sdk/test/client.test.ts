@@ -19,14 +19,14 @@ describe('createBapxClient', () => {
 				}
 				calledWithCorrectReceiver = true;
 				return Promise.resolve(
-					Response.json({ streamUrl: 'https://bapX.test/stream', offset: '-1', submissionId: 's1' }),
+					Response.json({ streamUrl: 'https://bapx.test/stream', offset: '-1', submissionId: 's1' }),
 				);
 			} as typeof fetch;
 			try {
-				const client = createBapxClient({ baseUrl: 'https://bapX.test' });
+				const client = createBapxClient({ baseUrl: 'https://bapx.test' });
 				await expect(
 					client.agents.send('hello', 'inst-1', { message: { kind: 'user', body: 'hi' } }),
-				).resolves.toEqual({ streamUrl: 'https://bapX.test/stream', offset: '-1', submissionId: 's1' });
+				).resolves.toEqual({ streamUrl: 'https://bapx.test/stream', offset: '-1', submissionId: 's1' });
 				expect(calledWithCorrectReceiver).toBe(true);
 			} finally {
 				globalThis.fetch = original;
@@ -38,10 +38,10 @@ describe('createBapxClient', () => {
 		it('sends the DeliveredMessage as the wire body', async () => {
 			const seen: Request[] = [];
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async (input, init) => {
 					seen.push(new Request(input, init));
-					return Response.json({ streamUrl: 'https://bapX.test/stream', offset: '-1' });
+					return Response.json({ streamUrl: 'https://bapx.test/stream', offset: '-1' });
 				},
 			});
 			await client.agents.send('hello', 'inst-1', {
@@ -62,7 +62,7 @@ describe('createBapxClient', () => {
 	describe('agents.history() attachment urls', () => {
 		it('resolves a url on durably-recorded file parts and leaves preview parts untouched', async () => {
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async () =>
 					Response.json({
 						v: 1,
@@ -84,7 +84,7 @@ describe('createBapxClient', () => {
 
 			const snapshot = await client.agents.history('agent', 'inst-1');
 			const parts = snapshot.messages[0]?.parts as Array<{ url?: string }>;
-			expect(parts[0]?.url).toBe('https://bapX.test/agents/agent/inst-1/attachments/att-1');
+			expect(parts[0]?.url).toBe('https://bapx.test/agents/agent/inst-1/attachments/att-1');
 			// A part that already carries a url (e.g. an optimistic data URL) is left as-is.
 			expect(parts[1]?.url).toBe('data:image/png;base64,AAAA');
 		});
@@ -98,7 +98,7 @@ describe('createBapxClient', () => {
 				resolveFollowed = resolve;
 			});
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async (input) => {
 					const url = new URL(typeof input === 'string' ? input : new Request(input).url);
 					seen.push(`${url.searchParams.get('view')}:${url.searchParams.get('offset') ?? ''}`);
@@ -134,7 +134,7 @@ describe('createBapxClient', () => {
 		it('reports an absent conversation and rehydrates after refresh', async () => {
 			let historyCalls = 0;
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async (input) => {
 					const url = new URL(typeof input === 'string' ? input : new Request(input).url);
 					if (url.searchParams.get('view') === 'history') {
@@ -192,7 +192,7 @@ describe('createBapxClient', () => {
 			];
 			let updatesCalls = 0;
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async (input) => {
 					const url = new URL(typeof input === 'string' ? input : new Request(input).url);
 					if (url.searchParams.get('view') === 'history') {
@@ -232,7 +232,7 @@ describe('createBapxClient', () => {
 		it('reads one materialized snapshot via the history view', async () => {
 			let seen = '';
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test/api',
+				baseUrl: 'https://bapx.test/api',
 				fetch: async (input) => {
 					seen = typeof input === 'string' ? input : new Request(input).url;
 					return Response.json({
@@ -259,7 +259,7 @@ describe('createBapxClient', () => {
 		it('constructs the correct stream URL from run ID', async () => {
 			const urls: string[] = [];
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async (input) => {
 					urls.push(typeof input === 'string' ? input : new Request(input).url);
 					return dsJsonResponse(
@@ -283,7 +283,7 @@ describe('createBapxClient', () => {
 
 		it('yields the full history with live:false when the server splits catch-up into multiple batches', async () => {
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async (input) => {
 					const url = new URL(typeof input === 'string' ? input : new Request(input).url);
 					if (url.searchParams.get('offset') === '-1') {
@@ -318,7 +318,7 @@ describe('createBapxClient', () => {
 	describe('runs.events()', () => {
 		it('returns all run events as an array', async () => {
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async () =>
 					dsJsonResponse(
 						[
@@ -338,7 +338,7 @@ describe('createBapxClient', () => {
 		it('preserves tail across catch-up reads', async () => {
 			const urls: URL[] = [];
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async (input) => {
 					const url = new URL(typeof input === 'string' ? input : new Request(input).url);
 					urls.push(url);
@@ -364,7 +364,7 @@ describe('createBapxClient', () => {
 		it('returns the full history when the server splits catch-up into multiple batches', async () => {
 			const offsets: Array<string | null> = [];
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async (input) => {
 					const url = new URL(typeof input === 'string' ? input : new Request(input).url);
 					const offset = url.searchParams.get('offset');
@@ -400,7 +400,7 @@ describe('createBapxClient', () => {
 		it('POSTs to workflow route and returns the run ID', async () => {
 			const seen: Request[] = [];
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async (input, init) => {
 					seen.push(new Request(input, init));
 					return Response.json({ runId: 'run_abc123' }, { status: 202 });
@@ -424,7 +424,7 @@ describe('createBapxClient', () => {
 		it('requests ?wait=result and returns the terminal result when wait is "result"', async () => {
 			const seen: Request[] = [];
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async (input, init) => {
 					seen.push(new Request(input, init));
 					return Response.json({
@@ -454,7 +454,7 @@ describe('createBapxClient', () => {
 		it('invokes the workflow with an omitted HTTP body when no input is provided', async () => {
 			let request: Request | undefined;
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async (input, init) => {
 					request = new Request(input, init);
 					return Response.json({ runId: 'run_xyz' }, { status: 202 });
@@ -473,7 +473,7 @@ describe('createBapxClient', () => {
 			const offsets: Array<string | null> = [];
 			const seenEvents: string[] = [];
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async (input) => {
 					const url = new URL(typeof input === 'string' ? input : new Request(input).url);
 					offsets.push(url.searchParams.get('offset'));
@@ -491,7 +491,7 @@ describe('createBapxClient', () => {
 			await expect(
 				client.agents.wait(
 					{
-						streamUrl: 'https://bapX.test/agents/hello/instance-1',
+						streamUrl: 'https://bapx.test/agents/hello/instance-1',
 						offset: 'admission-offset',
 						submissionId: 'submission-1',
 					},
@@ -504,7 +504,7 @@ describe('createBapxClient', () => {
 
 		it('throws a structured SDK error when the submission fails', async () => {
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async () =>
 					dsJsonResponse(
 						[
@@ -523,7 +523,7 @@ describe('createBapxClient', () => {
 
 			const error = await client.agents
 				.wait({
-					streamUrl: 'https://bapX.test/agents/hello/instance-1',
+					streamUrl: 'https://bapx.test/agents/hello/instance-1',
 					offset: 'admission-offset',
 					submissionId: 'submission-1',
 				})
@@ -540,7 +540,7 @@ describe('createBapxClient', () => {
 
 		it('classifies an aborted settlement distinctly from a failure', async () => {
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async () =>
 					dsJsonResponse(
 						[
@@ -559,7 +559,7 @@ describe('createBapxClient', () => {
 
 			const error = await client.agents
 				.wait({
-					streamUrl: 'https://bapX.test/agents/hello/instance-1',
+					streamUrl: 'https://bapx.test/agents/hello/instance-1',
 					offset: 'admission-offset',
 					submissionId: 'submission-1',
 				})
@@ -580,7 +580,7 @@ describe('createBapxClient', () => {
 			const requests: Request[] = [];
 			const seenEvents: string[] = [];
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async (input, init) => {
 					const request = new Request(input, init);
 					requests.push(request);
@@ -611,7 +611,7 @@ describe('createBapxClient', () => {
 		it('falls back to run metadata when the stream ends without run_end', async () => {
 			const paths: string[] = [];
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async (input, init) => {
 					const request = new Request(input, init);
 					const url = new URL(request.url);
@@ -671,12 +671,12 @@ describe('createBapxClient', () => {
 		it('resolves public HTTP routes beneath the base URL pathname', async () => {
 			const requests: Request[] = [];
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test/api/',
+				baseUrl: 'https://bapx.test/api/',
 				fetch: async (input, init) => {
 					const request = new Request(input, init);
 					requests.push(request);
 					if (request.method === 'POST')
-						return Response.json({ streamUrl: 'https://bapX.test/stream', offset: '-1', submissionId: 's1' });
+						return Response.json({ streamUrl: 'https://bapx.test/stream', offset: '-1', submissionId: 's1' });
 					return Response.json({ runId: 'run-1' });
 				},
 			});
@@ -695,7 +695,7 @@ describe('createBapxClient', () => {
 		it('requests the public ?meta view of the run route', async () => {
 			let url = '';
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test/api/',
+				baseUrl: 'https://bapx.test/api/',
 				fetch: async (input, init) => {
 					url = new Request(input, init).url;
 					return Response.json({
@@ -727,7 +727,7 @@ describe('createBapxClient', () => {
 				},
 			};
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async () => Response.json(body, { status: 404 }),
 			});
 
@@ -745,7 +745,7 @@ describe('createBapxClient', () => {
 
 		it('preserves parsed null HTTP API error bodies', async () => {
 			const client = createBapxClient({
-				baseUrl: 'https://bapX.test',
+				baseUrl: 'https://bapx.test',
 				fetch: async () => Response.json(null, { status: 500 }),
 			});
 

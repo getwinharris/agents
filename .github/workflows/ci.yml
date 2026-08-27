@@ -120,6 +120,12 @@ jobs:
         run: npm run test --workspace @bapX/runtime
       - name: Runtime types
         run: npm run check:types --workspace @bapX/runtime
+      # @bapX/sdk is the public client. Nothing ran its contracts, so a
+      # behavioural regression there could leave the aggregate green.
+      - name: SDK tests
+        run: npm run test --workspace @bapX/sdk
+      - name: SDK types
+        run: npm run check:types --workspace @bapX/sdk
 
   drift:
     name: Map and OKF freshness
@@ -193,7 +199,12 @@ jobs:
       # from its own gitignored dist. Both must be built.
       - name: Build the CLI under test
         run: npm run build --workspace @bapX/runtime --workspace @bapX/sdk --workspace @bapX/react --workspace @bapX/cli
+      # The package's own test script runs node --test and vitest. Running only
+      # the .mjs suites silently omits every .test.ts contract — build plugins,
+      # execution lifecycle, run controller.
       - run: node --test packages/cli/test/*.test.mjs
+      - name: CLI vitest contracts
+        run: npx vitest run --root packages/cli
 
   audit:
     name: Dependency vulnerabilities

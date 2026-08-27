@@ -16,9 +16,14 @@ unit, and repo-based queryable knowledge. Sources are the synced upstreams in
 ## 1. bapX today, measured
 
 - Orchestration state is a **JSON file plus lock files**
-  (`apps/agents-runtime/src/orchestration-store.mjs`), with the durability
-  problems that implies — a lock left by a killed process blocks a task until an
-  operator deletes it.
+  (`apps/agents-runtime/src/orchestration-store.mjs`). An earlier draft of this
+  document claimed a killed process wedges a task until an operator intervenes.
+  **That was wrong.** `acquireLock()` records the owner pid and timestamp and
+  reclaims a lock once the owner is gone and `lockStaleMs` (60s) has elapsed,
+  and tests cover both dead-owner and partial-metadata recovery. The real limits
+  are narrower: a bounded stale window during which the task is unavailable, a
+  whole-collection rewrite on every mutation, and pid reuse after a container
+  restart, where a new process can inherit the recorded pid and read as alive.
 - Topology is **fork/join**: the main agent submits bounded work to
   `research` / `engineering` / `verification` specialists and reads summaries
   back. There is no dependency graph and no parallel path that reconverges.
@@ -96,9 +101,12 @@ Each session gets a disposable isolated sandbox **on its own branch**, and
 credentials are brokered server-side so keys never reach it. Work returns as a
 change request a human approves before merge.
 
-The branch-per-session detail is the one bapX has not taken: it makes every
-agent run reviewable as a diff and abandonable at zero cost, which is a stronger
-guarantee than our approval gate on a task record.
+The branch-per-session detail is the one bapX has not taken. Stated in bapX
+terms, since `AGENTS.md` reserves *run* for workflow invocations: the boundary is
+**one dispatched specialist task** — what `submit_specialist_task` creates and
+`FileOrchestrationStore` records. Giving each dispatched task its own branch makes
+it reviewable as a diff and abandonable at zero cost, which is a stronger
+guarantee than an approval gate on a task record.
 
 ## 5. Repo-based queryable knowledge — where bapX is actually ahead
 
@@ -116,7 +124,8 @@ The correction to make is ownership, not concept: the normaliser shipped as
 `okf` already lives in the CLI (`packages/cli/bin/bapX.ts`, 32 references) and
 already exposes `bapX okf index --root --output` and `bapX okf query`. Adding a
 parallel script violates the rule in `AGENTS.md` that new automation extends the
-existing CLI. It belongs as `bapX okf normalize [--check|--write]`.
+existing CLI. It now lives there as `bapX okf normalize --root <path> [--check|--write]`,
+where `--check` is the explicit form of the default reporting mode.
 
 Note also what `index.yaml` is actually for here: `bapX map --profile` validates
 required workspace files, and `ensureUserWorkspace()` writes one per provisioned
@@ -131,8 +140,8 @@ indexes are not covered by any profile, so nothing validates them yet.
    a runtime heartbeat, following Multica. This removes stale-lock recovery as a
    class of bug rather than fixing it again.
 3. **Snapshot task context into the task**, so a worker needs no callback.
-4. **Branch per agent run**, following Suna, so every run is reviewable and
-   free to abandon.
+4. **Branch per dispatched task**, following Suna, so each is reviewable and
+   free to abandon. Not per workflow run — `run` is reserved for those.
 5. **Keep OKF, and move its tooling into the CLI.** The capability is ahead of
    the field; the packaging is not.
 
