@@ -116,11 +116,7 @@ jobs:
         run: npm run build --workspace @bapX/runtime --workspace @bapX/sdk --workspace @bapX/react
       # @bapX/runtime is the primary package. Nothing ran its 52 suites, so a
       # regression there could leave the aggregate check green.
-      # Five of 785 suites fail on main and predate this workflow (#156).
-      # Types stay blocking below — they are green and catch real regressions.
-      # Remove this line when #156 closes, and never extend it to another step.
       - name: Runtime tests
-        continue-on-error: true
         run: npm run test --workspace @bapX/runtime
       - name: Runtime types
         run: npm run check:types --workspace @bapX/runtime

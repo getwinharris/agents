@@ -58,7 +58,7 @@ describe('createCloudflareRunStore()', () => {
 		expect(fake.requestedIds).toEqual([fake.id]);
 		expect(fake.requests).toHaveLength(1);
 		expect(fake.requests[0]?.url).toBe(
-			'https://bapX-registry.local/pointers/run_01DAILYREPORT/start',
+			'https://bapx-registry.local/pointers/run_01DAILYREPORT/start',
 		);
 		expect(fake.requests[0]?.method).toBe('POST');
 		expect(fake.requests[0]?.headers.get('content-type')).toBe('application/json');
@@ -90,7 +90,7 @@ describe('createCloudflareRunStore()', () => {
 		expect((await records.getRun('run_01DAILYREPORT'))?.status).toBe('errored');
 		expect(fake.requests).toHaveLength(2);
 		expect(fake.requests[1]?.url).toBe(
-			'https://bapX-registry.local/pointers/run_01DAILYREPORT/end',
+			'https://bapx-registry.local/pointers/run_01DAILYREPORT/end',
 		);
 		expect(fake.requests[1]?.method).toBe('POST');
 		expect(await fake.requests[1]?.json()).toEqual({
@@ -166,7 +166,7 @@ describe('createCloudflareRunStore()', () => {
 
 		expect(await store.lookupRun('run_01LOCAL')).toBeNull();
 		expect(fake.requests).toHaveLength(1);
-		expect(fake.requests[0]?.url).toBe('https://bapX-registry.local/pointers/run_01LOCAL');
+		expect(fake.requests[0]?.url).toBe('https://bapx-registry.local/pointers/run_01LOCAL');
 		expect(fake.requests[0]?.method).toBe('GET');
 	});
 
@@ -207,9 +207,9 @@ describe('createCloudflareRunStore()', () => {
 		});
 
 		expect(fake.requests.map((request) => request.url)).toEqual([
-			'https://bapX-registry.local/pointers/run_01%20colon%3Aslash%2Fid%3F%23fragment/start',
-			'https://bapX-registry.local/pointers/run_01%20colon%3Aslash%2Fid%3F%23fragment/end',
-			'https://bapX-registry.local/pointers/run_01%20colon%3Aslash%2Fid%3F%23fragment',
+			'https://bapx-registry.local/pointers/run_01%20colon%3Aslash%2Fid%3F%23fragment/start',
+			'https://bapx-registry.local/pointers/run_01%20colon%3Aslash%2Fid%3F%23fragment/end',
+			'https://bapx-registry.local/pointers/run_01%20colon%3Aslash%2Fid%3F%23fragment',
 		]);
 		expect(fake.requests.map((request) => request.method)).toEqual(['POST', 'POST', 'GET']);
 	});
@@ -262,7 +262,7 @@ describe('createCloudflareRunIndex()', () => {
 		expect(fake.requestedIds).toEqual([fake.id]);
 		expect(fake.requests).toHaveLength(1);
 		expect(fake.requests[0]?.url).toBe(
-			'https://bapX-registry.local/pointers?status=errored&workflow=daily+report%2Fsummary&limit=25&cursor=next+page%2F%3F',
+			'https://bapx-registry.local/pointers?status=errored&workflow=daily+report%2Fsummary&limit=25&cursor=next+page%2F%3F',
 		);
 		expect(fake.requests[0]?.method).toBe('GET');
 	});
