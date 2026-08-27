@@ -33,8 +33,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          # npm ci runs PR-authored lifecycle scripts below. Do not leave a
+          # usable token in .git/config where they can read it.
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '24'
       # Pin npm to the version the lockfile was written with. Node 24 ships a
@@ -46,6 +50,11 @@ jobs:
       # twice broken this build — removing the nested cookie@2.0.1 Astro needs,
       # and duplicating shiki under @streamdown/code.
       - run: npm ci --no-audit --no-fund
+      # @bapX/sdk and @bapX/react export gitignored dist paths, and the admin
+      # bundle imports both. Without this, tsc -b cannot resolve them and the
+      # lane fails for every PR instead of gating regressions.
+      - name: Build shared packages
+        run: npm run build --workspace @bapX/runtime --workspace @bapX/sdk --workspace @bapX/react
       - name: Server and platform contracts
         run: npm run test:server --workspace apps-www
       # The build is a gate, not a formality: an empty dist is what reached
@@ -66,8 +75,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          # npm ci runs PR-authored lifecycle scripts below. Do not leave a
+          # usable token in .git/config where they can read it.
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '24'
       # Pin npm to the version the lockfile was written with. Node 24 ships a
@@ -77,14 +90,44 @@ jobs:
       - run: npm install --global npm@11.6.2
       - run: npm ci --no-audit --no-fund
       - run: node --test apps/agents-runtime/test/*.test.mjs
+      # The suites import the adjacent .mjs helpers only, so a broken TypeScript
+      # entry point in src/ or bapX.config.ts stays invisible to them.
+      - name: Types
+        run: npm run check:types --workspace apps/agents-runtime
+
+  packages:
+    name: packages/runtime tests and types
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '24'
+      - run: npm install --global npm@11.6.2
+      - run: npm ci --no-audit --no-fund
+      - name: Build shared packages
+        run: npm run build --workspace @bapX/runtime --workspace @bapX/sdk --workspace @bapX/react
+      # @bapX/runtime is the primary package. Nothing ran its 52 suites, so a
+      # regression there could leave the aggregate check green.
+      - name: Runtime tests
+        run: npm run test --workspace @bapX/runtime
+      - name: Runtime types
+        run: npm run check:types --workspace @bapX/runtime
 
   drift:
     name: Map and OKF freshness
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          # npm ci runs PR-authored lifecycle scripts below. Do not leave a
+          # usable token in .git/config where they can read it.
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '24'
       # Pin npm to the version the lockfile was written with. Node 24 ships a
@@ -102,8 +145,16 @@ jobs:
       # that nothing verifies are worse than none: they are read as current.
       - name: map.mmd is current
         run: node_modules/.bin/bapX map --check --root .
-      - name: Every tracked Markdown file is OKF-shaped
-        run: node_modules/.bin/bapX okf normalize --root .
+      # Regenerate and diff rather than checking that index.yaml merely exists:
+      # adding a document to a folder that already has an index leaves the index
+      # stale, and an existence check passes it.
+      - name: Generated OKF indexes match the tree
+        run: |
+          node_modules/.bin/bapX okf normalize --root . --write
+          git diff --exit-code -- '*.md' '*index.yaml' || {
+            echo "::error::OKF frontmatter or folder indexes are stale. Run: npm run okf:write"
+            exit 1
+          }
 
   cli:
     name: packages/cli tests
@@ -116,8 +167,12 @@ jobs:
     # closes, and never extend it to another lane.
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          # npm ci runs PR-authored lifecycle scripts below. Do not leave a
+          # usable token in .git/config where they can read it.
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '24'
       # Pin npm to the version the lockfile was written with. Node 24 ships a
@@ -126,6 +181,10 @@ jobs:
       # file". admin-project-import.yml already pins for the same reason.
       - run: npm install --global npm@11.6.2
       - run: npm ci --no-audit --no-fund
+      # The suites spawn packages/cli/dist/bapX.js. Without building it they
+      # fail on a missing executable and prove nothing about the CLI.
+      - name: Build the CLI under test
+        run: npm run build --workspace @bapX/cli
       - run: node --test packages/cli/test/*.test.mjs
 
   audit:
@@ -133,8 +192,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          # npm ci runs PR-authored lifecycle scripts below. Do not leave a
+          # usable token in .git/config where they can read it.
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '24'
       # Pin npm to the version the lockfile was written with. Node 24 ships a
@@ -145,13 +208,23 @@ jobs:
       - run: npm ci --no-audit --no-fund
       # This product stores customer provider keys and connector credentials.
       # Running nothing was not a defensible position.
-      - name: npm audit (high and critical)
-        run: npm audit --audit-level=high
+      #
+      # Gated on production dependencies: those are what reach the VPS. The
+      # remaining high findings are dev tooling only
+      # (@cloudflare/vite-plugin -> miniflare -> undici, and hono via
+      # @hono/node-server), and fixing them needs semver-major bumps. They are
+      # reported below without failing the lane, so they stay visible instead of
+      # being silenced.
+      - name: Production dependencies (high and critical)
+        run: npm audit --omit=dev --audit-level=high
+      - name: Development dependencies (report only)
+        if: always()
+        run: npm audit --audit-level=high || true
 
   all-checks-pass:
     name: All checks pass
     runs-on: ubuntu-latest
-    needs: [www, runtime, drift, audit]
+    needs: [www, runtime, packages, drift, audit]
     if: always()
     steps:
       # `needs` success is not enough on its own: a skipped or cancelled job
@@ -160,11 +233,12 @@ jobs:
         env:
           WWW: ${{ needs.www.result }}
           RUNTIME: ${{ needs.runtime.result }}
+          PACKAGES: ${{ needs.packages.result }}
           DRIFT: ${{ needs.drift.result }}
           AUDIT: ${{ needs.audit.result }}
         run: |
-          echo "www=$WWW runtime=$RUNTIME drift=$DRIFT audit=$AUDIT"
-          for lane in "www:$WWW" "runtime:$RUNTIME" "drift:$DRIFT" "audit:$AUDIT"; do
+          echo "www=$WWW runtime=$RUNTIME packages=$PACKAGES drift=$DRIFT audit=$AUDIT"
+          for lane in "www:$WWW" "runtime:$RUNTIME" "packages:$PACKAGES" "drift:$DRIFT" "audit:$AUDIT"; do
             name="${lane%%:*}"; result="${lane#*:}"
             test "$result" = "success" || { echo "::error::lane $name reported $result"; exit 1; }
           done
