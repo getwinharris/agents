@@ -103,7 +103,7 @@ jobs:
       - name: map.mmd is current
         run: node_modules/.bin/bapX map --check --root .
       - name: Every tracked Markdown file is OKF-shaped
-        run: npm run okf:check
+        run: node_modules/.bin/bapX okf normalize --root .
 
   cli:
     name: packages/cli tests
