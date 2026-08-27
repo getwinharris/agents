@@ -47,10 +47,13 @@ root-sandbox/<username>/
 
 The central bapX agent and specialist agents use OKF to:
 
-- open `index.yaml` first, then `docs/index.yaml` for project documentation, then `map.mmd` for generated structure;
+- query the applicable OKF root with customer-outcome and component terms, then read the returned evidence and nearest `index.yaml`;
+- open `docs/index.yaml` for project documentation, then traverse `map.mmd` through owner, source, route, docs, deployment, and live proof;
 - find project context, docs, assets, repositories, functions, routes, workflows, and maps;
 - keep generated work diffable in Markdown, YAML, JSON, and Mermaid instead of opaque database-only state;
 - preserve business and project boundaries during automation;
 - expose enough semantic structure for MCP clients, coding agents, and browser agents to continue work safely.
+
+The map is a generated semantic index, not a diagram to decorate and not proof that a capability works. A missing, stale, or contradicted edge is useful discovery: record its owning issue, repair the source relationship, regenerate the map, and verify the actual route or surface. Query and traverse again after delivery so the next agent starts from durable evidence instead of reconstructing a long prompt.
 
 OKF is not a claim that every planned capability is shipped. Pages must state whether an operation is implemented, planned, or blocked by missing credentials.

@@ -96,12 +96,17 @@ Agent and workflow sources use either `<root>/.agents/` or `<root>/`; when `.age
 For meaningful code, UI, docs, CLI, map, workflow, or structure changes:
 
 1. Read the workspace and repo `AGENTS.md` chain.
-2. Read `OBJECTIVE.md` and `TODO.md` for product work, then read `map.mmd` and follow affected nodes to source files.
-3. Search with `rg` and inspect existing implementations before creating any file, route, command, service, view, workflow, generator, or navigation item.
-4. Extend the existing owning source. Do not create unlinked helper scripts, parallel map generators, duplicate frontends, duplicate admin surfaces, or orphaned tools.
-5. If functionality is a product operation, wire it into `packages/cli`, repo scripts, the admin surface, or the documented runtime workflow.
-6. Update docs/content only from the repo's content sources, not from generated `dist/`.
-7. Before finishing, check touched workflows for placeholders, dead buttons, duplicated fallbacks, stale labels, incomplete wiring, and missing docs/map updates.
+2. Read `OBJECTIVE.md` and `TODO.md`, then run `bapX okf query --root <authorized-root> "<outcome and component terms>"`. Read the returned evidence and nearest `index.yaml`; the user's prompt is intent, not the only project memory.
+3. Traverse `map.mmd` from the requested outcome through the owning package, route/API, docs, deployment unit, and live surface. Confirm important edges against source and live evidence; a generated node is not proof that a connection works.
+4. Record the missing puzzle before editing: desired outcome, current evidence, owning source, missing or contradicted edge, verification route, and owning issue/PR. Update an existing issue when it owns the gap.
+5. Search with `rg` and inspect existing implementations before creating any file, route, command, service, view, workflow, generator, or navigation item.
+6. Extend the existing owning source. Do not create unlinked helper scripts, parallel map generators, duplicate frontends, duplicate admin surfaces, or orphaned tools.
+7. If functionality is a product operation, wire it into `packages/cli`, repo scripts, the admin surface, or the documented runtime workflow.
+8. Update docs/content only from the repo's content sources, not from generated `dist/`.
+9. When ownership, routes, entry points, dependencies, or product relationships change, improve their canonical source metadata/indexes, regenerate `map.mmd` with the owning CLI, review the semantic diff, and run `--check`. Never hand-edit generated nodes to imply completeness.
+10. Before finishing, repeat the OKF query and map traversal. Check for placeholders, dead buttons, duplicated fallbacks, stale claims, incomplete wiring, missing docs, untested deployment edges, and adjacent disconnected functions.
+
+Do not spend turns restating the prompt, repeating research already indexed in OKF, or waiting for another prompt while a safe in-scope action remains. Retrieve narrowly, resolve the highest-leverage missing connection, and preserve evidence so the next agent continues from repository state instead of reconstructing the conversation.
 
 Before acting, identify the capabilities and limitations of the current execution environment. A remote agent may expose any task-relevant tools or skills, so discover and use the available capabilities intelligently instead of assuming a fixed toolset or local checkout. When repository work runs through a connector-hosted environment, use its available GitHub connector or equivalent repository-management capability as the canonical path for reading and writing repository state. Check available capabilities before declaring work unavailable; never fabricate command output, repository state, browser results, or validation. Preserve the same `AGENTS.md`, architecture, GitHub workflow, documentation, and validation contracts in every environment.
 
@@ -190,6 +195,18 @@ customer-visible behaviour works.
 or open the next issue with the evidence just gathered. Reporting a failure and
 stopping is not done.
 
+**A pull request is a checkpoint, not a handoff destination.** The authorized
+agent that creates or inherits it reads checks and review threads for the exact
+head SHA, fixes evidenced failures, reruns validation, merges when green and
+permitted, deploys the merged SHA, and verifies live. Do not leave a repairable
+PR waiting merely for another user prompt or agent. A valid handoff names the
+exact SHA, blocker, evidence, next action, and completion condition.
+
+**Prompts are requests, not product memory.** Durable context belongs in OKF
+Markdown/frontmatter, `index.yaml`, `map.mmd`, issues, commits, tests, and
+deployment evidence. Update those owners so later agents retrieve targeted
+facts instead of repeatedly consuming context to rediscover the same state.
+
 ## Project Map
 
 `map.mmd` is the single repository root map artifact for this repo. Do not add parallel map files or map generators.
@@ -215,6 +232,11 @@ bapX map --root demo --check --profile demo-project
 ```
 
 Map validation alone is incomplete. For every affected map path, verify the source route/page, package command, generated output, rendered UI, docs navigation, and shared surface that actually implement the behavior.
+
+Treat each map path as a testable relationship: capability owner, implementing
+source, exposed route, describing docs, serving deployment unit, and live proof.
+An absent, stale, or contradicted edge is a missing puzzle piece to resolve or
+track with evidence, never a reason to add a decorative node.
 
 ## Development
 

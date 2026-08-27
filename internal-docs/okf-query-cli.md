@@ -43,3 +43,5 @@ The initial parser intentionally supports the small OKF field set needed for ret
 - Support incremental updates using content hashes and changed paths.
 - Bind hosted execution to a per-account/business/project sandbox registry.
 - Promote the same query layer into Admin before exposing it to Agents.
+
+Until relation indexing lands, agents combine semantic Markdown retrieval with an explicit `map.mmd` traversal. Query results identify likely evidence; the map identifies structural ownership and entry points; source, tests, deployment state, and live checks determine whether each edge is real. Neither retrieval rank nor a generated node is implementation proof.
