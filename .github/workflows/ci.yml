@@ -37,6 +37,11 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
+      # Pin npm to the version the lockfile was written with. Node 24 ships a
+      # different npm whose optional-dependency resolution disagrees with this
+      # lockfile, and `npm ci` then fails with "Missing: @emnapi/* from lock
+      # file". admin-project-import.yml already pins for the same reason.
+      - run: npm install --global npm@11.6.2
       # `npm ci` installs the lockfile exactly. `npm install` re-resolves and has
       # twice broken this build — removing the nested cookie@2.0.1 Astro needs,
       # and duplicating shiki under @streamdown/code.
@@ -65,6 +70,11 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
+      # Pin npm to the version the lockfile was written with. Node 24 ships a
+      # different npm whose optional-dependency resolution disagrees with this
+      # lockfile, and `npm ci` then fails with "Missing: @emnapi/* from lock
+      # file". admin-project-import.yml already pins for the same reason.
+      - run: npm install --global npm@11.6.2
       - run: npm ci --no-audit --no-fund
       - run: node --test apps/agents-runtime/test/*.test.mjs
 
@@ -77,6 +87,11 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
+      # Pin npm to the version the lockfile was written with. Node 24 ships a
+      # different npm whose optional-dependency resolution disagrees with this
+      # lockfile, and `npm ci` then fails with "Missing: @emnapi/* from lock
+      # file". admin-project-import.yml already pins for the same reason.
+      - run: npm install --global npm@11.6.2
       - run: npm ci --no-audit --no-fund
       # map.mmd was six days stale before anyone checked. Generated artefacts
       # that nothing verifies are worse than none: they are read as current.
@@ -100,6 +115,11 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
+      # Pin npm to the version the lockfile was written with. Node 24 ships a
+      # different npm whose optional-dependency resolution disagrees with this
+      # lockfile, and `npm ci` then fails with "Missing: @emnapi/* from lock
+      # file". admin-project-import.yml already pins for the same reason.
+      - run: npm install --global npm@11.6.2
       - run: npm ci --no-audit --no-fund
       - run: node --test packages/cli/test/*.test.mjs
 
@@ -112,6 +132,11 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
+      # Pin npm to the version the lockfile was written with. Node 24 ships a
+      # different npm whose optional-dependency resolution disagrees with this
+      # lockfile, and `npm ci` then fails with "Missing: @emnapi/* from lock
+      # file". admin-project-import.yml already pins for the same reason.
+      - run: npm install --global npm@11.6.2
       - run: npm ci --no-audit --no-fund
       # This product stores customer provider keys and connector credentials.
       # Running nothing was not a defensible position.
