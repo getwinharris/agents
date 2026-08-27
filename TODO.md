@@ -12,7 +12,7 @@ Every active item starts with an OKF query and a `map.mmd` traversal from custom
 ## Stage 0 — Repository and delivery controls
 
 - [x] Define the public/internal documentation split and shipping contract.
-- [ ] Complete [Issue #157](https://github.com/getwinharris/agents/issues/157): enforce OKF-first retrieval, semantic map traversal, missing-puzzle evidence, and PR-to-live continuation.
+- [x] Complete [Issue #157](https://github.com/getwinharris/agents/issues/157): enforce OKF-first retrieval, semantic map traversal, missing-puzzle evidence, and PR-to-live continuation.
 - [x] Restore the customer-facing Ecosystem directory and raw Markdown routes.
 - [x] Establish account sessions, first user workspace, and first organization creation.
 - [x] Adapt the canonical demo conversation into the Admin application.
