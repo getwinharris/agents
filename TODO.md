@@ -7,9 +7,12 @@ description: "This file tracks product orchestration in dependency order. A chec
 
 This file tracks product orchestration in dependency order. A checked item means the behavior is implemented, tested, documented, reviewed, deployed to its stated surface, and browser-validated when user-visible. Planning or static navigation does not count as shipped.
 
+Every active item starts with an OKF query and a `map.mmd` traversal from customer outcome to owner, source, route, docs, deployment unit, and live check. Record the first missing or contradicted edge in its owning issue, resolve it, then repeat the query/traversal after verification. Do not create parallel TODO files, repeat indexed research, or leave a passing PR waiting for another prompt.
+
 ## Stage 0 — Repository and delivery controls
 
 - [x] Define the public/internal documentation split and shipping contract.
+- [ ] Complete [Issue #157](https://github.com/getwinharris/agents/issues/157): enforce OKF-first retrieval, semantic map traversal, missing-puzzle evidence, and PR-to-live continuation.
 - [x] Restore the customer-facing Ecosystem directory and raw Markdown routes.
 - [x] Establish account sessions, first user workspace, and first organization creation.
 - [x] Adapt the canonical demo conversation into the Admin application.

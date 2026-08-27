@@ -13,6 +13,8 @@ The existing pi-based runtime is the agent harness. OpenAI, Codex, Claude, and o
 
 The framework, runtime, demo conversation, filesystem workspace, GitHub channel, maps, OpenTelemetry adapter, Admin, Agents, Platform, and documentation surfaces already exist. Product work must orchestrate these owners into one reliable system rather than build a parallel framework.
 
+Agents work from durable product knowledge rather than an ever-growing prompt. Every meaningful task queries the applicable OKF corpus, traverses `map.mmd` from the customer outcome to source and deployment, and resolves the highest-leverage missing connection. Issues and pull requests preserve progress; the outcome is implemented, reviewed, merged, deployed from the merged SHA, and verified on the real surface.
+
 ## Current shipping deadline
 
 **Deadline: July 21, 2026 at 11:59 PM Asia/Kolkata.**
@@ -150,15 +152,16 @@ The product should be understandable and extensible in public.
 
 Every capability follows this path:
 
-1. Verify repository state, relevant issues, pull requests, official sources, and existing owners.
-2. Record an approved discussion or issue before implementation.
+1. Query the applicable OKF root, read its indexes, and verify repository, issue, PR, official-source, and live state.
+2. Traverse `map.mmd` from customer outcome through owner, source, route, docs, deployment, and live proof; record the first missing or contradicted edge in the owning issue.
 3. Write observable contract tests before implementation when the behavior is durable.
 4. Enforce authorization, isolation, idempotency, structured errors, and secret handling at the shared service boundary.
 5. Validate the real Admin workflow in a browser and inspect telemetry.
-6. Review code, docs, maps, dependencies, and security implications.
-7. Merge and deploy to Admin.
-8. Promote the same reviewed implementation to Agents only when the promotion gate passes.
-9. Record exactly what shipped and what remains planned.
+6. Review code, docs, map relationships, dependencies, security implications, and adjacent disconnected behavior.
+7. Merge and immediately deploy the exact merged SHA to its stated surface.
+8. Verify live, fixing failures in the same loop or recording a distinct evidenced gap.
+9. Promote the same reviewed implementation to Agents only when the promotion gate passes.
+10. Record what shipped and what remains planned in durable repository evidence so the next agent does not need the original prompt.
 
 ## Current delivery decision
 

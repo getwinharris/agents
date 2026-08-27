@@ -9,7 +9,15 @@ Documentation updates happen with the code that changes behavior. They are requi
 
 ## 1. Inspect and classify
 
-Read the active `AGENTS.md`, `map.mmd`, and affected source before editing. After implementation, compare the complete code diff against each class:
+Read the active `AGENTS.md`, then query the authorized knowledge root before editing:
+
+```bash
+bapX okf query --root <authorized-root> "<customer outcome and component terms>"
+```
+
+Read the returned evidence, nearest `index.yaml`, `OBJECTIVE.md`, `TODO.md`, and `map.mmd`. Trace outcome → owner → source → route/API → docs → deployment → live check, and record the first missing or contradicted edge in the owning issue. The prompt supplies intent; repository and live evidence supply product truth.
+
+After implementation, compare the complete code diff against each class:
 
 | Change class | Required owner |
 | --- | --- |
@@ -59,6 +67,15 @@ Internal docs changed: <paths or not applicable + reason>
 Maps/demo docs changed: <paths or not applicable + reason>
 Changelog/blog changed: <paths or not applicable + reason>
 Validation: <commands and rendered routes>
+OKF query: <root, terms, and evidence paths>
+Map path: <outcome -> owner -> source -> route -> deployment -> live check>
+Missing connection resolved: <edge and proof>
 ```
 
 A passing code test does not waive documentation. A passing docs build does not prove server behavior. Shipping is blocked when an applicable documentation owner is stale.
+
+## 5. Continue through production
+
+A PR is durable review state, not the end of an agent task. The authorized agent handling it reads checks and review threads for the exact SHA, fixes supported failures, reruns validation, merges when permitted, deploys the merged SHA immediately, and performs live browser/API checks without waiting for another prompt.
+
+If authority, credentials, or an external dependency requires a handoff, record the exact SHA, evidence, blocker, next action, and completion condition. On resumption, query OKF and inspect that durable state instead of replaying the original prompt. After live verification, repeat the query and map traversal to find stale documentation, disconnected functions, or the next evidenced gap.
