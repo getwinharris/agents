@@ -93,6 +93,11 @@ jobs:
       # file". admin-project-import.yml already pins for the same reason.
       - run: npm install --global npm@11.6.2
       - run: npm ci --no-audit --no-fund
+      # bapX runs from packages/cli/dist, which is gitignored, so a clean
+      # checkout has no CLI at all. Without this the drift lane dies with
+      # ERR_MODULE_NOT_FOUND rather than reporting drift.
+      - name: Build the CLI that the drift checks run through
+        run: npm run build --workspace @bapX/cli
       # map.mmd was six days stale before anyone checked. Generated artefacts
       # that nothing verifies are worse than none: they are read as current.
       - name: map.mmd is current
