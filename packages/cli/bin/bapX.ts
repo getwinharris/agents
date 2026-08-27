@@ -106,7 +106,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  bapX add   [<kind> <name|url>] [--print]\n' +
 			'  bapX update <kind> <name|url> [--print]\n' +
 			'  bapX docs  [read <path> | search <query>]\n' +
-			'  bapX okf   [index|query] --root <path> [query]\n' +
+			'  bapX okf   [index|query|normalize] --root <path> [query] [--write]\n' +
 			'  bapX browse [verify <url> | -- <agent-browser args...>] [--root <path>] [--session <name>] [--namespace <name>]\n' +
 			'  bapX map   [--root <path>] [--check] [--profile <user-workspace|business-workspace|user-project|demo-project>]\n' +
 			'\n' +
@@ -118,7 +118,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  add    Fetch a blueprint implementation guide for an AI coding agent to follow.\n' +
 			'  update Fetch an updated blueprint implementation guide for an AI coding agent to follow.\n' +
 			'  docs   Browse the Bapx docs. No args lists pages; `read` prints a page as markdown; `search` prints JSON results.\n' +
-			'  okf    Index or query OKF Markdown knowledge inside one authorized workspace root.\n' +
+			'  okf    Index, query, or normalize OKF Markdown knowledge inside one authorized workspace root.\n' +
 			'  browse Run the pinned agent-browser CLI through a bapX-scoped isolated browser session.\n' +
 			'  map    Generate or validate the project root map.mmd from the real directory layout.\n' +
 			'\n' +
@@ -158,6 +158,7 @@ function printUsage(log: (message: string) => void = console.error) {
 			'  bapX docs search "durable execution"\n' +
 			'  bapX okf index --root ./my-business\n' +
 			'  bapX okf query --root ./my-business "billing connector"\n' +
+			'  bapX okf normalize --root . --write\n' +
 			'  bapX browse verify https://bapx.in/\n' +
 			'  bapX browse --session admin-smoke -- open https://admin.bapx.in/\n' +
 			'  bapX browse -- snapshot -i\n' +
@@ -238,11 +239,13 @@ interface DocsArgs {
 
 interface OkfArgs {
 	command: 'okf';
-	action: 'index' | 'query';
+	action: 'index' | 'query' | 'normalize';
 	/** Explicit --root value, or undefined to default to cwd. Absolute when set. */
 	explicitRoot: string | undefined;
 	/** Optional index output path for `index`. Must remain inside --root. */
 	explicitOutput: string | undefined;
+	/** `normalize` only: write changes instead of reporting them. */
+	write: boolean;
 	query: string;
 }
 
@@ -536,11 +539,11 @@ function parseDocsArgs(rest: string[]): DocsArgs {
 
 function parseOkfArgs(rest: string[]): OkfArgs {
 	const [action, ...tail] = rest;
-	if (action !== 'index' && action !== 'query') {
+	if (action !== 'index' && action !== 'query' && action !== 'normalize') {
 		const label = action === undefined ? 'Missing' : `Unknown`;
 		const detail = action === undefined ? 'OKF action' : `\`bapX okf\` action: ${action}`;
 		console.error(
-			`${label} ${detail}.\n\nUsage:\n  bapX okf index --root <path> [--output <path>]\n  bapX okf query --root <path> <query>`,
+			`${label} ${detail}.\n\nUsage:\n  bapX okf index --root <path> [--output <path>]\n  bapX okf query --root <path> <query>\n  bapX okf normalize --root <path> [--write]`,
 		);
 		process.exit(1);
 	}
@@ -551,9 +554,10 @@ function parseOkfArgs(rest: string[]): OkfArgs {
 		{
 			root: { type: 'string' },
 			output: { type: 'string' },
+			write: { type: 'boolean' },
 		},
-		new Set(action === 'index' ? ['--root', '--output'] : ['--root']),
-		new Set(['--root', '--output']),
+		new Set(action === 'index' ? ['--root', '--output'] : action === 'normalize' ? ['--root', '--write'] : ['--root']),
+		new Set(['--root', '--output', '--write']),
 	);
 	if (values.root === undefined) fail('Missing value for --root', true);
 
@@ -566,6 +570,21 @@ function parseOkfArgs(rest: string[]): OkfArgs {
 			action,
 			explicitRoot: pathFlag(values, 'root', 'Missing value for --root'),
 			explicitOutput: pathFlag(values, 'output', 'Missing value for --output'),
+			write: false,
+			query: '',
+		};
+	}
+
+	if (action === 'normalize') {
+		for (const positional of positionals) {
+			fail(`Unexpected argument for \`bapX okf normalize\`: ${positional}`, true);
+		}
+		return {
+			command: 'okf',
+			action,
+			explicitRoot: pathFlag(values, 'root', 'Missing value for --root'),
+			explicitOutput: undefined,
+			write: values.write === true,
 			query: '',
 		};
 	}
@@ -580,6 +599,7 @@ function parseOkfArgs(rest: string[]): OkfArgs {
 		action,
 		explicitRoot: pathFlag(values, 'root', 'Missing value for --root'),
 		explicitOutput: undefined,
+		write: false,
 		query,
 	};
 }
@@ -1980,11 +2000,160 @@ function queryOkfIndex(root: string, concepts: OkfConcept[], query: string): voi
 	process.stdout.write(`${JSON.stringify({ schema: 'bapx.okf.query.v1', root, query, results }, null, 2)}\n`);
 }
 
+// Bring tracked Markdown into OKF shape and write folder indexes.
+//
+// OKF §4.1 requires `type` in the frontmatter of every concept document, and §6
+// defines index.yaml as the folder-level entry point. `index` reports what
+// exists and `query` reads it; neither writes the tree into shape. This does.
+//
+// Lives here rather than in a standalone script because `okf` is already a CLI
+// command, and AGENTS.md requires new automation to extend the owning surface.
+const OKF_SKIP = /^(node_modules|dist|\.git|examples|resource-git-for-extract)(\/|$)/;
+
+function okfTrackedMarkdown(root: string): string[] {
+	const listed = spawnSync('git', ['ls-files', '*.md'], { cwd: root, encoding: 'utf8' });
+	if (listed.status !== 0) fail('[bapX] okf normalize requires a git repository at --root');
+	return String(listed.stdout).split('\n').filter((file) => file && !OKF_SKIP.test(file));
+}
+
+function okfScalar(value: unknown): string {
+	const clean = String(value ?? '').replace(/\s+/g, ' ').trim();
+	return `"${clean.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
+function okfDeriveTitle(text: string, file: string): string {
+	const heading = /^#\s+(.+?)\s*$/m.exec(text);
+	if (heading) return heading[1].replace(/[`*_]/g, '').trim();
+	const base = path.basename(file, '.md');
+	if (base === 'README') return `${path.basename(path.dirname(file)) || 'Repository'} README`;
+	return base.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+// First real prose line after the H1 — not a badge, link-only line, or fence.
+function okfDeriveDescription(text: string): string {
+	let seenHeading = false;
+	for (const raw of text.split('\n')) {
+		const line = raw.trim();
+		if (!line) continue;
+		if (line.startsWith('#')) { seenHeading = true; continue; }
+		if (!seenHeading) continue;
+		if (/^[[!<|>-]/.test(line) || line.startsWith('```')) continue;
+		const clean = line.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[`*_]/g, '').trim();
+		if (clean.length < 12) continue;
+		return clean.length > 180 ? `${clean.slice(0, 177)}…` : clean;
+	}
+	return '';
+}
+
+// Producer-defined per OKF §4.1. Derived from location so the value
+// discriminates in a query rather than being a constant.
+function okfDeriveType(file: string): string {
+	const p = file.toLowerCase();
+	if (!file.includes('/')) {
+		if (/^(agents|claude|contributing)\.md$/.test(p)) return 'Contract';
+		if (/^(objective|todo)\.md$/.test(p)) return 'Plan';
+		if (p === 'changelog.md') return 'Changelog';
+	}
+	if (p.startsWith('blueprints/')) return 'Blueprint';
+	if (p.startsWith('internal-docs/')) return 'Internal Doc';
+	if (p.startsWith('plans/')) return 'Plan';
+	if (p.includes('/content/docs/')) return 'Public Doc';
+	if (p.startsWith('packages/') || p.startsWith('apps/')) return 'Package Doc';
+	if (p.startsWith('.github/') || p.startsWith('.agents/')) return 'Repository Process';
+	if (path.basename(file) === 'README.md') return 'Readme';
+	return 'Document';
+}
+
+function okfFrontmatterFields(absolute: string): Record<string, string> {
+	const text = fs.readFileSync(absolute, 'utf8');
+	if (!text.startsWith('---\n')) return {};
+	const end = text.indexOf('\n---', 4);
+	if (end === -1) return {};
+	const fields: Record<string, string> = {};
+	for (const line of text.slice(4, end).split('\n')) {
+		const match = /^(\w+):\s*(.*)$/.exec(line);
+		if (match) fields[match[1]] = match[2].replace(/^"(.*)"$/, '$1').replace(/\\"/g, '"');
+	}
+	return fields;
+}
+
+function normalizeOkfTree(root: string, write: boolean): void {
+	const files = okfTrackedMarkdown(root);
+	const missing: string[] = [];
+
+	for (const file of files) {
+		const absolute = path.join(root, file);
+		const text = fs.readFileSync(absolute, 'utf8');
+		// A JSON frontmatter block (blueprints) already opens with the delimiter and
+		// must never be rewritten.
+		if (text.startsWith('---\n') || text.startsWith('---\r\n')) continue;
+		missing.push(file);
+		if (!write) continue;
+		const description = okfDeriveDescription(text);
+		const block = [
+			'---',
+			`type: ${okfScalar(okfDeriveType(file))}`,
+			`title: ${okfScalar(okfDeriveTitle(text, file))}`,
+			...(description ? [`description: ${okfScalar(description)}`] : []),
+			'---',
+			'',
+		].join('\n');
+		fs.writeFileSync(absolute, block + text);
+	}
+
+	const byFolder = new Map<string, string[]>();
+	for (const file of okfTrackedMarkdown(root)) {
+		const folder = path.dirname(file);
+		if (!byFolder.has(folder)) byFolder.set(folder, []);
+		(byFolder.get(folder) as string[]).push(file);
+	}
+
+	const folders = [...byFolder.keys()].sort();
+	for (const folder of folders) {
+		const entries = (byFolder.get(folder) as string[]).sort();
+		const children = entries.map((file) => {
+			const fields = okfFrontmatterFields(path.join(root, file));
+			return { path: path.basename(file), title: fields.title || path.basename(file), description: fields.description || '' };
+		});
+		const subdirectories = folders
+			.filter((other) => other !== folder && path.dirname(other) === folder)
+			.map((other) => ({ path: `${path.basename(other)}/`, title: path.basename(other), description: '' }));
+		const name = folder === '.' ? 'Repository root' : folder;
+		const lines = [
+			`title: ${okfScalar(name)}`,
+			`description: ${okfScalar(`OKF folder index for ${name}.`)}`,
+			'type: folder-index',
+			'children:',
+			...[...children, ...subdirectories].flatMap((child) => [
+				`  - path: ${okfScalar(child.path)}`,
+				`    title: ${okfScalar(child.title)}`,
+				...(child.description ? [`    description: ${okfScalar(child.description)}`] : []),
+			]),
+			'',
+		];
+		if (write) fs.writeFileSync(path.join(root, folder, 'index.yaml'), lines.join('\n'));
+	}
+
+	const unindexed = folders.filter((folder) => !fs.existsSync(path.join(root, folder, 'index.yaml')));
+	if (write) {
+		console.log(`done okf normalize: frontmatter added to ${missing.length} file(s), ${folders.length} index.yaml written`);
+		return;
+	}
+	console.log(`okf: ${files.length} tracked markdown file(s); ${missing.length} without frontmatter; ${unindexed.length} folder(s) missing index.yaml`);
+	for (const file of missing.slice(0, 20)) console.log(`  missing frontmatter: ${file}`);
+	if (missing.length > 20) console.log(`  … and ${missing.length - 20} more`);
+	if (missing.length || unindexed.length) process.exit(1);
+}
+
 function okfCommand(args: OkfArgs): void {
 	const root = resolveOkfRoot(args.explicitRoot);
 	const concepts = loadOkfConcepts(root);
 	if (args.action === 'index') {
 		writeOkfIndex(args, root, concepts);
+		return;
+	}
+	if (args.action === 'normalize') {
+		normalizeOkfTree(root, args.write);
 		return;
 	}
 	queryOkfIndex(root, concepts, args.query);

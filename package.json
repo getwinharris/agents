@@ -28,8 +28,8 @@
 		"format": "turbo run format:lint format:style",
 		"format:lint": "biome check . --write",
 		"format:style": "prettier . --cache --write --list-different",
-		"okf:check": "node scripts/okf-normalize.mjs",
-		"okf:write": "node scripts/okf-normalize.mjs --write"
+		"okf:check": "bapX okf normalize --root .",
+		"okf:write": "bapX okf normalize --root . --write"
 	},
 	"devDependencies": {
 		"@bapX/runtime": "*",
