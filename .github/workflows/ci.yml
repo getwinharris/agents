@@ -1,0 +1,138 @@
+name: CI
+
+# The gate on main.
+#
+# Before this existed the repository had exactly one test check — a
+# path-filtered `pull_request` job — and nothing at all on push to main. Commits
+# reached main and were deployed on the strength of someone remembering to run
+# the suites by hand. That failed: a build produced an empty dist, it was
+# snapshotted and deployed, and bapx.in served 404s until a human noticed.
+#
+# Modelled on the pattern used by hermes-agent, multica and suna, all of which
+# gate `branches: [main]`. `all-checks-pass` aggregates the lanes so branch
+# protection only has to require one check.
+#
+# SECURITY: this runs PR-authored code. Do not add `secrets: inherit`, tokens,
+# or deploy steps here.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NODE_VERSION: '24'
+
+jobs:
+  www:
+    name: apps/www tests and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      # `npm ci` installs the lockfile exactly. `npm install` re-resolves and has
+      # twice broken this build — removing the nested cookie@2.0.1 Astro needs,
+      # and duplicating shiki under @streamdown/code.
+      - run: npm ci --no-audit --no-fund
+      - name: Server and platform contracts
+        run: npm run test:server --workspace apps-www
+      # The build is a gate, not a formality: an empty dist is what reached
+      # production. Astro, docs validation and the admin bundle all run here.
+      - name: Build
+        run: npm run build --workspace apps-www
+      # A build that "succeeds" while emitting nothing must still fail.
+      - name: Assert the build produced real output
+        run: |
+          pages=$(find apps/www/dist -name '*.html' | wc -l)
+          admin=$(du -sm apps/www/dist/admin | cut -f1)
+          echo "pages=$pages adminMB=$admin"
+          test "$pages" -gt 100 || { echo "::error::only $pages pages built"; exit 1; }
+          test "$admin" -gt 10 || { echo "::error::admin bundle is ${admin}MB"; exit 1; }
+
+  runtime:
+    name: agents-runtime tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci --no-audit --no-fund
+      - run: node --test apps/agents-runtime/test/*.test.mjs
+
+  drift:
+    name: Map and OKF freshness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci --no-audit --no-fund
+      # map.mmd was six days stale before anyone checked. Generated artefacts
+      # that nothing verifies are worse than none: they are read as current.
+      - name: map.mmd is current
+        run: node_modules/.bin/bapX map --check --root .
+      - name: Every tracked Markdown file is OKF-shaped
+        run: npm run okf:check
+
+  cli:
+    name: packages/cli tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # NOT blocking yet, and this is deliberate rather than lax. Three suites
+    # (config, dev, docs) are currently failing on main and predate this
+    # workflow. Making them blocking on day one would paint main red and teach
+    # everyone to ignore the gate. Tracked in #154 — remove this line when it
+    # closes, and never extend it to another lane.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci --no-audit --no-fund
+      - run: node --test packages/cli/test/*.test.mjs
+
+  audit:
+    name: Dependency vulnerabilities
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci --no-audit --no-fund
+      # This product stores customer provider keys and connector credentials.
+      # Running nothing was not a defensible position.
+      - name: npm audit (high and critical)
+        run: npm audit --audit-level=high
+
+  all-checks-pass:
+    name: All checks pass
+    runs-on: ubuntu-latest
+    needs: [www, runtime, drift, audit]
+    if: always()
+    steps:
+      # `needs` success is not enough on its own: a skipped or cancelled job
+      # would otherwise let the gate report green.
+      - name: Verify every required lane succeeded
+        run: |
+          results='${{ join(needs.*.result, " ") }}'
+          echo "lane results: $results"
+          for result in $results; do
+            test "$result" = "success" || { echo "::error::a required lane reported $result"; exit 1; }
+          done
