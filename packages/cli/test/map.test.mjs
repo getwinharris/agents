@@ -63,3 +63,54 @@ test('map profile validation rejects legacy index.md without index.yaml for user
 	assert.match(checked.stderr, /index\.yaml/);
 	assert.match(checked.stderr, /docs\/index\.yaml/);
 });
+
+// The map is committed, so it must be reproducible from a clean checkout. A raw
+// directory walk is not: an untracked scratch directory under a mapped parent
+// lands in the committed map, and `--check` then fails in CI while passing on
+// the machine that generated it.
+test('map ignores untracked directories so the committed map matches a clean checkout', (t) => {
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-map-untracked-'));
+	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+
+	const git = (...args) => spawnSync('git', args, { cwd: root, encoding: 'utf8' });
+	git('init', '--quiet');
+	git('config', 'user.email', 'test@example.test');
+	git('config', 'user.name', 'test');
+
+	fs.mkdirSync(path.join(root, 'packages/kept'), { recursive: true });
+	fs.writeFileSync(path.join(root, 'packages/kept/index.ts'), 'export {}\n');
+	git('add', '-A');
+	git('commit', '--quiet', '-m', 'tracked');
+
+	const tracked = spawnSync(process.execPath, [cli, 'map', '--root', root], { encoding: 'utf8' });
+	assert.equal(tracked.status, 0, tracked.stderr);
+	const before = fs.readFileSync(path.join(root, 'map.mmd'), 'utf8');
+	assert.match(before, /packages\/kept/, 'a tracked directory belongs in the map');
+
+	// A scratch directory a developer happens to have locally, committed nowhere.
+	fs.mkdirSync(path.join(root, 'packages/scratch'), { recursive: true });
+	fs.writeFileSync(path.join(root, 'packages/scratch/notes.ts'), 'export {}\n');
+
+	const regenerated = spawnSync(process.execPath, [cli, 'map', '--root', root], { encoding: 'utf8' });
+	assert.equal(regenerated.status, 0, regenerated.stderr);
+	assert.equal(fs.readFileSync(path.join(root, 'map.mmd'), 'utf8'), before, 'untracked directories must not change the map');
+	assert.doesNotMatch(fs.readFileSync(path.join(root, 'map.mmd'), 'utf8'), /packages\/scratch/);
+
+	// And the check must agree, which is what CI actually runs.
+	const checked = spawnSync(process.execPath, [cli, 'map', '--root', root, '--check'], { encoding: 'utf8' });
+	assert.equal(checked.status, 0, checked.stderr);
+});
+
+// A non-git root still maps, so the tracked-file lookup degrades rather than
+// mapping nothing.
+test('map still works outside a git repository', (t) => {
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-map-nogit-'));
+	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+
+	fs.mkdirSync(path.join(root, 'packages/thing'), { recursive: true });
+	fs.writeFileSync(path.join(root, 'packages/thing/index.ts'), 'export {}\n');
+
+	const generated = spawnSync(process.execPath, [cli, 'map', '--root', root], { encoding: 'utf8' });
+	assert.equal(generated.status, 0, generated.stderr);
+	assert.match(fs.readFileSync(path.join(root, 'map.mmd'), 'utf8'), /packages\/thing/);
+});

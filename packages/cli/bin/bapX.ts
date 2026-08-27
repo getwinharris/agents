@@ -918,10 +918,48 @@ function isDirectory(absPath: string): boolean {
 	}
 }
 
+// Directories git tracks, relative to the root. Cached because the map walk asks
+// per directory and the answer cannot change within one invocation.
+//
+// The map is committed, so it must be reproducible from a clean checkout. A raw
+// directory walk is not: any untracked scratch directory under a mapped parent
+// ends up in the committed map, and `bapX map --check` then fails in CI while
+// passing on the machine that generated it. A `packages/dev-console` with zero
+// tracked files did exactly that.
+let trackedMapDirs: Set<string> | null | undefined;
+
+function trackedDirectories(root: string): Set<string> | null {
+	if (trackedMapDirs !== undefined) return trackedMapDirs;
+	const listed = spawnSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'buffer' });
+	if (listed.status !== 0 || !listed.stdout) {
+		// Not a git repository — fall back to the directory walk rather than
+		// mapping nothing.
+		trackedMapDirs = null;
+		return trackedMapDirs;
+	}
+	const directories = new Set<string>();
+	for (const file of String(listed.stdout).split('\0')) {
+		if (!file) continue;
+		let parent = path.dirname(file);
+		while (parent && parent !== '.') {
+			directories.add(parent);
+			parent = path.dirname(parent);
+		}
+	}
+	trackedMapDirs = directories;
+	return trackedMapDirs;
+}
+
 function listMapChildDirs(root: string, relPath: string): string[] {
+	const tracked = trackedDirectories(root);
 	return fs
 		.readdirSync(path.join(root, relPath), { withFileTypes: true })
 		.filter((entry) => entry.isDirectory() && !MAP_SKIPPED_DIRECTORIES.has(entry.name))
+		.filter((entry) => {
+			if (!tracked) return true;
+			const child = relPath === '.' || relPath === '' ? entry.name : `${relPath}/${entry.name}`;
+			return tracked.has(child);
+		})
 		.map((entry) => entry.name)
 		.sort((a, b) => a.localeCompare(b));
 }
