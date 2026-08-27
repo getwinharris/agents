@@ -5,6 +5,8 @@ description: "This pre-1.0 release reworks how an agent's conversation is durabl
 ---
 # Changelog
 
+- `bapX browse` now defaults to the bapXai AgentBrowser/`ego-browser` task-space contract, uses the open Linux Chrome/Chromium host with owner-only scoped profiles, and retains the pinned Vercel `agent-browser` only as an explicit `--engine vercel` fallback.
+
 ## Unreleased
 
 ### Authentication
