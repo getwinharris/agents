@@ -28,8 +28,9 @@
 		"format": "turbo run format:lint format:style",
 		"format:lint": "biome check . --write",
 		"format:style": "prettier . --cache --write --list-different",
-		"okf:check": "bapX okf normalize --root .",
-		"okf:write": "bapX okf normalize --root . --write"
+		"okf:check": "npm run build:cli --silent && bapX okf normalize --root . --check",
+		"okf:write": "npm run build:cli --silent && bapX okf normalize --root . --write",
+		"build:cli": "npm run build --workspace @bapX/runtime --workspace @bapX/sdk --workspace @bapX/react --workspace @bapX/cli"
 	},
 	"devDependencies": {
 		"@bapX/runtime": "*",
