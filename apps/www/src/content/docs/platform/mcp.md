@@ -9,10 +9,22 @@ and that agent can list and call the models your business has connected.
 
 ## Connect
 
-Issue a key from **Connectors → API access** on
-[platform.bapx.in](https://platform.bapx.in/). The same key that authorises
-`/v1` authorises MCP — it resolves to exactly one business, and an agent using
-it can reach nothing outside that business.
+Issue an **MCP key** from **Connectors → API access** on
+[platform.bapx.in](https://platform.bapx.in/). It resolves to exactly one
+business, and an agent using it can reach nothing outside that business.
+
+MCP keys and Models keys are separate, and a Models key is refused here with
+`403 insufficient_scope`:
+
+| Key | Prefix | Reaches |
+| --- | --- | --- |
+| Models | `bapx_sk_` | `https://api.bapx.in/v1` — OpenAI-compatible inference |
+| MCP | `bapx_mk_` | `https://api.bapx.in/mcp` — this endpoint |
+
+They are split because the blast radius differs. A Models key spends provider
+credit. An MCP key lets an external agent act as your business. Handing an
+application a key so it can call a model should not also let that application
+drive your agents, so issuing one never grants the other.
 
 ```json
 {

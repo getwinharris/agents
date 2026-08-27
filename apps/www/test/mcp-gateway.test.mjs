@@ -51,6 +51,7 @@ describe('MCP endpoint on api.bapx.in', () => {
 	let port;
 	let workspaceRoot;
 	let secret;
+	let modelsSecret;
 	let plane;
 
 	before(async () => {
@@ -58,7 +59,10 @@ describe('MCP endpoint on api.bapx.in', () => {
 		fs.writeFileSync(path.join(workspaceRoot, 'OKF.md'), '# Test OKF\n');
 		const store = createPlatformStore({ workspaceRoot });
 		const { account } = await store.loginWithGitHub({ id: '4001', login: 'mcp-user', name: 'MCP User', email: 'mcp@example.test' });
-		({ secret } = createApiKeyStore({ workspaceRoot }).issue(account.id, 'mcp-test'));
+		const keys = createApiKeyStore({ workspaceRoot });
+		({ secret } = keys.issue(account.id, 'mcp-test', 'mcp'));
+		// A models-scoped key must be refused here — that separation is the point.
+		modelsSecret = keys.issue(account.id, 'models-test', 'models').secret;
 
 		// Stand-in API plane, so the tools are exercised end to end rather than mocked away.
 		const planePort = await availablePort();
@@ -95,6 +99,15 @@ describe('MCP endpoint on api.bapx.in', () => {
 	});
 
 	const auth = () => ({ authorization: `Bearer ${secret}`, 'content-type': 'application/json' });
+
+	it('refuses a models-scoped key with 403, not 401', async () => {
+		const response = await request(port, {
+			headers: { authorization: `Bearer ${modelsSecret}`, 'content-type': 'application/json' },
+			body: rpc('initialize'),
+		});
+		assert.equal(response.status, 403, 'a models key must not reach MCP');
+		assert.equal(response.body.error.type, 'insufficient_scope');
+	});
 
 	it('rejects an unauthenticated call with 401 and a WWW-Authenticate challenge', async () => {
 		const response = await request(port, { headers: { 'content-type': 'application/json' }, body: rpc('initialize') });

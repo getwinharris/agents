@@ -87,3 +87,12 @@ The API plane is for **model calls**. The [MCP gateway](/docs/mcp/overview/) is 
 ## Attribution
 
 The bapX API plane is built on [OmniRoute](https://github.com/diegosouzapw/OmniRoute), an MIT-licensed AI gateway (© 2026 diegosouzapw). bapX operates it as the routing layer beneath the gateway described here; the customer-facing contract on this page is bapX's own and is the supported surface.
+
+## Key scopes
+
+A **Models key** (`bapx_sk_`) is the only kind accepted here. An **MCP key**
+(`bapx_mk_`) is refused with `403 insufficient_scope` — it belongs to
+[MCP access](/platform/mcp/).
+
+Issuing a key for one surface never grants the other. A Models key spends
+provider credit; an MCP key lets an external agent act as your business.

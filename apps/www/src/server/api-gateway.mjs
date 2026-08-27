@@ -9,7 +9,29 @@ import path from 'node:path';
 // request to the internal plane. The plane is single-tenant and has no concept
 // of our users, so tenancy is enforced here or not at all.
 
-const KEY_PREFIX = 'bapx_sk_';
+// Two key kinds, deliberately distinguishable on sight.
+//
+// A key handed to an application so it can call models must NOT also let that
+// application drive the business's agents through MCP. Those are different blast
+// radii: a leaked model key spends provider credit, a leaked MCP key acts as the
+// business. One key type for both meant issuing the first silently granted the
+// second.
+//
+// The prefix encodes the scope so a leaked string is identifiable in a log or a
+// paste without consulting the store.
+export const KEY_KINDS = {
+	models: { prefix: 'bapx_sk_', scope: 'models', label: 'Models' },
+	mcp: { prefix: 'bapx_mk_', scope: 'mcp', label: 'MCP and Platform API' },
+};
+
+// Keys issued before scopes existed were issued for /v1 only — that was the only
+// surface. Treating them as models-only is both backwards compatible and the
+// safe reading: it never widens an existing key.
+const LEGACY_SCOPE = 'models';
+
+function kindForSecret(secret) {
+	return Object.values(KEY_KINDS).find((kind) => secret.startsWith(kind.prefix)) || null;
+}
 const SCHEMA_VERSION = 1;
 
 function readJson(file, fallback) {
@@ -77,16 +99,19 @@ export function createApiKeyStore({ workspaceRoot }) {
 		// The plaintext secret is returned exactly once, here. Only its hash is
 		// persisted, so a leaked collection file cannot be replayed against the
 		// plane.
-		issue(accountId, name) {
-			const cleanName = String(name || '').trim().slice(0, 64) || 'Default key';
-			const secret = `${KEY_PREFIX}${crypto.randomBytes(32).toString('base64url')}`;
+		issue(accountId, name, scope = 'models') {
+			const kind = KEY_KINDS[scope];
+			if (!kind) throw new Error(`Unknown key scope: ${scope}`);
+			const cleanName = String(name || '').trim().slice(0, 64) || `${kind.label} key`;
+			const secret = `${kind.prefix}${crypto.randomBytes(32).toString('base64url')}`;
 			const stored = load();
 			const record = {
 				id: crypto.randomUUID(),
 				accountId,
 				name: cleanName,
 				hash: hashKey(secret),
-				prefix: secret.slice(0, KEY_PREFIX.length + 6),
+				scope: kind.scope,
+				prefix: secret.slice(0, kind.prefix.length + 6),
 				createdAt: new Date().toISOString(),
 				lastUsedAt: null,
 			};
@@ -119,17 +144,24 @@ export function createApiKeyStore({ workspaceRoot }) {
 
 		// Constant-time compare on the hash so a timing signal cannot be used to
 		// recover a valid key byte by byte.
-		verify(secret) {
-			if (!secret || !secret.startsWith(KEY_PREFIX)) return null;
+		// `requiredScope` is mandatory at the call sites: a caller that forgets it
+		// would otherwise accept any key on any surface, which is the bug this
+		// split exists to remove.
+		verify(secret, requiredScope) {
+			if (!secret || !kindForSecret(secret)) return null;
 			const digest = Buffer.from(hashKey(secret), 'hex');
 			const stored = load();
 			for (const record of stored.keys) {
 				const candidate = Buffer.from(String(record.hash || ''), 'hex');
 				if (candidate.length !== digest.length) continue;
 				if (!crypto.timingSafeEqual(candidate, digest)) continue;
+				const scope = record.scope || LEGACY_SCOPE;
+				// Wrong-scope keys must not have their lastUsedAt touched: that would
+				// make a rejected attempt look like legitimate use in the UI.
+				if (requiredScope && scope !== requiredScope) return { scopeMismatch: true, scope, required: requiredScope };
 				record.lastUsedAt = new Date().toISOString();
 				writeJson(keysFile, stored);
-				return { id: record.id, accountId: record.accountId, name: record.name };
+				return { id: record.id, accountId: record.accountId, name: record.name, scope };
 			}
 			return null;
 		},

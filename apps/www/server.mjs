@@ -713,9 +713,16 @@ async function handleMcpEndpoint(req, res) {
 
 	let identity;
 	try {
-		identity = apiKeyStore.verify(bearerToken(req));
+		identity = apiKeyStore.verify(bearerToken(req), 'mcp');
 	} catch {
 		jsonResponse(res, 503, { error: { message: 'API key storage is unavailable', type: 'service_unavailable' } });
+		return;
+	}
+	// A Models key must not reach MCP. Issuing one for an application to call
+	// /v1 would otherwise have silently granted that application the ability to
+	// drive this business's agents.
+	if (identity?.scopeMismatch) {
+		jsonResponse(res, 403, { error: { message: 'This key is scoped to models only. Issue an MCP key on platform.bapx.in to use MCP.', type: 'insufficient_scope' } });
 		return;
 	}
 	if (!identity) {
@@ -780,9 +787,13 @@ async function handleApiGateway(req, res, urlPath) {
 	// may well be valid; we cannot tell.
 	let identity;
 	try {
-		identity = apiKeyStore.verify(bearerToken(req));
+		identity = apiKeyStore.verify(bearerToken(req), 'models');
 	} catch {
 		jsonResponse(res, 503, { error: { message: 'API key storage is unavailable', type: 'service_unavailable' } });
+		return;
+	}
+	if (identity?.scopeMismatch) {
+		jsonResponse(res, 403, { error: { message: 'This key is scoped to MCP and the Platform API. Issue a Models key to call /v1.', type: 'insufficient_scope' } });
 		return;
 	}
 	if (!identity) {
@@ -952,7 +963,8 @@ async function handleApiKeyAdmin(req, res, urlPath, host) {
 			jsonResponse(res, tooLarge ? 413 : 400, { error: tooLarge ? 'payload_too_large' : 'invalid_request' });
 			return true;
 		}
-		const { secret, key } = apiKeyStore.issue(account.id, payload.name);
+		const scope = payload.scope === 'mcp' ? 'mcp' : 'models';
+		const { secret, key } = apiKeyStore.issue(account.id, payload.name, scope);
 		jsonResponse(res, 201, { key, secret });
 		return true;
 	}
