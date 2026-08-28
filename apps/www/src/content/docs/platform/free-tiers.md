@@ -5,7 +5,7 @@ description: Connect your own provider accounts — including their free tiers �
 
 :::caution[Not open to customers yet]
 This page describes the intended capacity model. The customer gateway at
-`api.bapx.in` is **not open**, and runtime resolution of a connected provider's
+`api.bapx.in` is served and key-gated, but runtime resolution of a connected provider's
 credential is unfinished — see [Platform API](/docs/platform/api/). Connecting a
 credential today stores it; it does not yet make a model callable through the
 gateway. Do not configure production secrets against this workflow until the
@@ -32,7 +32,7 @@ The practical consequence: **your capacity is the sum of the free tiers you conn
 
 The credential is encrypted before storage and never shown again — not in the UI, not to an agent, not in an error message. You can replace it at any time by connecting again, or remove it with **Disconnect**, which takes effect immediately.
 
-Once the gateway ships, `GET /v1/models` will return exactly the models reachable through what you have connected, and a model missing from that list will not be callable. Until then the endpoint is not open — see the notice above.
+Once per-business routing ships, `GET /v1/models` will return exactly the models reachable through what you have connected, and a model missing from that list will not be callable. Today it returns the plane's whole catalogue — see the notice above.
 
 ## Choosing providers
 

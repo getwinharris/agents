@@ -3,7 +3,7 @@ title: MCP Gateway
 description: Planned customer gateway and the current application-owned Model Context Protocol boundary.
 ---
 
-The planned bapX MCP gateway is intended to provide authenticated access to approved agents, tools, resources, prompts, and workspace context through the open Model Context Protocol. `api.bapx.in/mcp` is not served today and returns HTTP 404.
+The planned bapX MCP gateway is intended to provide authenticated access to approved agents, tools, resources, prompts, and workspace context through the open Model Context Protocol. `api.bapx.in/mcp` is served and key-gated. See [MCP access](/docs/platform/mcp/) for the shipped tool surface and its current limits.
 
 MCP is the standard bridge that lets AI applications connect to external systems as tools and context instead of copying private data into prompts. The planned bapX shared gateway would use that model so approved clients can manage a business workspace only through scoped, auditable capabilities. Application-owned MCP servers can apply the same boundary today without implying that the shared gateway is live.
 

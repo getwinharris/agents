@@ -16,7 +16,7 @@ bapX uses one tracked web source for public surfaces and one OKF workspace model
 | `platform.bapx.in` | `apps/www/src/pages/platform/` plus platform server APIs    | GitHub-backed account/session entry and control-plane information architecture; most management controls remain planned                                           |
 | `admin.bapx.in`    | `apps/www/admin/` plus shared workspace APIs                | bapX-wide business operating surface                                                                                                                              |
 | `agents.bapx.in`   | shared Admin/Agents operating model                         | Customer business operating surface                                                                                                                               |
-| `api.bapx.in`      | planned runtime/API/MCP gateway code                        | Not served; planned programmatic API and MCP gateway whose current public routes return 404                                                                       |
+| `api.bapx.in`      | planned runtime/API/MCP gateway code                        | Served and key-gated programmatic API and MCP gateway; per-business credential routing pending                                                                       |
 
 ## Repository areas
 

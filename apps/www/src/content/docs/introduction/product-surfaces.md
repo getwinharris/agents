@@ -19,7 +19,7 @@ bapX separates account configuration, day-to-day agent work, enterprise delivery
 
 ## Planned public gateway
 
-`api.bapx.in` and `api.bapx.in/mcp` are not served customer endpoints today and return HTTP 404. The API/MCP gateway remains planned until its tenant isolation, authentication, policy, quota, connector, observability, and browser-validated management contracts are implemented and deployed.
+`api.bapx.in` and `api.bapx.in/mcp` are served and key-gated: an unknown key returns `401`. Per-business provider credential routing is not yet wired, so calls run on operator-run capacity. The API/MCP gateway remains planned until its tenant isolation, authentication, policy, quota, connector, observability, and browser-validated management contracts are implemented and deployed.
 
 The framework API pages under the **Developers** section document the APIs exposed by a Bapx application that you build and deploy. They do not mean that the planned shared `api.bapx.in` gateway is live.
 

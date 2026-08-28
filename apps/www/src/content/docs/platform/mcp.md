@@ -5,7 +5,7 @@ description: Reach your bapX business from Claude, Codex, and any other MCP clie
 
 `https://api.bapx.in/mcp` is the inbound bridge for MCP clients. Point Claude,
 Codex, or any other MCP-capable agent at it, authenticate with a bapX API key,
-and that agent can list and call the models your business has connected.
+and that agent can list and call models through the bapX API plane.
 
 ## Connect
 
@@ -45,12 +45,18 @@ there is no session to establish and no `Mcp-Session-Id` to carry.
 
 | Tool | What it does |
 | --- | --- |
-| `list_models` | Lists the models your business can actually call, which depends on the providers you have connected. |
-| `chat_completion` | Sends an OpenAI-compatible chat completion through your own provider credentials. Address models as `<provider>/<model>`. |
+| `list_models` | Lists the models reachable through the bapX API plane. |
+| `chat_completion` | Sends an OpenAI-compatible chat completion through the plane. Address models as `<provider>/<model>`. |
 
-Call `list_models` first. A model that is not in that list is not callable —
-connect its provider on Platform rather than hardcoding a name and handling the
-failure.
+:::caution[Per-business credentials are not wired yet]
+Calls are served by the **operator-run** bapX API plane using its own credential.
+bapX does **not** yet resolve requests against the providers your business has
+connected on Platform, so `list_models` returns the plane's whole catalogue
+rather than a list scoped to you. Connecting a provider on Platform stores the
+credential but does not yet change what `/v1` or `/mcp` will call.
+:::
+
+Call `list_models` first, and address models exactly as it returns them.
 
 ## What it does not do
 
@@ -61,8 +67,9 @@ Requests from a browser origin outside `bapx.in` are refused, which the MCP
 transport specification requires to prevent DNS rebinding. A normal MCP client
 sends no `Origin` header and is unaffected.
 
-bapX does not resell model capacity. Every call is billed by the provider to
-your own account, under the agreement you already accepted with them.
+bapX does not resell model capacity. Once per-business credential routing ships,
+every call will be billed by the provider to your own account under the agreement
+you accepted with them. Today calls run on the operator-run plane.
 
 ## Verify
 
@@ -73,5 +80,4 @@ curl -s https://api.bapx.in/mcp \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
 
-A revoked key returns `401` immediately. An empty `list_models` result means the
-business has connected no providers yet.
+A revoked key returns `401` immediately.

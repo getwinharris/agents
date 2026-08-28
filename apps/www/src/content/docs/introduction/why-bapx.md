@@ -18,7 +18,7 @@ description: One operating system for people, projects, and specialist agents, w
 
 Platform currently supplies authentication and the control-plane information architecture. Self-service provider credential management, connector setup, API-key management, MCP client management, billing checkout, quota enforcement, team-role administration, arbitrary hosted-agent creation, and one-click project hosting are not yet complete public workflows.
 
-The shared `api.bapx.in` API and MCP gateway is also not served today. The framework API documentation describes APIs exposed by applications that developers build and deploy; it does not advertise a live shared bapX gateway.
+The shared `api.bapx.in` API and MCP gateway is served and key-gated, though calls do not yet route through each business's own connected providers. The framework API documentation describes APIs exposed by applications that developers build and deploy; it does not advertise a live shared bapX gateway.
 
 ## Where bapX is focused
 

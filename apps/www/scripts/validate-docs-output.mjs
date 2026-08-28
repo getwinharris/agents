@@ -13,6 +13,8 @@ const quickstart = readRoute('getting-started/quickstart');
 const developers = readRoute('sdk/overview');
 const maintainerCli = readRoute('cli/overview');
 const mcp = readRoute('mcp/overview');
+const platformApi = readRoute('platform/api');
+const platformMcp = readRoute('platform/mcp');
 
 assert.match(
 	productSurfaces,
@@ -36,8 +38,45 @@ for (const slug of developerRoutes) {
 	);
 }
 
-assert.match(productSurfaces, /api\.bapx\.in[\s\S]{0,600}HTTP 404/i);
-assert.match(mcp, /api\.bapx\.in\/mcp[\s\S]{0,600}HTTP 404/i);
+// The gateway is served now, so the old "returns HTTP 404" assertions enforced a
+// claim that had become false. The invariant worth guarding is the one that is
+// still true and easy to overclaim: requests are forwarded to an operator-run
+// plane on a shared credential, so no page may present per-business provider
+// routing, per-business model scoping, or revocation-affects-/v1/models as
+// shipped. Re-point these at the real behaviour when that lands.
+// Matching every phrasing of the claim is not workable — a correct future-tense
+// sentence ("once per-business routing ships it will return only the models you
+// connected") contains the same words as the false present-tense one. So guard
+// two precise things instead: the disclaimer must be present on both pages that
+// document the endpoint, and the specific unqualified present-tense sentences
+// that were shipped and were false must not come back.
+for (const [name, page] of [
+	['platform/api', platformApi],
+	['platform/mcp', platformMcp],
+]) {
+	assert.match(
+		page,
+		/operator-run/i,
+		`${name} must state that calls run on the operator-run plane; per-business provider routing is not wired`,
+	);
+}
+for (const [name, page] of [
+	['platform/api', platformApi],
+	['platform/mcp', platformMcp],
+	['product-surfaces', productSurfaces],
+	['mcp/overview', mcp],
+]) {
+	assert.doesNotMatch(
+		page,
+		/returns only the models reachable through the providers your business has actually connected/i,
+		`${name} states per-business model scoping as current behaviour; it is not wired`,
+	);
+	assert.doesNotMatch(
+		page,
+		/Revoking a provider connection immediately removes those models/i,
+		`${name} states revocation affects \/v1\/models today; it does not`,
+	);
+}
 assert.match(productSurfaces, /MediaHub[\s\S]{0,600}custom-quote/i);
 assert.doesNotMatch(productSurfaces, /\/root\/bapx\.in/);
 assert.doesNotMatch(quickstart, /\/docs\/cli\//);
