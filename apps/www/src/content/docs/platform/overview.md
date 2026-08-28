@@ -25,7 +25,7 @@ Creating an account uses either an email and password or a verified GitHub ident
 | Billing checkout and quota enforcement                  | Planned. Razorpay is the intended INR payment owner.                                                                      |
 | Provider and connector credential management            | Planned public controls. Customers bring their own credentials.                                                           |
 | API-key, MCP-client, and observability management       | Planned public controls.                                                                                                  |
-| Shared `api.bapx.in` API/MCP gateway                    | Not served; current routes return 404.                                                                                    |
+| Shared `api.bapx.in` API/MCP gateway                    | Served and key-gated; per-business credential routing pending.                                                            |
 
 Static Platform navigation labels describe ownership, not completed workflows. A section is not available merely because it appears in the sidebar.
 

@@ -70,14 +70,14 @@ function toolDefinitions() {
 			name: 'list_models',
 			title: 'List reachable models',
 			description:
-				'List the models this business can actually call, which is determined by the providers it has connected on Platform. A model absent from this list is not callable.',
+				'List the models reachable through the bapX API plane. Note: this is currently the plane\'s full catalogue, not a per-business list — bapX does not yet resolve calls against the providers a business has connected on Platform.',
 			inputSchema: { type: 'object', properties: {}, additionalProperties: false },
 		},
 		{
 			name: 'chat_completion',
 			title: 'Call a model',
 			description:
-				'Send an OpenAI-compatible chat completion through the bapX gateway using the business\'s own provider credentials. Address the model as <provider>/<model>, exactly as returned by list_models.',
+				'Send an OpenAI-compatible chat completion through the bapX API plane. Address the model as <provider>/<model>, exactly as returned by list_models. Calls currently use the operator-run plane\'s credentials, not the business\'s own connected providers.',
 			inputSchema: {
 				type: 'object',
 				properties: {
@@ -113,6 +113,11 @@ export function mcpToolNames() {
 // One call to the API plane. The caller's bapX key never travels onward — it
 // authenticates the customer to us and means nothing to the plane, which is
 // reached with its own credential.
+//
+// That plane credential is shared by every tenant: this does NOT resolve the
+// calling business's connected providers. `context.accountId` is deliberately
+// unused here and kept only so the per-tenant routing that replaces this has an
+// obvious seam. Until then, every business sees the plane's whole catalogue.
 async function callPlane({ origin, planeToken, path, method = 'GET', body }) {
 	const headers = { accept: 'application/json' };
 	if (planeToken) headers.authorization = `Bearer ${planeToken}`;
@@ -148,7 +153,7 @@ async function runTool(name, args, context) {
 		if (!response.ok) return toolFailure(`The API plane returned ${response.status} for /v1/models.`);
 		const models = Array.isArray(response.body?.data) ? response.body.data.map((entry) => entry.id) : [];
 		if (!models.length) {
-			return toolText('No models are reachable. Connect a model provider on https://platform.bapx.in/ first — bapX routes your own provider credentials and does not resell capacity.');
+			return toolText('No models are reachable through the bapX API plane right now.');
 		}
 		return toolText({ count: models.length, models });
 	}
@@ -195,7 +200,7 @@ export async function handleMcpMessage(message, context) {
 			capabilities: { tools: { listChanged: false } },
 			serverInfo: { name: 'bapx', title: 'bapX', version: '1' },
 			instructions:
-				'bapX routes calls through the model providers this business has connected on Platform, using its own credentials. Call list_models before chat_completion — a model that is not listed is not callable.',
+				'Call list_models before chat_completion — a model that is not listed is not callable. Calls are served by the operator-run bapX API plane; per-business provider credential routing is not yet wired, so the model list is not scoped to what this business has connected on Platform.',
 		});
 	}
 

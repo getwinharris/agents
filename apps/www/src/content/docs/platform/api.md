@@ -1,13 +1,24 @@
 ---
 title: Platform API
-description: The bapX API plane — one OpenAI-compatible endpoint for every model your business connects, using your own provider credentials.
+description: The bapX API plane — one OpenAI-compatible endpoint, served today on operator-run capacity while per-business credential routing is built.
 ---
 
-The bapX API plane gives a business one OpenAI-compatible endpoint across every AI provider it has connected. You bring your own provider credentials; bapX routes, meters, and audits the calls.
+The bapX API plane gives a business one OpenAI-compatible endpoint across many AI providers, reached with a bapX-issued key.
 
 ## Status
 
-The customer-facing gateway is **not open yet**. This page documents the contract it will expose so integrations can be written against a stable shape, and so the boundary between what is implemented and what is planned stays explicit.
+The gateway is **served and key-gated**: `https://api.bapx.in/v1` and
+`https://api.bapx.in/mcp` answer, and reject an unknown key with `401`.
+
+:::caution[Per-business credentials are not wired yet]
+Requests are forwarded to an **operator-run** API plane using its own credential.
+bapX does not yet resolve a call against the providers your business has
+connected on Platform. Connecting a provider stores the credential; it does not
+yet change what `/v1` calls or what `/v1/models` returns.
+
+Everything in *Bring your own credentials* below describes the target, not
+today's behaviour. Read it as the contract being built toward.
+:::
 
 What is decided and will not change:
 
@@ -53,20 +64,26 @@ const client = new OpenAI({
 | Chat completions | `POST /v1/chat/completions` |
 | List models | `GET /v1/models` |
 
-`GET /v1/models` returns only the models reachable through the providers your business has actually connected. A model absent from that list is not callable — connect its provider first.
+`GET /v1/models` currently returns the plane's whole catalogue. Once per-business routing ships it will return only the models reachable through the providers your business has connected; write integrations against that narrower contract rather than assuming the full list stays available.
 
 ## Bring your own credentials
 
-bapX does not resell model capacity. Every call is billed by your provider, to your account, under your own agreement with that provider.
+bapX does not intend to resell model capacity. The target is that every call is
+billed by your provider, to your account, under your own agreement with that
+provider. **That is not how the plane behaves today** — see the status note
+above.
 
 This matters for more than pricing. Several providers' terms permit a self-hosted single-user proxy but **prohibit reselling API access or operating a multi-tenant proxy on pooled credentials**. Routing your own credentials keeps your usage inside the agreement you already accepted, rather than inside one bapX made on your behalf.
 
-Practically:
+Practically, once routing ships:
 
 - Add provider credentials under **Connectors** on [platform.bapx.in](https://platform.bapx.in/).
-- Credentials are stored per business and are never shared across businesses.
+- Credentials are stored per business and are never shared across businesses. **This part is already true** — see [Connectors](/docs/platform/connectors/).
 - Agents receive only the connections authorized for their business workspace.
-- Revoking a provider connection immediately removes those models from `/v1/models`.
+- Revoking a provider connection will drop those models from `/v1/models`.
+
+Only the storage guarantee holds today. The routing, scoping, and revocation
+behaviour above is pending.
 
 ## Model naming
 
@@ -92,7 +109,7 @@ The bapX API plane is built on [OmniRoute](https://github.com/diegosouzapw/OmniR
 
 A **Models key** (`bapx_sk_`) is the only kind accepted here. An **MCP key**
 (`bapx_mk_`) is refused with `403 insufficient_scope` — it belongs to
-[MCP access](/platform/mcp/).
+[MCP access](/docs/platform/mcp/).
 
 Issuing a key for one surface never grants the other. A Models key spends
 provider credit; an MCP key lets an external agent act as your business.
