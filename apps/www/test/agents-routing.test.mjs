@@ -214,6 +214,31 @@ describe('Agents host routing', () => {
 		assert.deepEqual(runtimeRequests.at(-1), { method: 'GET', url: '/api/orchestration/tasks', body: '' });
 	});
 
+	// The admin bundle calls /api/orchestration/tasks. That path was routed for
+	// /agents only, so on admin.bapx.in it fell through to the SPA catch-all and
+	// returned index.html with a 200 — the admin task view parsed HTML as JSON.
+	it('routes durable task requests on the admin surface instead of serving the SPA shell', async () => {
+		const response = await request(port, {
+			host: 'admin.bapx.in',
+			pathname: '/api/orchestration/tasks',
+			headers: { cookie },
+		});
+		assert.equal(response.status, 200);
+		assert.doesNotMatch(response.body, /<!doctype html>/i, 'admin must not receive the SPA shell for an API path');
+		assert.deepEqual(runtimeRequests.at(-1), { method: 'GET', url: '/api/orchestration/tasks', body: '' });
+	});
+
+	it('refuses an admin task mutation from a hosted project subdomain', async () => {
+		const response = await request(port, {
+			method: 'POST',
+			host: 'admin.bapx.in',
+			pathname: '/api/orchestration/tasks',
+			headers: { cookie, origin: 'https://acme-project.bapx.in', 'content-type': 'application/json' },
+			body: JSON.stringify({ objective: 'x' }),
+		});
+		assert.notEqual(response.status, 200, 'a cross-origin write must not reach the runtime');
+	});
+
 	it('refuses a device flow with no Origin header', async () => {
 		// Browsers always send Origin on a cross-origin write, so absence is not
 		// same-origin. Without this case, a change that treated a missing Origin
