@@ -1917,7 +1917,18 @@ function listOkfMarkdownFiles(root: string, dir = root): string[] {
 		const absPath = path.join(dir, entry.name);
 		if (!isPathInsideRoot(root, absPath)) continue;
 		if (entry.isDirectory()) {
-			if (!OKF_SKIPPED_DIRECTORIES.has(entry.name)) files.push(...listOkfMarkdownFiles(root, absPath));
+			if (OKF_SKIPPED_DIRECTORIES.has(entry.name)) continue;
+			// The index describes this project, not whatever happens to be on disk.
+			// Untracked directories — vendored reference clones, scratch checkouts —
+			// otherwise land in the corpus, and `bapX okf query` returns another
+			// project's documents as if they were ours. That matters because the
+			// contract makes an OKF query the first step of every task.
+			const tracked = trackedDirectories(root);
+			if (tracked) {
+				const relative = path.relative(root, absPath).split(path.sep).join('/');
+				if (!tracked.has(relative)) continue;
+			}
+			files.push(...listOkfMarkdownFiles(root, absPath));
 			continue;
 		}
 		if (entry.isFile() && /\.md$/i.test(entry.name)) files.push(absPath);
