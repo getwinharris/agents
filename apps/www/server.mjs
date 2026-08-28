@@ -1060,6 +1060,22 @@ http.createServer(async (req, res) => {
 		const handled = await handleWorkspaceAPI(req, res, urlPath, customerWorkspaceRoot(sessionAccount));
 		if (handled) return;
 	}
+	// Admin calls /api/orchestration/tasks from its own bundle, but that path was
+	// routed for /agents only. On admin.bapx.in the request fell through to the
+	// SPA catch-all and returned index.html with a 200, so the admin task view was
+	// parsing HTML as JSON. Route it here, with admin authorization ahead of the
+	// same cross-origin guard the agents surface uses.
+	if (prefix === '/admin' && urlPath.startsWith('/api/orchestration/')) {
+		if (!authorizeAdminApi(req, res, sessionAccount, host, req.method !== 'GET' && req.method !== 'HEAD')) return;
+		if (!isPlatformMutationAllowed(req, host)) {
+			jsonResponse(res, 403, { error: 'cross_origin_forbidden' });
+			return;
+		}
+		// Scoped to the signed-in account exactly as on /agents. Admin authority is
+		// about which surface you may reach, not a licence to read another tenant's
+		// tasks.
+		await proxyAgentAPI(req, res, sessionAccount); return;
+	}
 	if (prefix === '/admin' && urlPath.startsWith('/api/projects')) {
 		if (!authorizeAdminApi(req, res, sessionAccount, host, req.method !== 'GET' && req.method !== 'HEAD')) return;
 		const handled = await handleProjectsAPI(req, res, urlPath);
