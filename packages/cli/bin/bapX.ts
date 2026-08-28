@@ -2061,7 +2061,7 @@ function queryOkfIndex(root: string, concepts: OkfConcept[], query: string): voi
 //
 // Lives here rather than in a standalone script because `okf` is already a CLI
 // command, and AGENTS.md requires new automation to extend the owning surface.
-const OKF_SKIP = /^(node_modules|dist|\.git|examples|resource-git-for-extract)(\/|$)/;
+const OKF_SKIP = /^(node_modules|dist|\.git|examples)(\/|$)/;
 
 // Paths whose frontmatter is owned by another schema. These are still indexed,
 // but `type` is not imposed on them: SKILL.md carries the skill manifest
