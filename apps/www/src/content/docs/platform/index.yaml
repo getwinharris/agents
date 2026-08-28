@@ -4,7 +4,7 @@ type: folder-index
 children:
   - path: "api.md"
     title: "Platform API"
-    description: "The bapX API plane — one OpenAI-compatible endpoint for every model your business connects, using your own provider credentials."
+    description: "The bapX API plane — one OpenAI-compatible endpoint, served today on operator-run capacity while per-business credential routing is built."
   - path: "billing.md"
     title: "Platform billing"
     description: "India-first bapX subscription and storage limits."
