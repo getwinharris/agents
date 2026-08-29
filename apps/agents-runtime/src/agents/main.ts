@@ -115,6 +115,10 @@ export default defineAgent(async ({ id }) => {
   }
 })
 
+// Mirrors terminalStates in orchestration-store.mjs. Kept local because the
+// store does not export it; if that list changes, this must follow.
+const TERMINAL_STATES = new Set(['succeeded', 'failed', 'cancelled', 'expired'])
+
 function orchestrationTools() {
   return [
       defineTool({
@@ -140,6 +144,59 @@ function orchestrationTools() {
           })
           const task = store.create(authorization, input)
           return { taskId: task.id, state: task.state, profile: task.profile, version: task.version }
+        },
+      }),
+      defineTool({
+        name: 'collect_specialist_results',
+        description:
+          "Read back the results of specialist work dispatched earlier in this session, and report what is still running. Call this after submit_specialist_task to fold a specialist's findings into the conversation; a submission only returns a receipt, not an answer.",
+        input: v.object({
+          // Optional so the common case — "what came back?" — needs no bookkeeping
+          // from the caller.
+          taskIds: v.optional(v.array(v.string())),
+        }),
+        run: async ({ input }) => {
+          const authorization = currentWorkspaceAuthorization()
+          const store = new FileOrchestrationStore({
+            directory: process.env.BAPX_ORCHESTRATION_DIR || path.resolve('.agents/orchestration/tasks'),
+          })
+          const wanted = input.taskIds?.length ? new Set(input.taskIds) : null
+          const tasks = store.list(authorization).filter((task) => !wanted || wanted.has(task.id))
+
+          const completed = []
+          const pending = []
+          for (const task of tasks) {
+            if (!TERMINAL_STATES.has(task.state)) {
+              pending.push({ taskId: task.id, profile: task.profile, state: task.state, objective: task.objective })
+              continue
+            }
+            // A result already acknowledged has been folded into the conversation
+            // once; returning it again would make the agent repeat itself.
+            // acknowledge() records this as notification === 'acknowledged'.
+            if (task.notification === 'acknowledged') continue
+            completed.push({
+              taskId: task.id,
+              profile: task.profile,
+              state: task.state,
+              objective: task.objective,
+              summary: task.result?.summary ?? null,
+              evidence: task.result?.evidence ?? [],
+              artifacts: task.result?.artifacts ?? [],
+              verification: task.result?.verification ?? null,
+              // Failure is reported, never silently dropped: an agent that cannot
+              // see a failed specialist will confidently report success.
+              failed: task.state !== 'succeeded',
+              retryable: task.result?.retryable ?? false,
+            })
+            // Acknowledging is what makes collection idempotent. A conflict here
+            // means another reader won the race, which is not an error for us.
+            try {
+              store.acknowledge(authorization, task.id, task.version)
+            } catch {
+              // Leave it for the next collect rather than failing the whole call.
+            }
+          }
+          return { completed, pending, collected: completed.length, stillRunning: pending.length }
         },
       }),
   ]
