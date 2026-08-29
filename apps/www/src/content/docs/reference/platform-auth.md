@@ -1,9 +1,9 @@
 ---
 title: Platform Auth and Workspace Contract
-description: Public authentication, workspace, Admin, Agents, and connector boundary for bapX.
+description: Public authentication, workspace, Agents, and connector boundary for bapX.
 ---
 
-bapX uses Platform for account identity and configuration. Agents/Admin use the configured business workspace to perform work.
+bapX uses Platform for account identity and configuration. Agents uses the configured business workspace to perform work.
 
 ## Authentication model
 
@@ -12,7 +12,7 @@ bapX uses Platform for account identity and configuration. Agents/Admin use the 
 - Passwords are stored as salted scrypt derivations with a per-account 16-byte salt and verified in constant time. Minimum length is 12 characters. An unknown email and a wrong password return the same message after the same work, so neither wording nor timing reveals which addresses are registered.
 - The password register and login routes require a same-origin request and cap the request body at 16 KB.
 - GitHub identity additionally carries repository authorization, so a repository-backed project still needs a GitHub connection even on a password account.
-- A production `bapx_session` cookie is scoped to the `.bapx.in` subdomain family so login works across Platform, Agents, and Admin.
+- A production `bapx_session` cookie is scoped to the `.bapx.in` subdomain family so login works across customer-facing bapX surfaces.
 - Repository access is a separate GitHub App permission flow; signing in is not the same as authorizing every repository.
 - Provider credentials such as OpenAI, OpenRouter, Anthropic, Google, and connector credentials are workspace settings, not shared global secrets.
 
@@ -42,18 +42,11 @@ Customer projects live under:
 root-sandbox/<username>/<business-slug>/projects/<project-slug>/
 ```
 
-Platform owns account, billing, storage quota, API keys, connectors, MCP configuration, and observability. Agents/Admin own the operating workspace: central bapX agent chat, specialist agents, automations, projects, team work, and connector-driven actions.
+Platform owns account, billing, storage quota, API keys, connectors, MCP configuration, and observability. Agents owns the customer operating workspace: central bapX agent chat, specialist agents, automations, projects, team work, and connector-driven actions.
 
-## Admin and Agents
+## Agents
 
-Admin and Agents use the same product model. The difference is authority:
-
-- `admin.bapx.in` operates the bapX workspace with bapX-wide authority.
-- `agents.bapx.in` operates a customer business workspace with customer-scoped authority.
-
-Admin is not a separate product with different concepts. It is the wider-scope version of the same people, projects, agents, automations, MCPs, API, connectors, billing, and observability model.
-
-For customer agent operations, the authenticated gateway derives the canonical business scope as `users/<username>/<business-slug>` and replaces any browser-supplied identity or scope headers before calling the private runtime. The runtime requires its private shared token and rejects a scope whose embedded username differs from the authenticated account. An authenticated customer can call `GET /api/orchestration/workspace-verification` on `agents.bapx.in` to run a read-only workflow that reports the accepted account and scope; it does not read workspace files or perform mutations. Admin verification remains separate because Admin has wider `/root/bapx.in` authority.
+For customer agent operations, the authenticated gateway derives the canonical business scope as `users/<username>/<business-slug>` and replaces any browser-supplied identity or scope headers before calling the private runtime. The runtime requires its private shared token and rejects a scope whose embedded username differs from the authenticated account. An authenticated customer can call `GET /api/orchestration/workspace-verification` on `agents.bapx.in` to run a read-only workflow that reports the accepted account and scope; it does not read workspace files or perform mutations.
 
 ## Connector boundary
 

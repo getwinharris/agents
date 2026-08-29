@@ -29,7 +29,7 @@ Read https://bapx.in/start.md then help create my first agent...
 
 Read our [Getting Started](https://docs.bapx.in/getting-started/quickstart/) guide for full details.
 
-_Update: `bapX run` can execute either an agent or workflow on Node.js or Cloudflare. Interactive operator workflows stay inside Admin/Agents and the supported `@bapX/cli` command surface._
+_Update: `bapX run` can execute either an agent or workflow on Node.js or Cloudflare. Interactive customer workflows stay inside Agents and the supported `@bapX/cli` command surface._
 
 ## Introducing: Agents
 

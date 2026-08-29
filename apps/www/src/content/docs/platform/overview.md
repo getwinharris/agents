@@ -21,7 +21,6 @@ Creating an account uses either an email and password or a verified GitHub ident
 | User workspace and first business creation              | Implemented on first sign-in, for both a verified GitHub identity and a new password account.                             |
 | Platform page                                           | Live information architecture. The static shell performs a client-side session check and redirects unsigned users.        |
 | Customer Agents surface                                 | Live and authentication-gated, with the shared shell, central main-agent transport, and customer-scoped workspace routes. |
-| Admin repository import                                 | Implemented for confirmed public GitHub repositories; Admin entitlement is required.                                      |
 | Billing checkout and quota enforcement                  | Planned. Razorpay is the intended INR payment owner.                                                                      |
 | Provider and connector credential management            | Planned public controls. Customers bring their own credentials.                                                           |
 | API-key, MCP-client, and observability management       | Planned public controls.                                                                                                  |
@@ -46,15 +45,11 @@ The India-first offer is **₹500 per month** with **5 GB** of storage, hosted s
 - Business-owned provider and connector credentials
 - API keys and MCP client configuration
 - Observability and quality integrations
-- Business and project destinations used by Agents/Admin
+- Business and project destinations used by Agents
 
-Platform owns configuration. `agents.bapx.in` owns customer operations; `admin.bapx.in` uses the same operating model with bapX-wide authority.
+Platform owns configuration. `agents.bapx.in` owns customer operations.
 
-## Admin and Agents
-
-Opening Admin uses the shared GitHub-backed session, exchanges a single-use short-lived handoff, and revalidates the configured provider-ID entitlement before serving the Admin workspace.
-
-The Admin Projects surface resolves a GitHub repository through the configured GitHub App, shows GitHub's canonical identity, visibility, and default branch, and requires an explicit non-overwriting destination confirmation. Public repository import is implemented. Private cloning remains disabled.
+## Agents
 
 Opening Agents requires a signed-in bapX session. The current surface uses the business main-agent conversation and limits workspace routes to the authenticated customer boundary. Public provider selection and credential storage remain Platform work rather than a completed Agents control.
 

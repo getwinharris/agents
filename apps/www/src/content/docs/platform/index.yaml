@@ -19,7 +19,7 @@ children:
     description: "Reach your bapX business from Claude, Codex, and any other MCP client."
   - path: "organisations.md"
     title: "Organisations"
-    description: "How bapX scopes people, projects, Admin, and Agents."
+    description: "How bapX scopes people, businesses, projects, and Agents."
   - path: "overview.md"
     title: "Platform Overview"
     description: "Current and planned account, billing, connector, API, MCP, and observability ownership in Platform."

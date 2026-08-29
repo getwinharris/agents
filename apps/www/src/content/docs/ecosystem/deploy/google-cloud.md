@@ -10,7 +10,7 @@ For developer and agent-operated environments, install and authenticate the offi
 
 ## Current bapX status
 
-Google Cloud is cataloged as a hosting and infrastructure connection. A shipped bapX connector must keep Google Cloud authorization separate from Google Workspace user connectors, scope credentials to the selected account/business/project, and expose deploy actions through approved Admin/Agents operations rather than a global shell.
+Google Cloud is cataloged as a hosting and infrastructure connection. A shipped bapX connector must keep Google Cloud authorization separate from Google Workspace user connectors, scope credentials to the selected account/business/project, and expose deploy actions through approved Agents operations rather than a global shell.
 
 ## CLI surface
 

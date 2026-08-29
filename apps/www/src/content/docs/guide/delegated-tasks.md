@@ -7,7 +7,7 @@ The main bapX agent owns the conversation. It submits bounded background work to
 
 Every task is scoped to the authenticated account, business workspace, and parent session. Its durable record contains a monotonic version, least-privilege permissions, state history, attempts and leases, progress, approval state, evidence, artifacts, verification state, and a SHA-256 result digest. Stale or duplicate updates are rejected. Expired worker leases return to `queued` during recovery.
 
-The Agents Threads page exposes current task, approval, evidence, and verification state. Admin uses the same operating model for the bapX workspace, with repository and user-management extensions, but does not automatically inherit customer task contents, connector secrets, or approval authority.
+The Agents Threads page exposes current task, approval, evidence, and verification state within the authenticated customer workspace.
 
 ## Connector ownership
 
