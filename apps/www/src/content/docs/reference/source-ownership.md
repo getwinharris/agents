@@ -1,6 +1,6 @@
 ---
 title: Source Ownership
-description: Public ownership map for bapX app surfaces, docs, runtime, Admin, Agents, and OKF workspaces.
+description: Public ownership map for bapX app surfaces, docs, runtime, Agents, and OKF workspaces.
 ---
 
 bapX uses one tracked web source for public surfaces and one OKF workspace model for customer work. New work belongs in the nearest owning surface, not in duplicate roots or detached scripts.
@@ -14,8 +14,7 @@ bapX uses one tracked web source for public surfaces and one OKF workspace model
 | `blogs.bapx.in`    | `apps/www/src/content/blogs/`                               | Public announcements, releases, research, and tutorials                                                                                                           |
 | `mediahub.bapx.in` | `apps/www/src/pages/mediahub/`                              | Direct-client, custom-quote forward-deployed engineering (FDE), enterprise AI/data, commerce, growth, and portfolio funnel; separate from the Agents subscription |
 | `platform.bapx.in` | `apps/www/src/pages/platform/` plus platform server APIs    | GitHub-backed account/session entry and control-plane information architecture; most management controls remain planned                                           |
-| `admin.bapx.in`    | `apps/www/admin/` plus shared workspace APIs                | bapX-wide business operating surface                                                                                                                              |
-| `agents.bapx.in`   | shared Admin/Agents operating model                         | Customer business operating surface                                                                                                                               |
+| `agents.bapx.in`   | authenticated customer operating application                | Customer business operating surface                                                                                                                               |
 | `api.bapx.in`      | planned runtime/API/MCP gateway code                        | Served and key-gated programmatic API and MCP gateway; per-business credential routing pending                                                                       |
 
 ## Repository areas
@@ -39,7 +38,7 @@ Every user workspace is a git repository. Public docs use `root-sandbox/` as the
 ## Where new work belongs
 
 - Product account, billing, connector, API key, MCP, and observability setup belongs in Platform.
-- Business execution, agents, automations, projects, team work, and coordination belong in Agents/Admin.
+- Business execution, agents, automations, projects, team work, and coordination belong in Agents.
 - The bapX CLI remains internal repository and maintainer tooling. Non-sensitive maintainer contracts may be documented publicly, but the CLI must not be presented as an installable customer product.
 - Private host mechanics and incident procedures stay in internal docs.
 

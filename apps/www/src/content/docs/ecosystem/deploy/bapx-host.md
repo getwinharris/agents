@@ -14,4 +14,4 @@ Each project may claim a project subdomain in the form:
 
 Project names are user-settable and may change. A production implementation must reserve slugs globally, protect private projects, preserve redirects after renames, and reject reserved or colliding names before deployment.
 
-The hosting capability is included in the paid bapX subscription. It remains Platform-configured and Agents/Admin-operated: Platform owns the subdomain, quota, billing, and connector settings; Admin/Agents owns the work, deployment intent, approval, and audit.
+The hosting capability is included in the paid bapX subscription. It remains Platform-configured and Agents-operated: Platform owns the subdomain, quota, billing, and connector settings; Agents owns the work, deployment intent, approval, and audit.

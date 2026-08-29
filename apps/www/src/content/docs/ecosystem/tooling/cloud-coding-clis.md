@@ -16,4 +16,4 @@ Planned hosted tools include Codex, Claude Code, OpenCode, Zed or Zcode workflow
 - Outputs are review evidence for the central bapX agent, not independent authority.
 - Telemetry must correlate the organisation, project, task, agent, CLI, sandbox, commit, and approval state.
 
-This is the path for Capy/Linear-style comments and automations: the central bapX agent coordinates the work, specialist tools contribute evidence, and the shared Admin/Agents surface keeps the task, artifact, comment, audit, and approval trail together.
+This is the path for Capy/Linear-style comments and automations: the central bapX agent coordinates the work, specialist tools contribute evidence, and Agents keeps the task, artifact, comment, audit, and approval trail together.
