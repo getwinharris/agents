@@ -26,6 +26,7 @@ const brandSuffix = baseUrl.includes('blogs.bapx.in') ? 'blogs' : 'docs';
 				</a>
 			</div>
 			<nav class="hidden h-full items-center gap-7 text-sm font-medium docs-desktop:flex" aria-label="Documentation sections">
+				<a href="https://bapx.in/">Home</a>
 				{sections.map((section) => <DocsSectionLink section={section} active={section.key === selectedSection.key} baseUrl={baseUrl} />)}
 			</nav>
 		</div>

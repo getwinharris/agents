@@ -10,7 +10,6 @@ description: One operating system for people, projects, and specialist agents, w
 - **Public product and documentation** — The landing, pricing, ecosystem, documentation, research, release, and MediaHub routes are served from one versioned web release.
 - **GitHub-backed identity** — A verified GitHub identity creates or resumes the account and user-level OKF workspace. Repository authorization remains a separate GitHub App permission flow.
 - **Customer operating surface** — `agents.bapx.in` is authentication-gated and uses the shared operating shell, central main-agent transport, and customer-scoped workspace routes.
-- **bapX Admin** — `admin.bapx.in` is entitlement-gated and applies the same operating model with wider bapX workspace authority. Confirmed public-repository import is implemented.
 - **Developer framework** — Code-defined agents, workflows, tools, skills, channels, persistence, Node.js and Cloudflare targets, the runtime API, and SDK have public documentation.
 - **Enterprise delivery** — [MediaHub](https://mediahub.bapx.in) offers direct, custom-quote forward-deployed engineering for AI/data/CRM/ERP, commerce, growth, and managed production outcomes.
 
@@ -34,7 +33,7 @@ bapX begins with operating work its team already understands deeply:
 1. **Evidence before availability** — A capability is shipped only after merge, deployment, and live verification.
 2. **Scoped workspaces** — Customer work remains inside the authorized user, business, and project boundary.
 3. **Bring your own credentials** — Provider and connector credentials belong to the customer or business scope; bapX does not promise pooled third-party quotas.
-4. **One operating model** — Agents and Admin use the same people, project, agent, automation, and evidence concepts with different authority.
+4. **One operating model** — People and agents use the same project, automation, and evidence concepts.
 5. **Clear commercial boundaries** — The Agents subscription and direct MediaHub enterprise engagements are separate offers.
 
 ## Pricing

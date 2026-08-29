@@ -5,6 +5,8 @@ description: "admin.bapx.in is the bapX business operating surface. Its workspac
 ---
 # Admin operating surface
 
+Admin is an internal bapX operating surface and must not be promoted from the public landing, product cards, or public product-surface documentation. Its authority, repository operations, authentication handoff, deployment mechanics, and operator navigation belong in this restricted document.
+
 ## Product role
 
 `admin.bapx.in` is the bapX business operating surface. Its workspace root is `/root/bapx.in`. It uses the same operating model that customers receive at `agents.bapx.in`, with bapX-wide scope.

@@ -76,6 +76,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
+              <SidebarMenuItem><SidebarMenuButton asChild><a href="https://bapx.in/"><Home /><span>bapX Home</span></a></SidebarMenuButton></SidebarMenuItem>
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/"><Home /><span>Dashboard</span></Link></SidebarMenuButton></SidebarMenuItem>
               <SidebarMenuItem><SidebarMenuButton asChild><Link to="/threads"><MessagesSquare /><span>Threads</span></Link></SidebarMenuButton></SidebarMenuItem>
               {operatingSurface.showAdminPullRequests ? <SidebarMenuItem><SidebarMenuButton asChild><Link to="/pull-requests"><GitPullRequest /><span>PRs</span></Link></SidebarMenuButton></SidebarMenuItem> : null}
