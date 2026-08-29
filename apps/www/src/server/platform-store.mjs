@@ -274,6 +274,23 @@ function scrypt(password, salt, length) {
 	});
 }
 
+const PASSWORD_POLICY_MESSAGE = 'Use at least 8 characters with uppercase, lowercase, a number, and a symbol';
+
+function validateNewPassword(password) {
+	const candidate = String(password ?? '');
+	if (
+		candidate.length < 8 ||
+		!/[a-z]/.test(candidate) ||
+		!/[A-Z]/.test(candidate) ||
+		!/[0-9]/.test(candidate) ||
+		!/[^\p{L}\p{N}]/u.test(candidate)
+	) {
+		throw new Error(PASSWORD_POLICY_MESSAGE);
+	}
+	if (candidate.length > 512) throw new Error('That password is too long');
+	return candidate;
+}
+
 async function hashPassword(password) {
 	const salt = crypto.randomBytes(16);
 	const derived = await scrypt(password, salt, 64);
@@ -460,19 +477,15 @@ export function createPlatformStore({ workspaceRoot }) {
 			// this queue. Validation is repeated inside the lock against a fresh
 			// read, so nothing is decided on the pre-lock snapshot.
 			// Cheap rejects first: never spend a KDF on input that cannot be accepted.
-			const candidate = String(input?.password ?? '');
-			if (candidate.length < 12) throw new Error('Use a password of at least 12 characters');
-			if (candidate.length > 512) throw new Error('That password is too long');
+			const candidate = validateNewPassword(input?.password);
 			const passwordHash = await hashPassword(candidate);
 			return withAccountLock(() => this._registerWithPassword(input, passwordHash));
 		},
 
 		async _registerWithPassword({ email, password, name }, passwordHash) {
 			const cleanEmail = String(email ?? '').trim().toLowerCase();
-			const cleanPassword = String(password ?? '');
+			const cleanPassword = validateNewPassword(password);
 			if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new Error('Enter a valid email address');
-			if (cleanPassword.length < 12) throw new Error('Use a password of at least 12 characters');
-			if (cleanPassword.length > 512) throw new Error('That password is too long');
 
 			const stored = readJson(accountsFile, { schemaVersion: 2, accounts: [] });
 			const accounts = { schemaVersion: 2, accounts: stored.accounts };

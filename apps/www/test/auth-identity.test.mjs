@@ -20,6 +20,13 @@ test('login and signup offer GitHub and email/password, and nothing else', () =>
 	assert.match(signup, /data-action="\/api\/auth\/password\/register"/);
 });
 
+test('password forms expose the shipped eight-character policy', () => {
+	assert.match(login, /autocomplete="current-password"[^>]*minlength="8"/);
+	assert.match(signup, /autocomplete="new-password"[^>]*minlength="8"/);
+	assert.match(signup, /uppercase, lowercase, a number, and a symbol/i);
+	assert.doesNotMatch(login + signup, /minlength="12"|At least 12 characters/i);
+});
+
 test('the auth server owns GitHub callback and logout routes', () => {
 	assert.match(server, /\/api\/auth\/oauth\/github\/callback/);
 	assert.match(server, /\/api\/auth\/logout/);

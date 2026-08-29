@@ -7,6 +7,8 @@ description: "This pre-1.0 release reworks how an agent's conversation is durabl
 
 ## Unreleased
 
+- Authentication: new passwords now accept a minimum of 8 characters while requiring uppercase, lowercase, a number, and a symbol.
+
 ### Authentication
 
 - Added a one-time internal GitHub CLI bootstrap session path so the configured org owner can enter Platform/Admin while production GitHub App OAuth credentials are still being finalized; it consumes a hashed short-lived token file and only accepts GitHub provider ids listed in `BAPX_ADMIN_GITHUB_USER_IDS`.
