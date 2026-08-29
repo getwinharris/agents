@@ -19,6 +19,8 @@ description: "This pre-1.0 release reworks how an agent's conversation is durabl
 
 ### Fixes & Other Changes
 
+- Removed the private Admin surface from public landing/product promotion and added an explicit bapX Home link to the Docs, Blogs, MediaHub, Admin, and Agents navigation shells (#170).
+
 - Repository delivery instructions now require OKF-first semantic retrieval, source-verified `map.mmd` traversal, an evidenced missing-connection statement, and continuation from pull request through merged-SHA deployment and live verification instead of treating prompts or PR creation as completion (#157).
 - The repository-owned GitHub PR redirect workflow and its privileged write helper now live under the selected `.agents/` source root, so `bapX run pr-redirect` can discover the workflow while preserving the existing base-ref-only GitHub Actions security boundary.
 - Agents now has a tenant-scoped durable task and approval ledger with named least-privilege specialists, evidence integrity, recovery leases, and a shared Admin oversight boundary; Platform now renders the existing connector catalog and starts encrypted workspace-scoped OpenAI device OAuth for `openai-codex/gpt-5.6-sol` without requesting an API key.
