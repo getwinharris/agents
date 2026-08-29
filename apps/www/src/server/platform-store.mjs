@@ -1,4 +1,9 @@
 import crypto from 'node:crypto';
+import { readJson as readCollection, writeJson } from './json-store.mjs';
+
+// Preserves the typed error the rest of this module and its tests rely on.
+const readPlatformCollection = (file, fallback) =>
+	readCollection(file, fallback, 'Platform storage', (f, cause) => new PlatformStorageError(f, cause));
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -19,44 +24,7 @@ export class PlatformStorageError extends Error {
 // as "no accounts" -- and the next write persisted that, erasing everyone.
 // Only a genuinely absent file may fall back; anything else is corruption and
 // must stop the request instead of becoming a destructive write.
-function readJson(file, fallback) {
-	let raw;
-	try {
-		raw = fs.readFileSync(file, 'utf8');
-	} catch (error) {
-		if (error?.code === 'ENOENT') return fallback;
-		throw new PlatformStorageError(file, error);
-	}
-	try {
-		return JSON.parse(raw);
-	} catch (error) {
-		throw new PlatformStorageError(file, error);
-	}
-}
 
-function writeJson(file, value) {
-	fs.mkdirSync(path.dirname(file), { recursive: true });
-	// Keep the last good copy. A rename is atomic, but it is still the only
-	// copy -- a bad value written through this path would otherwise be
-	// unrecoverable.
-	try {
-		fs.copyFileSync(file, `${file}.bak`);
-	} catch (error) {
-		if (error?.code !== 'ENOENT') throw new PlatformStorageError(file, error);
-	}
-	const temporary = `${file}.${process.pid}.tmp`;
-	// fsync before the rename: without it the rename can land while the
-	// contents are still only in the page cache, so a host crash leaves an
-	// empty or partial file where the accounts used to be.
-	const handle = fs.openSync(temporary, 'w', 0o600);
-	try {
-		fs.writeFileSync(handle, `${JSON.stringify(value, null, 2)}\n`);
-		fs.fsyncSync(handle);
-	} finally {
-		fs.closeSync(handle);
-	}
-	fs.renameSync(temporary, file);
-}
 
 function validSlug(value) {
 	return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
@@ -427,7 +395,7 @@ export function createPlatformStore({ workspaceRoot }) {
 			// account in the file on any GitHub signup — silent, permanent, and
 			// affecting accounts unrelated to the one signing in. Hashes stay in
 			// storage; they are stripped only from what is returned to a caller.
-			const accounts = readJson(accountsFile, { schemaVersion: 2, accounts: [] });
+			const accounts = readPlatformCollection(accountsFile, { schemaVersion: 2, accounts: [] }, "Platform storage");
 			const existing = accounts.accounts.find((item) => item.providers?.some((provider) => provider.name === 'github' && provider.id === providerId));
 			if (existing) return { account: publicAccount(existing), business: null, created: false };
 			// Never attach a GitHub identity to an existing account on an email
@@ -487,7 +455,7 @@ export function createPlatformStore({ workspaceRoot }) {
 			const cleanPassword = validateNewPassword(password);
 			if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new Error('Enter a valid email address');
 
-			const stored = readJson(accountsFile, { schemaVersion: 2, accounts: [] });
+			const stored = readPlatformCollection(accountsFile, { schemaVersion: 2, accounts: [] }, "Platform storage");
 			const accounts = { schemaVersion: 2, accounts: stored.accounts };
 			if (accounts.accounts.some((item) => item.email === cleanEmail)) {
 				throw new Error('An account already exists for that email address. Sign in instead.');
@@ -518,7 +486,7 @@ export function createPlatformStore({ workspaceRoot }) {
 		// so response timing does not reveal which emails are registered.
 		async loginWithPassword({ email, password }) {
 			const cleanEmail = String(email ?? '').trim().toLowerCase();
-			const stored = readJson(accountsFile, { schemaVersion: 2, accounts: [] });
+			const stored = readPlatformCollection(accountsFile, { schemaVersion: 2, accounts: [] }, "Platform storage");
 			const account = stored.accounts.find((item) => item.email === cleanEmail);
 			const record = account?.passwordHash ?? { algorithm: 'scrypt', salt: crypto.randomBytes(16).toString('base64'), hash: crypto.randomBytes(64).toString('base64') };
 			const ok = await verifyPassword(password, record);
@@ -527,7 +495,7 @@ export function createPlatformStore({ workspaceRoot }) {
 		},
 
 		createSession(accountId) {
-			const sessions = readJson(sessionsFile, { schemaVersion: 2, sessions: [] });
+			const sessions = readPlatformCollection(sessionsFile, { schemaVersion: 2, sessions: [] }, "Platform storage");
 			const session = { token: crypto.randomBytes(32).toString('base64url'), accountId, createdAt: new Date().toISOString() };
 			sessions.schemaVersion = 2;
 			sessions.sessions.push(session);
@@ -537,9 +505,9 @@ export function createPlatformStore({ workspaceRoot }) {
 
 		getSessionAccount(token) {
 			if (!token) return null;
-			const session = readJson(sessionsFile, { sessions: [] }).sessions.find((item) => item.token === token);
+			const session = readPlatformCollection(sessionsFile, { sessions: [] }, "Platform storage").sessions.find((item) => item.token === token);
 			if (!session) return null;
-			const account = readJson(accountsFile, { accounts: [] }).accounts.find((item) => item.id === session.accountId);
+			const account = readPlatformCollection(accountsFile, { accounts: [] }, "Platform storage").accounts.find((item) => item.id === session.accountId);
 			if (!account) return null;
 			// Never hand the credential material back out. /api/auth/session
 			// serialises whatever this returns straight to the browser.
@@ -548,7 +516,7 @@ export function createPlatformStore({ workspaceRoot }) {
 		},
 
 		deleteSession(token) {
-			const sessions = readJson(sessionsFile, { schemaVersion: 2, sessions: [] });
+			const sessions = readPlatformCollection(sessionsFile, { schemaVersion: 2, sessions: [] }, "Platform storage");
 			const before = sessions.sessions.length;
 			sessions.schemaVersion = 2;
 			sessions.sessions = sessions.sessions.filter((item) => item.token !== token);
@@ -584,7 +552,7 @@ export function createPlatformStore({ workspaceRoot }) {
 			);
 			if (handoff || beforeCount !== stored.handoffs.length) writeJson(adminHandoffsFile, stored);
 			if (!handoff) return null;
-			return readJson(accountsFile, { accounts: [] }).accounts.find((item) => item.id === handoff.accountId) || null;
+			return readPlatformCollection(accountsFile, { accounts: [] }, "Platform storage").accounts.find((item) => item.id === handoff.accountId) || null;
 		},
 	};
 }
