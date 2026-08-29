@@ -8,7 +8,7 @@ description: "Do not add another authentication service, database application, d
 ## Ownership
 
 - `apps/www/server.mjs` owns the current HTTP authentication endpoints and subdomain routing.
-- `apps/www/src/server/platform-store.mjs` owns GitHub-linked accounts, persistent device sessions, filesystem collections, schemas, and initial user/business workspace creation.
+- `apps/www/src/server/platform-store.mjs` owns GitHub- and password-backed accounts, persistent device sessions, filesystem collections, schemas, and initial user/business workspace creation.
 - `apps/www/src/pages/login/index.astro` and `apps/www/src/pages/signup/index.astro` own the separate authentication pages.
 - `apps/www/src/pages/platform/index.astro` owns the Platform dashboard shell.
 - `/root/bapx.in/users/<username>/<business-slug>/` is the generated business workspace. Projects belong below `projects/<project-slug>/`.
@@ -32,6 +32,8 @@ Admin authority is a wider workspace scope, not a different product or an admin-
 
 | Endpoint | Method | Current behavior |
 | --- | --- | --- |
+| `/api/auth/password/register` | `POST` | Creates a password-backed account after enforcing the 8-character uppercase/lowercase/number/symbol policy. |
+| `/api/auth/password/login` | `POST` | Verifies the stored salted scrypt derivation without exposing account existence through response wording. |
 | `/api/auth/oauth/github` | `GET` | Starts GitHub OAuth with a short-lived state cookie. |
 | `/api/auth/oauth/github/cli-bootstrap` | `GET` | Internal one-time operator recovery path that consumes a hashed bootstrap token file and creates the first admin session when production OAuth credentials are still missing. |
 | `/api/auth/oauth/github/manifest` | `GET` | Opens GitHub's App Manifest registration page by POSTing the manifest for the configured owner. |
@@ -40,7 +42,7 @@ Admin authority is a wider workspace scope, not a different product or an admin-
 | `/api/auth/logout` | `POST` | Revokes the current device session and clears its cookie. |
 | `/api/auth/session` | `GET` | Returns the safe account for a valid session or `401` |
 
-No bapX password is collected or stored. Sessions use random server-side tokens and persist until logout. The browser cookie is `HttpOnly`, `Secure`, and `SameSite=Lax`; active session checks refresh its browser retention window.
+Plaintext passwords are never stored. Password accounts persist only a salted scrypt derivation. New passwords require at least 8 characters with uppercase, lowercase, a number, and a symbol. Sessions use random server-side tokens and persist until logout. The browser cookie is `HttpOnly`, `Secure`, and `SameSite=Lax`; active session checks refresh its browser retention window.
 
 ## Filesystem persistence
 
@@ -60,10 +62,9 @@ Signup initializes a real user Git repository and first business. It copies the 
 
 ## Current signup surface
 
-GitHub is the only bapX identity provider. The login and signup pages both start the same
-GitHub authorization flow; bapX does not collect a password. A verified GitHub identity
-creates or resumes the account and persistent device session. Business onboarding remains
-a separate Platform operation after authentication.
+Email/password and GitHub are the shipped bapX identity methods. Either creates or resumes
+an account and persistent device session. Business onboarding remains a separate Platform
+operation after authentication.
 
 OpenAI, Google, Anthropic, and other providers are connectors or model providers. They are
 not bapX login methods.

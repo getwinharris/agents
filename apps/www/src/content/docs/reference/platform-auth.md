@@ -9,7 +9,7 @@ bapX uses Platform for account identity and configuration. Agents uses the confi
 
 - Platform signup creates or resumes a user account and user-level OKF workspace.
 - Two identity methods are supported: **email and password**, and **GitHub**. Either one holds a bapX account on its own; GitHub is no longer required to sign up.
-- Passwords are stored as salted scrypt derivations with a per-account 16-byte salt and verified in constant time. Minimum length is 12 characters. An unknown email and a wrong password return the same message after the same work, so neither wording nor timing reveals which addresses are registered.
+- Passwords are stored as salted scrypt derivations with a per-account 16-byte salt and verified in constant time. New passwords require at least 8 characters with uppercase, lowercase, a number, and a symbol. An unknown email and a wrong password return the same message after the same work, so neither wording nor timing reveals which addresses are registered.
 - The password register and login routes require a same-origin request and cap the request body at 16 KB.
 - GitHub identity additionally carries repository authorization, so a repository-backed project still needs a GitHub connection even on a password account.
 - A production `bapx_session` cookie is scoped to the `.bapx.in` subdomain family so login works across customer-facing bapX surfaces.

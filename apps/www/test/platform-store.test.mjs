@@ -11,6 +11,21 @@ import {
 	customerProjectWorkspaceRoot,
 } from '../src/server/platform-store.mjs';
 
+test('new passwords accept eight strong characters and reject missing character classes', async (t) => {
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-password-policy-'));
+	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
+	const store = createPlatformStore({ workspaceRoot: root });
+
+	const registered = await store.registerWithPassword({ email: 'strong@example.com', password: 'Valid1!a' });
+	assert.equal(registered.account.email, 'strong@example.com');
+	await assert.rejects(() => store.registerWithPassword({ email: 'short@example.com', password: 'V1!a' }), /at least 8 characters/);
+	await assert.rejects(() => store.registerWithPassword({ email: 'upper@example.com', password: 'VALID1!!' }), /uppercase, lowercase/);
+	await assert.rejects(() => store.registerWithPassword({ email: 'lower@example.com', password: 'valid1!!' }), /uppercase, lowercase/);
+	await assert.rejects(() => store.registerWithPassword({ email: 'number@example.com', password: 'Valid!!!' }), /a number/);
+	await assert.rejects(() => store.registerWithPassword({ email: 'symbol@example.com', password: 'Valid123' }), /a symbol/);
+});
+
 test('GitHub login creates an account, user workspace, and owned business', async (t) => {
 	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bapx-platform-'));
 	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
@@ -123,12 +138,12 @@ test('a GitHub signup does not erase password credentials', async (t) => {
 	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
 	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
 	const store = createPlatformStore({ workspaceRoot: root });
-	await store.registerWithPassword({ email: 'alice@example.com', password: 'correct-horse-battery', name: 'Alice' });
+	await store.registerWithPassword({ email: 'alice@example.com', password: 'Correct1!horse', name: 'Alice' });
 
 	await store.loginWithGitHub({ id: '4242', login: 'bob', name: 'Bob', email: 'bob@example.com' });
 	await store.loginWithGitHub({ id: '4243', login: 'carol', name: 'Carol', email: 'carol@example.com' });
 
-	const signedIn = await store.loginWithPassword({ email: 'alice@example.com', password: 'correct-horse-battery' });
+	const signedIn = await store.loginWithPassword({ email: 'alice@example.com', password: 'Correct1!horse' });
 	assert.ok(signedIn, 'password login must survive unrelated GitHub signups');
 });
 
@@ -137,7 +152,7 @@ test('no caller-visible account carries credential material', async (t) => {
 	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
 	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
 	const store = createPlatformStore({ workspaceRoot: root });
-	const registered = await store.registerWithPassword({ email: 'dave@example.com', password: 'correct-horse-battery', name: 'Dave' });
+	const registered = await store.registerWithPassword({ email: 'dave@example.com', password: 'Correct1!horse', name: 'Dave' });
 	assert.equal('passwordHash' in registered.account, false);
 
 	const session = store.createSession(registered.account.id);
@@ -161,7 +176,7 @@ test('a GitHub sign-in never joins an existing account by email match', async (t
 	fs.writeFileSync(path.join(root, 'OKF.md'), '# OKF\n');
 	const store = createPlatformStore({ workspaceRoot: root });
 
-	await store.registerWithPassword({ email: 'victim@example.com', password: 'attacker-chosen-pw!', name: 'Not Victim' });
+	await store.registerWithPassword({ email: 'victim@example.com', password: 'Attacker1!chosen', name: 'Not Victim' });
 
 	// Even a genuinely verified GitHub address must not join it.
 	await assert.rejects(
@@ -188,7 +203,7 @@ test('every accepted email yields a username that resolves to a workspace', asyn
 	for (const [index, local] of awkward.entries()) {
 		const registered = await store.registerWithPassword({
 			email: `${local}@example${index}.com`,
-			password: 'correct-horse-battery',
+			password: 'Correct1!horse',
 			name: 'T',
 		});
 		assert.doesNotThrow(
@@ -201,7 +216,7 @@ test('every accepted email yields a username that resolves to a workspace', asyn
 	for (let attempt = 0; attempt < 3; attempt += 1) {
 		const registered = await store.registerWithPassword({
 			email: `first..last@collide${attempt}.com`,
-			password: 'correct-horse-battery',
+			password: 'Correct1!horse',
 			name: 'T',
 		});
 		assert.doesNotThrow(() => customerBusinessWorkspaceRoot(root, registered.account));
