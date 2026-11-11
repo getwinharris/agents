@@ -7,5 +7,6 @@ Wants=network-online.target
 Type=oneshot
 WorkingDirectory=/root/bapx.in/project-packages-git/agents-production
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=HOME=/root
 ExecStart=/bin/bash /root/bapx.in/project-packages-git/agents-production/scripts/vps/deploy-www.sh
 TimeoutStartSec=30min
