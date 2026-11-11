@@ -44,7 +44,7 @@ export function NewChat() {
         <div className="w-full max-w-3xl">
           <div className="mx-auto mb-5 flex items-baseline justify-center gap-2">
             <img className="h-9 w-auto" src="/brand/bapx-logo-main.svg" alt="bapX" />
-            <span className="font-serif text-2xl italic tracking-tight text-foreground/90">{operatingSurface.label}</span>
+            <span className="surface-wordmark text-[1.75rem]">{operatingSurface.label}</span>
           </div>
           <div className="text-center">
             <Badge variant="outline" className="mb-3 gap-1">

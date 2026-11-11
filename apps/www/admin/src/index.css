@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 /* shadcn utilities (shimmer, scroll-fade, data-* variants) used by the chat components. */
@@ -9,6 +10,18 @@
 @source "../node_modules/streamdown/dist/*.js";
 
 @custom-variant dark (&:is(.dark *));
+
+.surface-wordmark {
+  display: inline-block;
+  color: #a155e1;
+  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: 1.5rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+  transform: translateY(0.04em);
+}
 
 :root {
   --radius: 0.625rem;
