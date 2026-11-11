@@ -7,6 +7,8 @@ description: "This pre-1.0 release reworks how an agent's conversation is durabl
 
 ## Unreleased
 
+- Typography: purple subdomain wordmarks now use Robert Leuschke's Great Vibes typeface across MediaHub, Platform, Admin, Agents, Docs, and Blogs.
+
 - Brand system: subdomain lockups now use one optically aligned bapX logo and purple handwritten suffix across MediaHub, Platform, Admin, Agents, Docs, and Blogs.
 
 - Authentication: new passwords now accept a minimum of 8 characters while requiring uppercase, lowercase, a number, and a symbol.
