@@ -13,6 +13,7 @@ import { createPlatformStore } from '../src/server/platform-store.mjs';
 const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const agentsEntry = path.join(appRoot, 'dist', 'admin', 'index.html');
 const agentsAsset = path.join(appRoot, 'dist', 'admin', 'assets', 'admin-shell.js');
+const sharedFont = path.join(appRoot, 'dist', 'fonts', 'great-vibes', 'GreatVibes-Regular.ttf');
 const postsFile = path.join(appRoot, 'data', 'posts.json');
 const marker = '<!doctype html><title>bapX operating surface</title>';
 const assetMarker = 'console.log("bapX operating surface asset")';
@@ -68,6 +69,7 @@ describe('Agents host routing', () => {
 	let port;
 	let previousEntry;
 	let previousAsset;
+	let previousFont;
 	let previousPosts;
 	let workspaceRoot;
 	let siblingRoot;
@@ -129,11 +131,14 @@ describe('Agents host routing', () => {
 		await new Promise((resolve) => runtime.listen(runtimePort, '127.0.0.1', resolve));
 		previousEntry = fs.existsSync(agentsEntry) ? fs.readFileSync(agentsEntry) : undefined;
 		previousAsset = fs.existsSync(agentsAsset) ? fs.readFileSync(agentsAsset) : undefined;
+		previousFont = fs.existsSync(sharedFont) ? fs.readFileSync(sharedFont) : undefined;
 		previousPosts = fs.existsSync(postsFile) ? fs.readFileSync(postsFile) : undefined;
 		fs.mkdirSync(path.dirname(agentsEntry), { recursive: true });
 		fs.mkdirSync(path.dirname(agentsAsset), { recursive: true });
+		fs.mkdirSync(path.dirname(sharedFont), { recursive: true });
 		fs.writeFileSync(agentsEntry, marker);
 		fs.writeFileSync(agentsAsset, assetMarker);
+		fs.writeFileSync(sharedFont, 'great-vibes-test-font');
 		port = await availablePort();
 		server = spawn(process.execPath, ['server.mjs'], {
 			cwd: appRoot,
@@ -162,6 +167,8 @@ describe('Agents host routing', () => {
 			if (previousAsset === undefined) fs.rmSync(agentsAsset, { force: true });
 			else fs.writeFileSync(agentsAsset, previousAsset);
 		}
+		if (previousFont === undefined) fs.rmSync(sharedFont, { force: true });
+		else fs.writeFileSync(sharedFont, previousFont);
 		if (previousPosts === undefined) fs.rmSync(postsFile, { force: true });
 		else fs.writeFileSync(postsFile, previousPosts);
 	});
