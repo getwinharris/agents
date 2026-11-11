@@ -82,7 +82,7 @@ If authority, credentials, or an external dependency requires a handoff, record 
 
 ### VPS continuous deployment
 
-GitHub Actions is the CI authority; the VPS is the deployment authority. The host timer in `scripts/vps/bapx-www-cd.timer` checks every two minutes and runs `scripts/vps/deploy-www.sh`. The deployment proceeds only when the exact `origin/main` SHA has a completed, successful `All checks pass` check run.
+GitHub Actions is the CI authority; the VPS is the deployment authority. The host timer in `scripts/vps/bapx-www-cd.timer` checks every two minutes and runs `scripts/vps/deploy-www.sh`. The deployment proceeds only when the exact `origin/main` SHA has completed, successful `apps/www tests and build` and `Map and OKF freshness` check runs. These are the artifact-specific release gates; repository-wide dependency and unrelated package findings remain visible in CI without making an already-built static web artifact permanently undeployable.
 
 The deployer builds a fresh immutable snapshot under `/root/bapx.in/releases/agents/<sha8>`, proves the server contracts and web/admin output, changes only the `apps/www` mounts in the Compose file, recreates `bapx-www`, and checks the public, MediaHub, docs, blogs, and key-gated API routes. A failed health check restores the previous Compose file and recreates the prior container. Customer data remains on the separate persistent `apps/www/data` mount and is never copied into a release.
 

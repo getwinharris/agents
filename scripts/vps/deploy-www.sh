@@ -18,11 +18,17 @@ if [[ -n "$requested_sha" && "$sha" != "$requested_sha" ]]; then
   exit 0
 fi
 
-check=$(gh api "repos/getwinharris/agents/commits/$sha/check-runs" --jq '[.check_runs[] | select(.name == "All checks pass")] | sort_by(.started_at) | last | [.status,.conclusion] | @tsv')
-if [[ "$check" != $'completed\tsuccess' ]]; then
-  echo "CI is not green for $sha (${check:-missing}); deployment deferred"
-  exit 0
-fi
+checks=$(mktemp /tmp/bapx-check-runs.XXXXXX)
+gh api "repos/getwinharris/agents/commits/$sha/check-runs" > "$checks"
+for required in 'apps/www tests and build' 'Map and OKF freshness'; do
+  check=$(jq -r --arg name "$required" '[.check_runs[] | select(.name == $name)] | sort_by(.started_at) | last | [.status,.conclusion] | @tsv' "$checks")
+  if [[ "$check" != $'completed\tsuccess' ]]; then
+    echo "required check '$required' is not green for $sha (${check:-missing}); deployment deferred"
+    rm -f "$checks"
+    exit 0
+  fi
+done
+rm -f "$checks"
 
 if rg -q "/releases/agents/$short/apps/www/dist" "$compose_file"; then
   echo "bapX-www already points at $short"
