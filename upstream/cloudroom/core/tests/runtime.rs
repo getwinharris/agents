@@ -15,6 +15,24 @@ impl Drop for Directory {
     }
 }
 
+fn git_supports_config_hooks() -> bool {
+    let output = Command::new("git")
+        .arg("--version")
+        .output()
+        .expect("git must be available");
+    String::from_utf8_lossy(&output.stdout)
+        .split_whitespace()
+        .nth(2)
+        .and_then(|version| {
+            let mut parts = version.split('.');
+            Some((
+                parts.next()?.parse::<u32>().ok()?,
+                parts.next()?.parse::<u32>().ok()?,
+            ))
+        })
+        .is_some_and(|version| version >= (2, 54))
+}
+
 fn fixture() -> (Directory, Config) {
     static NEXT: AtomicU64 = AtomicU64::new(0);
     let dir = Directory(std::env::temp_dir().join(format!(
@@ -102,7 +120,11 @@ os._exit(0)"#;
     let details = capture_stderr(script, false).await;
     assert_eq!(
         String::from_utf8_lossy(details.stderr()),
-        "stripped+notice kept"
+        if git_supports_config_hooks() {
+            "stripped+notice kept"
+        } else {
+            "kept kept"
+        }
     );
 }
 

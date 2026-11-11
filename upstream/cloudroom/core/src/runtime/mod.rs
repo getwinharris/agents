@@ -1325,6 +1325,26 @@ fn plan_limit_error(provider: &str, resets: Option<u64>, said: &str) -> String {
 mod tests {
     #[test]
     fn co_author_hook_strips_real_repositories_and_keeps_fixtures() {
+        let git = std::process::Command::new("git")
+            .arg("--version")
+            .output()
+            .expect("git must be available");
+        let version = String::from_utf8_lossy(&git.stdout);
+        let supports_config_hooks = version
+            .split_whitespace()
+            .nth(2)
+            .and_then(|version| {
+                let mut parts = version.split('.');
+                Some((
+                    parts.next()?.parse::<u32>().ok()?,
+                    parts.next()?.parse::<u32>().ok()?,
+                ))
+            })
+            .is_some_and(|version| version >= (2, 54));
+        if !supports_config_hooks {
+            eprintln!("skipping config-hook test on {version}");
+            return;
+        }
         let root =
             std::env::temp_dir().join(format!("cloudroom-co-authors-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
