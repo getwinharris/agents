@@ -7,6 +7,8 @@ const mediaHubPage = fs.readFileSync(
 	'utf8',
 );
 const styles = fs.readFileSync(new URL('../src/styles/bapx.css', import.meta.url), 'utf8');
+const docsStyles = fs.readFileSync(new URL('../src/styles/docs-global.css', import.meta.url), 'utf8');
+const adminStyles = fs.readFileSync(new URL('../admin/src/index.css', import.meta.url), 'utf8');
 const server = fs.readFileSync(new URL('../server.mjs', import.meta.url), 'utf8');
 
 test('Media Hub owns a responsive studio funnel and first-party lead submission', () => {
@@ -22,4 +24,13 @@ test('the Node host router emits an HTTP redirect for the docs root', () => {
 	assert.match(server, /host\s*===\s*'docs\.bapx\.in'/);
 	assert.match(server, /urlPath\s*===\s*'\/'/);
 	assert.match(server, /writeHead\(302,\s*\{\s*Location:\s*'https:\/\/docs\.bapx\.in\/getting-started\/quickstart\/'/s);
+});
+
+test('subdomain wordmarks share the purple handwritten alignment contract', () => {
+	for (const stylesheet of [styles, docsStyles]) {
+		assert.match(stylesheet, /family=Caveat/);
+		assert.match(stylesheet, /\.brand-lockup\s*\{[^}]*align-items:\s*center/s);
+		assert.match(stylesheet, /\.brand-lockup span\s*\{[^}]*color:\s*(?:var\(--accent-bright-purple\)|#a155e1)[^}]*font-family:\s*'Caveat'/s);
+	}
+	assert.match(adminStyles, /\.surface-wordmark\s*\{[^}]*color:\s*#a155e1[^}]*font-family:\s*'Caveat'/s);
 });

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap');
 @import 'tailwindcss';
 
 @theme inline {
@@ -126,21 +127,26 @@
 
 .brand-lockup {
 	display: inline-flex;
-	align-items: baseline;
-	gap: 0.48rem;
+	align-items: center;
+	min-height: 2rem;
+	gap: 0.58rem;
 }
 
 .brand-lockup img {
 	flex: 0 0 auto;
+	align-self: center;
 }
 
 .brand-lockup span {
-	color: var(--ink);
-	font-size: 1.08rem;
-	font-style: italic;
-	font-weight: 400;
-	letter-spacing: -0.04em;
-	opacity: 0.9;
+	display: inline-block;
+	color: #a155e1;
+	font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+	font-size: 1.5rem;
+	font-style: normal;
+	font-weight: 600;
+	line-height: 1;
+	letter-spacing: 0;
+	transform: translateY(0.04em);
 }
 
 [data-docs-sidebar-link] {
