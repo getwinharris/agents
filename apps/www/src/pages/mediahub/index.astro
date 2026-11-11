@@ -2,183 +2,95 @@
 import "../../styles/global.css";
 import { mediahubClients } from "../../lib/mediahub-clients";
 
-const serviceTracks = [
-  ["01", "Forward-deployed engineering", "Embedded builders accountable for production delivery."],
-  ["02", "Enterprise AI + data", "AI CRM, ERP, knowledge systems, enterprise data, and OKF."],
-  ["03", "Commerce systems", "Ecommerce, operations, integrations, and automation."],
-  ["04", "Growth infrastructure", "SMM, influencer, funnels, ads, and measurement."],
+const services = [
+  ["Brand strategy & identity", "Positioning, identity systems, campaign language, and practical brand tools."],
+  ["Content & production", "Posters, reels, editing, photography direction, motion, print, television, radio, and campaign production."],
+  ["Social Media Management", "Channel strategy, content calendars, publishing, community workflows, and recurring creative production."],
+  ["Digital Marketing", "Audience strategy, Meta and search campaigns, landing journeys, lead operations, and measurement."],
+  ["Websites & commerce", "Campaign sites, booking, ecommerce, customer accounts, owner CMS, CRM, and operational integrations."],
+  ["AI, data & automation", "Custom applications, enterprise data, agents, workflow automation, CRM/ERP, and forward-deployed engineering."],
 ] as const;
-
-const fdeTraits = [
-  ["Not consulting", "Production code, not a slide deck."],
-  ["Not staff augmentation", "An accountable delivery unit, not generic capacity."],
-  ["Active builders", "Integrations, applications, data pipelines, and operations."],
-  ["Field feedback", "Real constraints flow back into the platform and delivery system."],
-] as const;
-
-const deliveryStages = [
-  ["01", "Discover", "Map workflows, data, constraints, and success criteria."],
-  ["02", "Embed", "Work inside the client environment with clear access boundaries."],
-  ["03", "Build", "Ship production increments, integrations, and operational evidence."],
-  ["04", "Operate", "Measure, improve, document, and hand over."],
-] as const;
-
+const serviceValue = (title: string) => title === "AI, data & automation" ? "AI, data, and automation" : title.replaceAll("&", "and");
 ---
-
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Forward-deployed engineering and enterprise systems | bapX MediaHub</title>
-    <meta name="description" content="Direct custom-quote delivery for forward-deployed engineering, enterprise AI and data, commerce systems, and growth infrastructure." />
-    <link rel="canonical" href="https://mediahub.bapx.in/" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=bapx-20260711" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  </head>
-  <body class="mediahub-page">
-    <nav class="sticky top-0 z-50 border-b border-[var(--hairline)] bg-[var(--canvas)]/90 backdrop-blur-sm">
-      <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <div class="flex h-full items-center gap-8">
-          <a href="/" class="brand-lockup" aria-label="bapX MediaHub home">
-            <img src="/brand/bapx-logo-main.svg" alt="bapX" class="h-7 w-auto" /><span>MediaHub</span>
-          </a>
-          <div class="bapx-nav hidden lg:flex h-full items-center gap-7">
-            <a href="https://bapx.in/">Home</a><a href="#services">Services</a><a href="#fde">FDE</a><a href="#work">Work</a><a href="#process">Process</a>
-          </div>
-        </div>
-        <div class="flex items-center gap-3">
-          <a href="#scope" class="bapx-pill bapx-pill-primary landing-desktop-action">Discuss your system</a>
-          <button class="landing-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mediahub-mobile-menu">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-          </button>
-        </div>
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Creative, social, digital and custom systems | bapX MediaHub</title>
+  <meta name="description" content="Brand, content production, social media management, digital marketing, websites, commerce and custom systems—scoped around your business." />
+  <link rel="canonical" href="https://mediahub.bapx.in/" /><link rel="icon" type="image/svg+xml" href="/favicon.svg?v=bapx-20260711" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body class="mediahub-page mediahub-studio">
+  <nav class="mediahub-nav" aria-label="Primary navigation">
+    <div class="section-inner mediahub-nav-inner">
+      <a href="/" class="brand-lockup" aria-label="bapX MediaHub home"><img src="/brand/bapx-logo-main.svg" alt="bapX" /><span>MediaHub</span></a>
+      <div class="mediahub-desktop-nav"><a href="#work">Work</a><a href="#services">Services</a><a href="#approach">Approach</a></div>
+      <a href="#brief" class="bapx-pill bapx-pill-primary mediahub-desktop-cta">Start a project</a>
+      <button class="mediahub-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mediahub-mobile-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
+    </div>
+    <div id="mediahub-mobile-menu" class="mediahub-mobile-menu" hidden><a href="#work">Work</a><a href="#services">Services</a><a href="#approach">Approach</a><a href="#brief">Start a project</a><a href="https://bapx.in/">bapX Home</a></div>
+  </nav>
+  <main>
+    <section class="studio-hero">
+      <img class="studio-hero-art" src="/brand/mediahub/mediahub-fold-hero.png" alt="" fetchpriority="high" />
+      <div class="section-inner studio-hero-inner">
+        <h1>We create brands, content, social campaigns, digital marketing, and the custom systems behind growth.</h1>
+        <div class="hero-actions"><a href="#brief" class="bapx-button bapx-button-accent">Start a project brief <span aria-hidden="true">→</span></a><a href="#work" class="bapx-button">See client work</a></div>
       </div>
-      <div id="mediahub-mobile-menu" class="landing-mobile-menu" hidden>
-        <a href="https://bapx.in/">Home</a><a href="#services">Services</a><a href="#fde">FDE</a><a href="#work">Work</a><a href="#process">Process</a><a href="#scope">Discuss your system</a>
-      </div>
-    </nav>
-
-    <main>
-      <section class="mediahub-hero">
-        <div class="section-inner mediahub-hero-grid">
-          <div>
-            <h1>Embedded engineering for the systems your business actually runs.</h1>
-            <p>Forward-deployed engineers design, build, integrate, and operate custom software inside your real workflows—from enterprise AI and data to commerce and growth.</p>
-            <div class="hero-actions">
-              <a href="#scope" class="bapx-button bapx-button-accent">Discuss your system</a>
-              <a href="#services" class="bapx-button">Explore services</a>
-            </div>
-            <p class="engagement-boundary">Direct enterprise engagement · Custom quote · Separate from agents.bapx.in</p>
-          </div>
-          <div class="systems-field" aria-label="Systems, data, workflows, automation, and growth converge into one production delivery system">
-            <svg viewBox="0 0 620 410" role="img" aria-hidden="true">
-              <defs><linearGradient id="flow" x1="0" x2="1"><stop offset="0" stop-color="#4d4f55"/><stop offset=".55" stop-color="#8851d9"/><stop offset="1" stop-color="#b16be4"/></linearGradient></defs>
-              <g fill="none" stroke="url(#flow)" stroke-width="1.5" opacity=".78">
-                <path d="M22 60C180 60 215 205 310 205S405 74 548 74"/><path d="M22 120C176 120 216 205 310 205S408 132 548 132"/>
-                <path d="M22 180C176 180 216 205 310 205S408 190 548 190"/><path d="M22 240C176 240 216 205 310 205S408 248 548 248"/>
-                <path d="M22 300C180 300 215 205 310 205S405 306 548 306"/><path d="M22 350C180 350 215 205 310 205S405 364 548 364"/>
-              </g>
-              <g fill="#8851d9"><circle cx="310" cy="205" r="6"/><circle cx="22" cy="60" r="4"/><circle cx="22" cy="120" r="4"/><circle cx="22" cy="180" r="4"/><circle cx="22" cy="240" r="4"/><circle cx="22" cy="300" r="4"/><circle cx="22" cy="350" r="4"/></g>
-              <g fill="#dadbdf" font-family="JetBrains Mono, monospace" font-size="13"><text x="565" y="79">SYSTEMS</text><text x="565" y="137">DATA</text><text x="565" y="195">WORKFLOWS</text><text x="565" y="253">AUTOMATION</text><text x="565" y="311">GROWTH</text><text x="565" y="369">OPERATIONS</text></g>
-            </svg>
-          </div>
-        </div>
-      </section>
-
-      <section id="services" class="mediahub-band service-selection">
-        <div class="section-inner">
-          <h2>Choose the outcome, not a package.</h2>
-          <div class="service-rail">
-            {serviceTracks.map(([step, title, body]) => (
-              <a href="#scope" data-service={title}><span>{step}</span><h3>{title}</h3><p>{body}</p><em aria-hidden="true">→</em></a>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="fde" class="mediahub-band fde-section">
-        <div class="section-inner">
-          <h2>Forward-deployed means we build with you.</h2>
-          <div class="fde-comparison">
-            {fdeTraits.map(([title, body], index) => (
-              <article>
-                <span class={`fde-icon fde-icon-${index + 1}`} aria-hidden="true">
-                  {index === 0 ? <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11"/><path d="M8 24 24 8"/></svg> : null}
-                  {index === 1 ? <svg viewBox="0 0 32 32"><circle cx="11" cy="11" r="5"/><circle cx="22" cy="12" r="4"/><path d="M3 27c0-6 3-9 8-9s8 3 8 9M18 19c5 0 8 3 8 8"/></svg> : null}
-                  {index === 2 ? <svg viewBox="0 0 32 32"><path d="m11 7-8 9 8 9M21 7l8 9-8 9M18 4l-5 24"/></svg> : null}
-                  {index === 3 ? <svg viewBox="0 0 32 32"><path d="M5 10h20l-5-5M27 22H7l5 5"/></svg> : null}
-                </span>
-                <h3>{title}</h3><p>{body}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="process" class="mediahub-band delivery-section">
-        <div class="section-inner">
-          <h2>From operating problem to production system.</h2>
-          <div class="delivery-rail">
-            {deliveryStages.map(([step, title, body]) => (
-              <article><span>{step}</span><h3>{title}</h3><p>{body}</p></article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="work" class="mediahub-band work-section">
-        <div class="section-inner">
-          <div class="work-heading"><h2>Active client portfolio</h2><p>Verified customer products and channels we have delivered and continue to maintain across web, commerce, booking, content, support, and social operations.</p></div>
-          <div class="work-list">
-            {mediahubClients.map((client) => (
-              <a href={`clients/${client.slug}/`} aria-label={`View ${client.name} client work`}>
-                <span class="work-mark"><img src={client.logo} alt="" loading="lazy" referrerpolicy="no-referrer" /></span>
-                <span class="work-client"><strong>{client.name}</strong><small>{client.category}</small></span>
-                <span class="work-summary">{client.summary}</span>
-                <em aria-hidden="true">↗</em>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="scope" class="mediahub-band scope-section">
-        <div class="section-inner scope-panel">
-          <div><h2>Bring us the workflow that cannot stay manual.</h2><p>Tell us what must integrate, who operates it, and what a production outcome looks like. We will scope the engagement and infrastructure in a custom quote.</p></div>
-          <form action="/contact/" method="get" class="scope-form">
-            <label><span>Primary outcome</span><select name="service" required><option value="">Choose an outcome</option><option value="Forward-deployed engineering">Forward-deployed engineering</option><option value="Enterprise AI and data">Enterprise AI and data</option><option value="Commerce systems">Commerce systems</option><option value="Growth infrastructure">Growth infrastructure</option></select></label>
-            <label><span>Current systems</span><select name="systems" required><option value="">Choose your system mix</option><option value="CRM, ERP, or enterprise data">CRM, ERP, or enterprise data</option><option value="Commerce and operations">Commerce and operations</option><option value="Web, content, or growth">Web, content, or growth</option><option value="Multiple connected systems">Multiple connected systems</option></select></label>
-            <label><span>Timeline</span><select name="timeline" required><option value="">Choose a timeline</option><option value="Immediate discovery">Immediate discovery</option><option value="Within 30 days">Within 30 days</option><option value="This quarter">This quarter</option><option value="Exploring scope">Exploring scope</option></select></label>
-            <button type="submit" class="bapx-button bapx-button-accent">Start a scoped conversation</button>
-          </form>
-          <p class="scope-boundary">Direct enterprise engagement. No self-service Agents subscription required.</p>
-        </div>
-      </section>
-    </main>
-
-    <footer class="page-footer"><div class="section-inner"><span>bapX MediaHub · Direct enterprise delivery</span><span>&copy; {new Date().getFullYear()}</span></div></footer>
-    <script is:inline>
-      const menuToggle = document.querySelector('.landing-menu-toggle');
-      const mobileMenu = document.querySelector('#mediahub-mobile-menu');
-      const setMenuOpen = (open) => {
-        mobileMenu.hidden = !open;
-        menuToggle.setAttribute('aria-expanded', String(open));
-        menuToggle.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
-      };
-      menuToggle.addEventListener('click', () => setMenuOpen(menuToggle.getAttribute('aria-expanded') !== 'true'));
-      mobileMenu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenuOpen(false)));
-      document.querySelectorAll('[data-service]').forEach((link) => link.addEventListener('click', () => {
-        const select = document.querySelector('select[name="service"]');
-        const value = link.dataset.service;
-        const option = Array.from(select.options).find((item) => item.value === value || item.value === value.replace('+', 'and'));
-        if (option) select.value = option.value;
-      }));
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') { setMenuOpen(false); menuToggle.focus(); }
-      });
-    </script>
-  </body>
+    </section>
+    <section id="work" class="studio-work"><div class="section-inner">
+      <p class="studio-label">Client work</p>
+      <div class="studio-section-heading"><h2>Work across health, wellness, education, events and commerce.</h2><p>Seven active client stories, limited to products and channels we can verify. We do not publish invented results or borrowed creative.</p></div>
+      <div class="studio-work-rail" aria-label="Client case studies">{mediahubClients.map((client, index) => (
+        <a href={`clients/${client.slug}/`} aria-label={`View ${client.name} client work`}><span class={`studio-work-media studio-work-media-${index + 1}`}><img src={client.logo} alt="" loading="lazy" /><span aria-hidden="true">View case ↗</span></span><strong>{client.name}</strong><small>{client.category}</small></a>
+      ))}</div>
+    </div></section>
+    <section id="services" class="studio-services"><div class="section-inner studio-services-grid">
+      <div><p class="studio-label">Services</p><h2>A creative and technology studio for growth.</h2><p>Every engagement is scoped around the outcome, channels, production, systems, and operating effort it actually needs.</p></div>
+      <div class="studio-service-list">{services.map(([title, body]) => <a href="#brief" data-service={serviceValue(title)}><span><strong>{title}</strong><small>{body}</small></span><em aria-hidden="true">→</em></a>)}</div>
+    </div></section>
+    <section id="approach" class="studio-approach"><div class="section-inner studio-approach-grid">
+      <div><p class="studio-label">Approach</p><h2>Creative work and delivery stay connected.</h2></div>
+      <ol><li><span>01</span><div><strong>Find the real audience problem</strong><p>We clarify who needs to act, what they need to understand, and where the journey currently breaks.</p></div></li><li><span>02</span><div><strong>Shape the right mix</strong><p>Brand, production, social, advertising, funnel, website, and systems work are combined only where the outcome needs them.</p></div></li><li><span>03</span><div><strong>Make and operate</strong><p>We build the creative and technical work, then support the publishing, campaigns, and workflows in the agreed scope.</p></div></li></ol>
+    </div></section>
+    <section id="brief" class="studio-brief"><div class="section-inner studio-brief-grid">
+      <div><p class="studio-label">Start a project</p><h2>Tell us what you need to move forward.</h2><p>Share a useful brief. It is saved securely on this site and appears in the private bapX Admin workspace only after the server confirms the submission.</p></div>
+      <form id="mediahub-inquiry" class="studio-brief-form" novalidate>
+        <input type="hidden" name="startedAt" value="" /><input class="brief-honeypot" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
+        <div class="brief-field"><label for="brief-name">Name <span>*</span></label><input id="brief-name" name="name" autocomplete="name" required maxlength="100" /><p data-error="name"></p></div>
+        <div class="brief-field"><label for="brief-email">Work email <span>*</span></label><input id="brief-email" name="email" type="email" autocomplete="email" required maxlength="254" /><p data-error="email"></p></div>
+        <div class="brief-field"><label for="brief-phone">Phone <small>optional</small></label><input id="brief-phone" name="phone" type="tel" autocomplete="tel" maxlength="24" /><p data-error="phone"></p></div>
+        <div class="brief-field"><label for="brief-organisation">Organisation <span>*</span></label><input id="brief-organisation" name="organisation" autocomplete="organization" required maxlength="120" /><p data-error="organisation"></p></div>
+        <div class="brief-field"><label for="brief-service">Service <span>*</span></label><select id="brief-service" name="service" required><option value="">Choose a service</option>{services.map(([title]) => <option value={serviceValue(title)}>{title}</option>)}<option>Forward-deployed engineering</option></select><p data-error="service"></p></div>
+        <div class="brief-field"><label for="brief-budget">Budget range <span>*</span></label><select id="brief-budget" name="budget" required><option value="">Choose a range</option><option>Under ₹50,000</option><option>₹50,000–₹1,50,000</option><option>₹1,50,000–₹5,00,000</option><option>Above ₹5,00,000</option><option>Need help scoping</option></select><p data-error="budget"></p></div>
+        <div class="brief-field brief-field-wide"><label for="brief-timeline">Timeline <span>*</span></label><select id="brief-timeline" name="timeline" required><option value="">Choose a timeline</option><option>As soon as possible</option><option>Within 30 days</option><option>This quarter</option><option>Exploring options</option></select><p data-error="timeline"></p></div>
+        <div class="brief-field brief-field-wide"><label for="brief-details">Project brief <span>*</span></label><textarea id="brief-details" name="brief" rows="5" required minlength="30" maxlength="4000" placeholder="Your audience, goals, channels, current setup, constraints, and what a useful outcome looks like."></textarea><p data-error="brief"></p></div>
+        <div class="brief-consent brief-field-wide"><input id="brief-consent" name="consent" type="checkbox" required /><label for="brief-consent">I agree to the <a href="https://bapx.in/privacy/" target="_blank" rel="noopener noreferrer">Privacy Policy</a> and consent to bapX MediaHub using this information to respond to this project brief. <span>*</span></label><p data-error="consent"></p></div>
+        <div class="brief-submit-row brief-field-wide"><button class="bapx-button bapx-button-accent" type="submit">Submit project brief <span aria-hidden="true">→</span></button><p id="brief-status" role="status" aria-live="polite"></p></div>
+      </form>
+      <div id="brief-success" class="brief-success" hidden tabindex="-1"><span aria-hidden="true">✓</span><h3>Project brief submitted.</h3><p>Thanks for sharing the context. Your reference is <strong></strong>. The MediaHub team will review it and respond using the details you provided.</p><a href="#work">Review our client work</a></div>
+    </div></section>
+  </main>
+  <footer class="page-footer"><div class="section-inner"><span>bapX MediaHub · Creative, growth and systems delivery</span><span>&copy; {new Date().getFullYear()}</span></div></footer>
+  <script is:inline>
+    const menuToggle = document.querySelector('.mediahub-menu-toggle'); const mobileMenu = document.querySelector('#mediahub-mobile-menu');
+    const setMenuOpen = (open) => { mobileMenu.hidden = !open; menuToggle.setAttribute('aria-expanded', String(open)); menuToggle.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu'); };
+    menuToggle.addEventListener('click', () => setMenuOpen(menuToggle.getAttribute('aria-expanded') !== 'true')); mobileMenu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenuOpen(false))); document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { setMenuOpen(false); menuToggle.focus(); } });
+    const form = document.querySelector('#mediahub-inquiry'); form.elements.startedAt.value = String(Date.now()); const serviceSelect = form.elements.service;
+    document.querySelectorAll('[data-service]').forEach((link) => link.addEventListener('click', () => { const wanted = link.dataset.service; if ([...serviceSelect.options].some((option) => option.value === wanted)) serviceSelect.value = wanted; }));
+    const params = new URLSearchParams(location.search); const device = () => innerWidth < 720 ? 'mobile' : innerWidth < 1100 ? 'tablet' : 'desktop';
+    const clearErrors = () => { form.querySelectorAll('[data-error]').forEach((item) => item.textContent = ''); form.querySelectorAll('[aria-invalid="true"]').forEach((item) => item.removeAttribute('aria-invalid')); };
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault(); clearErrors(); const button = form.querySelector('button[type="submit"]'); const status = document.querySelector('#brief-status'); if (!form.reportValidity()) return;
+      const values = Object.fromEntries(new FormData(form)); const payload = { ...values, consent: form.elements.consent.checked, page: location.href.slice(0, 240), referrer: document.referrer.slice(0, 500), utmSource: params.get('utm_source') || '', utmMedium: params.get('utm_medium') || '', utmCampaign: params.get('utm_campaign') || '', utmContent: params.get('utm_content') || '', device: device() };
+      button.disabled = true; button.textContent = 'Submitting…'; status.textContent = '';
+      try { const response = await fetch('/api/mediahub/inquiries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); const body = await response.json();
+        if (!response.ok) { Object.entries(body.fields || {}).forEach(([name, message]) => { const field = form.elements[name]; const error = form.querySelector(`[data-error="${name}"]`); if (field) field.setAttribute('aria-invalid', 'true'); if (error) error.textContent = message; }); throw new Error(body.message || 'Your project brief could not be submitted.'); }
+        form.hidden = true; const success = document.querySelector('#brief-success'); success.hidden = false; success.querySelector('strong').textContent = body.inquiry.id; success.focus(); window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: 'mediahub_lead_submitted', inquiry_id: body.inquiry.id, service: payload.service });
+      } catch (error) { status.textContent = error.message || 'Your project brief could not be submitted.'; } finally { button.disabled = false; button.innerHTML = 'Submit project brief <span aria-hidden="true">→</span>'; }
+    });
+  </script>
+</body>
 </html>

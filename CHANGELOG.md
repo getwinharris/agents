@@ -8,6 +8,7 @@ description: "This pre-1.0 release reworks how an agent's conversation is durabl
 ## Unreleased
 
 - Authentication: new passwords now accept a minimum of 8 characters while requiring uppercase, lowercase, a number, and a symbol.
+- MediaHub now presents verified creative, social, digital-marketing, web, commerce, automation, and forward-deployed work in a responsive proof-led funnel. Project briefs are validated and persisted on-site, counted only after server success, and available to authorised operators in Admin with source and qualification summaries. NEBO now reflects its verified custom PHP/MySQL rebuild instead of the retired WordPress description (#180).
 
 ### Authentication
 

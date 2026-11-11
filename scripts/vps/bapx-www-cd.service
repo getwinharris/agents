@@ -1,0 +1,11 @@
+[Unit]
+Description=Deploy the green origin/main SHA to bapX-www
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/bapx.in/project-packages-git/agents-production
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/bin/bash /root/bapx.in/project-packages-git/agents-production/scripts/vps/deploy-www.sh
+TimeoutStartSec=30min

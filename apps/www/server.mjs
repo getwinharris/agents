@@ -13,6 +13,7 @@ import { createGitHubInstallationAuthorizationProvider } from './src/server/gith
 import { bearerToken, createApiKeyStore, proxyToApiPlane } from './src/server/api-gateway.mjs';
 import { handleMcpMessage, isAllowedMcpOrigin, negotiateProtocolVersion, MAX_MCP_BODY_BYTES, MCP_ERRORS } from './src/server/mcp-gateway.mjs';
 import { createConnectorStore } from './src/server/connector-store.mjs';
+import { createMediaHubInquiryStore, MediaHubInquiryError } from './src/server/mediahub-inquiries.mjs';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(dirname, 'dist');
@@ -26,6 +27,10 @@ const adminAuthorization = parseAdminGithubUserIds(process.env.BAPX_ADMIN_GITHUB
 const agentsRuntimeOrigin = new URL(process.env.AGENTS_RUNTIME_ORIGIN || 'http://127.0.0.1:3003');
 const apiKeyStore = createApiKeyStore({ workspaceRoot });
 const connectorStore = createConnectorStore({ workspaceRoot });
+const mediaHubInquiryStore = createMediaHubInquiryStore({
+	file: process.env.BAPX_MEDIAHUB_INQUIRIES_FILE || path.join(dataDir, 'mediahub-inquiries.json'),
+});
+const mediaHubRateLimits = new Map();
 const apiPlaneOrigin = process.env.BAPX_API_PLANE_ORIGIN || 'http://127.0.0.1:20130';
 const apiPlaneToken = process.env.BAPX_API_PLANE_TOKEN || '';
 let githubInstallationTokenProvider;
@@ -102,6 +107,27 @@ function writePosts(posts) {
 function jsonResponse(res, status, data) {
 	res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
 	res.end(JSON.stringify(data));
+}
+
+function mediaHubRequestKey(req) {
+	const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+	const address = forwarded || req.socket.remoteAddress || 'unknown';
+	return crypto.createHash('sha256').update(`${address}:${process.env.BAPX_MEDIAHUB_RATE_SALT || 'mediahub'}`).digest('hex');
+}
+
+function mediaHubRateLimited(req, now = Date.now()) {
+	const key = mediaHubRequestKey(req);
+	const windowStart = now - 60 * 60 * 1000;
+	const recent = (mediaHubRateLimits.get(key) || []).filter((timestamp) => timestamp > windowStart);
+	if (recent.length >= 5) return true;
+	recent.push(now);
+	mediaHubRateLimits.set(key, recent);
+	if (mediaHubRateLimits.size > 2_000) {
+		for (const [candidate, timestamps] of mediaHubRateLimits) {
+			if (!timestamps.some((timestamp) => timestamp > windowStart)) mediaHubRateLimits.delete(candidate);
+		}
+	}
+	return false;
 }
 
 function parseBody(req) {
@@ -634,6 +660,64 @@ async function handleAdminAPI(req, res, urlPath) {
 	return false;
 }
 
+async function handleMediaHubInquiryAPI(req, res, urlPath, host) {
+	if (req.method === 'POST' && urlPath === '/api/mediahub/inquiries' && host === 'mediahub.bapx.in') {
+		if (req.headers.origin !== 'https://mediahub.bapx.in') {
+			jsonResponse(res, 403, { error: 'cross_origin_forbidden', message: 'Submit this brief from mediahub.bapx.in.' });
+			return true;
+		}
+		if (mediaHubRateLimited(req)) {
+			jsonResponse(res, 429, { error: 'rate_limited', message: 'Too many attempts. Please try again in an hour.' });
+			return true;
+		}
+		try {
+			const payload = parseBodyBuffer(await readRawBody(req, 16 * 1024), req.headers['content-type'] || '');
+			const inquiry = mediaHubInquiryStore.create(payload, { headers: req.headers });
+			jsonResponse(res, 201, { inquiry, message: 'Project brief submitted.' });
+		} catch (error) {
+			if (error?.name === 'PayloadTooLargeError') jsonResponse(res, 413, { error: 'payload_too_large', message: 'The project brief is too large.' });
+			else if (error instanceof MediaHubInquiryError) jsonResponse(res, error.status, { error: error.code, message: error.message, fields: error.fields });
+			else if (error instanceof SyntaxError || error instanceof TypeError) jsonResponse(res, 400, { error: 'invalid_request', message: 'Submit the project brief form again.' });
+			else {
+				console.error('[bapx:mediahub] inquiry persistence failed', error);
+				jsonResponse(res, 503, { error: 'inquiry_storage_unavailable', message: 'We could not save your brief. Your information was not recorded; please try again.' });
+			}
+		}
+		return true;
+	}
+	if (host === 'admin.bapx.in' && urlPath === '/api/mediahub/inquiries') {
+		if (req.method === 'GET') {
+			try {
+				jsonResponse(res, 200, { inquiries: mediaHubInquiryStore.list(), summary: mediaHubInquiryStore.summary() });
+			} catch (error) {
+				console.error('[bapx:mediahub] inquiry read failed', error);
+				jsonResponse(res, 503, { error: 'inquiry_storage_unavailable', message: 'MediaHub inquiries could not be loaded.' });
+			}
+			return true;
+		}
+		if (req.method === 'PATCH') {
+			let payload;
+			try {
+				payload = parseBodyBuffer(await readRawBody(req, 8 * 1024), req.headers['content-type'] || '');
+			} catch {
+				jsonResponse(res, 400, { error: 'invalid_request', message: 'Could not update this inquiry.' });
+				return true;
+			}
+			try {
+				jsonResponse(res, 200, { inquiry: mediaHubInquiryStore.updateStatus(String(payload.id || ''), String(payload.status || '')) });
+			} catch (error) {
+				if (error instanceof MediaHubInquiryError) jsonResponse(res, error.status, { error: error.code, message: error.message });
+				else {
+					console.error('[bapx:mediahub] inquiry update failed', error);
+					jsonResponse(res, 503, { error: 'inquiry_storage_unavailable', message: 'The inquiry status could not be saved.' });
+				}
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
 // OpenAI-compatible payloads do not need to be arbitrarily large, and this runs
 // on a public endpoint: without a ceiling, one key holder can buffer an
 // unbounded or never-ending chunked body and exhaust the process for everyone.
@@ -982,6 +1066,9 @@ http.createServer(async (req, res) => {
 	const prefix = HOST_PREFIX[host] ?? '';
 	const urlPath = req.url?.split('?')[0] ?? '';
 	if (host === 'api.bapx.in') { await handleApiGateway(req, res, urlPath); return; }
+	if (host === 'mediahub.bapx.in' && urlPath === '/api/mediahub/inquiries') {
+		if (await handleMediaHubInquiryAPI(req, res, urlPath, host)) return;
+	}
 	if (PLATFORM_API_HOSTS.has(host) && urlPath.startsWith('/api/platform/connections')) {
 		// The stores now throw on unreadable or corrupt collections rather than
 		// silently reporting "empty". Without a boundary here that rejection
@@ -1083,6 +1170,9 @@ http.createServer(async (req, res) => {
 	}
 	if (prefix === '/admin' && urlPath.startsWith('/api/')) {
 		if (!authorizeAdminApi(req, res, sessionAccount, host, req.method !== 'GET' && req.method !== 'HEAD')) return;
+		if (urlPath === '/api/mediahub/inquiries') {
+			if (await handleMediaHubInquiryAPI(req, res, urlPath, host)) return;
+		}
 		if (urlPath.startsWith('/api/ws/')) {
 			const handled = await handleWorkspaceAPI(req, res, urlPath, workspaceRoot);
 			if (handled) return;

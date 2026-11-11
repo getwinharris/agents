@@ -10,6 +10,7 @@ import { ChatView } from '@/components/chat/chat-view'
 import { NewChat } from '@/components/new-chat'
 import { OrchestrationPage } from '@/components/orchestration-page'
 import { ProjectsPage } from '@/components/projects-page'
+import { MediaHubInquiriesPage } from '@/components/mediahub-inquiries-page'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { operatingSurface } from '@/lib/operating-surface.mjs'
@@ -102,6 +103,12 @@ const projectsRoute = createRoute({
   component: ProjectsPage,
 })
 
+const mediaHubRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/mediahub',
+  component: MediaHubInquiriesPage,
+})
+
 const operationalRoutes = (Object.keys(surfaces) as Array<keyof typeof surfaces>).map((surface) =>
   createRoute({
     getParentRoute: () => rootRoute,
@@ -110,7 +117,7 @@ const operationalRoutes = (Object.keys(surfaces) as Array<keyof typeof surfaces>
   }),
 )
 
-const routeTree = rootRoute.addChildren([indexRoute, chatRoute, projectsRoute, ...operationalRoutes])
+const routeTree = rootRoute.addChildren([indexRoute, chatRoute, projectsRoute, mediaHubRoute, ...operationalRoutes])
 
 export const router = createRouter({ routeTree })
 

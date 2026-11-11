@@ -124,7 +124,7 @@ The left navigation follows the canonical demo/sidebar interaction and includes:
 8. **Projects** — exposes workspace projects, repositories, files, maps, previews, hosted app subdomains, and changes rooted at `/root/bapx.in`.
 9. **Team** — bapX people, roles, permissions, assignments, and human coordination.
 10. **Agents** — main and role-specific agents, including their tools, responsibilities, availability, and work.
-11. **MediaHub** — Admin-only external navigation to the direct-client enterprise delivery funnel. It is not rendered on the customer Agents surface and does not make MediaHub an Agents subscription feature.
+11. **MediaHub leads** — Admin-only qualification for project briefs persisted by `POST mediahub.bapx.in/api/mediahub/inquiries`. It lists contact data, brief context, source/UTM/device summaries, and qualification status. CTA clicks and validation attempts are not leads. It is not rendered on the customer Agents surface and does not make MediaHub an Agents subscription feature.
 The project list remains visible below the main navigation, matching the supplied reference structure.
 
 ## First implementation boundary
