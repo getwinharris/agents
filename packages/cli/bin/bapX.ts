@@ -1827,6 +1827,7 @@ const OKF_SKIPPED_DIRECTORIES = new Set([
 	'build',
 	'test-results',
 ]);
+const OKF_SKIPPED_ROOT_DIRECTORIES = new Set(['upstream']);
 
 function isPathInsideRoot(root: string, candidate: string): boolean {
 	const relative = path.relative(root, candidate);
@@ -1918,6 +1919,8 @@ function listOkfMarkdownFiles(root: string, dir = root): string[] {
 		if (!isPathInsideRoot(root, absPath)) continue;
 		if (entry.isDirectory()) {
 			if (OKF_SKIPPED_DIRECTORIES.has(entry.name)) continue;
+			const relative = path.relative(root, absPath).split(path.sep).join('/');
+			if (!relative.includes('/') && OKF_SKIPPED_ROOT_DIRECTORIES.has(relative)) continue;
 			// The index describes this project, not whatever happens to be on disk.
 			// Untracked directories — vendored reference clones, scratch checkouts —
 			// otherwise land in the corpus, and `bapX okf query` returns another
@@ -1925,7 +1928,6 @@ function listOkfMarkdownFiles(root: string, dir = root): string[] {
 			// contract makes an OKF query the first step of every task.
 			const tracked = trackedDirectories(root);
 			if (tracked) {
-				const relative = path.relative(root, absPath).split(path.sep).join('/');
 				if (!tracked.has(relative)) continue;
 			}
 			files.push(...listOkfMarkdownFiles(root, absPath));
@@ -2061,7 +2063,7 @@ function queryOkfIndex(root: string, concepts: OkfConcept[], query: string): voi
 //
 // Lives here rather than in a standalone script because `okf` is already a CLI
 // command, and AGENTS.md requires new automation to extend the owning surface.
-const OKF_SKIP = /^(node_modules|dist|\.git|examples)(\/|$)/;
+const OKF_SKIP = /^(node_modules|dist|\.git|examples|upstream)(\/|$)/;
 
 // Paths whose frontmatter is owned by another schema. These are still indexed,
 // but `type` is not imposed on them: SKILL.md carries the skill manifest
