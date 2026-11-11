@@ -28,9 +28,9 @@ test('the Node host router emits an HTTP redirect for the docs root', () => {
 
 test('subdomain wordmarks share the purple handwritten alignment contract', () => {
 	for (const stylesheet of [styles, docsStyles]) {
-		assert.match(stylesheet, /family=Caveat/);
+		assert.match(stylesheet, /@font-face\s*\{[^}]*font-family:\s*'Great Vibes'[^}]*GreatVibes-Regular\.ttf/s);
 		assert.match(stylesheet, /\.brand-lockup\s*\{[^}]*align-items:\s*center/s);
-		assert.match(stylesheet, /\.brand-lockup span\s*\{[^}]*color:\s*(?:var\(--accent-bright-purple\)|#a155e1)[^}]*font-family:\s*'Caveat'/s);
+		assert.match(stylesheet, /\.brand-lockup span\s*\{[^}]*color:\s*(?:var\(--accent-bright-purple\)|#a155e1)[^}]*font-family:\s*'Great Vibes'/s);
 	}
-	assert.match(adminStyles, /\.surface-wordmark\s*\{[^}]*color:\s*#a155e1[^}]*font-family:\s*'Caveat'/s);
+	assert.match(adminStyles, /\.surface-wordmark\s*\{[^}]*color:\s*#a155e1[^}]*font-family:\s*'Great Vibes'/s);
 });
