@@ -42,20 +42,26 @@ compose_previous=$(mktemp /tmp/bapx-compose-previous.XXXXXX)
 cleanup() { rm -rf "$staging" "$compose_next" "$compose_previous"; }
 trap cleanup EXIT
 
-mkdir -p "$staging"
-git -C "$repository" archive "$sha" | tar -x -C "$staging"
-docker run --rm -v "$staging:/work" -w /work node:24-alpine sh -lc '
-  npm install --global npm@11.6.2 >/dev/null &&
-  npm ci --no-audit --no-fund &&
-  npm run build --workspace @bapX/runtime --workspace @bapX/sdk --workspace @bapX/react &&
-  npm run test:server --workspace apps-www &&
-  npm run build --workspace apps-www &&
-  pages=$(find apps/www/dist -name "*.html" | wc -l) &&
-  admin_mb=$(du -sm apps/www/dist/admin | cut -f1) &&
-  test "$pages" -gt 100 && test "$admin_mb" -gt 10
-'
-rm -rf "$staging/node_modules"
-mv "$staging" "$release"
+if [[ -f "$release/apps/www/server.mjs" && -d "$release/apps/www/dist/admin" ]]; then
+  echo "reusing previously built immutable release $short"
+else
+  test ! -e "$release" || { echo "incomplete release path exists at $release" >&2; exit 1; }
+  mkdir -p "$staging"
+  git -C "$repository" archive "$sha" | tar -x -C "$staging"
+  docker run --rm -v "$staging:/work" -w /work node:24-alpine sh -lc '
+    apk add --no-cache git >/dev/null &&
+    npm install --global npm@11.6.2 >/dev/null &&
+    npm ci --no-audit --no-fund &&
+    npm run build --workspace @bapX/runtime --workspace @bapX/sdk --workspace @bapX/react &&
+    npm run test:server --workspace apps-www &&
+    npm run build --workspace apps-www &&
+    pages=$(find apps/www/dist -name "*.html" | wc -l) &&
+    admin_mb=$(du -sm apps/www/dist/admin | cut -f1) &&
+    test "$pages" -gt 100 && test "$admin_mb" -gt 10
+  '
+  rm -rf "$staging/node_modules"
+  mv "$staging" "$release"
+fi
 
 cp "$compose_file" "$compose_previous"
 awk -v release="$release" '
