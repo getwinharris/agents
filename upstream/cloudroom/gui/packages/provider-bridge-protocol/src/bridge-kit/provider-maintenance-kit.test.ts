@@ -1,0 +1,331 @@
+import { chmod, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { execPortableFile } from "@cloudroom/process-utils";
+import { describe, expect, it, vi } from "vitest";
+import {
+  compareVersions,
+  downloadedInstallerCommand,
+  formatCommand,
+  installationVerification,
+  npmGlobalInstallSource,
+  probeCliVersion,
+  readCliVersion,
+  selectResolvedExecutable,
+  versionFrom,
+} from "./provider-maintenance-kit.js";
+
+// The real one runs unless a test queues an answer.
+vi.mock("@cloudroom/process-utils", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@cloudroom/process-utils")>();
+  return { ...actual, execPortableFile: vi.fn(actual.execPortableFile) };
+});
+
+describe("provider maintenance kit", () => {
+  // A broken install says why in this output; Windows used to drop it (#1232).
+  it("keeps the output of a failed --version on Windows", async () => {
+    const platform = Object.getOwnPropertyDescriptor(process, "platform")!;
+    Object.defineProperty(process, "platform", { ...platform, value: "win32" });
+    try {
+      const stderr =
+        "Error: Missing optional dependency @openai/codex-win32-x64. Reinstall Codex: npm install -g @openai/codex@latest";
+      vi.mocked(execPortableFile).mockRejectedValueOnce(
+        Object.assign(new Error("codex.cmd exited with code 1"), {
+          code: 1,
+          stdout: "",
+          stderr,
+        }),
+      );
+      expect(await probeCliVersion("codex.cmd")).toEqual({
+        version: null,
+        failedOutput: `\n${stderr}`,
+      });
+      // A timeout has no output to keep.
+      vi.mocked(execPortableFile).mockRejectedValueOnce(
+        new Error("codex.cmd timed out after 5000ms"),
+      );
+      expect(await probeCliVersion("codex.cmd")).toEqual({
+        version: null,
+        failedOutput: null,
+      });
+    } finally {
+      Object.defineProperty(process, "platform", platform);
+    }
+  });
+
+  it.skipIf(process.platform === "win32")(
+    "reads the version of a CLI that keeps reading stdin until EOF",
+    async () => {
+      const dir = await mkdtemp(path.join(tmpdir(), "bb-cli-version-"));
+      try {
+        const executable = path.join(dir, "stdio-server-cli");
+        await writeFile(
+          executable,
+          '#!/bin/sh\ncat >/dev/null\necho "tool 1.2.3"\n',
+        );
+        await chmod(executable, 0o755);
+        expect(await readCliVersion(executable)).toBe("1.2.3");
+      } finally {
+        await rm(dir, { recursive: true, force: true });
+      }
+    },
+    15_000,
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "ends everything a timed-out version probe started",
+    async () => {
+      const dir = await mkdtemp(path.join(tmpdir(), "bb-cli-hung-version-"));
+      try {
+        const executable = path.join(dir, "updating-cli");
+        const beat = path.join(dir, "beat");
+        // A grandchild in its own session keeps stdout open past the timeout.
+        const ownSession = `require("node:child_process").spawn("sleep", ["8"], { detached: true, stdio: "inherit" }).unref()`;
+        await writeFile(
+          executable,
+          `#!/bin/sh\n"${process.execPath}" -e '${ownSession}'\ni=0; while [ $i -lt 100 ]; do echo >> "${beat}"; sleep 0.2; i=$((i+1)); done &\nsleep 30\n`,
+        );
+        await chmod(executable, 0o755);
+        const startedAt = Date.now();
+        expect(await readCliVersion(executable)).toBeNull();
+        expect(Date.now() - startedAt).toBeLessThan(7_000);
+        const size = (await stat(beat)).size;
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        expect((await stat(beat)).size).toBe(size);
+      } finally {
+        await rm(dir, { recursive: true, force: true });
+      }
+    },
+    15_000,
+  );
+
+  it("compares the numeric core of CLI versions, prerelease below release", () => {
+    expect(compareVersions("0.135.9", "0.136.0")).toBeLessThan(0);
+    expect(compareVersions("0.136.0-beta.1", "0.136.0")).toBeLessThan(0);
+    expect(compareVersions("0.136.0", "0.136.0-beta.1")).toBeGreaterThan(0);
+    expect(compareVersions("1.0.0", "0.136.0")).toBeGreaterThan(0);
+    expect(compareVersions("1.2.3", "1.2.3")).toBe(0);
+  });
+
+  it.each([
+    ["1.0.0-alpha", "1.0.0-alpha.1"],
+    ["1.0.0-alpha.1", "1.0.0-alpha.beta"],
+    ["1.0.0-alpha.beta", "1.0.0-beta"],
+    ["1.0.0-beta", "1.0.0-beta.2"],
+    ["1.0.0-beta.2", "1.0.0-beta.11"],
+    ["1.0.0-beta.9", "1.0.0-beta.10"],
+    ["1.0.0-beta.11", "1.0.0-rc.1"],
+    ["1.0.0-rc.2", "1.0.0-rc.10"],
+    ["1.0.0-rc.10", "1.0.0"],
+    ["1.0.0-9", "1.0.0-alpha"],
+    ["1.0.0-B", "1.0.0-a"],
+    ["1.0.0-alpha.2", "1.0.0-alpha.2.1"],
+    ["1.0.0", "1.0.1-alpha"],
+  ])("orders %s below %s in both directions", (older, newer) => {
+    expect(compareVersions(older, newer)).toBeLessThan(0);
+    expect(compareVersions(newer, older)).toBeGreaterThan(0);
+    expect(compareVersions(older, older)).toBe(0);
+  });
+
+  it("ignores build metadata for precedence", () => {
+    expect(compareVersions("1.0.0+build.9", "1.0.0+build.10")).toBe(0);
+    expect(compareVersions("1.0.0-beta.2+x", "1.0.0-beta.2+y")).toBe(0);
+    expect(compareVersions("1.0.0-beta.9+x", "1.0.0-beta.10+y")).toBeLessThan(
+      0,
+    );
+  });
+
+  it.each([
+    "not-a-version",
+    "",
+    "1.0",
+    "1.0.0.1",
+    "01.0.0",
+    "1.0.0-beta.01",
+    "1.0.0-beta..1",
+    "1.0.0-",
+    "1.0.0+",
+    "tool 1.0.0",
+    "1.0.0 trailing",
+  ])("rejects invalid version %j in either operand", (invalid) => {
+    expect(() => compareVersions(invalid, "0.0.0")).toThrow(TypeError);
+    expect(() => compareVersions("0.0.0", invalid)).toThrow(TypeError);
+  });
+
+  it("reads the version out of a CLI banner", () => {
+    expect(versionFrom("codex-cli 0.150.0")).toBe("0.150.0");
+    expect(versionFrom("v2.1.0-beta.3\n")).toBe("2.1.0-beta.3");
+    expect(versionFrom("no version here")).toBeNull();
+    expect(versionFrom(null)).toBeNull();
+  });
+
+  it.each([
+    "1.2.3-2026.01.15",
+    "0.5.0-01",
+    "1.2.3-beta..1",
+    "1.2.3-beta.",
+    "1.2.3-",
+    "1.2.3+",
+    "1.2.3+build..1",
+    "1.2.3.4",
+    "01.2.3",
+  ])("returns null for invalid CLI version %s", (version) => {
+    expect(versionFrom(`codex ${version}`)).toBeNull();
+  });
+
+  it("preserves valid prereleases and build metadata", () => {
+    const version = versionFrom("codex 1.2.3-beta.10+2026.01.15");
+    expect(version).toBe("1.2.3-beta.10+2026.01.15");
+    expect(compareVersions(version!, "1.2.3-beta.9")).toBeGreaterThan(0);
+  });
+
+  it.skipIf(process.platform === "win32").each([
+    ["1.2.3-2026.01.15", ""],
+    ["0.5.0-01", " >&2"],
+    ["1.2.3-beta..1", ""],
+  ])("returns null when --version reports %s", async (version, redirect) => {
+    const dir = await mkdtemp(path.join(tmpdir(), "bb-cli-invalid-version-"));
+    try {
+      const executable = path.join(dir, "invalid-version-cli");
+      await writeFile(
+        executable,
+        `#!/bin/sh\necho "codex ${version}"${redirect}\n`,
+      );
+      await chmod(executable, 0o755);
+      expect(await readCliVersion(executable)).toBeNull();
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("quotes only the arguments a shell would mangle", () => {
+    expect(
+      formatCommand("npm", ["install", "-g", "@openai/codex@latest"]),
+    ).toBe("npm install -g @openai/codex@latest");
+    expect(formatCommand("sh", ["-c", "echo 'hi' && ls"])).toBe(
+      "sh -c 'echo '\\''hi'\\'' && ls'",
+    );
+  });
+
+  it("attributes an executable inside npm's global bin to npm", () => {
+    const npmBin = path.join(path.sep, "usr", "local", "bin");
+    expect(
+      npmGlobalInstallSource({
+        installed: true,
+        executablePath: path.join(npmBin, "codex"),
+        npmBin,
+      }),
+    ).toBe("npmGlobal");
+    expect(
+      npmGlobalInstallSource({
+        installed: true,
+        executablePath: path.join(path.sep, "opt", "homebrew", "bin", "codex"),
+        npmBin,
+      }),
+    ).toBe("external");
+    expect(
+      npmGlobalInstallSource({ installed: true, executablePath: null, npmBin }),
+    ).toBe("external");
+    expect(
+      npmGlobalInstallSource({
+        installed: false,
+        executablePath: null,
+        npmBin: null,
+      }),
+    ).toBe("notInstalled");
+  });
+
+  it("verifies an update against the latest version, or a change when the registry was unreachable", () => {
+    expect(
+      installationVerification(
+        { currentVersion: "1.0.0", latestVersion: "1.1.0" },
+        "update",
+      ),
+    ).toEqual({ kind: "version_at_least", version: "1.1.0" });
+    expect(
+      installationVerification(
+        { currentVersion: "1.0.0", latestVersion: null },
+        "update",
+      ),
+    ).toEqual({ kind: "version_changed", previousVersion: "1.0.0" });
+    expect(
+      installationVerification(
+        { currentVersion: null, latestVersion: null },
+        "install",
+      ),
+    ).toEqual({ kind: "installed" });
+  });
+
+  it("picks the launcher Windows can run when npm also installs an extensionless shim", () => {
+    const npmBin = "C:\\Users\\me\\AppData\\Roaming\\npm";
+    expect(
+      selectResolvedExecutable({
+        candidates: [`${npmBin}\\codex`, `${npmBin}\\codex.cmd`, ""],
+        platform: "win32",
+        pathExt: ".COM;.EXE;.BAT;.CMD",
+      }),
+    ).toBe(`${npmBin}\\codex.cmd`);
+    expect(
+      selectResolvedExecutable({
+        candidates: [`${npmBin}\\codex`, `${npmBin}\\codex.CMD`],
+        platform: "win32",
+        pathExt: undefined,
+      }),
+    ).toBe(`${npmBin}\\codex.CMD`);
+    expect(
+      selectResolvedExecutable({
+        candidates: [`${npmBin}\\codex`, `${npmBin}\\codex.cmd`],
+        platform: "win32",
+        pathExt: ".EXE",
+      }),
+    ).toBeNull();
+  });
+
+  it("keeps the first lookup result on macOS and Linux", () => {
+    expect(
+      selectResolvedExecutable({
+        candidates: ["/usr/local/bin/codex", "/opt/bin/codex.cmd"],
+        platform: "linux",
+        pathExt: undefined,
+      }),
+    ).toBe("/usr/local/bin/codex");
+    expect(
+      selectResolvedExecutable({
+        candidates: ["", "  "],
+        platform: "darwin",
+        pathExt: undefined,
+      }),
+    ).toBeNull();
+  });
+
+  it("runs a PowerShell installer on Windows only when one is published", () => {
+    expect(
+      downloadedInstallerCommand("https://example.test/install.sh", {
+        platform: "win32",
+        powershellUrl: "https://example.test/install.ps1",
+      }),
+    ).toEqual({
+      command: "powershell.exe",
+      args: [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "irm https://example.test/install.ps1 | iex",
+      ],
+      displayCommand: "irm https://example.test/install.ps1 | iex",
+    });
+    expect(
+      downloadedInstallerCommand("https://example.test/install.sh", {
+        platform: "linux",
+        powershellUrl: "https://example.test/install.ps1",
+      }).command,
+    ).toBe("sh");
+    expect(
+      downloadedInstallerCommand("https://example.test/install.sh", {
+        platform: "win32",
+      }).command,
+    ).toBe("sh");
+  });
+});
