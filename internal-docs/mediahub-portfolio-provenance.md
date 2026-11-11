@@ -25,3 +25,23 @@ Customer names and marks remain the property of their respective owners.
 The corresponding local assets are owned by
 `apps/www/public/brand/mediahub/`. If an asset changes, re-verify its public brand
 use before replacing the local copy and record the new source here.
+
+## Social and video presentation
+
+Client pages may present linked public YouTube examples through YouTube's privacy-enhanced
+embed player. The embed stays attributed to the publishing customer channel and does not
+copy the video into bapX storage. The verified examples and channel links are owned by
+`apps/www/src/lib/mediahub-clients.ts`.
+
+Instagram profile pages and some post detail were login/anti-bot blocked during the
+2026-11-11 review. Do not download, screenshot, or republish a blocked post. Add an
+Instagram poster only after the customer or MediaHub-owned source confirms the exact post
+URL and permission to display a local copy or official embed.
+
+NEBO is verified against the public `getwinharris/nebowellness_php_cms` repository and
+the live `nebowellness.com` surface. It is a PHP 8.2/MySQL server-rendered application,
+not the legacy WordPress site. The public case study must describe only source-backed
+modules and the repository's documented Hostinger Git deployment contract.
+
+The generated `mediahub-fold-hero.png` is original MediaHub presentation art created for
+the site on 2026-11-11. It contains no client artwork, marks, claims, or performance data.

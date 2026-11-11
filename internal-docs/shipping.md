@@ -79,3 +79,18 @@ A passing code test does not waive documentation. A passing docs build does not 
 A PR is durable review state, not the end of an agent task. The authorized agent handling it reads checks and review threads for the exact SHA, fixes supported failures, reruns validation, merges when permitted, deploys the merged SHA immediately, and performs live browser/API checks without waiting for another prompt.
 
 If authority, credentials, or an external dependency requires a handoff, record the exact SHA, evidence, blocker, next action, and completion condition. On resumption, query OKF and inspect that durable state instead of replaying the original prompt. After live verification, repeat the query and map traversal to find stale documentation, disconnected functions, or the next evidenced gap.
+
+### VPS continuous deployment
+
+GitHub Actions is the CI authority; the VPS is the deployment authority. The host timer in `scripts/vps/bapx-www-cd.timer` checks every two minutes and runs `scripts/vps/deploy-www.sh`. The deployment proceeds only when the exact `origin/main` SHA has a completed, successful `All checks pass` check run.
+
+The deployer builds a fresh immutable snapshot under `/root/bapx.in/releases/agents/<sha8>`, proves the server contracts and web/admin output, changes only the `apps/www` mounts in the Compose file, recreates `bapx-www`, and checks the public, MediaHub, docs, blogs, and key-gated API routes. A failed health check restores the previous Compose file and recreates the prior container. Customer data remains on the separate persistent `apps/www/data` mount and is never copied into a release.
+
+Install or refresh the units on the VPS after changing their tracked definitions:
+
+```bash
+install -m 644 scripts/vps/bapx-www-cd.service /etc/systemd/system/bapx-www-cd.service
+install -m 644 scripts/vps/bapx-www-cd.timer /etc/systemd/system/bapx-www-cd.timer
+systemctl daemon-reload
+systemctl enable --now bapx-www-cd.timer
+```

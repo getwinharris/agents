@@ -7,6 +7,14 @@ export function getStaticPaths() {
 }
 
 const client = Astro.props as MediaHubClient;
+const youtubeId = (href: string) => {
+  try {
+    const url = new URL(href);
+    if (url.hostname.includes("youtu.be")) return url.pathname.slice(1);
+    if (url.pathname.startsWith("/shorts/")) return url.pathname.split("/")[2];
+    return url.searchParams.get("v");
+  } catch { return null; }
+};
 ---
 
 <!doctype html>
@@ -91,6 +99,16 @@ const client = Astro.props as MediaHubClient;
                 </a>
               ))}
             </div>
+            {client.social.examples.some((example) => youtubeId(example.href)) ? (
+              <div class="social-video-grid" aria-label={`${client.name} public video references`}>
+                {client.social.examples.filter((example) => youtubeId(example.href)).map((example) => (
+                  <article>
+                    <div class="social-video-frame"><iframe src={`https://www.youtube-nocookie.com/embed/${youtubeId(example.href)}`} title={example.title} loading="lazy" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+                    <p>{example.title}</p>
+                  </article>
+                ))}
+              </div>
+            ) : null}
           </div>
         </section>
       ) : null}
@@ -98,6 +116,7 @@ const client = Astro.props as MediaHubClient;
       <section class="client-evidence-band">
         <div class="section-inner client-evidence-row">
           <div><span class="mono-label">Evidence boundary</span><p>This narrative is limited to the live customer experience, linked customer channels, and the maintenance scope confirmed by bapX MediaHub.</p></div>
+          <a href="../../#brief">Start a project brief</a>
         </div>
       </section>
     </main>

@@ -12,7 +12,7 @@ bapX separates account configuration, day-to-day agent work, enterprise delivery
 | [`bapx.in`](https://bapx.in)                   | Public product, pricing, and ecosystem landing.                                                                                                                                                                                                                                                            |
 | [`platform.bapx.in`](https://platform.bapx.in) | GitHub-backed account/session entry and the Platform information architecture. The static shell is served first; client JavaScript checks the current session and redirects unsigned users. Most management controls are not yet interactive.                                                              |
 | [`agents.bapx.in`](https://agents.bapx.in)     | Authentication-gated customer operating surface. The shared shell, central main-agent transport, and customer-scoped workspace routes are implemented. Self-service agent creation, provider selection, team-role management, connector setup, and one-click project hosting are not yet public workflows. |
-| [`mediahub.bapx.in`](https://mediahub.bapx.in) | Direct, custom-quote enterprise delivery for forward-deployed engineering, AI/data/CRM/ERP systems, commerce, growth infrastructure, and managed implementation. It is commercially separate from the Agents subscription.                                                                                 |
+| [`mediahub.bapx.in`](https://mediahub.bapx.in) | Direct-client, custom-quote and custom-scoped brand strategy and identity, content and production, social media management, digital marketing, advertising, commerce, automation, AI/data, and bespoke systems. Forward-deployed engineering is one delivery method when implementation is needed. It is commercially separate from the Agents subscription. |
 | [`docs.bapx.in`](https://docs.bapx.in)         | Public product, framework, runtime API, SDK, MCP, OKF, ecosystem, and non-sensitive maintainer documentation.                                                                                                                                                                                              |
 | [`blogs.bapx.in`](https://blogs.bapx.in)       | Public announcements, releases, research, and tutorials.                                                                                                                                                                                                                                                   |
 
@@ -25,6 +25,8 @@ The framework API pages under the **Developers** section document the APIs expos
 ## Platform versus MediaHub
 
 The ₹500/month Agents offer covers the documented hosted workspace plan. MediaHub engagements are scoped and quoted directly for the customer's operational outcome and required infrastructure. MediaHub does not promise free compute, storage, model usage, or pooled provider quotas.
+
+MediaHub project briefs are submitted on-site. A brief is counted only after the server accepts and stores it; authenticated bapX operators review the resulting inquiry and source context in Admin. Public pages do not claim Meta Pixel, Google Analytics, or advertising-platform event delivery unless that tracking is separately configured and consented.
 
 ## How availability is proven
 

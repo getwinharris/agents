@@ -1,0 +1,12 @@
+[Unit]
+Description=Check for a green bapX main deployment
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=2min
+RandomizedDelaySec=20s
+Persistent=true
+Unit=bapx-www-cd.service
+
+[Install]
+WantedBy=timers.target
