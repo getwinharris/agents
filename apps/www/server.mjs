@@ -56,6 +56,7 @@ const MIME = {
 	'.ico': 'image/x-icon',
 	'.woff2': 'font/woff2',
 	'.woff': 'font/woff',
+	'.ttf': 'font/ttf',
 	'.md': 'text/markdown; charset=utf-8',
 };
 
@@ -1181,7 +1182,7 @@ http.createServer(async (req, res) => {
 		if (handled) return;
 	}
 	const suffix = urlPath.endsWith('/') || urlPath === '' ? 'index.html' : '';
-	const sharedAsset = urlPath.startsWith('/_astro/') || urlPath.startsWith('/brand/') || /^\/(favicon|apple-touch-icon|site\.webmanifest|web-app-manifest|og\d)/.test(urlPath);
+	const sharedAsset = urlPath.startsWith('/_astro/') || urlPath.startsWith('/brand/') || urlPath.startsWith('/fonts/') || /^\/(favicon|apple-touch-icon|site\.webmanifest|web-app-manifest|og\d)/.test(urlPath);
 	const operatingSurface = prefix === '/admin' || prefix === '/agents';
 	const operatingSurfaceAsset = prefix === '/agents' && (urlPath.startsWith('/assets/') || urlPath === '/icons.svg' || urlPath === '/favicon.svg');
 	const candidates = sharedAsset

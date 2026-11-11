@@ -515,6 +515,23 @@ describe('Agents host routing', () => {
 		assert.equal(response.body, assetMarker);
 	});
 
+	it('serves shared fonts to authenticated Agents and Admin surfaces', async () => {
+		const agentsFont = await request(port, {
+			pathname: '/fonts/great-vibes/GreatVibes-Regular.ttf',
+			headers: { cookie },
+		});
+		assert.equal(agentsFont.status, 200);
+		assert.equal(agentsFont.headers['content-type'], 'font/ttf');
+
+		const adminFont = await request(port, {
+			host: 'admin.bapx.in',
+			pathname: '/fonts/great-vibes/GreatVibes-Regular.ttf',
+			headers: { cookie },
+		});
+		assert.equal(adminFont.status, 200);
+		assert.equal(adminFont.headers['content-type'], 'font/ttf');
+	});
+
 	it('proxies the main-agent stream only after adding authenticated gateway headers', async () => {
 		const response = await request(port, {
 			pathname: '/api/agents/main/conversation-1?view=updates',
