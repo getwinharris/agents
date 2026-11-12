@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import fs from 'node:fs';
+import { readJson as readCollection, writeJson } from './json-store.mjs';
 import path from 'node:path';
 
 // bapX API gateway.
@@ -34,31 +34,7 @@ function kindForSecret(secret) {
 }
 const SCHEMA_VERSION = 1;
 
-function readJson(file, fallback) {
-	let raw;
-	try {
-		raw = fs.readFileSync(file, 'utf8');
-	} catch (error) {
-		// A missing file is the legitimate first-run case. Anything else — EACCES,
-		// EIO, a truncated read — must not be mistaken for "no keys": that would
-		// fail every customer's key and let the next write overwrite the
-		// collection with an empty one.
-		if (error?.code === 'ENOENT') return fallback;
-		throw new Error(`API key storage is unreadable (${error?.code || 'unknown'})`);
-	}
-	try {
-		return JSON.parse(raw);
-	} catch {
-		throw new Error('API key storage is corrupt');
-	}
-}
 
-function writeJson(file, value) {
-	fs.mkdirSync(path.dirname(file), { recursive: true });
-	const temporary = `${file}.${process.pid}.tmp`;
-	fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 });
-	fs.renameSync(temporary, file);
-}
 
 function hashKey(secret) {
 	return crypto.createHash('sha256').update(secret).digest('hex');
@@ -85,7 +61,7 @@ export function createApiKeyStore({ workspaceRoot }) {
 	});
 
 	function load() {
-		const stored = readJson(keysFile, { schemaVersion: SCHEMA_VERSION, keys: [] });
+		const stored = readCollection(keysFile, { schemaVersion: SCHEMA_VERSION, keys: [] }, "API key storage");
 		// A well-formed file with an unexpected shape is corruption or a rollback,
 		// not first-run state. Returning empty here would reject every existing
 		// record and let the next write persist the empty-derived collection.
