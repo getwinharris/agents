@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import fs from 'node:fs';
+import { readJson as readCollection, writeJson } from './json-store.mjs';
 import path from 'node:path';
 
 // Business connector connections.
@@ -18,31 +18,7 @@ function normalizeSlug(value) {
 }
 const ALGORITHM = 'aes-256-gcm';
 
-function readJson(file, fallback) {
-	let raw;
-	try {
-		raw = fs.readFileSync(file, 'utf8');
-	} catch (error) {
-		// Only a genuinely missing file may initialise an empty collection. Any
-		// other failure treated as "no connections" would let the next connect()
-		// persist an empty-derived collection, permanently deleting every other
-		// customer's encrypted connector record.
-		if (error?.code === 'ENOENT') return fallback;
-		throw new Error(`Connector storage is unreadable (${error?.code || 'unknown'})`);
-	}
-	try {
-		return JSON.parse(raw);
-	} catch {
-		throw new Error('Connector storage is corrupt');
-	}
-}
 
-function writeJson(file, value) {
-	fs.mkdirSync(path.dirname(file), { recursive: true });
-	const temporary = `${file}.${process.pid}.tmp`;
-	fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 });
-	fs.renameSync(temporary, file);
-}
 
 // The key must be supplied. A generated-at-boot fallback would silently make
 // every stored credential unreadable after a restart, which is worse than
@@ -120,7 +96,7 @@ export function createConnectorStore({ workspaceRoot }) {
 	});
 
 	function load() {
-		const stored = readJson(file, { schemaVersion: SCHEMA_VERSION, connections: [] });
+		const stored = readCollection(file, { schemaVersion: SCHEMA_VERSION, connections: [] }, "Connector storage");
 		// A well-formed file with an unexpected shape is corruption or a rollback,
 		// not first-run state. Returning empty here would reject every existing
 		// record and let the next write persist the empty-derived collection.

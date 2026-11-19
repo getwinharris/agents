@@ -106,9 +106,6 @@ function toolDefinitions() {
 	];
 }
 
-export function mcpToolNames() {
-	return toolDefinitions().map((tool) => tool.name);
-}
 
 // One call to the API plane. The caller's bapX key never travels onward — it
 // authenticates the customer to us and means nothing to the plane, which is

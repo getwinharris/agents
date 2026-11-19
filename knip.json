@@ -1,27 +1,52 @@
 {
 	"$schema": "https://unpkg.com/knip@6/schema.json",
-	"ignore": ["demo/**"],
-	"ignoreDependencies": ["@bapX/cli", "agents", "wrangler"],
+	"ignore": [
+		"demo/**",
+		"apps/www/admin/src/components/ui/**",
+		"apps/www/src/homepage-shaders.ts"
+	],
+	"ignoreDependencies": [
+		"@bapX/cli",
+		"agents",
+		"wrangler"
+	],
 	"ignoreIssues": {
-		"packages/runtime/src/runtime/schemas.ts": ["duplicates"]
+		"packages/runtime/src/runtime/schemas.ts": [
+			"duplicates"
+		]
 	},
 	"workspaces": {
 		".": {
-			"entry": [".agents/{app,cloudflare,agents/*,workflows/*}.{ts,mts,js,mjs}"],
-			"project": [".agents/**/*.{ts,mts,js,mjs}"],
-			"ignoreDependencies": ["bgproc", "just-bash"]
+			"entry": [
+				".agents/{app,cloudflare,agents/*,workflows/*}.{ts,mts,js,mjs}"
+			],
+			"project": [
+				".agents/**/*.{ts,mts,js,mjs}"
+			],
+			"ignoreDependencies": [
+				"bgproc",
+				"just-bash"
+			]
 		},
 		"examples/*": {
 			"entry": [
 				"{src/{app,cloudflare,agents/*,workflows/*,channels/*},bapX.config}.{ts,mts,js,mjs}"
 			],
-			"project": ["src/**/*.{ts,mts,js,mjs}"]
+			"project": [
+				"src/**/*.{ts,mts,js,mjs}"
+			]
 		},
 		"examples/vitest-evals": {
-			"entry": ["src/evals/**/*.eval.ts", "src/agents/*.ts", "bapX.config.ts"],
-			"project": ["src/**/*.ts", "*.ts"]
+			"entry": [
+				"src/evals/**/*.eval.ts",
+				"src/agents/*.ts",
+				"bapX.config.ts"
+			],
+			"project": [
+				"src/**/*.ts",
+				"*.ts"
+			]
 		},
-
 		"apps/www": {
 			"entry": [
 				"src/homepage-shaders.ts",
@@ -30,8 +55,12 @@
 			]
 		},
 		"packages/runtime": {
-			"entry": ["test/fixtures/durable-boundary-child.mjs"],
-			"ignoreDependencies": ["@hono/node-server"]
+			"entry": [
+				"test/fixtures/durable-boundary-child.mjs"
+			],
+			"ignoreDependencies": [
+				"@hono/node-server"
+			]
 		}
 	}
 }
