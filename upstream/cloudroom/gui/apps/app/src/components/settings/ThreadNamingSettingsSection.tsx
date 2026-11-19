@@ -1,0 +1,474 @@
+import { useEffect, useState } from "react";
+import { useAtom, type WritableAtom } from "jotai";
+import { Button } from "@cloudroom/shared-ui/button";
+import { COARSE_POINTER_ICON_SIZE_CLASS } from "@cloudroom/shared-ui/coarse-pointer-sizing";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@cloudroom/shared-ui/dropdown-menu";
+import { Icon } from "@cloudroom/shared-ui/icon";
+import { Input } from "@cloudroom/shared-ui/input";
+import { cn } from "@cloudroom/shared-ui/lib/utils";
+import { Switch } from "@cloudroom/shared-ui/switch";
+import { Textarea } from "@cloudroom/shared-ui/textarea";
+import {
+  DEFAULT_PROMPT_SUGGESTION_PROMPT,
+  DEFAULT_THREAD_NAMING_RULES,
+  THREAD_PURPOSE_CLAUDE_MODEL,
+} from "@cloudroom/domain";
+import {
+  SettingsSection,
+  SettingsWithControl,
+} from "@/components/ui/settings-section";
+import {
+  useSystemConfig,
+  useSystemExecutionOptions,
+} from "@/hooks/queries/system-queries";
+import { threadPurposeShowInSidebarAtom } from "@/components/thread/ThreadPurposeHoverCard";
+import {
+  projectNudgeEnabledAtom,
+  projectNudgeConfidenceAtom,
+} from "@/components/promptbox/ProjectNudge";
+import { useCloudroomAccount } from "@/hooks/queries/cloudroom-queries";
+import { createSyncedPreferenceAtom } from "@/lib/ui-preferences/synced-preference-atom";
+import {
+  SETTINGS_DROPDOWN_CONTENT_CLASS,
+  SETTINGS_DROPDOWN_TRIGGER_CLASS,
+} from "./settings-dropdown";
+import {
+  SettingsDropdown,
+  ThreadNamingModelPicker,
+} from "./ThreadNamingModelPicker";
+
+const threadNamingModelAtom = createSyncedPreferenceAtom("threadNaming.model");
+const threadNamingRulesAtom = createSyncedPreferenceAtom("threadNaming.rules");
+const renameSensitivityAtom = createSyncedPreferenceAtom(
+  "threadNaming.renameSensitivity",
+);
+const threadPurposeEnabledAtom = createSyncedPreferenceAtom(
+  "threadPurpose.enabled",
+);
+const threadPurposeModelAtom = createSyncedPreferenceAtom("threadPurpose.model");
+const threadPurposeEffortAtom = createSyncedPreferenceAtom(
+  "threadPurpose.reasoningEffort",
+);
+const PURPOSE_EFFORT_OPTIONS = [
+  { value: "none", label: "None" },
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+] as const;
+// The switch saves the default sensitivity; 1 means off.
+const RENAME_SENSITIVITY_ON = 3;
+const RENAME_SENSITIVITY_OFF = 1;
+
+export function ThreadNamingSettingsSection() {
+  const [model, setModel] = useAtom(threadNamingModelAtom);
+  const [renameSensitivity, setRenameSensitivity] = useAtom(
+    renameSensitivityAtom,
+  );
+
+  return (
+    <SettingsSection
+      title="Thread naming"
+      description="Names new threads after your first message. Edit the naming rules in Prompts → Feature prompts."
+    >
+      <div className="space-y-4">
+        <SettingsWithControl
+          label="Model"
+          description="Falls back to your other harness if it fails."
+        >
+          <NamingModelDropdown value={model} onChange={setModel} />
+        </SettingsWithControl>
+        <SettingsWithControl
+          label="Rename vague titles"
+          description="After the first reply, gives a vague title a clearer name once. Titles you set are never changed."
+        >
+          <Switch
+            aria-label="Rename vague titles"
+            checked={renameSensitivity > RENAME_SENSITIVITY_OFF}
+            onCheckedChange={(on) =>
+              setRenameSensitivity(
+                on ? RENAME_SENSITIVITY_ON : RENAME_SENSITIVITY_OFF,
+              )
+            }
+          />
+        </SettingsWithControl>
+      </div>
+    </SettingsSection>
+  );
+}
+
+interface NamingModelDropdownProps {
+  /** Saved `harness/model` value; null is Automatic. */
+  value: string | null;
+  onChange: (value: string | null) => void;
+}
+
+/** One dropdown: Automatic, then each naming harness's models. */
+function NamingModelDropdown(props: NamingModelDropdownProps) {
+  const config = useSystemConfig().data?.aiServices;
+  const current = props.value ?? config?.inference ?? null;
+  const [harness, modelId] = current?.split("/") ?? [];
+  const currentModels =
+    useSystemExecutionOptions({
+      enabled: harness !== undefined,
+      ...(harness ? { providerId: harness } : {}),
+    }).data?.models ?? [];
+  const currentLabel =
+    currentModels.find((model) => model.id === modelId)?.displayName ??
+    modelId ??
+    "None";
+  const services = (config?.services ?? []).filter((service) =>
+    service.kinds.includes("inference"),
+  );
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn(SETTINGS_DROPDOWN_TRIGGER_CLASS, "sm:w-56")}
+          aria-label="Thread naming model"
+        >
+          <span className="min-w-0 truncate">
+            {props.value === null
+              ? `Automatic (${currentLabel})`
+              : currentLabel}
+          </span>
+          <Icon name="ChevronDown" className="size-3.5 text-muted-foreground" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className={cn(
+          SETTINGS_DROPDOWN_CONTENT_CLASS,
+          "max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto",
+        )}
+        mobileTitle="Thread naming model"
+      >
+        <ModelItem
+          label="Automatic (recommended)"
+          selected={props.value === null}
+          onSelect={() => props.onChange(null)}
+        />
+        {services.map((service) => (
+          <HarnessModels
+            key={service.id}
+            harness={service.id}
+            fallbackLabel={service.displayName}
+            value={props.value}
+            onChange={props.onChange}
+          />
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+interface HarnessModelsProps {
+  harness: string;
+  fallbackLabel: string;
+  value: string | null;
+  onChange: (value: string) => void;
+}
+
+function HarnessModels(props: HarnessModelsProps) {
+  const options = useSystemExecutionOptions({
+    providerId: props.harness,
+  }).data;
+  const models = options?.models ?? [];
+  if (models.length === 0) return null;
+  const label =
+    options?.providers.find((provider) => provider.id === props.harness)
+      ?.displayName ?? props.fallbackLabel;
+
+  return (
+    <>
+      <DropdownMenuSeparator />
+      <DropdownMenuLabel>{label}</DropdownMenuLabel>
+      {models.map((model) => {
+        const value = `${props.harness}/${model.id}`;
+        return (
+          <ModelItem
+            key={value}
+            label={model.displayName}
+            selected={props.value === value}
+            onSelect={() => props.onChange(value)}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+interface ModelItemProps {
+  label: string;
+  selected: boolean;
+  onSelect: () => void;
+}
+
+function ModelItem(props: ModelItemProps) {
+  return (
+    <DropdownMenuItem onSelect={props.onSelect}>
+      <span className="min-w-0 truncate">{props.label}</span>
+      <Icon
+        name="Check"
+        className={cn(
+          "ml-auto",
+          !props.selected && "opacity-0",
+          COARSE_POINTER_ICON_SIZE_CLASS,
+        )}
+      />
+    </DropdownMenuItem>
+  );
+}
+
+export function ProjectNudgeSettingsSection() {
+  const [enabled, setEnabled] = useAtom(projectNudgeEnabledAtom);
+  const [confidence, setConfidence] = useAtom(projectNudgeConfidenceAtom);
+  const [draft, setDraft] = useState(String(confidence));
+  useEffect(() => setDraft(String(confidence)), [confidence]);
+  const saveConfidence = () => {
+    const next = Math.round(Number(draft));
+    if (next >= 1 && next <= 99) setConfidence(next);
+    else setDraft(String(confidence));
+  };
+  const plan = useCloudroomAccount().data?.plan ?? null;
+  const on = enabled ?? plan !== "free";
+
+  return (
+    <SettingsSection
+      title="Wrong-project hint"
+      description="While you type a new thread's prompt, suggests the right project when it looks like it belongs in another one. Press Enter to switch, or Esc to hide it."
+    >
+      <div className="space-y-4">
+        <SettingsWithControl
+          label="Wrong-project hint"
+          description="On by default for paid plans. Under 1 Cloud Credit per prompt: Pro's credits cover about 70,000 prompts."
+        >
+          <Switch
+            aria-label="Wrong-project hint"
+            checked={on}
+            onCheckedChange={setEnabled}
+          />
+        </SettingsWithControl>
+        {on ? (
+          <SettingsWithControl
+            label="Confidence"
+            description="Shows the hint only when Jev is at least this sure, in percent. Lower shows it more often, but it is wrong more often too. Default 60."
+          >
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={99}
+              step={1}
+              aria-label="Wrong-project hint confidence"
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              onBlur={saveConfidence}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") saveConfidence();
+              }}
+              className="h-7 w-20 text-xs"
+            />
+          </SettingsWithControl>
+        ) : null}
+      </div>
+    </SettingsSection>
+  );
+}
+
+const smartSearchAtom = createSyncedPreferenceAtom("search.smart");
+
+export function SmartSearchSettingsSection() {
+  const [enabled, setEnabled] = useAtom(smartSearchAtom);
+  const plan = useCloudroomAccount().data?.plan ?? null;
+  const paid = plan !== null && plan !== "free";
+
+  return (
+    <SettingsSection
+      title="Smart search"
+      description="Cmd+K asks Jev which thread you're looking for. It sends what you type and a short card for each open thread (title, project, one-line summary) to Cloudroom. Off keeps search on this Mac."
+    >
+      <SettingsWithControl
+        label="Smart search"
+        description={paid ? "On by default for paid plans. About 2 Cloud Credits per search." : "Paid plans only."}
+      >
+        <Switch
+          aria-label="Smart search"
+          checked={paid && enabled !== false}
+          disabled={!paid}
+          onCheckedChange={setEnabled}
+        />
+      </SettingsWithControl>
+    </SettingsSection>
+  );
+}
+
+const promptSuggestionsEnabledAtom = createSyncedPreferenceAtom(
+  "promptSuggestions.enabled",
+);
+
+export function PromptSuggestionsSetting() {
+  const [enabled, setEnabled] = useAtom(promptSuggestionsEnabledAtom);
+  return (
+    <SettingsWithControl
+      label="Prompt suggestions"
+      description="After each reply, shows your likely next prompt in faint grey. Tab puts it in the box. Uses the smallest model (Haiku 5.5 or GPT-6 Luna) at low effort, only for the thread you have open. Rough estimate: about 0.1% of a $200 plan's weekly limit, 0.4% of a $100 plan, and 2% of a $20 plan."
+    >
+      <Switch
+        aria-label="Prompt suggestions"
+        checked={enabled}
+        onCheckedChange={setEnabled}
+      />
+    </SettingsWithControl>
+  );
+}
+
+const promptSuggestionsPromptAtom = createSyncedPreferenceAtom(
+  "promptSuggestions.prompt",
+);
+
+interface FeaturePromptProps {
+  ariaLabel: string;
+  className: string;
+  defaultValue: string;
+  description: string;
+  label: string;
+  preference: WritableAtom<string, [string], void>;
+}
+
+/** One editable prompt. Saves on blur; an empty box restores the default. */
+function FeaturePrompt(props: FeaturePromptProps) {
+  const [value, setValue] = useAtom(props.preference);
+  const [draft, setDraft] = useState(value);
+
+  useEffect(() => setDraft(value), [value]);
+
+  const save = () => {
+    const next = draft.trim() || props.defaultValue;
+    setDraft(next);
+    if (next !== value) setValue(next);
+  };
+
+  return (
+    <SettingsWithControl
+      label={props.label}
+      description={props.description}
+      controlPlacement="below"
+    >
+      <Textarea
+        aria-label={props.ariaLabel}
+        className={props.className}
+        maxLength={4_000}
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={save}
+      />
+    </SettingsWithControl>
+  );
+}
+
+/** Settings → Prompts → Feature prompts: the editable prompts behind built-in features. */
+export function FeaturePromptsSettingsSection() {
+  return (
+    <SettingsSection
+      title="Feature prompts"
+      description="The prompts behind Cloudroom's built-in features. Edit them to fit how you work."
+    >
+      <div className="space-y-4">
+        <FeaturePrompt
+          label="Thread naming"
+          description="How new thread titles should look. Cloudroom also sees your other thread names, so new names stand out. Clear the box to restore the default. Saved when you click away."
+          ariaLabel="Thread naming rules"
+          className="min-h-[190px] text-sm"
+          defaultValue={DEFAULT_THREAD_NAMING_RULES}
+          preference={threadNamingRulesAtom}
+        />
+        <FeaturePrompt
+          label="Prompt suggestions"
+          description="How Cloudroom guesses your next message. Suggestions stay at 12 words or less. Clear the box to restore the default. Saved when you click away."
+          ariaLabel="Prompt suggestions prompt"
+          className="min-h-[420px] text-sm"
+          defaultValue={DEFAULT_PROMPT_SUGGESTION_PROMPT}
+          preference={promptSuggestionsPromptAtom}
+        />
+      </div>
+    </SettingsSection>
+  );
+}
+
+export function ThreadPurposeSettingsSection() {
+  const [enabled, setEnabled] = useAtom(threadPurposeEnabledAtom);
+  const [model, setModel] = useAtom(threadPurposeModelAtom);
+  const [effort, setEffort] = useAtom(threadPurposeEffortAtom);
+  const [showInSidebar, setShowInSidebar] = useAtom(
+    threadPurposeShowInSidebarAtom,
+  );
+
+  return (
+    <SettingsSection
+      title="Thread purpose"
+      description="Hover a thread's title to see what it is for and how far along it is. Updated after every reply. Off when neither Claude Code nor Codex is signed in."
+    >
+      <div className="space-y-4">
+        <SettingsWithControl
+          label="Thread purpose"
+          description="Uses a small model call after each reply."
+        >
+          <Switch
+            aria-label="Thread purpose"
+            checked={enabled}
+            onCheckedChange={setEnabled}
+          />
+        </SettingsWithControl>
+        {enabled ? (
+          <>
+            <SettingsWithControl
+              label="Show in sidebar"
+              description="Preview the purpose when you hover a sidebar thread for 1.5s. Hovering the open thread's title always works."
+            >
+              <Switch
+                aria-label="Show thread purpose in sidebar"
+                checked={showInSidebar}
+                onCheckedChange={setShowInSidebar}
+              />
+            </SettingsWithControl>
+            <ThreadNamingModelPicker
+              harnessDescription="Default: Haiku 5.5 on Claude Code, or GPT-6 Luna on Codex without Claude."
+              scope="Thread purpose"
+              value={model}
+              defaultValue={THREAD_PURPOSE_CLAUDE_MODEL}
+              defaultLabel="Haiku 5.5, or GPT-6 Luna"
+              onChange={setModel}
+            />
+            <SettingsWithControl label="Reasoning effort">
+              <SettingsDropdown
+                label="Thread purpose reasoning effort"
+                options={[...PURPOSE_EFFORT_OPTIONS]}
+                selected={effort}
+                triggerLabel={
+                  PURPOSE_EFFORT_OPTIONS.find((option) => option.value === effort)
+                    ?.label ?? effort
+                }
+                onSelect={(value) => {
+                  const next = PURPOSE_EFFORT_OPTIONS.find(
+                    (option) => option.value === value,
+                  );
+                  if (next) setEffort(next.value);
+                }}
+              />
+            </SettingsWithControl>
+          </>
+        ) : null}
+      </div>
+    </SettingsSection>
+  );
+}

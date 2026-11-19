@@ -22,6 +22,7 @@ Supported CLI, build, map, API, SDK, runtime, configuration, and developer contr
 
 - [Platform and authentication implementation](platform-auth.md)
 - [Admin operating surface](admin-surface.md)
+- [Cloudroom subtree maintenance](cloudroom-subtree.md)
 - [Internal technical ecosystem](technical-ecosystem.md)
 - [Blog publishing contract](blog-publishing.md)
 - [Code-to-docs shipping workflow](shipping.md)

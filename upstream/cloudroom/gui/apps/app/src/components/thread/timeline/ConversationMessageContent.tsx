@@ -1,0 +1,875 @@
+import {
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
+import type {
+  TimelineConversationAttachments,
+  TimelineRowBase,
+  TimelineUserConversationRow,
+} from "@cloudroom/server-contract";
+import type { PromptTextMention, ThreadOriginKind } from "@cloudroom/domain";
+import { fileNameFromPath } from "@cloudroom/thread-view";
+import { cn } from "@cloudroom/shared-ui/lib/utils";
+import {
+  MarkdownPreview,
+  type MarkdownThreadMentions,
+} from "../../ui/markdown-preview.js";
+import type { MarkdownLinkRouting } from "@/components/ui/markdown-link-routing.js";
+import {
+  parseLocalFileHref,
+  resolveRelativeLocalFileHref,
+} from "@/components/ui/markdown-local-file-link.js";
+import type { PromptMentionLinkResolver } from "@/components/promptbox/editor/prompt-mention-link";
+import { computeMutedPrefixLength } from "@cloudroom/client-core";
+import type {
+  TimelineTitleActionResolver,
+  TimelineTitleLinkResolver,
+} from "./TimelineTitleView.js";
+import type {
+  ThreadTimelineAddToChatHandler,
+  ThreadTimelineLinkHandler,
+  ThreadTimelineLocalFileLinkHandler,
+  UserAttachmentImageSrcResolver,
+} from "./types.js";
+import {
+  ClaudeContextReportCard,
+  parseClaudeContextReport,
+} from "./ClaudeContextReport.js";
+import {
+  ConversationAttachments,
+  buildAttachmentItems,
+  type ConversationAttachmentItems,
+} from "./ConversationAttachments.js";
+import {
+  GeneratedConversationMessage,
+  generatedConversationBodySlice,
+} from "./GeneratedConversationMessage.js";
+import {
+  clipMentionTextToVisibleRange,
+  shiftMentionsToTextRange,
+} from "./ConversationMessageMentions.js";
+import type { MarkdownPromptMentions } from "@/components/ui/markdown-prompt-mentions.js";
+import {
+  useMessageDirectiveRegistry,
+  type MarkdownMessageDirectives,
+} from "@/components/ui/markdown-message-directives.js";
+import { DraftMessageProvider } from "./DraftEditor";
+import {
+  boundedMarkdownPreview,
+  boundedMarkdownTail,
+  closeUnterminatedMarkdownCodeSpan,
+  USER_MESSAGE_CHAR_CAP,
+} from "@cloudroom/client-core";
+import { turnRequestLabel } from "@cloudroom/client-core";
+import {
+  repairStreamingMarkdownTail,
+  splitStreamingMarkdown,
+} from "./streaming-markdown-split.js";
+import { TurnRequestLabel } from "./TurnRequestLabel.js";
+import {
+  MessageActionBar,
+  PROSE_COLUMN_INSET_CLASS,
+} from "./MessageActionBar.js";
+import {
+  ConversationMessageCollapsedDivider,
+  ConversationMessageOverflowToggle,
+  useHiddenLineCount,
+  useIsOverflowing,
+} from "./conversation-message-overflow.js";
+import {
+  SelectableMessageProse,
+  type MessageProseSelection,
+} from "./SelectableMessageProse.js";
+import type { ThreadTimelinePluginMessageAction } from "./types.js";
+import type { PromptDraftAttachment } from "@cloudroom/client-core";
+import { buildMarkdownMessageLinkRouting } from "@/components/ui/markdown-message-link-routing";
+
+interface ConversationMessageContentBaseProps {
+  attachments: TimelineConversationAttachments | null;
+  createdAt?: number;
+  onOpenLocalFileLink?: ThreadTimelineLocalFileLinkHandler;
+  onOpenPluginPanel?: MarkdownMessageDirectives["openThreadPanel"];
+  pluginActions?: readonly ThreadTimelinePluginMessageAction[];
+  projectId?: string;
+  resolveUserAttachmentImageSrc?: UserAttachmentImageSrcResolver;
+  text: string;
+  workspaceRootPath?: string;
+}
+
+interface ConversationMessageContentUserProps extends ConversationMessageContentBaseProps {
+  role: "user";
+  mobileActionDisplay?: "inline" | "overflow";
+  originKind: ThreadOriginKind | null;
+  initiator: TimelineUserConversationRow["initiator"];
+  mentions: readonly PromptTextMention[];
+  onAddToChat?: ThreadTimelineAddToChatHandler;
+  onEdit?: () => void;
+  resolveMentionLink?: PromptMentionLinkResolver;
+  resolveSegmentLinkHref?: TimelineTitleLinkResolver;
+  onOpenLink?: ThreadTimelineLinkHandler;
+  onTitleAction?: TimelineTitleActionResolver;
+  senderThreadId: TimelineUserConversationRow["senderThreadId"];
+  senderThreadProjectId?: string;
+  senderThreadTitle: string | null;
+  senderIsPluginSideChat: boolean;
+  systemMessageKind: TimelineUserConversationRow["systemMessageKind"];
+  systemMessageSubject: TimelineUserConversationRow["systemMessageSubject"];
+  threadId?: string;
+  turnRequest: TimelineUserConversationRow["turnRequest"];
+}
+
+type AssistantMessageRowIdentity = Pick<
+  TimelineRowBase,
+  "id" | "threadId" | "turnId"
+>;
+
+const COLLAPSED_HEAD_FADE =
+  "linear-gradient(to bottom, black calc(100% - 1.25rem), transparent)";
+const COLLAPSED_HEAD_FADE_STYLE: CSSProperties = {
+  maskImage: COLLAPSED_HEAD_FADE,
+  WebkitMaskImage: COLLAPSED_HEAD_FADE,
+};
+const COLLAPSED_TAIL_FADE =
+  "linear-gradient(to top, black calc(100% - 1rem), transparent)";
+const COLLAPSED_TAIL_FADE_STYLE: CSSProperties = {
+  maskImage: COLLAPSED_TAIL_FADE,
+  WebkitMaskImage: COLLAPSED_TAIL_FADE,
+};
+/** Lines a collapsed message still shows: 12 at the start, 8 at the end. */
+const COLLAPSED_VISIBLE_LINES = 20;
+
+const ASSISTANT_THREAD_MENTIONS: MarkdownThreadMentions = {
+  mentions: [],
+  preserveSoftBreaks: false,
+};
+
+const STREAMING_SETTLED_MARKDOWN_CLASS_NAME = "[&>p:last-child]:mb-2";
+const STREAMING_TAIL_MARKDOWN_CLASS_NAME =
+  "[&>h1:first-child]:mt-4 [&>h2:first-child]:mt-4 [&>h3:first-child]:mt-3 [&>h4:first-child]:mt-3 [&>h5:first-child]:mt-2 [&>h6:first-child]:mt-2";
+
+interface ConversationMessageContentAssistantProps
+  extends ConversationMessageContentBaseProps, AssistantMessageRowIdentity {
+  role: "assistant";
+  onOpenLink?: ThreadTimelineLinkHandler;
+  onAddToChat?: ThreadTimelineAddToChatHandler;
+  onFork?: () => void;
+  onSendToMain?: () => void;
+  forkDisabled?: boolean;
+  onSelectProse?: (selection: MessageProseSelection | null) => void;
+  showActions: boolean;
+  mobileActionDisplay: "inline" | "overflow";
+  streaming: boolean;
+  workspaceRootPath?: string;
+}
+
+type ConversationMessageContentProps =
+  | ConversationMessageContentUserProps
+  | ConversationMessageContentAssistantProps;
+
+interface UserConversationMessageProps {
+  addToChatAttachments: readonly PromptDraftAttachment[];
+  attachmentItems: ConversationAttachmentItems;
+  createdAt?: number;
+  originKind: ThreadOriginKind | null;
+  pluginActions?: readonly ThreadTimelinePluginMessageAction[];
+  initiator: TimelineUserConversationRow["initiator"];
+  mentions: readonly PromptTextMention[];
+  mobileActionDisplay: "inline" | "overflow";
+  onAddToChat?: ThreadTimelineAddToChatHandler;
+  onEdit?: () => void;
+  onOpenLink?: ThreadTimelineLinkHandler;
+  onOpenLocalFileLink?: ThreadTimelineLocalFileLinkHandler;
+  projectId?: string;
+  resolveMentionLink?: PromptMentionLinkResolver;
+  resolveSegmentLinkHref?: TimelineTitleLinkResolver;
+  onTitleAction?: TimelineTitleActionResolver;
+  senderThreadId: TimelineUserConversationRow["senderThreadId"];
+  senderThreadProjectId: string | null;
+  senderThreadTitle: string | null;
+  senderIsPluginSideChat: boolean;
+  systemMessageKind: TimelineUserConversationRow["systemMessageKind"];
+  systemMessageSubject: TimelineUserConversationRow["systemMessageSubject"];
+  text: string;
+  threadId?: string;
+  turnRequest: TimelineUserConversationRow["turnRequest"];
+  workspaceRootPath?: string;
+}
+
+interface AssistantConversationMessageProps extends AssistantMessageRowIdentity {
+  addToChatAttachments: readonly PromptDraftAttachment[];
+  attachmentItems: ConversationAttachmentItems;
+  createdAt?: number;
+  pluginActions?: readonly ThreadTimelinePluginMessageAction[];
+  onAddToChat?: ThreadTimelineAddToChatHandler;
+  onFork?: () => void;
+  onSendToMain?: () => void;
+  forkDisabled?: boolean;
+  onSelectProse?: (selection: MessageProseSelection | null) => void;
+  onOpenLink?: ThreadTimelineLinkHandler;
+  onOpenLocalFileLink?: ThreadTimelineLocalFileLinkHandler;
+  onOpenPluginPanel?: MarkdownMessageDirectives["openThreadPanel"];
+  projectId?: string;
+  showActions: boolean;
+  mobileActionDisplay: "inline" | "overflow";
+  streaming: boolean;
+  text: string;
+  workspaceRootPath?: string;
+}
+
+interface MessageMarkdownProps {
+  linkRouting?: MarkdownLinkRouting;
+  mentions: readonly PromptTextMention[];
+  parseAsMarkdown: boolean;
+  resolveMentionLink?: PromptMentionLinkResolver;
+  resolveSegmentLinkHref?: TimelineTitleLinkResolver;
+  text: string;
+}
+
+function MessageMarkdown({
+  linkRouting,
+  mentions,
+  parseAsMarkdown,
+  resolveMentionLink,
+  resolveSegmentLinkHref,
+  text,
+}: MessageMarkdownProps) {
+  const promptMentions = useMemo<MarkdownPromptMentions>(
+    () => ({
+      mentions,
+      resolveLinkHref: resolveSegmentLinkHref,
+      resolveMentionLink,
+    }),
+    [mentions, resolveSegmentLinkHref, resolveMentionLink],
+  );
+  const threadMentions = useMemo<MarkdownThreadMentions>(
+    () => ({ mentions, preserveSoftBreaks: true }),
+    [mentions],
+  );
+  if (!parseAsMarkdown) {
+    return <span>{text}</span>;
+  }
+  return (
+    <MarkdownPreview
+      content={text}
+      promptMentions={promptMentions}
+      threadMentions={threadMentions}
+      linkRouting={linkRouting}
+    />
+  );
+}
+
+const FOCUSABLE_SELECTOR =
+  "a[href], button, input, select, textarea, [tabindex]";
+
+/**
+ * The visible end of a collapsed message. It is a visual copy: screen readers
+ * and Tab skip it and reach the start and the expand button instead.
+ */
+function CollapsedMessageEnd({
+  children,
+  contentKey,
+}: {
+  children: ReactNode;
+  contentKey: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const focusables =
+      ref.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR) ?? [];
+    for (const element of focusables) element.tabIndex = -1;
+  }, [contentKey]);
+  return (
+    <div
+      ref={ref}
+      aria-hidden
+      className="flex h-[calc(8lh+1.25rem)] flex-col justify-end overflow-hidden break-words"
+      style={COLLAPSED_TAIL_FADE_STYLE}
+    >
+      <div className="shrink-0">{children}</div>
+    </div>
+  );
+}
+
+interface CollapsibleMessageTextProps {
+  linkRouting?: MarkdownLinkRouting;
+  mentions: readonly PromptTextMention[];
+  resolveMentionLink?: PromptMentionLinkResolver;
+  resolveSegmentLinkHref?: TimelineTitleLinkResolver;
+  text: string;
+  mutePrefixLength?: number;
+}
+
+/**
+ * A message taller than 22 lines collapses to its start and its end, with a
+ * divider between them. The collapsed bubble stays as tall as before:
+ * 12 lines + 2-line divider + 8 lines and the old "Show more" row's 1.25rem.
+ */
+function CollapsibleMessageText({
+  linkRouting,
+  mentions,
+  resolveMentionLink,
+  resolveSegmentLinkHref,
+  text,
+  mutePrefixLength,
+}: CollapsibleMessageTextProps) {
+  const showMutedPrefix =
+    typeof mutePrefixLength === "number" &&
+    mutePrefixLength > 0 &&
+    mutePrefixLength < text.length;
+  const prefixText = showMutedPrefix ? text.slice(0, mutePrefixLength) : null;
+  const bodyText = showMutedPrefix ? text.slice(mutePrefixLength) : text;
+  const bodyOffset = showMutedPrefix ? mutePrefixLength : 0;
+
+  const [isExpanded, setIsExpanded] = useState(false);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const exceedsCollapsedRenderCap = bodyText.length > USER_MESSAGE_CHAR_CAP;
+  const collapsedPreview =
+    !isExpanded && exceedsCollapsedRenderCap
+      ? boundedMarkdownPreview(bodyText, USER_MESSAGE_CHAR_CAP)
+      : null;
+  const renderedBodyText = collapsedPreview?.text ?? bodyText;
+  const body = useMemo(
+    () =>
+      clipMentionTextToVisibleRange({
+        mentions,
+        rangeStart: bodyOffset,
+        text: renderedBodyText,
+      }),
+    [mentions, bodyOffset, renderedBodyText],
+  );
+  const isOverflowing = useIsOverflowing({
+    elementRef: bodyRef,
+    enabled: !isExpanded,
+    measurementKey: body.text,
+  });
+  const isCollapsed =
+    !isExpanded && (exceedsCollapsedRenderCap || isOverflowing);
+  const tail = useMemo(() => {
+    if (!isCollapsed) return null;
+    const preview = boundedMarkdownTail(bodyText, USER_MESSAGE_CHAR_CAP);
+    const tailMentions = shiftMentionsToTextRange({
+      mentions,
+      rangeStart: bodyOffset + preview.sourceStart,
+      rangeEnd: bodyOffset + bodyText.length,
+    }).map((mention) => ({
+      ...mention,
+      start: mention.start + preview.prefixLength,
+      end: mention.end + preview.prefixLength,
+    }));
+    return { ...preview, mentions: tailMentions };
+  }, [isCollapsed, bodyText, bodyOffset, mentions]);
+  const hiddenLines = useHiddenLineCount({
+    elementRef: bodyRef,
+    enabled: isCollapsed,
+    measurementKey: body.text,
+    scale: bodyText.length / Math.max(renderedBodyText.length, 1),
+    visibleLines: COLLAPSED_VISIBLE_LINES,
+  });
+  // The toggle button unmounts on click, so hand focus to the one that appears.
+  const pendingFocus = useRef<"expand" | "collapse" | null>(null);
+  const toggle = (expand: boolean) => {
+    pendingFocus.current = expand ? "collapse" : "expand";
+    setIsExpanded(expand);
+  };
+  const focusWhenShown =
+    (button: "expand" | "collapse") => (node: HTMLButtonElement | null) => {
+      if (node === null || pendingFocus.current !== button) return;
+      pendingFocus.current = null;
+      node.focus({ preventScroll: true });
+    };
+
+  return (
+    <>
+      {prefixText !== null ? (
+        <span
+          className="line-clamp-1 text-muted-foreground"
+          title={prefixText.trimEnd()}
+        >
+          {prefixText}
+        </span>
+      ) : null}
+      <div
+        data-image-gallery-clipped={!isExpanded ? "" : undefined}
+        className={cn(isCollapsed && "h-[12lh] overflow-hidden")}
+        style={isCollapsed ? COLLAPSED_HEAD_FADE_STYLE : undefined}
+      >
+        {/* Keeps the 22-line clamp so overflow is measured as before. */}
+        <div
+          ref={bodyRef}
+          className={cn(
+            "break-words",
+            !isExpanded && "max-h-[22lh] overflow-hidden",
+          )}
+        >
+          <MessageMarkdown
+            linkRouting={linkRouting}
+            mentions={body.mentions}
+            parseAsMarkdown={collapsedPreview?.parseAsMarkdown !== false}
+            resolveMentionLink={resolveMentionLink}
+            resolveSegmentLinkHref={resolveSegmentLinkHref}
+            text={
+              collapsedPreview?.wasCapped === true
+                ? closeUnterminatedMarkdownCodeSpan(body.text)
+                : body.text
+            }
+          />
+        </div>
+      </div>
+      {tail !== null ? (
+        <>
+          <ConversationMessageCollapsedDivider
+            approximate={collapsedPreview !== null}
+            buttonRef={focusWhenShown("expand")}
+            hiddenLines={hiddenLines}
+            onExpand={() => toggle(true)}
+          />
+          <CollapsedMessageEnd contentKey={tail.text}>
+            <MessageMarkdown
+              linkRouting={linkRouting}
+              mentions={tail.mentions}
+              parseAsMarkdown={tail.parseAsMarkdown}
+              resolveMentionLink={resolveMentionLink}
+              resolveSegmentLinkHref={resolveSegmentLinkHref}
+              text={tail.text}
+            />
+          </CollapsedMessageEnd>
+        </>
+      ) : null}
+      {isExpanded ? (
+        <ConversationMessageOverflowToggle
+          buttonRef={focusWhenShown("collapse")}
+          expanded
+          onToggle={() => toggle(false)}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function buildAddToChatAttachments(
+  attachments: TimelineConversationAttachments | null,
+): PromptDraftAttachment[] {
+  if (!attachments) {
+    return [];
+  }
+
+  return [
+    ...attachments.localImagePaths.map((path) => ({
+      type: "localImage" as const,
+      path,
+      name: fileNameFromPath(path),
+      sizeBytes: 0,
+    })),
+    ...attachments.localFilePaths.map((path) => ({
+      type: "localFile" as const,
+      path,
+      name: fileNameFromPath(path),
+      sizeBytes: 0,
+    })),
+  ];
+}
+
+function UserConversationMessage({
+  addToChatAttachments,
+  attachmentItems,
+  createdAt,
+  originKind,
+  initiator,
+  mentions,
+  mobileActionDisplay,
+  onAddToChat,
+  onEdit,
+  onOpenLink,
+  onOpenLocalFileLink,
+  pluginActions = [],
+  projectId,
+  resolveMentionLink,
+  resolveSegmentLinkHref,
+  onTitleAction,
+  senderThreadId,
+  senderThreadProjectId,
+  senderThreadTitle,
+  senderIsPluginSideChat,
+  systemMessageKind,
+  systemMessageSubject,
+  text,
+  threadId,
+  turnRequest,
+  workspaceRootPath,
+}: UserConversationMessageProps) {
+  const linkRouting = useMemo(
+    () =>
+      buildMarkdownMessageLinkRouting({
+        onOpenLink,
+        onOpenLocalFileLink,
+        threadId,
+        workspaceRootPath,
+      }),
+    [onOpenLink, onOpenLocalFileLink, threadId, workspaceRootPath],
+  );
+  const generatedSource =
+    initiator === "agent" && senderThreadId !== null
+      ? {
+          sourceKind: "agent" as const,
+          sourceName: senderIsPluginSideChat
+            ? "side chat"
+            : (senderThreadTitle ?? "Agent"),
+          sourceProjectId: senderThreadProjectId,
+          sourceThreadId: senderThreadId,
+          sourceIsPluginSideChat: senderIsPluginSideChat,
+          originKind,
+        }
+      : initiator === "system"
+        ? {
+            sourceKind: "system" as const,
+            sourceName: "Cloudroom",
+            sourceProjectId: null,
+            sourceThreadId: null,
+            sourceIsPluginSideChat: false,
+            originKind: null,
+          }
+        : null;
+  if (generatedSource !== null) {
+    const body = generatedConversationBodySlice({ initiator, text });
+    const bodyMentions = shiftMentionsToTextRange({
+      mentions,
+      rangeStart: body.startOffset,
+      rangeEnd: body.startOffset + body.text.length,
+    });
+    return (
+      <GeneratedConversationMessage
+        {...generatedSource}
+        attachmentItems={attachmentItems}
+        mentions={bodyMentions}
+        onOpenLink={onOpenLink}
+        onOpenLocalFileLink={onOpenLocalFileLink}
+        projectId={projectId}
+        resolveMentionLink={resolveMentionLink}
+        resolveSegmentLinkHref={resolveSegmentLinkHref}
+        onTitleAction={onTitleAction}
+        systemMessageKind={systemMessageKind}
+        systemMessageSubject={systemMessageSubject}
+        text={body.text}
+        threadId={threadId}
+        turnRequest={turnRequest}
+        workspaceRootPath={workspaceRootPath}
+      />
+    );
+  }
+
+  const mutePrefixLength = computeMutedPrefixLength(initiator, text);
+  const messageText = text.trim();
+  const requestLabel = turnRequestLabel(turnRequest);
+
+  return (
+    <div className="w-full" data-message-column="">
+      <div className="group/message ml-auto flex w-fit max-w-[70%] flex-col items-end">
+        {requestLabel ? (
+          <div className="mb-1 flex items-center justify-end gap-2">
+            <TurnRequestLabel
+              turnRequest={turnRequest}
+              icon="ArrowTurnForward"
+            />
+          </div>
+        ) : null}
+        <div className="flex w-fit max-w-full flex-col items-end">
+          <div className="max-w-full rounded-xl bg-background px-4 py-2.5 shadow-message dark:bg-surface-recessed text-sm leading-relaxed text-foreground">
+            {messageText ? (
+              <CollapsibleMessageText
+                mentions={mentions}
+                resolveMentionLink={resolveMentionLink}
+                resolveSegmentLinkHref={resolveSegmentLinkHref}
+                linkRouting={linkRouting}
+                text={text}
+                mutePrefixLength={mutePrefixLength || undefined}
+              />
+            ) : (
+              <p className="text-muted-foreground">Sent attachments</p>
+            )}
+            <ConversationAttachments
+              align="end"
+              filePaths={attachmentItems.filePaths}
+              imageItems={attachmentItems.imageItems}
+              onOpenLocalFileLink={onOpenLocalFileLink}
+              projectId={projectId}
+            />
+          </div>
+          <MessageActionBar
+            messageText={messageText}
+            alignment="end"
+            mobileActionDisplay={mobileActionDisplay}
+            addToChatAttachments={addToChatAttachments}
+            copyImageUrl={attachmentItems.imageItems[0]?.src}
+            createdAt={createdAt}
+            onAddToChat={onAddToChat}
+            onEdit={onEdit}
+            pluginActions={pluginActions}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AssistantConversationMessage({
+  addToChatAttachments,
+  attachmentItems,
+  createdAt,
+  id,
+  onAddToChat,
+  onFork,
+  onSendToMain,
+  forkDisabled,
+  onSelectProse,
+  onOpenLink,
+  onOpenLocalFileLink,
+  onOpenPluginPanel,
+  pluginActions,
+  projectId,
+  showActions,
+  mobileActionDisplay,
+  streaming,
+  text,
+  threadId,
+  turnId,
+  workspaceRootPath,
+}: AssistantConversationMessageProps) {
+  const streamingSplit = useMemo(
+    () => (streaming ? splitStreamingMarkdown(text) : null),
+    [streaming, text],
+  );
+  const contextReport = useMemo(
+    () => (streaming ? null : parseClaudeContextReport(text)),
+    [streaming, text],
+  );
+  const hasDraft = text.includes("```draft");
+  const draftMessage = useMemo(
+    () =>
+      hasDraft
+        ? { messageId: id, threadId, projectId: projectId ?? null, streaming }
+        : null,
+    [hasDraft, id, projectId, streaming, threadId],
+  );
+  const liveMarkdown = useMemo(() => {
+    const tail = streamingSplit?.tail ?? text;
+    return streaming ? repairStreamingMarkdownTail(tail) : tail;
+  }, [streaming, streamingSplit, text]);
+  const linkRouting = useMemo(
+    () =>
+      buildMarkdownMessageLinkRouting({
+        onOpenLink,
+        onOpenLocalFileLink,
+        threadId,
+        workspaceRootPath,
+      }),
+    [onOpenLink, onOpenLocalFileLink, threadId, workspaceRootPath],
+  );
+
+  const messageDirectiveRegistry = useMessageDirectiveRegistry();
+  const openDirectiveWorkspaceFile = useMemo<
+    MarkdownMessageDirectives["openWorkspaceFile"]
+  >(() => {
+    if (onOpenLocalFileLink === undefined || workspaceRootPath === undefined) {
+      return null;
+    }
+
+    return (path) => {
+      const href = resolveRelativeLocalFileHref({
+        baseDir: workspaceRootPath,
+        href: path,
+        rootPath: workspaceRootPath,
+      });
+      if (href === null) {
+        return false;
+      }
+      const link = parseLocalFileHref({
+        absoluteLinks: { kind: "contained", rootPath: workspaceRootPath },
+        href,
+      });
+      return link === null ? false : onOpenLocalFileLink(link);
+    };
+  }, [onOpenLocalFileLink, workspaceRootPath]);
+  const messageDirectives = useMemo<
+    MarkdownMessageDirectives | undefined
+  >(() => {
+    if (
+      messageDirectiveRegistry === null ||
+      messageDirectiveRegistry.size === 0
+    ) {
+      return undefined;
+    }
+    return {
+      registry: messageDirectiveRegistry,
+      message: {
+        id,
+        threadId,
+        turnId,
+        projectId: projectId ?? null,
+      },
+      openWorkspaceFile: openDirectiveWorkspaceFile,
+      openThreadPanel: onOpenPluginPanel ?? null,
+    };
+  }, [
+    messageDirectiveRegistry,
+    id,
+    threadId,
+    turnId,
+    projectId,
+    openDirectiveWorkspaceFile,
+    onOpenPluginPanel,
+  ]);
+
+  return (
+    <div
+      className={cn(
+        "group/message w-full text-sm font-normal leading-relaxed",
+        PROSE_COLUMN_INSET_CLASS,
+      )}
+      data-message-column=""
+    >
+      {contextReport ? (
+        <ClaudeContextReportCard report={contextReport} />
+      ) : (
+        <SelectableMessageProse onSelect={onSelectProse}>
+          <DraftMessageProvider value={draftMessage}>
+            <MarkdownPreview
+              className={
+                streamingSplit === null
+                  ? undefined
+                  : STREAMING_SETTLED_MARKDOWN_CLASS_NAME
+              }
+              content={
+                streamingSplit === null ? liveMarkdown : streamingSplit.settled
+              }
+              incrementalBlocks
+              linkRouting={linkRouting}
+              messageDirectives={messageDirectives}
+              threadMentions={ASSISTANT_THREAD_MENTIONS}
+            />
+            {streamingSplit === null ? null : (
+              <MarkdownPreview
+                className={STREAMING_TAIL_MARKDOWN_CLASS_NAME}
+                content={liveMarkdown}
+                sourcePrefix={streamingSplit.settled}
+                incrementalBlocks
+                linkRouting={linkRouting}
+                messageDirectives={messageDirectives}
+                threadMentions={ASSISTANT_THREAD_MENTIONS}
+              />
+            )}
+          </DraftMessageProvider>
+        </SelectableMessageProse>
+      )}
+      <ConversationAttachments
+        filePaths={attachmentItems.filePaths}
+        imageItems={attachmentItems.imageItems}
+        onOpenLocalFileLink={onOpenLocalFileLink}
+        projectId={projectId}
+      />
+      {showActions ? (
+        <MessageActionBar
+          messageText={text}
+          alignment="start"
+          mobileActionDisplay={mobileActionDisplay}
+          addToChatAttachments={addToChatAttachments}
+          copyImageUrl={attachmentItems.imageItems[0]?.src}
+          createdAt={createdAt}
+          onAddToChat={onAddToChat}
+          onFork={onFork}
+          onSendToMain={onSendToMain}
+          disabled={forkDisabled}
+          pluginActions={pluginActions}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+export function ConversationMessageContent(
+  props: ConversationMessageContentProps,
+) {
+  const {
+    attachments,
+    onOpenLocalFileLink,
+    onOpenPluginPanel,
+    projectId,
+    resolveUserAttachmentImageSrc,
+    text,
+  } = props;
+  const attachmentItems = useMemo(
+    () =>
+      buildAttachmentItems({
+        attachments,
+        projectId,
+        resolveUserAttachmentImageSrc,
+      }),
+    [attachments, projectId, resolveUserAttachmentImageSrc],
+  );
+  const addToChatAttachments = useMemo(
+    () => buildAddToChatAttachments(attachments),
+    [attachments],
+  );
+
+  if (props.role === "user") {
+    return (
+      <UserConversationMessage
+        addToChatAttachments={addToChatAttachments}
+        attachmentItems={attachmentItems}
+        createdAt={props.createdAt}
+        originKind={props.originKind}
+        pluginActions={props.pluginActions}
+        initiator={props.initiator}
+        mentions={props.mentions}
+        mobileActionDisplay={props.mobileActionDisplay ?? "overflow"}
+        onAddToChat={props.onAddToChat}
+        onEdit={props.onEdit}
+        onOpenLink={props.onOpenLink}
+        onOpenLocalFileLink={onOpenLocalFileLink}
+        projectId={projectId}
+        resolveMentionLink={props.resolveMentionLink}
+        resolveSegmentLinkHref={props.resolveSegmentLinkHref}
+        onTitleAction={props.onTitleAction}
+        senderThreadId={props.senderThreadId}
+        senderThreadProjectId={props.senderThreadProjectId ?? null}
+        senderThreadTitle={props.senderThreadTitle}
+        senderIsPluginSideChat={props.senderIsPluginSideChat}
+        systemMessageKind={props.systemMessageKind}
+        systemMessageSubject={props.systemMessageSubject}
+        text={text}
+        threadId={props.threadId}
+        turnRequest={props.turnRequest}
+        workspaceRootPath={props.workspaceRootPath}
+      />
+    );
+  }
+
+  return (
+    <AssistantConversationMessage
+      addToChatAttachments={addToChatAttachments}
+      attachmentItems={attachmentItems}
+      createdAt={props.createdAt}
+      id={props.id}
+      pluginActions={props.pluginActions}
+      onAddToChat={props.onAddToChat}
+      onFork={props.onFork}
+      onSendToMain={props.onSendToMain}
+      forkDisabled={props.forkDisabled}
+      onSelectProse={props.onSelectProse}
+      onOpenLink={props.onOpenLink}
+      onOpenLocalFileLink={onOpenLocalFileLink}
+      onOpenPluginPanel={onOpenPluginPanel}
+      projectId={projectId}
+      showActions={props.showActions}
+      mobileActionDisplay={props.mobileActionDisplay}
+      streaming={props.streaming}
+      text={text}
+      threadId={props.threadId}
+      turnId={props.turnId}
+      workspaceRootPath={props.workspaceRootPath}
+    />
+  );
+}

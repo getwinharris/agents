@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { promisify } from 'node:util';
 import { describe, it } from 'node:test';
 
 const cli = new URL('../dist/bapX.js', import.meta.url);
+const execFileAsync = promisify(execFile);
 
 async function runCli(args) {
 	const child = spawn(process.execPath, [cli.pathname, ...args], {
@@ -98,6 +100,53 @@ describe('bapX okf', () => {
 			assert.equal(payload.results[0].sourceCount, 1);
 			assert.match(payload.results[0].excerpt, /repository/i);
 		});
+	});
+
+	it('keeps imported upstream Markdown outside normalization and the OKF corpus', async () => {
+		const root = await mkdtemp(path.join(tmpdir(), 'bapx-okf-upstream-'));
+		try {
+			await mkdir(path.join(root, 'upstream', 'vendor'), { recursive: true });
+			await mkdir(path.join(root, 'docs', 'upstream'), { recursive: true });
+			await writeFile(
+				path.join(root, 'owned.md'),
+				'---\ntype: Document\ntitle: Owned knowledge\n---\n\n# Owned knowledge\n\nRepository-owned searchable evidence.\n',
+			);
+			const imported = '# Imported knowledge\n\nUnique vendor-only evidence: zirconium-cloudroom.\n';
+			const importedPath = path.join(root, 'upstream', 'vendor', 'README.md');
+			await writeFile(importedPath, imported);
+			const nestedOwnedPath = path.join(root, 'docs', 'upstream', 'nested.md');
+			await writeFile(
+				nestedOwnedPath,
+				'# Nested upstream knowledge\n\nUnique owned evidence: vanadium-workspace.\n',
+			);
+			await execFileAsync('git', ['init', '--quiet'], { cwd: root });
+			await execFileAsync('git', ['add', '.'], { cwd: root });
+
+			const normalize = await runCli(['okf', 'normalize', '--root', root, '--write']);
+			assert.equal(normalize.code, 0);
+			assert.equal(await readFile(importedPath, 'utf8'), imported);
+			await assert.rejects(access(path.join(root, 'upstream', 'vendor', 'index.yaml')));
+			assert.match(await readFile(nestedOwnedPath, 'utf8'), /^---\ntype: "Document"/);
+			await access(path.join(root, 'docs', 'upstream', 'index.yaml'));
+
+			const index = await runCli(['okf', 'index', '--root', root]);
+			assert.equal(index.code, 0);
+			const indexPayload = JSON.parse(index.stdout);
+			assert.deepEqual(indexPayload.concepts.map((concept) => concept.path), [
+				'docs/upstream/nested.md',
+				'owned.md',
+			]);
+
+			const query = await runCli(['okf', 'query', '--root', root, 'zirconium-cloudroom']);
+			assert.equal(query.code, 0);
+			assert.deepEqual(JSON.parse(query.stdout).results, []);
+
+			const nestedQuery = await runCli(['okf', 'query', '--root', root, 'vanadium-workspace']);
+			assert.equal(nestedQuery.code, 0);
+			assert.equal(JSON.parse(nestedQuery.stdout).results[0]?.path, 'docs/upstream/nested.md');
+		} finally {
+			await rm(root, { recursive: true, force: true });
+		}
 	});
 
 	it('keeps index output inside the requested OKF root', async () => {

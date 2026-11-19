@@ -1,0 +1,145 @@
+import {
+  CALLER_TOKEN_HEADER,
+  createCallerProofFetch,
+} from "@cloudroom/config/caller-proof";
+import { loadCliConfig, type CliConfig } from "@cloudroom/config/cli";
+import {
+  createHostDaemonLocalClient,
+  DEFAULT_HOST_DAEMON_LOCAL_BIND_HOST,
+} from "@cloudroom/host-daemon-contract";
+import { createGuideArea } from "./areas/guide.js";
+import { createBbSdk, type BbSdk, type BbSdkAreas } from "./core.js";
+import { createNodeWebsocketFactory } from "./node-websocket.js";
+import {
+  createRequestTimeoutFetch,
+  DEFAULT_BB_REQUEST_TIMEOUT_MS,
+  type FetchImplementation,
+} from "./response.js";
+import { createHttpTransport } from "./transport-http.js";
+import type {
+  BbRealtimeSocketFactory,
+  BbSdkContext,
+  BbSdkTransport,
+} from "./transport.js";
+
+export interface CreateNodeTransportArgs {
+  baseUrl?: string;
+  callerToken?: string;
+  cliConfig?: CliConfig;
+  fetch?: FetchImplementation;
+  realtimeUrl?: string;
+  timeoutMs?: number;
+  websocket?: BbRealtimeSocketFactory;
+}
+
+export interface CreateNodeBbSdkArgs extends CreateNodeTransportArgs {
+  context?: BbSdkContext;
+}
+
+export interface FetchLocalHostIdArgs {
+  cliConfig?: CliConfig;
+  hostDaemonUrl?: string;
+}
+
+function resolveCliConfig(cliConfig?: CliConfig): CliConfig {
+  return cliConfig ?? loadCliConfig();
+}
+
+function resolveHostDaemonUrl(cliConfig?: CliConfig): string {
+  const config = resolveCliConfig(cliConfig);
+  return `http://${DEFAULT_HOST_DAEMON_LOCAL_BIND_HOST}:${config.ROOM_HOST_DAEMON_PORT}`;
+}
+
+function withCallerToken(
+  fetchImpl: FetchImplementation,
+  callerToken: string,
+): FetchImplementation {
+  return (input, init) => {
+    const headers = new Headers(init?.headers);
+    headers.set(CALLER_TOKEN_HEADER, callerToken);
+    return fetchImpl(input, { ...init, headers });
+  };
+}
+
+export function createNodeTransport(
+  args: CreateNodeTransportArgs = {},
+): BbSdkTransport {
+  const fetchImpl =
+    args.fetch ??
+    createRequestTimeoutFetch({
+      timeoutMs: args.timeoutMs ?? DEFAULT_BB_REQUEST_TIMEOUT_MS,
+    });
+  return createHttpTransport({
+    baseUrl: args.baseUrl ?? resolveCliConfig(args.cliConfig).ROOM_SERVER_URL,
+    fetch:
+      args.callerToken === undefined
+        ? createCallerProofFetch(fetchImpl)
+        : withCallerToken(fetchImpl, args.callerToken),
+    realtimeUrl: args.realtimeUrl,
+    runtime: "node",
+    websocket:
+      args.websocket ??
+      createNodeWebsocketFactory({ callerToken: args.callerToken }),
+  });
+}
+
+export function createNodeBbSdk(args: CreateNodeBbSdkArgs = {}): BbSdk {
+  return createBbSdk({
+    context: args.context,
+    guide: createGuideArea(),
+    transport: createNodeTransport(args),
+  });
+}
+
+export async function fetchLocalHostId(
+  args: FetchLocalHostIdArgs = {},
+): Promise<string | null> {
+  try {
+    const client = createHostDaemonLocalClient(
+      args.hostDaemonUrl ?? resolveHostDaemonUrl(args.cliConfig),
+    );
+    const response = await client.status.$get();
+    if (!response.ok) {
+      return null;
+    }
+    const body = await response.json();
+    return body.hostId;
+  } catch {
+    return null;
+  }
+}
+
+export {
+  createBbSdk,
+  createHttpTransport,
+  createRequestTimeoutFetch,
+  DEFAULT_BB_REQUEST_TIMEOUT_MS,
+};
+export { BbHttpError, BbRequestTimeoutError } from "./response.js";
+export {
+  pluginMutationResponseSchema,
+  type PluginMutationResponse,
+} from "./areas/plugins.js";
+export { createBuiltinPlanCommandTextInput } from "./core.js";
+export { createGuideArea } from "./areas/guide.js";
+export {
+  DEFAULT_THREAD_WAIT_POLL_INTERVAL_MS,
+  DEFAULT_THREAD_WAIT_TIMEOUT_MS,
+  ThreadWaitTimeoutError,
+  ThreadWaitUnreachableError,
+} from "./areas/threads.js";
+export type {
+  BbSdk,
+  BbSdkAreas,
+  BbSdkContext,
+  BbSdkTransport,
+  FetchImplementation,
+};
+export type * from "./areas/skills.js";
+export type {
+  BbRealtimeSocket,
+  BbRealtimeSocketFactory,
+  BbRealtimeSocketMessageEvent,
+} from "./transport.js";
+export type { BbHttpErrorArgs } from "./response.js";
+export type * from "./public-types.js";
